@@ -16,8 +16,9 @@ solution "arena"
 	}
 
 	language "C++"
+	startproject "arena"
+	configuration {}
 
-	configurations {}
 
 function copyLib() end
 
