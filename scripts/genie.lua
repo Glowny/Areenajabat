@@ -54,6 +54,16 @@ toolchain(ARENA_BUILD_DIR, ARENA_THIRD_DIR)
 --os.is("windows") and { "BGFX_CONFIG_RENDERER_DIRECT3D9=1" } or {
 bgfxProject("", "StaticLib", { "BGFX_CONFIG_RENDERER_OPENGL=44" })
 
+project "Box2D"
+	kind "StaticLib"
+	files { 
+		path.join(ARENA_THIRD_DIR, "Box2D", "**.h"),
+		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
+	}
+	vpaths { [""] = "Box2D" }
+	includedirs { path.join(ARENA_THIRD_DIR) }
+
+
 project ("arena")
 	kind ("ConsoleApp")
 
@@ -61,12 +71,14 @@ project ("arena")
 		path.join(BX_DIR, "include"),
 		path.join(BGFX_DIR, "include"),
 		path.join(BGFX_DIR, "3rdparty"),
+		path.join(ARENA_THIRD_DIR),
 		path.join(BGFX_DIR, "examples/common/imgui"),
 	}
 
 	links {
 		"bgfx",
-		"SDL2"
+		"SDL2",
+		"Box2D"
 	}
 
 	files {
