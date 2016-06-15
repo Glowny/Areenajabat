@@ -72,4 +72,14 @@ project ("arena")
 		ARENA_DIR .. "src/**.cpp",
 	}
 
+	configuration { "vs*" and "x32"}
+	postbuildcommands {
+		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win32_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
+	}
+
+	configuration { "vs*" and "x64"}
+	postbuildcommands {
+		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win64_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
+	}
+
 	configuration {}

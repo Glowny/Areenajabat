@@ -30,7 +30,7 @@ int main()
 
     SDL_Init(SDL_INIT_GAMECONTROLLER);
 
-    SDL_CreateWindow("bgfx"
+    SDL_Window* wnd = SDL_CreateWindow("bgfx"
         , SDL_WINDOWPOS_UNDEFINED
         , SDL_WINDOWPOS_UNDEFINED
         , width
@@ -38,6 +38,9 @@ int main()
         , SDL_WINDOW_SHOWN
         | SDL_WINDOW_RESIZABLE
     );
+
+    bgfx::sdlSetWindow(wnd);
+    bgfx::renderFrame();
 
     bgfx::init(bgfx::RendererType::OpenGL, BGFX_PCI_ID_NVIDIA);
     bgfx::reset(1280, 720, BGFX_RESET_VSYNC);
