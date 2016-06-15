@@ -22,7 +22,11 @@ solution "arena"
 function copyLib() end
 
 configuration { "vs*" }
-	includedirs { BX_DIR .. "include/compat/msvc"} 
+	includedirs { 
+		BX_DIR .. "include/compat/msvc",
+		path.join(ARENA_THIRD_DIR, "SDL2/include")
+	} 
+	links { "psapi"}
 
 buildoptions {
 	"/Oy-", -- Suppresses creation of frame pointers on the call stack.
@@ -56,11 +60,12 @@ project ("arena")
 		path.join(BX_DIR, "include"),
 		path.join(BGFX_DIR, "include"),
 		path.join(BGFX_DIR, "3rdparty"),
-		path.join(BGFX_DIR, "examples/common/imgui")
+		path.join(BGFX_DIR, "examples/common/imgui"),
 	}
 
 	links {
-		"bgfx"
+		"bgfx",
+		"SDL2"
 	}
 
 	files {
