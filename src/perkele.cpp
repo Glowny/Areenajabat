@@ -1,5 +1,6 @@
 #include <bgfx/bgfx.h>
 #include <string>
+#include "app.h"
 
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
@@ -35,7 +36,7 @@ struct Context
 
         SDL_Init(SDL_INIT_GAMECONTROLLER);
 
-        SDL_Window* wnd = SDL_CreateWindow("bgfx"
+        SDL_Window* wnd = SDL_CreateWindow("Arena"
             , SDL_WINDOWPOS_UNDEFINED
             , SDL_WINDOWPOS_UNDEFINED
             , width
@@ -82,39 +83,25 @@ struct Context
 };
 
 static Context s_ctx;
+static arena::App s_app;
 
 int32_t thread_proc(void*)
 {
     bgfx::init();
-    bgfx::reset(1280, 720, BGFX_DEBUG_TEXT);
 
-    // Enable debug text.
-    bgfx::setDebug(BGFX_DEBUG_TEXT);
-
-    // Set view 0 clear state.
-    bgfx::setViewClear(0
-        , BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
-        , 0x303030ff
-        , 1.0f
-        , 0
-    );
+    s_app.init();
 
     while (!s_exit) 
     {
-        // Set view 0 default viewport.
-        bgfx::setViewRect(0, 0, 0, uint16_t(1280), uint16_t(720));
-
-        // This dummy draw call is here to make sure that view 0 is cleared
-        // if no other draw calls are submitted to view 0.
-        bgfx::touch(0);
-
-        bgfx::frame();
+        s_app.update();
     }
 
     SDL_Event event;
     SDL_QuitEvent& qev = event.quit;
     qev.type = SDL_QUIT;
     SDL_PushEvent(&event);
+
+    s_app.shutdown();
 
     bgfx::shutdown();
 
