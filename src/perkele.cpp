@@ -103,7 +103,7 @@ namespace arena
     struct Context
     {
         Context()
-            : m_mx(0), m_my(0), m_mz(0), m_window(NULL)
+            : m_mx(0), m_my(0), m_mz(0), m_window(NULL), m_width(1280), m_height(720)
 
         {
             memset(s_translateKey, 0, sizeof(s_translateKey));
@@ -218,21 +218,21 @@ namespace arena
 
         int run()
         {
-            int32_t width = 1280;
-            int32_t height = 720;
 
             SDL_Init(SDL_INIT_GAMECONTROLLER);
 
             m_window = SDL_CreateWindow("Arena"
                 , SDL_WINDOWPOS_UNDEFINED
                 , SDL_WINDOWPOS_UNDEFINED
-                , width
-                , height
+                , m_width
+                , m_height
                 , SDL_WINDOW_SHOWN
                 | SDL_WINDOW_RESIZABLE
             );
 
             bgfx::sdlSetWindow(m_window);
+            setWindowSize(m_width, m_height, true);
+
             bgfx::renderFrame();
 
             m_thread.init(thread_proc);
@@ -350,6 +350,42 @@ namespace arena
                         
                     }
                     break;
+
+                    case SDL_WINDOWEVENT:
+                    {
+                        const SDL_WindowEvent& wev = event.window;
+                        switch (wev.event)
+                        {
+                        case SDL_WINDOWEVENT_RESIZED:
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        {
+                            setWindowSize(wev.data1, wev.data2);
+                        }
+                        break;
+
+                        case SDL_WINDOWEVENT_SHOWN:
+                        case SDL_WINDOWEVENT_HIDDEN:
+                        case SDL_WINDOWEVENT_EXPOSED:
+                        case SDL_WINDOWEVENT_MOVED:
+                        case SDL_WINDOWEVENT_MINIMIZED:
+                        case SDL_WINDOWEVENT_MAXIMIZED:
+                        case SDL_WINDOWEVENT_RESTORED:
+                        case SDL_WINDOWEVENT_ENTER:
+                        case SDL_WINDOWEVENT_LEAVE:
+                        case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        case SDL_WINDOWEVENT_FOCUS_LOST:
+                            break;
+
+                        case SDL_WINDOWEVENT_CLOSE:
+                        {
+                            m_eventQueue.postExitEvent();
+                            exit = true;
+                        }
+                        break;
+                        }
+                    }
+                    break;
+
                     }
 
             }
@@ -365,9 +401,14 @@ namespace arena
         }
 
         bx::Thread m_thread;
+
+        int32_t m_width;
+        int32_t m_height;
+
         int32_t m_mx;
         int32_t m_my;
         int32_t m_mz;
+
         SDL_Window* m_window;
 
         EventQueue m_eventQueue;
@@ -375,6 +416,20 @@ namespace arena
 
     static Context s_ctx;
     static arena::App s_app;
+
+    void setWindowSize(uint32_t width, uint32_t height, bool force)
+    {
+        if (width != s_ctx.m_width
+            || height != s_ctx.m_height
+            || force)
+        {
+            s_ctx.m_width = width;
+            s_ctx.m_height = height;
+
+            SDL_SetWindowSize(s_ctx.m_window, width, height);
+            s_ctx.m_eventQueue.postSizeEvent(s_ctx.m_window, width, height);
+        }
+    }
 
     const Event* poll()
     {
@@ -390,7 +445,7 @@ namespace arena
     {
         bgfx::init();
 
-        s_app.init();
+        s_app.init(s_ctx.m_width, s_ctx.m_height);
 
         while (!s_app.update());
 

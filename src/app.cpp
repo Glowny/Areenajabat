@@ -6,6 +6,7 @@
 namespace arena
 {
     static bool s_exit = false;
+    static uint32_t s_reset = BGFX_RESET_NONE;
 
     static void cmdExit(const void*)
     {
@@ -14,19 +15,20 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-        { arena::Key::KeyQ, arena::Modifier::LeftCtrl, 1, cmdExit, "exit" },
+        { arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
         INPUT_BINDING_END
     };
 
-    void App::init()
+    void App::init(int32_t width, int32_t height)
     {
+        this->width = width;
+        this->height = height;
+
         inputInit();
         inputAddBindings("bindings", s_bindings);
 
-        bgfx::reset(1280, 720, BGFX_DEBUG_TEXT);
-
-        // Enable debug text.
-        bgfx::setDebug(BGFX_DEBUG_TEXT);
+        bgfx::reset(width, height, s_reset);
+        //bgfx::setDebug(s_reset);
 
         // Set view 0 clear state.
         bgfx::setViewClear(0
@@ -40,6 +42,8 @@ namespace arena
     bool App::update()
     {
         const Event* ev;
+
+        uint32_t reset = s_reset;
 
         do {
             struct SE { const Event* m_ev; SE() : m_ev(poll()) {} ~SE() { if (NULL != m_ev) { release(m_ev); } } } scopeEvent;
@@ -102,9 +106,9 @@ namespace arena
                     {
                         const SizeEvent* size = static_cast<const SizeEvent*>(ev);
                         window = size->m_window;
-                        /*_width = size->m_width;
-                        _height = size->m_height;
-                        _reset = !s_reset; // force reset*/ // TODO
+                        width = size->m_width;
+                        height = size->m_height;
+                        reset = !s_reset; // force reset
                     }
                     break;
                     default:
@@ -116,8 +120,15 @@ namespace arena
 
         } while (ev != NULL);
 
+        if (reset != s_reset)
+        {
+            bgfx::reset(width, height, reset);
+            inputSetMouseResolution(uint16_t(width), uint16_t(height));
+        }
+
         // Set view 0 default viewport.
-        bgfx::setViewRect(0, 0, 0, uint16_t(1280), uint16_t(720));
+        bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
+
         bgfx::touch(0);
         bgfx::frame();
 
