@@ -28,7 +28,7 @@ namespace arena
         inputAddBindings("bindings", s_bindings);
 
         bgfx::reset(width, height, s_reset);
-        //bgfx::setDebug(s_reset);
+        bgfx::setDebug(BGFX_DEBUG_TEXT);
 
         // Set view 0 clear state.
         bgfx::setViewClear(0
@@ -76,21 +76,6 @@ namespace arena
                         {
                             inputSetMouseButtonState(mouse->m_button, mouse->m_down);
                         }
-
-                        /*if (NULL != _mouse
-                            && !mouseLock)
-                        {
-                            if (mouse->m_move)
-                            {
-                                _mouse->m_mx = mouse->m_mx;
-                                _mouse->m_my = mouse->m_my;
-                                _mouse->m_mz = mouse->m_mz;
-                            }
-                            else
-                            {
-                                _mouse->m_buttons[mouse->m_button] = mouse->m_down;
-                            }
-                        }*/
                     }
                     break;
                     case Event::Key:
@@ -130,6 +115,14 @@ namespace arena
         bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
 
         bgfx::touch(0);
+
+        int32_t mouse[3];
+        inputGetMouseAbsolute(mouse);
+
+        bgfx::dbgTextClear();
+        bgfx::dbgTextPrintf(0, 1, 0x4f, "Perkeleen perkele");
+        bgfx::dbgTextPrintf(0, 2, 0x6f, "Mouse x = %d, y = %d, wheel = %d", mouse[0], mouse[1], mouse[2]);
+
         bgfx::frame();
 
         return s_exit;

@@ -241,6 +241,8 @@ namespace arena
     ///
     bool inputIsMouseLocked();
 
+    void inputGetMouseAbsolute(int32_t mouse[3]);
+
     ///
     /*void inputSetGamepadAxis(entry::GamepadHandle _handle, entry::GamepadAxis::Enum _axis, int32_t _value);
 

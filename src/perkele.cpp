@@ -260,9 +260,9 @@ namespace arena
                         m_my = mev.y;
 
                         m_eventQueue.postMouseEvent(m_window, m_mx, m_my, m_mz);
-                       
+                        break;
                     }
-                    break;
+                    
 
                     case SDL_MOUSEBUTTONDOWN:
                     case SDL_MOUSEBUTTONUP:

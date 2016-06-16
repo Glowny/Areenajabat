@@ -430,6 +430,13 @@ namespace arena
         s_input->m_mouse.m_norm[2] = 0.0f;
     }
 
+    void inputGetMouseAbsolute(int32_t mouse[3])
+    {
+        mouse[0] = s_input->m_mouse.m_absolute[0];
+        mouse[1] = s_input->m_mouse.m_absolute[1];
+        mouse[2] = s_input->m_mouse.m_absolute[2];
+    }
+
     bool inputIsMouseLocked()
     {
         return s_input->m_mouse.m_lock;
