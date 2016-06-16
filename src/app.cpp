@@ -8,6 +8,8 @@ namespace arena
     static bool s_exit = false;
     static uint32_t s_reset = BGFX_RESET_NONE;
 
+    static MouseState s_mouseState;
+
     static void cmdExit(const void*)
     {
         s_exit = true;
@@ -71,10 +73,14 @@ namespace arena
                         if (mouse->m_move)
                         {
                             inputSetMousePos(mouse->m_mx, mouse->m_my, mouse->m_mz);
+                            s_mouseState.m_mx = mouse->m_mx;
+                            s_mouseState.m_my = mouse->m_my;
+                            s_mouseState.m_mz = mouse->m_mz;
                         }
                         else
                         {
                             inputSetMouseButtonState(mouse->m_button, mouse->m_down);
+                            s_mouseState.m_buttons[mouse->m_button] = mouse->m_down;
                         }
                     }
                     break;
@@ -116,12 +122,16 @@ namespace arena
 
         bgfx::touch(0);
 
-        int32_t mouse[3];
-        inputGetMouseAbsolute(mouse);
+/*        int32_t mouse[3];
+        inputGetMouseAbsolute(mouse);*/
 
         bgfx::dbgTextClear();
         bgfx::dbgTextPrintf(0, 1, 0x4f, "Perkeleen perkele");
-        bgfx::dbgTextPrintf(0, 2, 0x6f, "Mouse x = %d, y = %d, wheel = %d", mouse[0], mouse[1], mouse[2]);
+        bgfx::dbgTextPrintf(0, 2, 0x6f, "Mouse x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
+        bgfx::dbgTextPrintf(0, 3, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s", 
+            s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up", 
+            s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
+            s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 
         bgfx::frame();
 

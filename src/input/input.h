@@ -176,6 +176,25 @@ namespace arena
 
     const char* getName(Key::Enum _key);
 
+    struct MouseState
+    {
+        MouseState()
+            : m_mx(0)
+            , m_my(0)
+            , m_mz(0)
+        {
+            for (uint32_t ii = 0; ii < arena::MouseButton::Count; ++ii)
+            {
+                m_buttons[ii] = arena::MouseButton::None;
+            }
+        }
+
+        int32_t m_mx;
+        int32_t m_my;
+        int32_t m_mz;
+        uint8_t m_buttons[arena::MouseButton::Count];
+    };
+
 
     typedef void(*InputBindingFn)(const void* _userData);
 
@@ -233,7 +252,7 @@ namespace arena
     void inputSetMouseButtonState(arena::MouseButton::Enum _button, uint8_t _state);
 
     ///
-    void inputSetMouseLock(bool _lock);
+    //void inputSetMouseLock(bool _lock);
 
     ///
     void inputGetMouse(float _mouse[3]);
