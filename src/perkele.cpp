@@ -381,6 +381,16 @@ namespace arena
     static Context s_ctx;
     static arena::App s_app;
 
+    const Event* poll()
+    {
+        return s_ctx.m_eventQueue.poll();
+    }
+
+    void release(const Event* _event)
+    {
+        s_ctx.m_eventQueue.release(_event);
+    }
+
     int32_t thread_proc(void*)
     {
         bgfx::init();

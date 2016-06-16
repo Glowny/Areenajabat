@@ -211,5 +211,4 @@ namespace arena
     private:
         bx::SpScUnboundedQueue<Event> m_queue;
     };
-
 }

@@ -1,6 +1,8 @@
 #pragma once
 namespace arena
 {
+    struct Event;
+
     struct App
     {
         void update();
@@ -9,4 +11,7 @@ namespace arena
 
         void shutdown();
     };
+
+    const Event* poll();
+    void release(const Event* event);
 }
