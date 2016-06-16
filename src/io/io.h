@@ -1,3 +1,5 @@
+#pragma once
+
 #include <bx/bx.h>
 #include <bx/readerwriter.h>
 

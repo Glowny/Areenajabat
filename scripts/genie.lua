@@ -21,6 +21,7 @@ solution "arena"
 
 
 function copyLib() end
+function strip() end
 
 configuration { "vs*" }
 	includedirs { 
@@ -53,6 +54,8 @@ dofile(BGFX_DIR .. "scripts/bgfx.lua")
 toolchain(ARENA_BUILD_DIR, ARENA_THIRD_DIR)
 --os.is("windows") and { "BGFX_CONFIG_RENDERER_DIRECT3D9=1" } or {
 bgfxProject("", "StaticLib", { "BGFX_CONFIG_RENDERER_OPENGL=44" })
+dofile(ARENA_DIR .. "scripts/shaderc.lua")
+dofile(ARENA_DIR .. "scripts/texturec.lua")
 
 project "Box2D"
 	kind "StaticLib"
