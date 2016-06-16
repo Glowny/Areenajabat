@@ -5,7 +5,8 @@ namespace arena
 
     struct App
     {
-        void update();
+        // return true if exit
+        bool update();
 
         void init();
 

@@ -26,9 +26,6 @@ BX_PRAGMA_DIAGNOSTIC_POP_CLANG()
 #include "input/input.h"
 #include "input/event.h"
 
-static bool s_exit = false;
-
-
 namespace arena
 {
     int32_t thread_proc(void*);
@@ -254,7 +251,6 @@ namespace arena
                     {    
                         m_eventQueue.postExitEvent();
                         exit = true;
-                        s_exit = true;
                         break;
                     }
                     case SDL_MOUSEMOTION:
@@ -366,7 +362,6 @@ namespace arena
             SDL_Quit();
 
             return m_thread.getExitCode();
-            //bgfx::shutdown();
         }
 
         bx::Thread m_thread;
@@ -397,10 +392,7 @@ namespace arena
 
         s_app.init();
 
-        while (!s_exit)
-        {
-            s_app.update();
-        }
+        while (!s_app.update());
 
         s_app.shutdown();
 

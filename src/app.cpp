@@ -5,9 +5,16 @@
 
 namespace arena
 {
+    static bool s_exit = false;
+
+    static void cmdExit(const void*)
+    {
+        s_exit = true;
+    }
+
     static const InputBinding s_bindings[] =
     {
-        { arena::Key::KeyQ, arena::Modifier::LeftCtrl, 1, NULL, "exit" },
+        { arena::Key::KeyQ, arena::Modifier::LeftCtrl, 1, cmdExit, "exit" },
         INPUT_BINDING_END
     };
 
@@ -30,7 +37,7 @@ namespace arena
             );
     }
 
-    void App::update()
+    bool App::update()
     {
         const Event* ev;
 
@@ -51,7 +58,7 @@ namespace arena
                     }
                     break;
                     case Event::Exit:
-                        return; // TODO WTF ????
+                        return true;
                     case Event::Mouse:
                     {
                         const MouseEvent* mouse = static_cast<const MouseEvent*>(ev);
@@ -113,6 +120,8 @@ namespace arena
         bgfx::setViewRect(0, 0, 0, uint16_t(1280), uint16_t(720));
         bgfx::touch(0);
         bgfx::frame();
+
+        return s_exit;
     }
 
     void App::shutdown()
