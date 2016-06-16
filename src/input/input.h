@@ -5,15 +5,6 @@
 
 namespace arena
 {
-    struct WindowHandle { uint16_t idx; };
-    inline bool isValid(WindowHandle _handle) { return UINT16_MAX != _handle.idx; }
-
-    struct GamepadHandle { uint16_t idx; };
-    inline bool isValid(GamepadHandle _handle) { return UINT16_MAX != _handle.idx; }
-}
-
-namespace arena
-{
 
     struct MouseButton
     {
@@ -183,61 +174,6 @@ namespace arena
         };
     };
 
-    struct MouseState
-    {
-        MouseState()
-            : m_mx(0)
-            , m_my(0)
-            , m_mz(0)
-        {
-            for (uint32_t ii = 0; ii < MouseButton::Count; ++ii)
-            {
-                m_buttons[ii] = MouseButton::None;
-            }
-        }
-
-        int32_t m_mx;
-        int32_t m_my;
-        int32_t m_mz;
-        uint8_t m_buttons[MouseButton::Count];
-    };
-
-    struct GamepadState
-    {
-        GamepadState()
-        {
-            memset(m_axis, 0, sizeof(m_axis));
-        }
-
-        int32_t m_axis[GamepadAxis::Count];
-    };
-
-    struct WindowState
-    {
-        WindowState()
-            : m_width(0)
-            , m_height(0)
-            , m_nwh(NULL)
-        {
-            m_handle.idx = UINT16_MAX;
-        }
-
-        WindowHandle m_handle;
-        uint32_t     m_width;
-        uint32_t     m_height;
-        MouseState   m_mouse;
-        void*        m_nwh;
-    };
-
     const char* getName(Key::Enum _key);
-
-    WindowHandle createWindow(int32_t _x, int32_t _y, uint32_t _width, uint32_t _height, const char* _title = "");
-    void destroyWindow(WindowHandle _handle);
-    void setWindowPos(WindowHandle _handle, int32_t _x, int32_t _y);
-    void setWindowSize(WindowHandle _handle, uint32_t _width, uint32_t _height);
-    void setWindowTitle(WindowHandle _handle, const char* _title);
-    void toggleWindowFrame(WindowHandle _handle);
-    void toggleFullscreen(WindowHandle _handle);
-    void setMouseLock(WindowHandle _handle, bool _lock);
 
 }
