@@ -64,7 +64,11 @@ namespace arena
                 path = root + name;
             }
 
-            types[type].load(path);
+            entry.references = 1;
+            entry.data = types[type].load(path);
+            
+            resources[id] = entry;
+            return;
         }
 
         ++entry.references;
