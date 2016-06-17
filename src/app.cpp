@@ -5,7 +5,7 @@
 #include <bx/bx.h>
 #include <bx/crtimpl.h>
 #include "res/resource_manager.h"
-
+#include <bx/fpumath.h>
 namespace arena
 {
     static bool s_exit = false;
@@ -26,6 +26,104 @@ namespace arena
         INPUT_BINDING_END
     };
 
+    struct PosUvColorVertex
+    {
+        float m_x;
+        float m_y;
+        float m_u;
+        float m_v;
+        uint32_t m_abgr;
+
+        static void init()
+        {
+            ms_decl
+                .begin()
+                .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+                .end();
+        }
+
+        static bgfx::VertexDecl ms_decl;
+    };
+
+    bgfx::VertexDecl PosUvColorVertex::ms_decl;
+
+    bool screenQuad(int32_t _x, int32_t _y, int32_t _width, uint32_t _height, uint32_t _abgr, bool _originBottomLeft = false)
+    {
+        if (bgfx::checkAvailTransientVertexBuffer(6, PosUvColorVertex::ms_decl))
+        {
+            bgfx::TransientVertexBuffer vb;
+            bgfx::allocTransientVertexBuffer(&vb, 6, PosUvColorVertex::ms_decl);
+            PosUvColorVertex* vertex = (PosUvColorVertex*)vb.data;
+
+            const float widthf = float(_width);
+            const float heightf = float(_height);
+
+            const float minx = float(_x);
+            const float miny = float(_y);
+            const float maxx = minx + widthf;
+            const float maxy = miny + heightf;
+
+            float m_halfTexel = 0.0f;
+
+            const float texelHalfW = m_halfTexel / widthf;
+            const float texelHalfH = m_halfTexel / heightf;
+            const float minu = texelHalfW;
+            const float maxu = 1.0f - texelHalfW;
+            const float minv = _originBottomLeft ? texelHalfH + 1.0f : texelHalfH;
+            const float maxv = _originBottomLeft ? texelHalfH : texelHalfH + 1.0f;
+
+            vertex[0].m_x = minx;
+            vertex[0].m_y = miny;
+            vertex[0].m_u = minu;
+            vertex[0].m_v = minv;
+
+            vertex[1].m_x = maxx;
+            vertex[1].m_y = miny;
+            vertex[1].m_u = maxu;
+            vertex[1].m_v = minv;
+
+            vertex[2].m_x = maxx;
+            vertex[2].m_y = maxy;
+            vertex[2].m_u = maxu;
+            vertex[2].m_v = maxv;
+
+            vertex[3].m_x = maxx;
+            vertex[3].m_y = maxy;
+            vertex[3].m_u = maxu;
+            vertex[3].m_v = maxv;
+
+            vertex[4].m_x = minx;
+            vertex[4].m_y = maxy;
+            vertex[4].m_u = minu;
+            vertex[4].m_v = maxv;
+
+            vertex[5].m_x = minx;
+            vertex[5].m_y = miny;
+            vertex[5].m_u = minu;
+            vertex[5].m_v = minv;
+
+            vertex[0].m_abgr = _abgr;
+            vertex[1].m_abgr = _abgr;
+            vertex[2].m_abgr = _abgr;
+            vertex[3].m_abgr = _abgr;
+            vertex[4].m_abgr = _abgr;
+            vertex[5].m_abgr = _abgr;
+
+            bgfx::setVertexBuffer(&vb);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bgfx::IndexBufferHandle ibh;
+    bgfx::VertexBufferHandle vbh;
+    bgfx::UniformHandle s_texture;
+    bgfx::TextureHandle texture;
+    bgfx::ProgramHandle program;
     void App::init(int32_t width, int32_t height)
     {
         this->width = width;
@@ -40,11 +138,6 @@ namespace arena
         bx::pwd(workingdir, 512);
         printf("CWD: %s\n", workingdir);
 #endif
-
-        s_resources = new ResourceManager("assets/");
-        getResources()->load(ResourceType::Shader, "basic");
-        getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
-
         inputInit();
         inputAddBindings("bindings", s_bindings);
 
@@ -58,6 +151,15 @@ namespace arena
             , 1.0f
             , 0
             );
+
+        s_resources = new ResourceManager("assets/");
+
+        PosUvColorVertex::init();
+
+
+        s_texture = bgfx::createUniform("s_texture", bgfx::UniformType::Int1);
+        texture = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png")->handle;
+        program = getResources()->get<ProgramResource>(ResourceType::Shader, "basic")->handle;
     }
 
     bool App::update()
@@ -136,14 +238,14 @@ namespace arena
             inputSetMouseResolution(uint16_t(width), uint16_t(height));
         }
 
-        // Set view 0 default viewport.
+        
+
+        float ortho[16];
+        bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
+        bgfx::setViewTransform(0, NULL, ortho);
         bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
 
         bgfx::touch(0);
-
-/*        int32_t mouse[3];
-        inputGetMouseAbsolute(mouse);*/
-
         bgfx::dbgTextClear();
         bgfx::dbgTextPrintf(0, 1, 0x4f, "Perkeleen perkele");
         bgfx::dbgTextPrintf(0, 2, 0x6f, "Mouse x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
@@ -151,6 +253,17 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
+
+        screenQuad(256, 256, 256, 256, 0xFFFFFF00, true);
+
+        bgfx::setTexture(0, s_texture, texture);
+
+        bgfx::setState(0
+            | BGFX_STATE_RGB_WRITE
+            | BGFX_STATE_ALPHA_WRITE
+            | BGFX_STATE_BLEND_ALPHA);
+
+        bgfx::submit(0, program);
 
         bgfx::frame();
 
