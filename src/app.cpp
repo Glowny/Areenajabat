@@ -43,7 +43,7 @@ namespace arena
 
         s_resources = new ResourceManager("assets/");
         getResources()->load(ResourceType::Shader, "basic");
-
+        getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
 
         inputInit();
         inputAddBindings("bindings", s_bindings);

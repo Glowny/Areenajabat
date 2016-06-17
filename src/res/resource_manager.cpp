@@ -20,8 +20,16 @@ namespace arena
         arena::FileReader reader;
         std::string vsh(root + std::string("/vs_") + name);
         std::string fsh(root + std::string("/fs_") + name);
-        arena::utils::loadProgram(&reader, vsh.c_str(), fsh.c_str());
-        return nullptr;
+        bgfx::ProgramHandle handle = arena::utils::loadProgram(&reader, vsh.c_str(), fsh.c_str());
+
+        if (handle.idx == bgfx::invalidHandle)
+        {
+            return nullptr;
+        }
+        ProgramResource* r = new ProgramResource;
+        r->handle = handle;
+
+        return r;
     }
 
     void* loadTexture(const std::string path)
@@ -81,5 +89,17 @@ namespace arena
         }
 
         ++entry.references;
+    }
+
+    void* ResourceManager::get(ResourceType::Enum type, const std::string& name)
+    {
+        ResourcePair id = { type, name };
+        if (resources.count(id) == 0)
+        {
+            load(type, name);
+        }
+
+        ResourceEntry& entry = resources[id];
+        return entry.data;
     }
 }

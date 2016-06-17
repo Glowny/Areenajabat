@@ -71,6 +71,15 @@ namespace arena
 
         void load(ResourceType::Enum type, const std::string& name);
 
+        void* get(ResourceType::Enum type, const std::string& name);
+
+
+        template <typename T>
+        T* get(ResourceType::Enum type, const std::string& name) 
+        {
+            return (T*)get(type, name);
+        }
+
     private:
         void registerLoader(ResourceType::Enum type, LoadFunction load, UnloadFunction unload);
 
