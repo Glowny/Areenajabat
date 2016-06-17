@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <bx/allocator.h>
 
 namespace arena
 {
@@ -24,4 +25,6 @@ namespace arena
     void release(const Event* event);
 
     void setWindowSize(uint32_t width, uint32_t height, bool force = false);
+
+    bx::AllocatorI* getAllocator();
 }

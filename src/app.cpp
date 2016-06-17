@@ -2,6 +2,8 @@
 #include <bgfx/bgfx.h>
 #include "input/input.h"
 #include "input/event.h"
+#include <bx/bx.h>
+#include <bx/crtimpl.h>
 
 namespace arena
 {
@@ -142,5 +144,11 @@ namespace arena
     {
         inputRemoveBindings("bindings");
         inputShutdown();
+    }
+
+    bx::AllocatorI* getAllocator()
+    {
+        static bx::CrtAllocator s_allocator;
+        return &s_allocator;
     }
 }
