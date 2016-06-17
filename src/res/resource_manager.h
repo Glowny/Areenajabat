@@ -2,9 +2,24 @@
 #include <string>
 #include <map>
 #include <bx/readerwriter.h>
+#include <bgfx/bgfx.h>
 
 namespace arena
 {
+
+    class ProgramResource
+    {
+    public:
+        bgfx::ProgramHandle handle;
+    };
+    class TextureResource
+    {
+    public:
+        bgfx::TextureHandle handle;
+        uint16_t width;
+        uint16_t height;
+    };
+
     struct ResourceType
     {
         enum Enum

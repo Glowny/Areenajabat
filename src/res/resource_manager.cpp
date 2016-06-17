@@ -26,9 +26,18 @@ namespace arena
 
     void* loadTexture(const std::string path)
     {
-        (void)path;
-        //are
-        return nullptr;
+        FileReader reader;
+        bgfx::TextureInfo info;
+        bgfx::TextureHandle handle = utils::loadTexture(&reader, path.c_str(), BGFX_TEXTURE_NONE, &info);
+        if (handle.idx == bgfx::invalidHandle)
+        {
+            return nullptr;
+        }
+        TextureResource* r = new TextureResource;
+        r->handle = handle;
+        r->width = info.width;
+        r->height = info.height;
+        return r;
     }
 
     ResourceManager::ResourceManager(const char* root)
