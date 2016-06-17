@@ -4,6 +4,7 @@
 #include "input/event.h"
 #include <bx/bx.h>
 #include <bx/crtimpl.h>
+#include "res/resource_manager.h"
 
 namespace arena
 {
@@ -11,6 +12,8 @@ namespace arena
     static uint32_t s_reset = BGFX_RESET_NONE;
 
     static MouseState s_mouseState;
+
+    static ResourceManager* s_resources;
 
     static void cmdExit(const void*)
     {
@@ -27,6 +30,20 @@ namespace arena
     {
         this->width = width;
         this->height = height;
+
+        char workingdir[512];
+
+
+#if _WIN32 || _WIN64
+        // TODODODODODO change dir to folder root
+        bx::chdir("..\\..\\..\\");
+        bx::pwd(workingdir, 512);
+        printf("CWD: %s\n", workingdir);
+#endif
+
+        s_resources = new ResourceManager("assets/");
+        getResources()->load(ResourceType::Shader, "basic");
+
 
         inputInit();
         inputAddBindings("bindings", s_bindings);
@@ -150,5 +167,10 @@ namespace arena
     {
         static bx::CrtAllocator s_allocator;
         return &s_allocator;
+    }
+
+    ResourceManager* getResources()
+    {
+        return s_resources;
     }
 }

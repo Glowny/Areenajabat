@@ -49,6 +49,7 @@ namespace arena
 
                 return mem;
             }
+            DBG("Failed to open %s", path);
             return NULL;
         }
 
@@ -71,17 +72,8 @@ namespace arena
             return NULL;
         }
 
-        static bgfx::ShaderHandle loadShader(bx::FileReaderI* reader, const char* name)
+        static bgfx::ShaderHandle loadShader(bx::FileReaderI* reader, const char* filePath)
         {
-            char filePath[512] = { 0 };
-            const char* shaderPath =
-                bgfx::getRendererType() == bgfx::RendererType::Direct3D11 ?
-                "assets/shaders/dx11/" : "assets/shaders/gl/";
-
-            strcpy(filePath, shaderPath);
-            strcat(filePath, name);
-            strcat(filePath, ".bin");
-
             return bgfx::createShader(loadMem(reader, filePath));
         }
 
