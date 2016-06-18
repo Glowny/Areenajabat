@@ -36,9 +36,7 @@ namespace arena
     {
         FileReader reader;
         bgfx::TextureInfo info;
-        bgfx::TextureHandle handle = utils::loadTexture(&reader, path.c_str(), BGFX_TEXTURE_U_CLAMP
-            | BGFX_TEXTURE_V_CLAMP
-            | BGFX_TEXTURE_W_CLAMP, &info);
+        bgfx::TextureHandle handle = utils::loadTexture(&reader, path.c_str(), BGFX_TEXTURE_U_CLAMP| BGFX_TEXTURE_V_CLAMP, &info);
         if (handle.idx == bgfx::invalidHandle)
         {
             return nullptr;

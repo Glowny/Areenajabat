@@ -6,6 +6,8 @@
 #include <bx/crtimpl.h>
 #include "res/resource_manager.h"
 #include <bx/fpumath.h>
+#include "io/io.h"
+#include "utils/bgfx_utils.h"
 namespace arena
 {
     static bool s_exit = false;
@@ -152,14 +154,16 @@ namespace arena
             , 0
             );
 
-        s_resources = new ResourceManager("assets/");
-
         PosUvColorVertex::init();
 
+        s_resources = new ResourceManager("assets/");
 
-        s_texture = bgfx::createUniform("s_texture", bgfx::UniformType::Int1);
-        texture = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png")->handle;
+        s_texture = bgfx::createUniform("s_texColor", bgfx::UniformType::Int1);
         program = getResources()->get<ProgramResource>(ResourceType::Shader, "basic")->handle;
+        texture = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png")->handle;
+        
+
+        
     }
 
     bool App::update()
@@ -238,8 +242,6 @@ namespace arena
             inputSetMouseResolution(uint16_t(width), uint16_t(height));
         }
 
-        
-
         float ortho[16];
         bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
         bgfx::setViewTransform(0, NULL, ortho);
@@ -254,15 +256,15 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 
-        screenQuad(256, 256, 256, 256, 0xFFFFFF00, true);
 
         bgfx::setTexture(0, s_texture, texture);
-
+        screenQuad(256, 256, 256, 256, 0xFFFFFF00, false);
+        // Set render states.
         bgfx::setState(0
             | BGFX_STATE_RGB_WRITE
             | BGFX_STATE_ALPHA_WRITE
-            | BGFX_STATE_BLEND_ALPHA);
-
+            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+            );
         bgfx::submit(0, program);
 
         bgfx::frame();
