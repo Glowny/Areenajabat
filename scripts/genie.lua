@@ -116,10 +116,18 @@ project "server"
 	}
 	
 	configuration { "vs*" and "x32"}
-	links { "enet" }
+	links { 
+		"enet",
+		"ws2_32",
+		"winmm"
+	}
 	
 	configuration { "vs*" and "x64"}
-	links { "enet64" }
+	links { 
+		"enet64",
+		"ws2_32",
+		"winmm"
+	}
 	
 	configuration {}
 	
@@ -138,9 +146,18 @@ project "client_sandbox"
 	}
 	
 	configuration { "vs*" and "x32"}
-	links { "enet" }
+		links { 
+		"enet",
+		"ws2_32",
+		"winmm"
+		}
 
 	configuration { "vs*" and "x64"}
-	links { "enet64" }
+	links { 
+		"enet64",
+		"ws2_32",
+		"winmm"
+	}
+	
 	
 	configuration {}
