@@ -134,7 +134,8 @@ namespace arena
             : m_origin(0, 0),
             m_transform(1.f),
             m_position(0.f),
-            m_angle(2 * 3.14f)
+            m_angle(glm::radians(45.f)),
+            m_scale(1.f, 1.f)
         {
 
         }
@@ -144,9 +145,9 @@ namespace arena
         void draw()
         {
             m_origin = glm::vec2(m_res->width / 2.f, m_res->height / 2.f);
-            m_transform =
-                //glm::translate(glm::mat3(1.f), m_position) *
-                glm::rotate(glm::mat3(1.f), m_angle);
+            m_angle += 0.001f;
+            glm::vec2 pos(m_position + m_origin);
+            m_transform = glm::translate(glm::mat3(1.f), pos) * glm::rotate(glm::mat3(1.f), m_angle) * glm::translate(glm::mat3(1.f), -pos);
             glm::vec3 points[4] =
             {
                 m_transform * glm::vec3(m_position, 1.f),
@@ -219,6 +220,7 @@ namespace arena
         glm::mat3 m_transform;
         glm::vec2 m_position;
         glm::vec2 m_origin;
+        glm::vec2 m_scale;
         float m_angle;
         TextureResource* m_res;
     };
@@ -368,7 +370,7 @@ namespace arena
         /*
         screenQuad(256, 256, 256, 256, 0xFFFFFF00, false);*/
 
-        s_sprite.m_position = glm::vec2(100.f, 0.f);
+        s_sprite.m_position = glm::vec2(500.f, 100.f);
         s_sprite.draw();
 
         // Set render states.
