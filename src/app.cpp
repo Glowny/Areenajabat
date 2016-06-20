@@ -9,6 +9,8 @@
 #include "io/io.h"
 #include "utils/bgfx_utils.h"
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace arena
 {
@@ -28,6 +30,37 @@ namespace arena
     {
         { arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
         INPUT_BINDING_END
+    };
+
+    struct Camera
+    {
+        glm::vec2 m_position;
+        float m_zoom;
+        float m_angle;
+        glm::vec2 m_bounds;
+        glm::mat4 m_matrix;
+
+        Camera(float width, float height)
+            : 
+            m_position(0.f, 0.f),
+            m_zoom(1.f),
+            m_angle(0.f),
+            m_bounds(width / 2.f, height / 2.f),
+            m_matrix(1.f)
+        {
+
+        }
+
+
+        void calculate()
+        {
+            m_matrix =
+                glm::translate(glm::mat4(1.f), glm::vec3(m_position, 0)) *
+                glm::rotate(glm::mat4(1.f), m_angle, glm::vec3(0, 0, 1.f)) *
+                glm::scale(glm::mat4(1.f), glm::vec3(m_zoom)) *
+                glm::translate(glm::mat4(1.f), glm::vec3(m_bounds, 0.f));
+
+        }
     };
 
     struct PosUvColorVertex
@@ -123,11 +156,13 @@ namespace arena
         return false;
     }
 
-    bgfx::IndexBufferHandle ibh;
-    bgfx::VertexBufferHandle vbh;
+    
     bgfx::UniformHandle s_texture;
     bgfx::TextureHandle texture;
     bgfx::ProgramHandle program;
+
+    static Camera s_camera(1280.f, 720.f);
+
     struct Sprite
     {
         Sprite()
@@ -271,7 +306,7 @@ namespace arena
     }
 
 
-
+   
     
 
     bool App::update()
@@ -350,10 +385,14 @@ namespace arena
             inputSetMouseResolution(uint16_t(width), uint16_t(height));
         }
 
+        s_camera.calculate();
+
         float ortho[16];
         bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-        bgfx::setViewTransform(0, NULL, ortho);
+        bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
         bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
+
+        
 
         bgfx::touch(0);
         bgfx::dbgTextClear();
@@ -368,11 +407,9 @@ namespace arena
 
         bgfx::setTexture(0, s_texture, texture);
 
-        s_sprite.m_angle += 0.001f;
-        s_sprite.m_scale.x += 0.0001f;
-        s_sprite.m_scale.y += 0.0001f;
-        s_sprite.m_position = glm::vec2(500.f, 100.f);
-        s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
+        //s_sprite.m_angle += 0.001f;
+        s_sprite.m_position = glm::vec2(0, 0);
+        //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
         s_sprite.draw();
 
         // Set render states.
