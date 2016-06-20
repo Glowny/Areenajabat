@@ -64,9 +64,8 @@ project "Box2D"
 		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
 	}
 	vpaths { [""] = "Box2D" }
-	includedirs { path.join(ARENA_THIRD_DIR) }
-
-
+	includedirs { path.join(ARENA_THIRD_DIR) }	
+	
 project ("arena")
 	kind ("ConsoleApp")
 
@@ -89,13 +88,59 @@ project ("arena")
 	}
 
 	configuration { "vs*" and "x32"}
+	links { "enet" }
 	postbuildcommands {
 		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win32_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
 	}
 
 	configuration { "vs*" and "x64"}
+	links { "enet64" }
 	postbuildcommands {
 		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win64_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
 	}
 
+	configuration {}
+	
+project "server"
+	kind "ConsoleApp"
+	
+	defines { "ARENA_SERVER"}
+	
+	includedirs { 
+		ARENA_THIRD_DIR
+	}
+	
+	files {
+		path.join(ARENA_DIR, "network", "*.cpp"),
+		path.join(ARENA_DIR, "network", "*.h"),
+	}
+	
+	configuration { "vs*" and "x32"}
+	links { "enet" }
+	
+	configuration { "vs*" and "x64"}
+	links { "enet64" }
+	
+	configuration {}
+	
+project "client_sandbox"
+	kind "ConsoleApp"
+
+	defines { "ARENA_CLIENT" }
+	
+	includedirs { 
+		ARENA_THIRD_DIR
+	}
+	
+	files {
+		path.join(ARENA_DIR, "network", "*.cpp"),
+		path.join(ARENA_DIR, "network", "*.h"),
+	}
+	
+	configuration { "vs*" and "x32"}
+	links { "enet" }
+
+	configuration { "vs*" and "x64"}
+	links { "enet64" }
+	
 	configuration {}
