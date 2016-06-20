@@ -8,6 +8,8 @@
 #include <bx/fpumath.h>
 #include "io/io.h"
 #include "utils/bgfx_utils.h"
+#include <glm/gtx/matrix_transform_2d.hpp>
+
 namespace arena
 {
     static bool s_exit = false;
@@ -126,6 +128,103 @@ namespace arena
     bgfx::UniformHandle s_texture;
     bgfx::TextureHandle texture;
     bgfx::ProgramHandle program;
+    struct Sprite
+    {
+        Sprite()
+            : m_origin(0, 0),
+            m_transform(1.f),
+            m_position(0.f),
+            m_angle(2 * 3.14f)
+        {
+
+        }
+
+
+
+        void draw()
+        {
+            m_origin = glm::vec2(m_res->width / 2.f, m_res->height / 2.f);
+            m_transform =
+                //glm::translate(glm::mat3(1.f), m_position) *
+                glm::rotate(glm::mat3(1.f), m_angle);
+            glm::vec3 points[4] =
+            {
+                m_transform * glm::vec3(m_position, 1.f),
+                m_transform * glm::vec3(m_position.x + m_res->width, m_position.y, 1.f),
+                m_transform * glm::vec3(m_position.x + m_res->width, m_position.y + m_res->height, 1.f),
+                m_transform * glm::vec3(m_position.x, m_position.y + m_res->height, 1.f),
+            };
+
+            bool _originBottomLeft = bgfx::getRendererType() == bgfx::RendererType::OpenGL ? true : false;
+            uint32_t _abgr = 0xFFFFFFFF;
+            if (bgfx::checkAvailTransientVertexBuffer(6, PosUvColorVertex::ms_decl))
+            {
+                bgfx::TransientVertexBuffer vb;
+                bgfx::allocTransientVertexBuffer(&vb, 6, PosUvColorVertex::ms_decl);
+                PosUvColorVertex* vertex = (PosUvColorVertex*)vb.data;
+
+                const float widthf = float(m_res->width);
+                const float heightf = float(m_res->height);
+
+                float m_halfTexel = 0.0f;
+
+                const float texelHalfW = m_halfTexel / widthf;
+                const float texelHalfH = m_halfTexel / heightf;
+                const float minu = texelHalfW;
+                const float maxu = 1.0f - texelHalfW;
+                const float minv = _originBottomLeft ? texelHalfH + 1.0f : texelHalfH;
+                const float maxv = _originBottomLeft ? texelHalfH : texelHalfH + 1.0f;
+
+                vertex[0].m_x = points[0].x; // left
+                vertex[0].m_y = points[0].y;
+                vertex[0].m_u = minu;
+                vertex[0].m_v = minv;
+
+                vertex[1].m_x = points[1].x;        // right
+                vertex[1].m_y = points[1].y;
+                vertex[1].m_u = maxu;
+                vertex[1].m_v = minv;
+
+                vertex[2].m_x = points[2].x;  
+                vertex[2].m_y = points[2].y;
+                vertex[2].m_u = maxu;
+                vertex[2].m_v = maxv;
+
+                vertex[3].m_x = points[2].x;
+                vertex[3].m_y = points[2].y;
+                vertex[3].m_u = maxu;
+                vertex[3].m_v = maxv;
+
+                vertex[4].m_x = points[3].x;
+                vertex[4].m_y = points[3].y;
+                vertex[4].m_u = minu;
+                vertex[4].m_v = maxv;
+
+                vertex[5].m_x = points[0].x;
+                vertex[5].m_y = points[0].y;
+                vertex[5].m_u = minu;
+                vertex[5].m_v = minv;
+
+                vertex[0].m_abgr = _abgr;
+                vertex[1].m_abgr = _abgr;
+                vertex[2].m_abgr = _abgr;
+                vertex[3].m_abgr = _abgr;
+                vertex[4].m_abgr = _abgr;
+                vertex[5].m_abgr = _abgr;
+
+                bgfx::setVertexBuffer(&vb);
+            }
+
+        }
+        glm::mat3 m_transform;
+        glm::vec2 m_position;
+        glm::vec2 m_origin;
+        float m_angle;
+        TextureResource* m_res;
+    };
+
+    static Sprite s_sprite;
+
     void App::init(int32_t width, int32_t height)
     {
         this->width = width;
@@ -160,11 +259,17 @@ namespace arena
 
         s_texture = bgfx::createUniform("s_texColor", bgfx::UniformType::Int1);
         program = getResources()->get<ProgramResource>(ResourceType::Shader, "basic")->handle;
-        texture = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png")->handle;
+        s_sprite.m_res = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
+        s_sprite.m_position = glm::vec2(100, 100);
+        texture = s_sprite.m_res->handle;
         
 
         
     }
+
+
+
+    
 
     bool App::update()
     {
@@ -257,8 +362,15 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 
 
+
         bgfx::setTexture(0, s_texture, texture);
-        screenQuad(256, 256, 256, 256, 0xFFFFFF00, false);
+
+        /*
+        screenQuad(256, 256, 256, 256, 0xFFFFFF00, false);*/
+
+        s_sprite.m_position = glm::vec2(100.f, 0.f);
+        s_sprite.draw();
+
         // Set render states.
         bgfx::setState(0
             | BGFX_STATE_RGB_WRITE
