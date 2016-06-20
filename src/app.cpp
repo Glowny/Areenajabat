@@ -132,28 +132,30 @@ namespace arena
     {
         Sprite()
             : m_origin(0, 0),
-            m_transform(1.f),
             m_position(0.f),
-            m_angle(glm::radians(45.f)),
+            m_angle(glm::radians(0.f)),
             m_scale(1.f, 1.f)
         {
 
         }
 
-
-
         void draw()
         {
-            m_origin = glm::vec2(m_res->width / 2.f, m_res->height / 2.f);
-            m_angle += 0.001f;
+            //
+
             glm::vec2 pos(m_position + m_origin);
-            m_transform = glm::translate(glm::mat3(1.f), pos) * glm::rotate(glm::mat3(1.f), m_angle) * glm::translate(glm::mat3(1.f), -pos);
+            glm::mat3 transform = 
+                 glm::translate(glm::mat3(1.f), pos) 
+                * glm::scale(glm::mat3(1.f), m_scale)
+                * glm::rotate(glm::mat3(1.f), m_angle) 
+                * glm::translate(glm::mat3(1.f), -pos);
+
             glm::vec3 points[4] =
             {
-                m_transform * glm::vec3(m_position, 1.f),
-                m_transform * glm::vec3(m_position.x + m_res->width, m_position.y, 1.f),
-                m_transform * glm::vec3(m_position.x + m_res->width, m_position.y + m_res->height, 1.f),
-                m_transform * glm::vec3(m_position.x, m_position.y + m_res->height, 1.f),
+                transform * glm::vec3(m_position, 1.f),
+                transform * glm::vec3(m_position.x + m_res->width, m_position.y, 1.f),
+                transform * glm::vec3(m_position.x + m_res->width, m_position.y + m_res->height, 1.f),
+                transform * glm::vec3(m_position.x, m_position.y + m_res->height, 1.f),
             };
 
             bool _originBottomLeft = bgfx::getRendererType() == bgfx::RendererType::OpenGL ? true : false;
@@ -215,9 +217,8 @@ namespace arena
 
                 bgfx::setVertexBuffer(&vb);
             }
-
         }
-        glm::mat3 m_transform;
+
         glm::vec2 m_position;
         glm::vec2 m_origin;
         glm::vec2 m_scale;
@@ -367,10 +368,11 @@ namespace arena
 
         bgfx::setTexture(0, s_texture, texture);
 
-        /*
-        screenQuad(256, 256, 256, 256, 0xFFFFFF00, false);*/
-
+        s_sprite.m_angle += 0.001f;
+        s_sprite.m_scale.x += 0.0001f;
+        s_sprite.m_scale.y += 0.0001f;
         s_sprite.m_position = glm::vec2(500.f, 100.f);
+        s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
         s_sprite.draw();
 
         // Set render states.
