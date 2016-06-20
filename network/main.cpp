@@ -1,6 +1,8 @@
 #include <enet/enet.h>
 
-int main() {
+
+int main() 
+{
 #if defined(ARENA_CLIENT)
 
 #else
