@@ -51,7 +51,6 @@ namespace arena
 
         }
 
-
         void calculate()
         {
             m_matrix =
@@ -85,77 +84,6 @@ namespace arena
     };
 
     bgfx::VertexDecl PosUvColorVertex::ms_decl;
-
-    bool screenQuad(int32_t _x, int32_t _y, int32_t _width, uint32_t _height, uint32_t _abgr, bool _originBottomLeft = false)
-    {
-        if (bgfx::checkAvailTransientVertexBuffer(6, PosUvColorVertex::ms_decl))
-        {
-            bgfx::TransientVertexBuffer vb;
-            bgfx::allocTransientVertexBuffer(&vb, 6, PosUvColorVertex::ms_decl);
-            PosUvColorVertex* vertex = (PosUvColorVertex*)vb.data;
-
-            const float widthf = float(_width);
-            const float heightf = float(_height);
-
-            const float minx = float(_x);
-            const float miny = float(_y);
-            const float maxx = minx + widthf;
-            const float maxy = miny + heightf;
-
-            float m_halfTexel = 0.0f;
-
-            const float texelHalfW = m_halfTexel / widthf;
-            const float texelHalfH = m_halfTexel / heightf;
-            const float minu = texelHalfW;
-            const float maxu = 1.0f - texelHalfW;
-            const float minv = _originBottomLeft ? texelHalfH + 1.0f : texelHalfH;
-            const float maxv = _originBottomLeft ? texelHalfH : texelHalfH + 1.0f;
-
-            vertex[0].m_x = minx;
-            vertex[0].m_y = miny;
-            vertex[0].m_u = minu;
-            vertex[0].m_v = minv;
-
-            vertex[1].m_x = maxx;
-            vertex[1].m_y = miny;
-            vertex[1].m_u = maxu;
-            vertex[1].m_v = minv;
-
-            vertex[2].m_x = maxx;
-            vertex[2].m_y = maxy;
-            vertex[2].m_u = maxu;
-            vertex[2].m_v = maxv;
-
-            vertex[3].m_x = maxx;
-            vertex[3].m_y = maxy;
-            vertex[3].m_u = maxu;
-            vertex[3].m_v = maxv;
-
-            vertex[4].m_x = minx;
-            vertex[4].m_y = maxy;
-            vertex[4].m_u = minu;
-            vertex[4].m_v = maxv;
-
-            vertex[5].m_x = minx;
-            vertex[5].m_y = miny;
-            vertex[5].m_u = minu;
-            vertex[5].m_v = minv;
-
-            vertex[0].m_abgr = _abgr;
-            vertex[1].m_abgr = _abgr;
-            vertex[2].m_abgr = _abgr;
-            vertex[3].m_abgr = _abgr;
-            vertex[4].m_abgr = _abgr;
-            vertex[5].m_abgr = _abgr;
-
-            bgfx::setVertexBuffer(&vb);
-
-            return true;
-        }
-
-        return false;
-    }
-
     
     bgfx::UniformHandle s_texture;
     bgfx::TextureHandle texture;
@@ -169,15 +97,28 @@ namespace arena
             : m_origin(0, 0),
             m_position(0.f),
             m_angle(glm::radians(0.f)),
-            m_scale(1.f, 1.f)
+            m_scale(1.f, 1.f),
+            m_abgr(0xFFFFFFFF) // white
         {
 
         }
 
+        void setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+        {
+            m_abgr = (alpha << 24) | (blue << 16) | (green << 8) | red;
+        }
+
+        void hexcolor(uint32_t rgbaHex)
+        {
+            m_abgr = 
+                    ( ( (rgbaHex >> 0) & 0xFF) << 24) | // alpha
+                    ( ( (rgbaHex >> 8) & 0xFF) << 16) | // blue
+                    ( ( (rgbaHex >> 16)& 0xFF) << 8)  | // green
+                    ( ( (rgbaHex >> 24)& 0xFF) << 0);   // red
+        }
+
         void draw()
         {
-            //
-
             glm::vec2 pos(m_position + m_origin);
             glm::mat3 transform = 
                  glm::translate(glm::mat3(1.f), pos) 
@@ -194,7 +135,6 @@ namespace arena
             };
 
             bool _originBottomLeft = bgfx::getRendererType() == bgfx::RendererType::OpenGL ? true : false;
-            uint32_t _abgr = 0xFFFFFFFF;
             if (bgfx::checkAvailTransientVertexBuffer(6, PosUvColorVertex::ms_decl))
             {
                 bgfx::TransientVertexBuffer vb;
@@ -243,12 +183,12 @@ namespace arena
                 vertex[5].m_u = minu;
                 vertex[5].m_v = minv;
 
-                vertex[0].m_abgr = _abgr;
-                vertex[1].m_abgr = _abgr;
-                vertex[2].m_abgr = _abgr;
-                vertex[3].m_abgr = _abgr;
-                vertex[4].m_abgr = _abgr;
-                vertex[5].m_abgr = _abgr;
+                vertex[0].m_abgr = m_abgr;
+                vertex[1].m_abgr = m_abgr;
+                vertex[2].m_abgr = m_abgr;
+                vertex[3].m_abgr = m_abgr;
+                vertex[4].m_abgr = m_abgr;
+                vertex[5].m_abgr = m_abgr;
 
                 bgfx::setVertexBuffer(&vb);
             }
@@ -257,6 +197,7 @@ namespace arena
         glm::vec2 m_position;
         glm::vec2 m_origin;
         glm::vec2 m_scale;
+        uint32_t m_abgr;
         float m_angle;
         TextureResource* m_res;
     };
@@ -300,16 +241,12 @@ namespace arena
         s_sprite.m_res = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
         s_sprite.m_position = glm::vec2(100, 100);
         texture = s_sprite.m_res->handle;
-        
-
-        
+        //s_sprite.setColor(0, 0xFF, 0x0);
+        s_sprite.hexcolor(0x00FF00FF);
     }
 
-
-   
-    
-
-    bool App::update()
+    // return trues if we want to exit
+    static bool processEvents(int32_t& width, int32_t& height)
     {
         const Event* ev;
 
@@ -325,53 +262,53 @@ namespace arena
             {
                 switch (ev->m_type)
                 {
-                    case Event::Char:
-                    {
-                        const CharEvent* chev = static_cast<const CharEvent*>(ev);
-                        inputChar(chev->m_len, chev->m_char);
-                    }
-                    break;
-                    case Event::Exit:
-                        return true;
-                    case Event::Mouse:
-                    {
-                        const MouseEvent* mouse = static_cast<const MouseEvent*>(ev);
-                        window = mouse->m_window;
+                case Event::Char:
+                {
+                    const CharEvent* chev = static_cast<const CharEvent*>(ev);
+                    inputChar(chev->m_len, chev->m_char);
+                }
+                break;
+                case Event::Exit:
+                    return true;
+                case Event::Mouse:
+                {
+                    const MouseEvent* mouse = static_cast<const MouseEvent*>(ev);
+                    window = mouse->m_window;
 
-                        if (mouse->m_move)
-                        {
-                            inputSetMousePos(mouse->m_mx, mouse->m_my, mouse->m_mz);
-                            s_mouseState.m_mx = mouse->m_mx;
-                            s_mouseState.m_my = mouse->m_my;
-                            s_mouseState.m_mz = mouse->m_mz;
-                        }
-                        else
-                        {
-                            inputSetMouseButtonState(mouse->m_button, mouse->m_down);
-                            s_mouseState.m_buttons[mouse->m_button] = mouse->m_down;
-                        }
-                    }
-                    break;
-                    case Event::Key:
+                    if (mouse->m_move)
                     {
-                        const KeyEvent* key = static_cast<const KeyEvent*>(ev);
-                        window = key->m_window;
-
-                        inputSetKeyState(key->m_key, key->m_modifiers, key->m_down);
+                        inputSetMousePos(mouse->m_mx, mouse->m_my, mouse->m_mz);
+                        s_mouseState.m_mx = mouse->m_mx;
+                        s_mouseState.m_my = mouse->m_my;
+                        s_mouseState.m_mz = mouse->m_mz;
                     }
-                    break;
-
-                    case Event::Size:
+                    else
                     {
-                        const SizeEvent* size = static_cast<const SizeEvent*>(ev);
-                        window = size->m_window;
-                        width = size->m_width;
-                        height = size->m_height;
-                        reset = !s_reset; // force reset
+                        inputSetMouseButtonState(mouse->m_button, mouse->m_down);
+                        s_mouseState.m_buttons[mouse->m_button] = mouse->m_down;
                     }
+                }
+                break;
+                case Event::Key:
+                {
+                    const KeyEvent* key = static_cast<const KeyEvent*>(ev);
+                    window = key->m_window;
+
+                    inputSetKeyState(key->m_key, key->m_modifiers, key->m_down);
+                }
+                break;
+
+                case Event::Size:
+                {
+                    const SizeEvent* size = static_cast<const SizeEvent*>(ev);
+                    window = size->m_window;
+                    width = size->m_width;
+                    height = size->m_height;
+                    reset = !s_reset; // force reset
+                }
+                break;
+                default:
                     break;
-                    default:
-                        break;
                 }
             }
 
@@ -384,6 +321,14 @@ namespace arena
             bgfx::reset(width, height, reset);
             inputSetMouseResolution(uint16_t(width), uint16_t(height));
         }
+
+        return false;
+    }
+
+    // return true if exit
+    bool App::update()
+    {
+        if (processEvents(width, height)) return true;
 
         s_camera.calculate();
 
@@ -429,6 +374,9 @@ namespace arena
     {
         inputRemoveBindings("bindings");
         inputShutdown();
+
+        delete s_resources;
+        s_resources = NULL;
     }
 
     bx::AllocatorI* getAllocator()
