@@ -5,23 +5,25 @@ struct Message {};
 
 struct Client
 {
-	ENetHost eClient;
+	ENetEvent eClient;
 	std::queue<Message> messageQueue;
 		
 };
 
 class Server 
 {
+public:
 	Server();
 	~Server();
 	void start(unsigned port, unsigned playerAmount);
 private:
 	void initializeENet();
 	ENetHost* createENetServer(unsigned address, unsigned port, unsigned playerAmount);
-	ENetHost* createENetClient();
-	char* getData(unsigned clientIndex);
-
+	int checkEvent();
+	void sendPacket(char* testString, unsigned size, unsigned clientIndex);
+	void broadcastPacket(char* testString, unsigned size);
+	void disconnectClient(unsigned clientIndex);
 	ENetHost* m_server;
-	ENetHost* m_clientArray[10];	// rise if needed. Clients could be on a struct to store events.
+	ENetPeer* m_clientArray[10];	// raise if needed. Clients could be peers instead of events
 	unsigned m_clientAmount;
 };
