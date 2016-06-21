@@ -37,11 +37,14 @@ namespace arena
             .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
             .end();
+
+        // TODO get this some other way
+        s_texture = bgfx::createUniform("s_texColor", bgfx::UniformType::Int1);
     }
 
     SpriteBatch::~SpriteBatch()
     {
-        
+        bgfx::destroyUniform(s_texture);
     }
 
     void SpriteBatch::draw(const TextureResource* texture, const glm::vec2& position)
@@ -137,10 +140,17 @@ namespace arena
             {
                 const TextureResource* texture = m_sortedSprites[pos]->texture;
 
-                if (batchTexture == nullptr || (texture->handle.idx != batchTexture->handle.idx))
+                if (texture != batchTexture)
                 {
                     if (pos > batchStart)
                     {
+                        // TODO FIX
+                        bgfx::setState(0
+                            | BGFX_STATE_RGB_WRITE
+                            | BGFX_STATE_ALPHA_WRITE
+                            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+                        );
+                        bgfx::setTexture(0, s_texture, batchTexture->handle);
                         bgfx::setVertexBuffer(&vb);
                         bgfx::setIndexBuffer(m_ibh, batchStart * 6, (pos - batchStart) * 6);
                         bgfx::submit(view, program);
@@ -149,7 +159,13 @@ namespace arena
                     batchStart = pos;
                 }
             }
-
+            // TODO FIX
+            bgfx::setState(0
+                | BGFX_STATE_RGB_WRITE
+                | BGFX_STATE_ALPHA_WRITE
+                | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
+            );
+            bgfx::setTexture(0, s_texture, batchTexture->handle);
             bgfx::setVertexBuffer(&vb);
             bgfx::setIndexBuffer(m_ibh, batchStart * 6, (m_spriteQueueCount - batchStart) * 6);
             bgfx::submit(view, program);

@@ -55,5 +55,7 @@ namespace arena
 
         uint32_t m_spriteQueueSize;
         uint32_t m_spriteQueueCount;
+
+        bgfx::UniformHandle s_texture;
     };
 }

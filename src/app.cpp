@@ -65,9 +65,7 @@ namespace arena
 
         }
     };
-    
-    bgfx::UniformHandle s_texture;
-    bgfx::TextureHandle texture;
+
     bgfx::ProgramHandle program;
 
     static Camera s_camera(1280.f, 720.f);
@@ -139,13 +137,8 @@ namespace arena
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
 
-        s_texture = bgfx::createUniform("s_texColor", bgfx::UniformType::Int1);
+        
         program = getResources()->get<ProgramResource>(ResourceType::Shader, "basic")->handle;
-        s_sprite.m_res = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
-        s_sprite.m_position = glm::vec2(100, 100);
-        texture = s_sprite.m_res->handle;
-        //s_sprite.setColor(0, 0xFF, 0x0);
-        s_sprite.hexcolor(0x00FF00FF);
     }
 
     // return trues if we want to exit
@@ -251,27 +244,15 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 
-
-
-        bgfx::setTexture(0, s_texture, texture);
-
-        //s_sprite.m_angle += 0.001f;
-        s_sprite.m_position = glm::vec2(0, 0);
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
         auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
+        auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "perkele2.png");
 
+        s_spriteBatch->draw(tex2, glm::vec2(500, 0));
         s_spriteBatch->draw(tex,glm::vec2(0, 0));
-        s_spriteBatch->draw(tex, glm::vec2(100, 0));
-        s_spriteBatch->draw(tex, glm::vec2(0, 100));
         s_spriteBatch->draw(tex, glm::vec2(0, 300));
+        s_spriteBatch->draw(tex2, glm::vec2(0, 100));
 
-        // Set render states.
-        bgfx::setState(0
-            | BGFX_STATE_RGB_WRITE
-            | BGFX_STATE_ALPHA_WRITE
-            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-            );
-        
         s_spriteBatch->submit(0, program);
 
         bgfx::frame();
