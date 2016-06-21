@@ -7,6 +7,8 @@
 namespace arena
 {
 
+    static const bool OriginBottomLeft = BX_PLATFORM_WINDOWS != 0 ? true : false;
+
     SpriteBatch::SpriteBatch()
         : m_spriteQueueSize(0),
           m_spriteQueueCount(0)
@@ -35,8 +37,6 @@ namespace arena
             .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
             .end();
-
-        m_vertices.resize(InitialQueueSize);
     }
 
     SpriteBatch::~SpriteBatch()
@@ -85,8 +85,71 @@ namespace arena
 
     void SpriteBatch::submit(uint8_t view, bgfx::ProgramHandle program)
     {
-        bgfx::submit(view, program);
-        (void)view;
-        (void)program;
+
+        if (m_sortedSprites.size() < m_spriteQueueCount)
+        {
+            uint32_t previousSize = (uint32_t)m_sortedSprites.size();
+            m_sortedSprites.resize(m_spriteQueueCount);
+            for (size_t i = previousSize; i < m_spriteQueueCount; ++i)
+            {
+                m_sortedSprites[i] = &m_spriteQueue[i];
+            }
+
+            std::sort(
+                std::begin(m_sortedSprites),
+                std::begin(m_sortedSprites) + m_spriteQueueCount,
+                [](const SpriteInfo* x, const SpriteInfo* y)
+            {
+                return x->texture->handle.idx < y->texture->handle.idx;
+            });
+        }
+        // TODO move 
+        //float m_halfTexel = 0.0f;
+        const float texelHalfW = 0; //m_halfTexel / widthf;
+        const float texelHalfH = 0; //m_halfTexel / heightf;
+        const float minu = texelHalfW;
+        const float maxu = 1.0f - texelHalfW;
+        const float minv = OriginBottomLeft ? texelHalfH + 1.0f : texelHalfH;
+        const float maxv = OriginBottomLeft ? texelHalfH : texelHalfH + 1.0f;
+        
+        if (bgfx::checkAvailTransientVertexBuffer(m_spriteQueueCount * 4, m_decl))
+        {
+            bgfx::TransientVertexBuffer vb;
+            bgfx::allocTransientVertexBuffer(&vb, 4 * m_spriteQueueCount, m_decl);
+            PosUvColorVertex* vertex = (PosUvColorVertex*)vb.data;
+
+            for (uint32_t i = 0, v=0; i < m_spriteQueueCount; ++i, v += 4)
+            {
+                const SpriteInfo* s = m_sortedSprites[i];
+                vertex[v + 0] = PosUvColorVertex{ s->tl.x, s->tl.y, minu, minv, s->abgr };
+                vertex[v + 1] = PosUvColorVertex{ s->tr.x, s->tr.y, maxu, minv, s->abgr };
+                vertex[v + 2] = PosUvColorVertex{ s->bl.x, s->bl.y, minu, maxv, s->abgr };
+                vertex[v + 3] = PosUvColorVertex{ s->br.x, s->br.y, maxu, maxv, s->abgr };
+            }
+
+            const TextureResource* batchTexture = nullptr;
+            uint32_t batchStart = 0;
+
+            for (uint32_t pos = 0; pos < m_spriteQueueCount; ++pos)
+            {
+                const TextureResource* texture = m_sortedSprites[pos]->texture;
+
+                if (batchTexture == nullptr || (texture->handle.idx != batchTexture->handle.idx))
+                {
+                    if (pos > batchStart)
+                    {
+                        bgfx::setVertexBuffer(&vb);
+                        bgfx::setIndexBuffer(m_ibh, batchStart * 6, (pos - batchStart) * 6);
+                        bgfx::submit(view, program);
+                    }
+                    batchTexture = texture;
+                    batchStart = pos;
+                }
+            }
+
+            bgfx::setVertexBuffer(&vb);
+            bgfx::setIndexBuffer(m_ibh, batchStart * 6, (m_spriteQueueCount - batchStart) * 6);
+            bgfx::submit(view, program);
+        }
     }
 }

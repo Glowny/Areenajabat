@@ -48,7 +48,6 @@ namespace arena
         bgfx::VertexDecl m_decl;
         bgfx::IndexBufferHandle m_ibh;
 
-        std::vector<PosUvColorVertex> m_vertices;
         std::vector<SpriteInfo> m_spriteQueue;
 
         std::vector<SpriteInfo const*> m_sortedSprites;
