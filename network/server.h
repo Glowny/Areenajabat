@@ -1,13 +1,34 @@
 #pragma once
 #include <enet\enet.h>
 #include <queue>
+#include <vector>
 struct Message {};
 
 struct Client
 {
-	ENetEvent eClient;
-	std::queue<Message> messageQueue;
-		
+	ENetPeer* peer;
+	std::queue<unsigned char*> messageQueue;
+};
+
+struct Gladiator
+{
+	unsigned m_id;
+	float m_position_x;
+	float m_position_y;
+	float m_velocity_x;
+	float m_velocity_y;
+	float m_rotation;
+};
+
+struct Bullet
+{
+	// This data is send only when bullet is created
+	// Client will calculate physics for it.
+	// For different kind of bullets do we need id to accompany?
+	unsigned m_id;
+	float m_position_x;
+	float m_position_y;
+	float m_rotation;
 };
 
 class Server 
@@ -16,14 +37,24 @@ public:
 	Server();
 	~Server();
 	void start(unsigned port, unsigned playerAmount);
+	
 private:
 	void initializeENet();
 	ENetHost* createENetServer(unsigned address, unsigned port, unsigned playerAmount);
-	int checkEvent();
-	void sendPacket(char* testString, unsigned size, unsigned clientIndex);
-	void broadcastPacket(char* testString, unsigned size);
+	void checkEvent();
+	void sendPacket(unsigned char* packet, unsigned size, unsigned clientIndex);
+	void broadcastPacket(unsigned char* packet, unsigned size);
 	void disconnectClient(unsigned clientIndex);
+
+	unsigned char* createGameSetupPacket(unsigned playerAmount);
+	unsigned char* createGameUpdatePacket(std::vector<Gladiator> &gladiators,
+								std::vector<Bullet> &bullets, size_t &size);
+	void receiveMovePacket(unsigned char* data);
+
+	
+	std::vector<Gladiator> m_gladiatorVector;
+	std::vector<Bullet> m_bulletVector;
 	ENetHost* m_server;
-	ENetPeer* m_clientArray[10];	// raise if needed. Clients could be peers instead of events
+	Client m_clientArray[10];	// raise if needed. Clients could be peers instead of events
 	unsigned m_clientAmount;
 };
