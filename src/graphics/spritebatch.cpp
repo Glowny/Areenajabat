@@ -45,6 +45,7 @@ namespace arena
     SpriteBatch::~SpriteBatch()
     {
         bgfx::destroyUniform(s_texture);
+        bgfx::destroyIndexBuffer(m_ibh);
     }
 
     void SpriteBatch::draw(const TextureResource* texture, const glm::vec2& position)

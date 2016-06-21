@@ -66,45 +66,23 @@ namespace arena
         }
     };
 
+    uint32_t toABGR(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+    {
+        return (alpha << 24) | (blue << 16) | (green << 8) | red;
+    }
+
+    uint32_t toABGR(uint32_t rgbaHex)
+    {
+        return
+            (((rgbaHex >> 0) & 0xFF) << 24) | // alpha
+            (((rgbaHex >> 8) & 0xFF) << 16) | // blue
+            (((rgbaHex >> 16) & 0xFF) << 8) | // green
+            (((rgbaHex >> 24) & 0xFF) << 0);   // red
+    }
+
     bgfx::ProgramHandle program;
 
     static Camera s_camera(1280.f, 720.f);
-
-    struct Sprite
-    {
-        Sprite()
-            : m_origin(0, 0),
-            m_position(0.f),
-            m_angle(glm::radians(0.f)),
-            m_scale(1.f, 1.f),
-            m_abgr(0xFFFFFFFF) // white
-        {
-
-        }
-
-        void setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
-        {
-            m_abgr = (alpha << 24) | (blue << 16) | (green << 8) | red;
-        }
-
-        void hexcolor(uint32_t rgbaHex)
-        {
-            m_abgr = 
-                    ( ( (rgbaHex >> 0) & 0xFF) << 24) | // alpha
-                    ( ( (rgbaHex >> 8) & 0xFF) << 16) | // blue
-                    ( ( (rgbaHex >> 16)& 0xFF) << 8)  | // green
-                    ( ( (rgbaHex >> 24)& 0xFF) << 0);   // red
-        }
-
-        glm::vec2 m_position;
-        glm::vec2 m_origin;
-        glm::vec2 m_scale;
-        uint32_t m_abgr;
-        float m_angle;
-        TextureResource* m_res;
-    };
-
-    static Sprite s_sprite;
 
     void App::init(int32_t width, int32_t height)
     {
@@ -262,11 +240,15 @@ namespace arena
 
     void App::shutdown()
     {
+        bgfx::destroyProgram(program);
+
         inputRemoveBindings("bindings");
         inputShutdown();
 
         delete s_resources;
         s_resources = NULL;
+        delete s_spriteBatch;
+        s_spriteBatch = NULL;
     }
 
     bx::AllocatorI* getAllocator()
