@@ -25,7 +25,8 @@ namespace arena
         glm::vec2 bl;
         glm::vec2 br;
         uint32_t abgr;
-        glm::vec2 uv;
+        glm::vec2 u;
+        glm::vec2 v;
         const TextureResource* texture;
     };
 

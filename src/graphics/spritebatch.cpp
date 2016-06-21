@@ -73,12 +73,23 @@ namespace arena
             transform * glm::vec3(position.x + texture->width, position.y + texture->height, 1.f),
         };
 
+                // TODO move 
+        //float m_halfTexel = 0.0f;
+        const float texelHalfW = 0; //m_halfTexel / widthf;
+        const float texelHalfH = 0; //m_halfTexel / heightf;
+        const float minu = texelHalfW;
+        const float maxu = 1.0f - texelHalfW;
+        const float minv = OriginBottomLeft ? texelHalfH + 1.0f : texelHalfH;
+        const float maxv = OriginBottomLeft ? texelHalfH : texelHalfH + 1.0f;
+
         sprite->texture = texture;
         sprite->abgr = agbr;
         sprite->tl = glm::vec2(points[0].x, points[0].y);
         sprite->tr = glm::vec2(points[1].x, points[1].y);
         sprite->bl = glm::vec2(points[2].x, points[2].y);
         sprite->br = glm::vec2(points[3].x, points[3].y);
+        sprite->u = glm::vec2(minu, maxu);
+        sprite->v = glm::vec2(minv, maxv);
 
         ++m_spriteQueueCount;
     }
@@ -103,14 +114,6 @@ namespace arena
                 return x->texture->handle.idx < y->texture->handle.idx;
             });
         }
-        // TODO move 
-        //float m_halfTexel = 0.0f;
-        const float texelHalfW = 0; //m_halfTexel / widthf;
-        const float texelHalfH = 0; //m_halfTexel / heightf;
-        const float minu = texelHalfW;
-        const float maxu = 1.0f - texelHalfW;
-        const float minv = OriginBottomLeft ? texelHalfH + 1.0f : texelHalfH;
-        const float maxv = OriginBottomLeft ? texelHalfH : texelHalfH + 1.0f;
         
         if (bgfx::checkAvailTransientVertexBuffer(m_spriteQueueCount * 4, m_decl))
         {
@@ -121,10 +124,10 @@ namespace arena
             for (uint32_t i = 0, v=0; i < m_spriteQueueCount; ++i, v += 4)
             {
                 const SpriteInfo* s = m_sortedSprites[i];
-                vertex[v + 0] = PosUvColorVertex{ s->tl.x, s->tl.y, minu, minv, s->abgr };
-                vertex[v + 1] = PosUvColorVertex{ s->tr.x, s->tr.y, maxu, minv, s->abgr };
-                vertex[v + 2] = PosUvColorVertex{ s->bl.x, s->bl.y, minu, maxv, s->abgr };
-                vertex[v + 3] = PosUvColorVertex{ s->br.x, s->br.y, maxu, maxv, s->abgr };
+                vertex[v + 0] = PosUvColorVertex{ s->tl.x, s->tl.y, s->u.x, s->v.x, s->abgr };
+                vertex[v + 1] = PosUvColorVertex{ s->tr.x, s->tr.y, s->u.y, s->v.x, s->abgr };
+                vertex[v + 2] = PosUvColorVertex{ s->bl.x, s->bl.y, s->u.x, s->v.y, s->abgr };
+                vertex[v + 3] = PosUvColorVertex{ s->br.x, s->br.y, s->u.y, s->v.y, s->abgr };
             }
 
             const TextureResource* batchTexture = nullptr;

@@ -237,7 +237,7 @@ namespace arena
 
         float ortho[16];
         bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-        bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
+        bgfx::setViewTransform(0, /*glm::value_ptr(s_camera.m_matrix)*/NULL, ortho);
         bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
 
         
@@ -258,11 +258,12 @@ namespace arena
         //s_sprite.m_angle += 0.001f;
         s_sprite.m_position = glm::vec2(0, 0);
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
+        auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
 
-        s_spriteBatch->draw(
-            getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png"),
-            glm::vec2(0, 0)
-        );
+        s_spriteBatch->draw(tex,glm::vec2(0, 0));
+        s_spriteBatch->draw(tex, glm::vec2(100, 0));
+        s_spriteBatch->draw(tex, glm::vec2(0, 100));
+        s_spriteBatch->draw(tex, glm::vec2(0, 300));
 
         // Set render states.
         bgfx::setState(0
