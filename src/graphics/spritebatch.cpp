@@ -7,7 +7,7 @@
 namespace arena
 {
 
-    static const bool OriginBottomLeft = BX_PLATFORM_WINDOWS != 0 ? true : false;
+    static const bool OriginBottomLeft = BX_PLATFORM_WINDOWS != 0 ? false : true;
 
     SpriteBatch::SpriteBatch()
         : m_spriteQueueSize(0),
@@ -151,5 +151,7 @@ namespace arena
             bgfx::setIndexBuffer(m_ibh, batchStart * 6, (m_spriteQueueCount - batchStart) * 6);
             bgfx::submit(view, program);
         }
+
+        m_spriteQueueCount = 0;
     }
 }
