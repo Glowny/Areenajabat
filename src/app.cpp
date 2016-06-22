@@ -8,9 +8,11 @@
 #include <bx/fpumath.h>
 #include "io/io.h"
 #include "utils/bgfx_utils.h"
-#include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "graphics/spritebatch.h"
+#include "res/shader_resource.h"
+#include "res/texture_resource.h"
+#include <bx/timer.h>
 
 namespace arena
 {
@@ -20,6 +22,8 @@ namespace arena
     static MouseState s_mouseState;
 
     static ResourceManager* s_resources;
+
+    static SpriteBatch* s_spriteBatch;
 
     static void cmdExit(const void*)
     {
@@ -62,152 +66,30 @@ namespace arena
         }
     };
 
-    struct PosUvColorVertex
+    uint32_t toABGR(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
     {
-        float m_x;
-        float m_y;
-        float m_u;
-        float m_v;
-        uint32_t m_abgr;
+        return (alpha << 24) | (blue << 16) | (green << 8) | red;
+    }
 
-        static void init()
-        {
-            ms_decl
-                .begin()
-                .add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-                .end();
-        }
-
-        static bgfx::VertexDecl ms_decl;
-    };
-
-    bgfx::VertexDecl PosUvColorVertex::ms_decl;
-    
-    bgfx::UniformHandle s_texture;
-    bgfx::TextureHandle texture;
-    bgfx::ProgramHandle program;
+    uint32_t toABGR(uint32_t rgbaHex)
+    {
+        return
+            (((rgbaHex >> 0) & 0xFF) << 24) | // alpha
+            (((rgbaHex >> 8) & 0xFF) << 16) | // blue
+            (((rgbaHex >> 16) & 0xFF) << 8) | // green
+            (((rgbaHex >> 24) & 0xFF) << 0);   // red
+    }
 
     static Camera s_camera(1280.f, 720.f);
 
-    struct Sprite
-    {
-        Sprite()
-            : m_origin(0, 0),
-            m_position(0.f),
-            m_angle(glm::radians(0.f)),
-            m_scale(1.f, 1.f),
-            m_abgr(0xFFFFFFFF) // white
-        {
-
-        }
-
-        void setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
-        {
-            m_abgr = (alpha << 24) | (blue << 16) | (green << 8) | red;
-        }
-
-        void hexcolor(uint32_t rgbaHex)
-        {
-            m_abgr = 
-                    ( ( (rgbaHex >> 0) & 0xFF) << 24) | // alpha
-                    ( ( (rgbaHex >> 8) & 0xFF) << 16) | // blue
-                    ( ( (rgbaHex >> 16)& 0xFF) << 8)  | // green
-                    ( ( (rgbaHex >> 24)& 0xFF) << 0);   // red
-        }
-
-        void draw()
-        {
-            glm::vec2 pos(m_position + m_origin);
-            glm::mat3 transform = 
-                 glm::translate(glm::mat3(1.f), pos) 
-                * glm::scale(glm::mat3(1.f), m_scale)
-                * glm::rotate(glm::mat3(1.f), m_angle) 
-                * glm::translate(glm::mat3(1.f), -pos);
-
-            glm::vec3 points[4] =
-            {
-                transform * glm::vec3(m_position, 1.f),
-                transform * glm::vec3(m_position.x + m_res->width, m_position.y, 1.f),
-                transform * glm::vec3(m_position.x + m_res->width, m_position.y + m_res->height, 1.f),
-                transform * glm::vec3(m_position.x, m_position.y + m_res->height, 1.f),
-            };
-
-            bool _originBottomLeft = bgfx::getRendererType() == bgfx::RendererType::OpenGL ? true : false;
-            if (bgfx::checkAvailTransientVertexBuffer(6, PosUvColorVertex::ms_decl))
-            {
-                bgfx::TransientVertexBuffer vb;
-                bgfx::allocTransientVertexBuffer(&vb, 6, PosUvColorVertex::ms_decl);
-                PosUvColorVertex* vertex = (PosUvColorVertex*)vb.data;
-
-                const float widthf = float(m_res->width);
-                const float heightf = float(m_res->height);
-
-                float m_halfTexel = 0.0f;
-
-                const float texelHalfW = m_halfTexel / widthf;
-                const float texelHalfH = m_halfTexel / heightf;
-                const float minu = texelHalfW;
-                const float maxu = 1.0f - texelHalfW;
-                const float minv = _originBottomLeft ? texelHalfH + 1.0f : texelHalfH;
-                const float maxv = _originBottomLeft ? texelHalfH : texelHalfH + 1.0f;
-
-                vertex[0].m_x = points[0].x; // left
-                vertex[0].m_y = points[0].y;
-                vertex[0].m_u = minu;
-                vertex[0].m_v = minv;
-
-                vertex[1].m_x = points[1].x;        // right
-                vertex[1].m_y = points[1].y;
-                vertex[1].m_u = maxu;
-                vertex[1].m_v = minv;
-
-                vertex[2].m_x = points[2].x;  
-                vertex[2].m_y = points[2].y;
-                vertex[2].m_u = maxu;
-                vertex[2].m_v = maxv;
-
-                vertex[3].m_x = points[2].x;
-                vertex[3].m_y = points[2].y;
-                vertex[3].m_u = maxu;
-                vertex[3].m_v = maxv;
-
-                vertex[4].m_x = points[3].x;
-                vertex[4].m_y = points[3].y;
-                vertex[4].m_u = minu;
-                vertex[4].m_v = maxv;
-
-                vertex[5].m_x = points[0].x;
-                vertex[5].m_y = points[0].y;
-                vertex[5].m_u = minu;
-                vertex[5].m_v = minv;
-
-                vertex[0].m_abgr = m_abgr;
-                vertex[1].m_abgr = m_abgr;
-                vertex[2].m_abgr = m_abgr;
-                vertex[3].m_abgr = m_abgr;
-                vertex[4].m_abgr = m_abgr;
-                vertex[5].m_abgr = m_abgr;
-
-                bgfx::setVertexBuffer(&vb);
-            }
-        }
-
-        glm::vec2 m_position;
-        glm::vec2 m_origin;
-        glm::vec2 m_scale;
-        uint32_t m_abgr;
-        float m_angle;
-        TextureResource* m_res;
-    };
-
-    static Sprite s_sprite;
+    static int64_t s_last_time = 0;
 
     void App::init(int32_t width, int32_t height)
     {
         this->width = width;
         this->height = height;
+
+        s_last_time = bx::getHPCounter();
 
         char workingdir[512];
 
@@ -232,17 +114,8 @@ namespace arena
             , 0
             );
 
-        PosUvColorVertex::init();
-
         s_resources = new ResourceManager("assets/");
-
-        s_texture = bgfx::createUniform("s_texColor", bgfx::UniformType::Int1);
-        program = getResources()->get<ProgramResource>(ResourceType::Shader, "basic")->handle;
-        s_sprite.m_res = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
-        s_sprite.m_position = glm::vec2(100, 100);
-        texture = s_sprite.m_res->handle;
-        //s_sprite.setColor(0, 0xFF, 0x0);
-        s_sprite.hexcolor(0x00FF00FF);
+        s_spriteBatch = new SpriteBatch;
     }
 
     // return trues if we want to exit
@@ -318,7 +191,7 @@ namespace arena
 
         if (reset != s_reset)
         {
-            bgfx::reset(width, height, reset);
+            bgfx::reset(width, height, s_reset);
             inputSetMouseResolution(uint16_t(width), uint16_t(height));
         }
 
@@ -330,13 +203,21 @@ namespace arena
     {
         if (processEvents(width, height)) return true;
 
+        int64_t currentTime = bx::getHPCounter();
+        const int64_t time = currentTime - s_last_time;
+        s_last_time = currentTime;
+        
+        const double frequency = (double)bx::getHPFrequency();
+
+        // seconds
+        float lastDeltaTime = float(time * (1.0 / frequency));
+
         s_camera.calculate();
 
         float ortho[16];
         bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-        bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
+        bgfx::setViewTransform(0, /*glm::value_ptr(s_camera.m_matrix)*/NULL, ortho);
         bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
-
         
 
         bgfx::touch(0);
@@ -347,25 +228,24 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
+        bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
-
-
-        bgfx::setTexture(0, s_texture, texture);
-
-        //s_sprite.m_angle += 0.001f;
-        s_sprite.m_position = glm::vec2(0, 0);
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
-        s_sprite.draw();
+        auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
+        auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
 
-        // Set render states.
-        bgfx::setState(0
-            | BGFX_STATE_RGB_WRITE
-            | BGFX_STATE_ALPHA_WRITE
-            | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA)
-            );
-        bgfx::submit(0, program);
+        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(500, 0));
+        static float angle = 0.001f;
+        angle += 0.001f;
+        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(200, 0), glm::vec2(tex->width / 2.f, tex->height / 2.f), glm::vec2(1.5, 1.5), angle);
+        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(0, 300));
+        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 100));
+
+        s_spriteBatch->submit(0);
 
         bgfx::frame();
+
+        //bx::sleep(16);
 
         return s_exit;
     }
@@ -377,6 +257,8 @@ namespace arena
 
         delete s_resources;
         s_resources = NULL;
+        delete s_spriteBatch;
+        s_spriteBatch = NULL;
     }
 
     bx::AllocatorI* getAllocator()

@@ -85,6 +85,7 @@ project ("arena")
 
 	files {
 		ARENA_DIR .. "src/**.cpp",
+		ARENA_DIR .. "src/**.h"
 	}
 
 	configuration { "vs*" and "x32"}
