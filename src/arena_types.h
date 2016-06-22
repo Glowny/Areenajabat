@@ -11,6 +11,7 @@
 */
 
 using IntPtr	= intptr_t;
+using UintPtr	= uintptr_t;
 using VoidPtr	= void*;
 
 /*

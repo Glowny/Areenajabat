@@ -6,12 +6,11 @@ namespace arena
 {
 	class Component {
 	public:
-		Component(const uint64 id);
-
-		uint64 id() const;
+		Component(Entity* const owner);
 
 		virtual ~Component() = default;
 	private:
-		const uint64 m_id;
+		const uint64	m_id;
+		Entity* const	m_owner;
 	};
 }

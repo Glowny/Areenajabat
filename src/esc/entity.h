@@ -1,8 +1,11 @@
 #pragma once
 
+#include "..\forward_declare.h"
 #include "..\arena_types.h"
 
 #include <vector>
+
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Component)
 
 namespace arena
 {
@@ -12,7 +15,7 @@ namespace arena
 
 		uint64 id() const;
 
-		~Entity();
+		~Entity() = default;
 	private:
 		std::vector<Component*> m_components;
 
