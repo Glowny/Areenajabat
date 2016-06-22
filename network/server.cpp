@@ -35,17 +35,18 @@ void Server::start(unsigned port, unsigned playerAmount)
 
 	while (true)
 	{
-		deltaTime += 0.01;
-		if (deltaTime > 50000)
+		deltaTime += 0.05;
+		if (deltaTime > 20000)
 		{
-			printf("position: (%f,%f) velocity(%f,%f) \n",&glad.m_position_x, &glad.m_position_y, 
-				&glad.m_velocity_x, &glad.m_velocity_y);
+			printf("position: (%f,%f) velocity(%f,%f) \n", m_gladiatorVector[0].m_position_x, m_gladiatorVector[0].m_position_y,
+				m_gladiatorVector[0].m_velocity_x, m_gladiatorVector[0].m_velocity_y);
 			deltaTime = 0;
+			physics();
 		}
 		// Pushes new messages from players to their queues
 		checkEvent(); 
 
-		// Handle messages
+		/*// Handle messages
 		for (unsigned playerIndex= 0; playerIndex < playerAmount; playerIndex++)
 		{ 
 			while (m_clientArray[playerIndex].messageQueue.size() != 0)
@@ -57,8 +58,9 @@ void Server::start(unsigned port, unsigned playerAmount)
 				m_clientArray[playerIndex].messageQueue.pop();
 
 			}
-		}
+		}*/
 		// PHYSICS AND STUFF AND THEN SEND
+		
 		size_t size;
 		unsigned char *data = createGameUpdatePacket(m_gladiatorVector, m_bulletVector, size);
 		broadcastPacket(data, size);
@@ -67,6 +69,15 @@ void Server::start(unsigned port, unsigned playerAmount)
 }
 
 // Help: http://enet.bespin.org/Tutorial.html#Connecting
+
+void Server::physics()
+{
+	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	{
+		m_gladiatorVector[i].m_position_x += m_gladiatorVector[i].m_velocity_x;
+		m_gladiatorVector[i].m_position_y += m_gladiatorVector[i].m_velocity_y;
+	}
+}
 
 void Server::initializeENet()
 {
@@ -137,8 +148,10 @@ void Server::checkEvent()
 			EEvent.channelID);
 		unsigned id = unsigned(EEvent.peer->data);
 		// save data at this point and then destory packet.
-		m_clientArray[id].messageQueue.push(EEvent.packet->data);
-		
+		// Data is not saved atm.
+		//m_clientArray[id].messageQueue.push(EEvent.packet->data);
+		receiveMovePacket(EEvent.packet->data);
+
 		enet_packet_destroy(EEvent.packet);
 		break;
 	}
@@ -152,6 +165,7 @@ void Server::checkEvent()
 
 void Server::sendPacket(unsigned char* packet, unsigned size, unsigned clientIndex)
 {
+
 	ENetPacket *ePacket = enet_packet_create(packet,
 											size, 
 											ENET_PACKET_FLAG_RELIABLE);
@@ -205,31 +219,32 @@ unsigned char* Server::createGameUpdatePacket(std::vector<Gladiator> &gladiators
 	unsigned char* data = (unsigned char*)malloc(size);
 	size_t index = 0;
 
-	data[index] = Update;
+	*((MessageIdentifiers*)(&data[index])) = Update;
 	index += sizeof(MessageIdentifiers);
-	data[index] = bullets.size();
+
+	*((size_t*)(&data[index])) == bullets.size();
 	index += sizeof(size_t);
 	
 	for (unsigned i = 0; i < gladiators.size(); i++)
 	{
-		data[index] = gladiators[i].m_position_x;
+		*((float*)(&data[index])) = gladiators[i].m_position_x;
 		index += sizeof(float);
-		data[index] = gladiators[i].m_position_y;
+		*((float*)(&data[index])) = gladiators[i].m_position_y;
 		index += sizeof(float);
-		data[index] = gladiators[i].m_velocity_x;
+		*((float*)(&data[index])) = gladiators[i].m_velocity_x;
 		index += sizeof(float);
-		data[index] = gladiators[i].m_velocity_y;
+		*((float*)(&data[index])) = gladiators[i].m_velocity_y;
 		index += sizeof(float);
-		data[index] = gladiators[i].m_rotation;
+		*((float*)(&data[index])) = gladiators[i].m_rotation;
 		index += sizeof(float);
 	}
 	for (unsigned i = 0; i < bullets.size(); i++)
 	{
-		data[index] = bullets[i].m_position_x;
+		*((float*)(&data[index])) = bullets[i].m_position_x;
 		index += sizeof(float);
-		data[index] = bullets[i].m_position_y;
+		*((float*)(&data[index])) = bullets[i].m_position_y;
 		index += sizeof(float);
-		data[index] = bullets[i].m_rotation;
+		*((float*)(&data[index])) = bullets[i].m_rotation;
 		index += sizeof(float);
 	}
 	return data;
@@ -237,9 +252,13 @@ unsigned char* Server::createGameUpdatePacket(std::vector<Gladiator> &gladiators
 
 void Server::receiveMovePacket(unsigned char* data)
 {
+	// we know the message type, so no need for id.
 	size_t index = sizeof(MessageIdentifiers);
 
-	m_gladiatorVector[0].m_velocity_x += float(data[index]);
+	m_gladiatorVector[0].m_velocity_x += *((float*)(&data[index]));
 	index += sizeof(float);
-	m_gladiatorVector[0].m_velocity_y += float(data[index]);
+
+	m_gladiatorVector[0].m_velocity_y += *((float*)(&data[index]));
+	index += sizeof(float);
+
 }

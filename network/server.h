@@ -45,7 +45,7 @@ private:
 	void sendPacket(unsigned char* packet, unsigned size, unsigned clientIndex);
 	void broadcastPacket(unsigned char* packet, unsigned size);
 	void disconnectClient(unsigned clientIndex);
-
+	void physics();
 	unsigned char* createGameSetupPacket(unsigned playerAmount);
 	unsigned char* createGameUpdatePacket(std::vector<Gladiator> &gladiators,
 								std::vector<Bullet> &bullets, size_t &size);

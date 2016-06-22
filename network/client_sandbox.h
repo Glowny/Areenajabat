@@ -23,6 +23,7 @@ public:
 	Gladiator m_gladiator;
 private:
 
+	
 	void connect(char* address, unsigned port);
 	void initializeENet();
 	ENetHost* createENetClient();

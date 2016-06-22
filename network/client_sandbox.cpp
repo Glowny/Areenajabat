@@ -19,11 +19,13 @@ void Client::start(char* address, unsigned port)
 	while (true)
 	{
 		checkEvent();
-		deltaTime += 0.02;
+		deltaTime += 0.05;
+
 		if (deltaTime > 100000)
 		{ 
-			printf("position: (%f, %f), velocity(%f, %f)\n", &m_gladiator.m_position_x, &m_gladiator.m_position_y,
-				&m_gladiator.m_velocity_x, &m_gladiator.m_velocity_y);
+
+			printf("position: (%f, %f), velocity(%f, %f)\n", m_gladiator.m_position_x, m_gladiator.m_position_y,
+				m_gladiator.m_velocity_x, m_gladiator.m_velocity_y);
 			printf("Sending velocity packet \n");
 			size_t size;
 			unsigned char* data = createMovePacket(size, m_gladiator.m_movedir_x,
@@ -76,8 +78,8 @@ void Client::checkEvent()
 
 	case ENET_EVENT_TYPE_RECEIVE:
 
-		// save data at this point and then destory packet.
-		messages.push(EEvent.packet->data);
+		// Use data on destroy packet
+		openUpdatePackage(EEvent.packet->data);
 		enet_packet_destroy(EEvent.packet);
 		break;
 
@@ -94,26 +96,26 @@ void Client::openUpdatePackage(unsigned char* data)
 	// open id, should be done before this because this calls the function for opening
 	// rest of the package.
 	MessageIdentifiers id;
-	id = MessageIdentifiers(data[index]);
+	id = *((MessageIdentifiers*)(&data[index]));
 	index += sizeof(MessageIdentifiers);
 
 	// Get bullet array size;
-	size_t bulletAmount = size_t(data[index]);
+	size_t bulletAmount = *((size_t*)(&data[index]));
 	index += sizeof(size_t);
 
-	m_gladiator.m_position_x = float(data[index]);
+	m_gladiator.m_position_x = *((float*)(&data[index]));
 	index += sizeof(float);
 
-	m_gladiator.m_position_y = float(data[index]);
+	m_gladiator.m_position_y = *((float*)(&data[index]));
 	index += sizeof(float);
 
-	m_gladiator.m_velocity_x = float(data[index]);
+	m_gladiator.m_velocity_x = *((float*)(&data[index]));
 	index += sizeof(float);
 
-	m_gladiator.m_velocity_y = float(data[index]);
+	m_gladiator.m_velocity_y = *((float*)(&data[index]));
 	index += sizeof(float);
 
-	m_gladiator.m_rotation = float(data[index]);
+	m_gladiator.m_rotation = *((float*)(&data[index]));
 
 }
 
@@ -159,26 +161,12 @@ unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
 	size = sizeof(size_t) + sizeof(float) * 2;
 	size_t index = 0;
 	unsigned char* data = (unsigned char*)malloc(size);
-	data[index] = ClientFeedback;
+
+	*((MessageIdentifiers*)(&data[index])) = ClientFeedback;
 	index += sizeof(MessageIdentifiers);
-	data[index] = movedir_x;
+	*((float*)(&data[index])) = movedir_x;
 	index += sizeof(float);
-	data[index] = movedir_y;
-
-	index = 0;
-	MessageIdentifiers ident = (MessageIdentifiers)data[index];
-	index += sizeof(MessageIdentifiers);
-
-	float movedirx, movediry;
-	
-	movedirx = (float)data[index];
-	index += sizeof(float);
-
-	movediry = (float)data[index];
-	index += sizeof(float);
-
-
-	index;
+	*((float*)(&data[index])) = movedir_y;
 
 	return data;
 }
