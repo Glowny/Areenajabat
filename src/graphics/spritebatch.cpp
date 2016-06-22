@@ -54,7 +54,12 @@ namespace arena
         bgfx::destroyProgram(m_program);
     }
 
-    void SpriteBatch::draw(const TextureResource* texture, const glm::vec2& position)
+    void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position)
+    {
+        draw(texture, color, position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
+    }
+
+    void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle)
     {
         if (m_spriteQueueCount >= m_spriteQueue.size())
         {
@@ -64,10 +69,6 @@ namespace arena
 
         SpriteInfo* sprite = &m_spriteQueue[m_spriteQueueCount];
 
-        glm::vec2 origin;
-        glm::vec2 scale(1, 1);
-        uint32_t agbr = 0xFFFFFFFF;
-        float angle = 0;
         glm::vec2 pos(position + origin);
         glm::mat3 transform =
             glm::translate(glm::mat3(1.f), pos)
@@ -93,7 +94,7 @@ namespace arena
         const float maxv = OriginBottomLeft ? texelHalfH : texelHalfH + 1.0f;
 
         sprite->texture = texture;
-        sprite->abgr = agbr;
+        sprite->abgr = color;
         sprite->tl = glm::vec2(points[0].x, points[0].y);
         sprite->tr = glm::vec2(points[1].x, points[1].y);
         sprite->bl = glm::vec2(points[2].x, points[2].y);

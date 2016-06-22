@@ -40,7 +40,8 @@ namespace arena
         ~SpriteBatch();
 
         void submit(uint8_t view);
-        void draw(const TextureResource* texture, const glm::vec2& position);
+        void draw(const TextureResource* texture, uint32_t color, const glm::vec2& position);
+        void draw(const TextureResource* texture, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle);
 
         SpriteBatch(SpriteBatch const&) = delete;
         SpriteBatch& operator=(SpriteBatch const&) = delete;

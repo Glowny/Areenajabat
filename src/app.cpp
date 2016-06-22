@@ -220,10 +220,10 @@ namespace arena
         auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
         auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
 
-        s_spriteBatch->draw(tex2, glm::vec2(500, 0));
-        s_spriteBatch->draw(tex,glm::vec2(0, 0));
-        s_spriteBatch->draw(tex, glm::vec2(0, 300));
-        s_spriteBatch->draw(tex2, glm::vec2(0, 100));
+        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(500, 0));
+        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(0, 0));
+        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(0, 300));
+        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 100));
 
         s_spriteBatch->submit(0);
 
