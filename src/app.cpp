@@ -12,6 +12,7 @@
 #include "graphics/spritebatch.h"
 #include "res/shader_resource.h"
 #include "res/texture_resource.h"
+#include <bx/timer.h>
 
 namespace arena
 {
@@ -81,10 +82,14 @@ namespace arena
 
     static Camera s_camera(1280.f, 720.f);
 
+    static int64_t s_last_time = 0;
+
     void App::init(int32_t width, int32_t height)
     {
         this->width = width;
         this->height = height;
+
+        s_last_time = bx::getHPCounter();
 
         char workingdir[512];
 
@@ -198,13 +203,21 @@ namespace arena
     {
         if (processEvents(width, height)) return true;
 
+        int64_t currentTime = bx::getHPCounter();
+        const int64_t time = currentTime - s_last_time;
+        s_last_time = currentTime;
+        
+        const double frequency = (double)bx::getHPFrequency();
+
+        // seconds
+        float lastDeltaTime = float(time * (1.0 / frequency));
+
         s_camera.calculate();
 
         float ortho[16];
         bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
         bgfx::setViewTransform(0, /*glm::value_ptr(s_camera.m_matrix)*/NULL, ortho);
         bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
-
         
 
         bgfx::touch(0);
@@ -215,19 +228,24 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
+        bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
         auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
         auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
 
         s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(500, 0));
-        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(0, 0));
+        static float angle = 0.001f;
+        angle += 0.001f;
+        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(200, 0), glm::vec2(tex->width / 2.f, tex->height / 2.f), glm::vec2(1.5, 1.5), angle);
         s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(0, 300));
         s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 100));
 
         s_spriteBatch->submit(0);
 
         bgfx::frame();
+
+        //bx::sleep(16);
 
         return s_exit;
     }
