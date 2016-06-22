@@ -3,6 +3,9 @@
 #include "inttypes.h"
 #include <string>
 
+// Guess there is no need for any assertions as we 
+// are only targeting Linux and Windows platforms.
+
 /*
 	Pointer types.
 */
