@@ -231,15 +231,16 @@ namespace arena
         bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
-        auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
+        auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
         auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
 
-        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(500, 0));
+        
         static float angle = 0.001f;
         angle += 0.001f;
-        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(200, 0), glm::vec2(tex->width / 2.f, tex->height / 2.f), glm::vec2(1.5, 1.5), angle);
-        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(0, 300));
-        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 100));
+        glm::vec4 src(64, 64, 64, 64);
+        s_spriteBatch->draw(tex, &src, 0xFFFFFFFF, glm::vec2(400, 300), /*glm::vec2(tex->width / 2.f, tex->height / 2.f)*/glm::vec2(32,32), glm::vec2(1.0, 1.0), angle);
+        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(300, 300));
+        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 0));
 
         s_spriteBatch->submit(0);
 

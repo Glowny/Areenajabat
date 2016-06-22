@@ -56,10 +56,10 @@ namespace arena
 
     void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position)
     {
-        draw(texture, color, position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
+        draw(texture, nullptr, color, position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
     }
 
-    void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle)
+    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle)
     {
         if (m_spriteQueueCount >= m_spriteQueue.size())
         {
@@ -68,6 +68,35 @@ namespace arena
         }
 
         SpriteInfo* sprite = &m_spriteQueue[m_spriteQueueCount];
+
+        float minu, maxu, minv, maxv;
+        float width, height;
+        if (src != NULL)
+        {
+            const float w = (float)texture->width;
+            const float h = (float)texture->height;
+            
+            width = src->z;
+            height = src->w;
+            // x
+            minu = src->x / w;
+            maxu = (src->x + width) / w;
+            // y
+            // TODO OPENGL HOWTO
+            minv = OriginBottomLeft ? 0 : src->y / h;
+            maxv = OriginBottomLeft ? 0 : (src->y + height) / h;
+
+            
+        }
+        else
+        {
+            minu = 0;
+            maxu = 1.f;
+            minv = OriginBottomLeft ? 1.0f : 0.f;
+            maxv = OriginBottomLeft ? 0.0f : 1.f;
+            width = texture->width;
+            height = texture->height;
+        }
 
         glm::vec2 pos(position + origin);
         glm::mat3 transform =
@@ -79,19 +108,10 @@ namespace arena
         glm::vec3 points[4] =
         {
             transform * glm::vec3(position, 1.f),
-            transform * glm::vec3(position.x + texture->width, position.y, 1.f),
-            transform * glm::vec3(position.x, position.y + texture->height, 1.f),
-            transform * glm::vec3(position.x + texture->width, position.y + texture->height, 1.f),
+            transform * glm::vec3(position.x + width, position.y, 1.f),
+            transform * glm::vec3(position.x, position.y + height, 1.f),
+            transform * glm::vec3(position.x + width, position.y + height, 1.f),
         };
-
-                // TODO move 
-        //float m_halfTexel = 0.0f;
-        const float texelHalfW = 0; //m_halfTexel / widthf;
-        const float texelHalfH = 0; //m_halfTexel / heightf;
-        const float minu = texelHalfW;
-        const float maxu = 1.0f - texelHalfW;
-        const float minv = OriginBottomLeft ? texelHalfH + 1.0f : texelHalfH;
-        const float maxv = OriginBottomLeft ? texelHalfH : texelHalfH + 1.0f;
 
         sprite->texture = texture;
         sprite->abgr = color;
