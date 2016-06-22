@@ -1,38 +1,64 @@
 #include "client_sandbox.h"
 #include "MessageIdentifiers.h"
+#include "SFML\System\Time.hpp"
+#include "SFML\System\Clock.hpp"
+#include <SFML/Graphics.hpp>
+
+
 void Client::start(char* address, unsigned port)
 {
 	initializeENet();
 	m_client = createENetClient();
 	connect(address, port);
 
-	m_gladiator.id = 0;
-	m_gladiator.m_velocity_x = 0;
-	m_gladiator.m_velocity_y = 0;
-	m_gladiator.m_position_x = 50;
-	m_gladiator.m_position_y = 50;
-	m_gladiator.m_movedir_x = 1;
-	m_gladiator.m_movedir_y = -1;
-	m_gladiator.m_rotation = 13;
+	sf::Clock deltaTime;
+	sf::RenderWindow window(sf::VideoMode(1000,1000), "Networktest");
+	sf::RectangleShape rectangle;
+	rectangle.setSize(sf::Vector2f(32, 128));
+	rectangle.setFillColor(sf::Color::Green);
+	rectangle.setPosition(50, 50);
+	m_myId = UINT32_MAX;
 
-	float deltaTime = 0;
-	while (true)
+	while (m_myId == UINT32_MAX)
 	{
 		checkEvent();
-		deltaTime += 0.05;
+	}
 
-		if (deltaTime > 100000)
+	while (true)
+	{
+		sf::Event event;
+		window.pollEvent(event);
+		if (event.type == sf::Event::Closed)
+			window.close();
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+			m_gladiatorVector[m_myId].m_movedir_x = -3;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+			m_gladiatorVector[m_myId].m_movedir_x = 3;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+			m_gladiatorVector[m_myId].m_movedir_y = -10;
+
+		checkEvent();
+
+		window.clear();
+		
+		for(unsigned i = 0; i < m_gladiatorVector.size(); i++)
 		{ 
-
-			printf("position: (%f, %f), velocity(%f, %f)\n", m_gladiator.m_position_x, m_gladiator.m_position_y,
-				m_gladiator.m_velocity_x, m_gladiator.m_velocity_y);
-			printf("Sending velocity packet \n");
-			size_t size;
-			unsigned char* data = createMovePacket(size, m_gladiator.m_movedir_x,
-													m_gladiator.m_movedir_y);
-			sendPacket(data, size );
-			deltaTime = 0;
+			rectangle.setPosition(m_gladiatorVector[i].m_position_x, m_gladiatorVector[i].m_position_y);
+			window.draw(rectangle);
 		}
+		window.display();
+
+		if (deltaTime.getElapsedTime() > sf::milliseconds(5))
+		{
+			size_t size;
+			unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
+				m_gladiatorVector[m_myId].m_movedir_y);
+			sendPacket(data, size);
+			m_gladiatorVector[m_myId].m_movedir_x = 0;
+			m_gladiatorVector[m_myId].m_movedir_y = 0;
+
+		}
+
 	}
 
 }
@@ -65,58 +91,97 @@ ENetHost* Client::createENetClient()
 void Client::checkEvent()
 {
 	ENetEvent EEvent;
-	enet_host_service(m_client, &EEvent, 0);
+	enet_host_service(m_client, &EEvent,0);
 
-	switch (EEvent.type)
+	while (EEvent.type != ENET_EVENT_TYPE_NONE)
 	{
-	case ENET_EVENT_TYPE_CONNECT:
-		printf("Somebody connected here?",
-			EEvent.peer->address.host,
-			EEvent.peer->address.port);
-		EEvent.peer->data = "Host";
-		break;
+		switch (EEvent.type)
+		{
+			case ENET_EVENT_TYPE_CONNECT:
+				printf("Somebody connected here?",
+					EEvent.peer->address.host,
+					EEvent.peer->address.port);
+				EEvent.peer->data = "Host";
+				break;
 
-	case ENET_EVENT_TYPE_RECEIVE:
-
-		// Use data on destroy packet
-		openUpdatePackage(EEvent.packet->data);
-		enet_packet_destroy(EEvent.packet);
-		break;
-
-	case ENET_EVENT_TYPE_DISCONNECT:
-		printf("%s disconnected.\n", EEvent.peer->data);
-		EEvent.peer->data = NULL;
+			case ENET_EVENT_TYPE_RECEIVE:
+			{
+				// Use data on destroy packet
+				MessageIdentifiers id = getID(EEvent.packet->data);
+				switch(id)
+					{ 
+					case Update:
+						openUpdatePackage(EEvent.packet->data);
+						break;
+					case Start:
+						openStartPackage(EEvent.packet->data);
+						break;
+					}
+				enet_packet_destroy(EEvent.packet);
+				break;
+			}
+			case ENET_EVENT_TYPE_DISCONNECT:
+				printf("%s disconnected.\n", EEvent.peer->data);
+				EEvent.peer->data = NULL;
+		}
+		enet_host_service(m_client, &EEvent, 0);
 	}
+	
+}
 
+MessageIdentifiers Client::getID(unsigned char* data)
+{
+	return *((MessageIdentifiers*)(&data[0]));
 }
 
 void Client::openUpdatePackage(unsigned char* data)
 {
-	size_t index = 0;
-	// open id, should be done before this because this calls the function for opening
-	// rest of the package.
-	MessageIdentifiers id;
-	id = *((MessageIdentifiers*)(&data[index]));
-	index += sizeof(MessageIdentifiers);
+	size_t index = sizeof(MessageIdentifiers);
 
-	// Get bullet array size;
-	size_t bulletAmount = *((size_t*)(&data[index]));
-	index += sizeof(size_t);
+	for(unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	{
+		m_gladiatorVector[i].m_position_x = *((float*)(&data[index]));
+		index += sizeof(float);
 
-	m_gladiator.m_position_x = *((float*)(&data[index]));
-	index += sizeof(float);
+		m_gladiatorVector[i].m_position_y = *((float*)(&data[index]));
+		index += sizeof(float);
 
-	m_gladiator.m_position_y = *((float*)(&data[index]));
-	index += sizeof(float);
+		m_gladiatorVector[i].m_velocity_x = *((float*)(&data[index]));
+		index += sizeof(float);
 
-	m_gladiator.m_velocity_x = *((float*)(&data[index]));
-	index += sizeof(float);
+		m_gladiatorVector[i].m_velocity_y = *((float*)(&data[index]));
+		index += sizeof(float);
 
-	m_gladiator.m_velocity_y = *((float*)(&data[index]));
-	index += sizeof(float);
+		m_gladiatorVector[i].m_rotation = *((float*)(&data[index]));
+		index += sizeof(float);
+	}
+}
 
-	m_gladiator.m_rotation = *((float*)(&data[index]));
+void Client::openStartPackage(unsigned char* data)
+{
+	// This should be called only once.
+	size_t index = sizeof(MessageIdentifiers);
 
+	m_myId = *((unsigned*)(&data[index]));
+	index += sizeof(unsigned);
+	
+	unsigned playerAmount = *((unsigned*)(&data[index]));
+	printf("Received startpackage my id: %u, playeramount: %u", m_myId, playerAmount);
+
+	for (unsigned i = 0; i < playerAmount; i++)
+	{
+		Gladiator glad;
+		glad.id = i;
+		glad.m_velocity_x = 0;
+		glad.m_velocity_y = 0;
+		glad.m_position_x = i*50;
+		glad.m_position_y = 50;
+		glad.m_movedir_x = 2;
+		glad.m_movedir_y = -0.5;
+		glad.m_rotation = 13;
+		m_gladiatorVector.push_back(glad);
+	}
+	
 }
 
 void Client::connect(char* address, unsigned port)
@@ -164,9 +229,12 @@ unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
 
 	*((MessageIdentifiers*)(&data[index])) = ClientFeedback;
 	index += sizeof(MessageIdentifiers);
+
 	*((float*)(&data[index])) = movedir_x;
 	index += sizeof(float);
+
 	*((float*)(&data[index])) = movedir_y;
+
 
 	return data;
 }
