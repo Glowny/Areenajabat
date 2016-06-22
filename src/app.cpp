@@ -79,8 +79,6 @@ namespace arena
             (((rgbaHex >> 24) & 0xFF) << 0);   // red
     }
 
-    bgfx::ProgramHandle program;
-
     static Camera s_camera(1280.f, 720.f);
 
     void App::init(int32_t width, int32_t height)
@@ -113,9 +111,6 @@ namespace arena
 
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
-
-        
-        program = getResources()->get<ProgramResource>(ResourceType::Shader, "basic")->handle;
     }
 
     // return trues if we want to exit
@@ -230,7 +225,7 @@ namespace arena
         s_spriteBatch->draw(tex, glm::vec2(0, 300));
         s_spriteBatch->draw(tex2, glm::vec2(0, 100));
 
-        s_spriteBatch->submit(0, program);
+        s_spriteBatch->submit(0);
 
         bgfx::frame();
 
@@ -239,8 +234,6 @@ namespace arena
 
     void App::shutdown()
     {
-        bgfx::destroyProgram(program);
-
         inputRemoveBindings("bindings");
         inputShutdown();
 

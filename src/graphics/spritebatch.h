@@ -39,7 +39,7 @@ namespace arena
         SpriteBatch();
         ~SpriteBatch();
 
-        void submit(uint8_t view, bgfx::ProgramHandle program);
+        void submit(uint8_t view);
         void draw(const TextureResource* texture, const glm::vec2& position);
 
         SpriteBatch(SpriteBatch const&) = delete;
@@ -57,5 +57,6 @@ namespace arena
         uint32_t m_spriteQueueCount;
 
         bgfx::UniformHandle s_texture;
+        bgfx::ProgramHandle m_program;
     };
 }

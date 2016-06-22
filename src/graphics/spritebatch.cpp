@@ -4,6 +4,8 @@
 #include "../res/resource_manager.h"
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include "../res/texture_resource.h"
+#include "vs_texture.bin.h"
+#include "fs_texture.bin.h"
 
 namespace arena
 {
@@ -39,14 +41,17 @@ namespace arena
             .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
             .end();
 
-        // TODO get this some other way
         s_texture = bgfx::createUniform("s_texColor", bgfx::UniformType::Int1);
+        bgfx::ShaderHandle vsh = bgfx::createShader(bgfx::makeRef(vs_texture_dx11, sizeof(vs_texture_dx11)));
+        bgfx::ShaderHandle fsh = bgfx::createShader(bgfx::makeRef(fs_texture_dx11, sizeof(fs_texture_dx11)));
+        m_program = bgfx::createProgram(vsh, fsh, true); // destroy shaders
     }
 
     SpriteBatch::~SpriteBatch()
     {
         bgfx::destroyUniform(s_texture);
         bgfx::destroyIndexBuffer(m_ibh);
+        bgfx::destroyProgram(m_program);
     }
 
     void SpriteBatch::draw(const TextureResource* texture, const glm::vec2& position)
@@ -99,7 +104,7 @@ namespace arena
         ++m_spriteQueueCount;
     }
 
-    void SpriteBatch::submit(uint8_t view, bgfx::ProgramHandle program)
+    void SpriteBatch::submit(uint8_t view)
     {
 
         if (m_sortedSprites.size() < m_spriteQueueCount)
@@ -155,7 +160,7 @@ namespace arena
                         bgfx::setTexture(0, s_texture, batchTexture->handle);
                         bgfx::setVertexBuffer(&vb);
                         bgfx::setIndexBuffer(m_ibh, batchStart * 6, (pos - batchStart) * 6);
-                        bgfx::submit(view, program);
+                        bgfx::submit(view, m_program);
                     }
                     batchTexture = texture;
                     batchStart = pos;
@@ -170,7 +175,7 @@ namespace arena
             bgfx::setTexture(0, s_texture, batchTexture->handle);
             bgfx::setVertexBuffer(&vb);
             bgfx::setIndexBuffer(m_ibh, batchStart * 6, (m_spriteQueueCount - batchStart) * 6);
-            bgfx::submit(view, program);
+            bgfx::submit(view, m_program);
         }
 
         m_spriteQueueCount = 0;
