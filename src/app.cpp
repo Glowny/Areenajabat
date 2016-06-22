@@ -8,11 +8,10 @@
 #include <bx/fpumath.h>
 #include "io/io.h"
 #include "utils/bgfx_utils.h"
-#include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "graphics/spritebatch.h"
-
+#include "res/shader_resource.h"
+#include "res/texture_resource.h"
 
 namespace arena
 {
@@ -224,7 +223,7 @@ namespace arena
 
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
         auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "perkele.png");
-        auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "perkele2.png");
+        auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
 
         s_spriteBatch->draw(tex2, glm::vec2(500, 0));
         s_spriteBatch->draw(tex,glm::vec2(0, 0));

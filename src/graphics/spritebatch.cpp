@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "../res/resource_manager.h"
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include "../res/texture_resource.h"
 
 namespace arena
 {

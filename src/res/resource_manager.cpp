@@ -1,6 +1,8 @@
 #include "resource_manager.h"
 #include "../utils/bgfx_utils.h"
 #include "../io/io.h"
+#include "../res/texture_resource.h"
+#include "../res/shader_resource.h"
 
 namespace arena
 {
