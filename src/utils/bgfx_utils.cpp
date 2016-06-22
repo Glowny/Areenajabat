@@ -209,6 +209,11 @@ namespace arena
 
                 if (NULL != out)
                 {
+                    if (format != bgfx::TextureFormat::RGBA8)
+                    {
+                        DBG("file %s is not RGBA8", filePath);
+                        assert(0);
+                    }
                     handle = bgfx::createTexture2D(uint16_t(width), uint16_t(height), 1
                         , format
                         , flags
