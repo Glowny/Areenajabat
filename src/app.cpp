@@ -13,11 +13,12 @@
 #include "res/shader_resource.h"
 #include "res/texture_resource.h"
 #include <bx/timer.h>
+#include "graphics/sprite_animation.h"
 
 namespace arena
 {
     static bool s_exit = false;
-    static uint32_t s_reset = BGFX_RESET_NONE;
+    static uint32_t s_reset = BGFX_RESET_VSYNC;
 
     static MouseState s_mouseState;
 
@@ -84,6 +85,8 @@ namespace arena
 
     static int64_t s_last_time = 0;
 
+    static SpriteAnimation* s_animation;
+
     void App::init(int32_t width, int32_t height)
     {
         this->width = width;
@@ -116,6 +119,15 @@ namespace arena
 
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
+
+        s_animation = new SpriteAnimation(
+            getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png"),
+            uint16_t(64),
+            uint16_t(64),
+            4,
+            4,
+            3 * 4 + 2
+        );
     }
 
     // return trues if we want to exit
@@ -231,22 +243,29 @@ namespace arena
         bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
-        auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
-        auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
+     //   auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
+      //  auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
 
+
+        s_animation->update(lastDeltaTime);
+        
         
         static float angle = 0.001f;
         angle += 0.001f;
-        glm::vec4 src(64, 64, 64, 64);
-        s_spriteBatch->draw(tex, &src, 0xFFFFFFFF, glm::vec2(400, 300), /*glm::vec2(tex->width / 2.f, tex->height / 2.f)*/glm::vec2(32,32), glm::vec2(1.0, 1.0), angle);
-        s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(300, 300));
-        s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 0));
+        
+        //s_spriteBatch->draw(tex, &src, 0xFFFFFFFF, glm::vec2(400, 300), /*glm::vec2(tex->width / 2.f, tex->height / 2.f)*/glm::vec2(32,32), glm::vec2(1.0, 1.0), angle);
+        //s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(300, 300));
+        //s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 0));
 
+        auto i = s_animation->m_currentFrame;
+        Frame& frame = s_animation->m_frames[i];
+        glm::vec4 src(frame.x, frame.y, s_animation->m_frameWidth, s_animation->m_frameHeight);
+        s_spriteBatch->draw(s_animation->m_spritesheet, &src, 0xffffffff, glm::vec2(100, 100), glm::vec2(0, 0), glm::vec2(2, 2), 0.f);
         s_spriteBatch->submit(0);
 
         bgfx::frame();
 
-        //bx::sleep(16);
+        bx::sleep(16);
 
         return s_exit;
     }

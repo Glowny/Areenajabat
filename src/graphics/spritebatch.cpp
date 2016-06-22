@@ -73,20 +73,15 @@ namespace arena
         float width, height;
         if (src != NULL)
         {
-            const float w = (float)texture->width;
-            const float h = (float)texture->height;
-            
             width = src->z;
             height = src->w;
             // x
-            minu = src->x / w;
-            maxu = (src->x + width) / w;
+            minu = src->x / (float)texture->width;
+            maxu = (src->x + width) / (float)texture->width;
             // y
             // TODO OPENGL HOWTO
-            minv = OriginBottomLeft ? 0 : src->y / h;
-            maxv = OriginBottomLeft ? 0 : (src->y + height) / h;
-
-            
+            minv = OriginBottomLeft ? 0 : src->y / (float)texture->height;
+            maxv = OriginBottomLeft ? 0 : (src->y + height) / (float)texture->height;
         }
         else
         {
@@ -187,7 +182,7 @@ namespace arena
                     batchStart = pos;
                 }
             }
-            // TODO FIX
+            // TODO maybe hax
             bgfx::setState(0
                 | BGFX_STATE_RGB_WRITE
                 | BGFX_STATE_ALPHA_WRITE
