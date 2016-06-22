@@ -47,6 +47,7 @@ namespace arena
         r->handle = handle;
         r->width = info.width;
         r->height = info.height;
+        r->format = info.format;
         return r;
     }
 

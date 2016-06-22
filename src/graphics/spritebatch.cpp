@@ -146,7 +146,7 @@ namespace arena
                 {
                     if (pos > batchStart)
                     {
-                        // TODO FIX
+                        // TODO maybe hax
                         bgfx::setState(0
                             | BGFX_STATE_RGB_WRITE
                             | BGFX_STATE_ALPHA_WRITE

@@ -9,7 +9,7 @@ namespace arena
     {
     public:
         bgfx::TextureHandle handle;
-        bgfx::TextureFormat format;
+        bgfx::TextureFormat::Enum format;
         uint16_t width;
         uint16_t height;
     };
