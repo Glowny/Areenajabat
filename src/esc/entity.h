@@ -4,21 +4,33 @@
 #include "..\arena_types.h"
 
 #include <vector>
+#include <iterator>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Component)
+
+using ComponentIterator = std::vector<arena::Component*>::iterator;
 
 namespace arena
 {
 	class Entity final {
 	public:
-		Entity(const uint64 id);
+		Entity()	= default;
 
-		uint64 id() const;
+		void destroy();
 
-		~Entity() = default;
+		void add(Component* const component);
+		void remove(Component* const component);
+
+		const String& getTags() const;
+		void setTags(const String& tags);
+
+		ComponentIterator begin();
+		ComponentIterator end();
+
+		~Entity()	= default;
 	private:
 		std::vector<Component*> m_components;
 
-		const uint64 m_id;
+		String					m_tags;
 	};
 }
