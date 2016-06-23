@@ -1,16 +1,40 @@
+#if defined(ARENA_SERVER)
 #include "server.h"
 #include <stdio.h>
 #include <assert.h>
 #include "messageIdentifiers.h"
+#include <bx/timer.h>
 
-// TEMP, remove later
-#include <SFML\System\Clock.hpp>
+// Help: http://enet.bespin.org/Tutorial.html#Connecting
 Server::Server()
 {
 	m_clientAmount = 0;
-	m_world.gravity = 9.81;
+	m_world.gravity = -9.81f;
 	m_world.limits.x = 1000;
 	m_world.limits.y = 1000;
+	m_b2DWorld = new b2World(b2Vec2(0.0f, 9.81f));
+	
+	b2Vec2 platform3[6];
+	platform3[0].Set(0,0);
+	platform3[1].Set(0,500);
+	platform3[2].Set(250,650);
+	platform3[3].Set(750,650);
+	platform3[4].Set(1000,500);
+	platform3[5].Set(1000,0);
+
+	Platform platform;
+
+
+	platform.m_shape.CreateChain(platform3, 6);
+	platform.m_bodydef.type = b2_staticBody;
+	platform.m_bodydef.position.Set(0, 0);
+	platform.m_body = m_b2DWorld->CreateBody(&platform.m_bodydef);
+	platform.m_fixtureDef.shape = &platform.m_shape;
+	platform.m_fixtureDef.density = 1.0f;
+	platform.m_fixtureDef.friction = 0.3f;
+	platform.m_body->CreateFixture(&platform.m_fixtureDef);
+
+	m_platformVector.push_back(platform);
 
 }
 
@@ -33,18 +57,42 @@ void Server::start(unsigned port, unsigned playerAmount)
 	{
 		Gladiator glad;
 		glad.m_id = i;
-		glad.m_position_x = 50*i+1;
-		glad.m_position_y = 65;
-		glad.m_velocity_x = 0;
-		glad.m_velocity_y = 0;
+		glad.m_position.x = 100*i+100;
+		glad.m_position.y = 65;
+		glad.m_velocity.x = 0;
+		glad.m_velocity.y = 0;
 		glad.m_rotation = 17;
+		
+		b2BodyDef bodydef;
+		bodydef.type = b2_dynamicBody;
+		bodydef.position.Set(50.0f*i, 65.0f);
+		glad.m_body = m_b2DWorld->CreateBody(&bodydef);
+
+		b2PolygonShape dynamicBox;
+		dynamicBox.SetAsBox(1.0f, 1.0f);
+
+		b2FixtureDef fixtureDef;
+		fixtureDef.shape = &dynamicBox;
+		fixtureDef.density = 1.0f;
+		fixtureDef.friction = 0.3f;
+
+		b2MassData data;
+		data.mass = 1;
+		data.center = b2Vec2(20,20);
+		
+
+		glad.m_body->SetMassData(&data);
+
+		glad.m_body->CreateFixture(&fixtureDef);
 		m_gladiatorVector.push_back(glad);
 	}
-	sf::Clock deltaTime, networktime;
-
+	
 	while (m_clientAmount < playerAmount)
 		checkEvent();
-
+	// reserve space for update message.
+	m_updateSize = sizeof(MessageIdentifiers) + sizeof(float) * 5 * m_gladiatorVector.size();;
+	m_updateMemory =(unsigned char*)malloc(m_updateSize);
+	
 	for(unsigned i = 0; i < m_clientAmount; i++)
 		{
 			size_t size;
@@ -52,14 +100,41 @@ void Server::start(unsigned port, unsigned playerAmount)
 			sendPacket(data, size, i);
 		}
 
+	int64_t s_last_time = bx::getHPCounter();
+	float updatePhysics = 0;
+	float updateNetwork = 0;
+
+	float timeStep = 1.0f/60.0f;
+	int32 velocityIterations = 6;
+	int32 positionIterations = 2;
 	while (true)
 	{
+		int64_t currentTime = bx::getHPCounter();
+		const int64_t time = currentTime - s_last_time;
+		s_last_time = currentTime;
 
-		if (deltaTime.getElapsedTime() > sf::milliseconds(50))
+		const double frequency = (double)bx::getHPFrequency();
+
+		// seconds
+		float lastDeltaTime = float(time * (1.0f / frequency));
+		updatePhysics += lastDeltaTime;
+		updateNetwork += lastDeltaTime;
+		if (updatePhysics > timeStep)
 		{
-			physics();
-			deltaTime.restart();
-			 // CreateGameUpdatePacket reserves space.
+			
+			updatePhysics = 0;
+			m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
+			for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+			{
+				m_gladiatorVector[i].m_body->ApplyForce(b2Vec2(m_clientArray[i].input.x*100, m_clientArray[i].input.y*100),
+									 m_gladiatorVector[i].m_body->GetWorldCenter(), 1);
+				m_clientArray[i].input.x = 0;
+				m_clientArray[i].input.y = 0;
+				b2Vec2 position = m_gladiatorVector[i].m_body->GetPosition();
+				m_gladiatorVector[i].m_position.x = position.x;
+				m_gladiatorVector[i].m_position.y = position.y;
+				printf("Physics: %f, %f\n", position.x, position.y);
+			}
 		}
 		// Pushes new messages from players to their queues
 		checkEvent();
@@ -78,21 +153,16 @@ void Server::start(unsigned port, unsigned playerAmount)
 			}
 		}*/
 		// PHYSICS AND STUFF AND THEN SEND
-		if(networktime.getElapsedTime() > sf::milliseconds(5))
+		if(updateNetwork > 0.1)
 		{
 			size_t size;
-
-			unsigned char *data = createGameUpdatePacket(m_gladiatorVector, m_bulletVector, size);
+			printf("updating network \n");
+			unsigned char *data = createGameUpdatePacket(m_gladiatorVector, size);
 			broadcastPacket(data, size);
-			free(data);
-			networktime.restart();
+			updateNetwork = 0;
 		}
 	}
 }
-
-// Help: http://enet.bespin.org/Tutorial.html#Connecting
-
-
 
 void Server::initializeENet()
 {
@@ -135,8 +205,6 @@ ENetHost* Server::createENetServer(unsigned address, unsigned port, unsigned pla
 	return eServer;
 }
 
-
-
 void Server::checkEvent()
 {
 	// Does event have to persist after one loop? peer->data is saved
@@ -174,10 +242,12 @@ void Server::checkEvent()
 	case ENET_EVENT_TYPE_DISCONNECT:
 		printf("%s disconnected.\n", EEvent.peer->data);
 		EEvent.peer->data = NULL;
-		
+	default:
+		break;
 	}
 
 }
+
 // Should reliable and unreliable data use different channels?
 void Server::sendPacket(unsigned char* packet, unsigned size, unsigned clientIndex)
 {
@@ -215,6 +285,8 @@ void Server::disconnectClient(unsigned clientIndex)
 		case ENET_EVENT_TYPE_DISCONNECT:
 			puts("Disconnection succeeded.");
 			return;
+		default:
+			break;
 		}
 	enet_peer_reset(eEvent.peer);
 }
@@ -239,13 +311,13 @@ unsigned char* Server::createGameSetupPacket(unsigned playerAmount, unsigned id,
 }
 
 unsigned char* Server::createGameUpdatePacket(std::vector<Gladiator> &gladiators,
-	std::vector<Bullet> &bullets, size_t &size)
+	size_t &size)
 {
 	// Game update-packet sends data that needs to be constantly updated
 	// Bullet data should be send separately
 
-	size = sizeof(MessageIdentifiers) + sizeof(float) * 5 * gladiators.size(); // gladiator data
-	unsigned char* data = (unsigned char*)malloc(size);
+	size = m_updateSize;  // gladiator data
+	unsigned char* data = m_updateMemory;
 	size_t index = 0;
 
 	*((MessageIdentifiers*)(&data[index])) = Update;
@@ -253,16 +325,16 @@ unsigned char* Server::createGameUpdatePacket(std::vector<Gladiator> &gladiators
 
 	for (unsigned i = 0; i < gladiators.size(); i++)
 	{
-		*((float*)(&data[index])) = gladiators[i].m_position_x;
+		*((float*)(&data[index])) = gladiators[i].m_position.x;
 		index += sizeof(float);
 
-		*((float*)(&data[index])) = gladiators[i].m_position_y;
+		*((float*)(&data[index])) = gladiators[i].m_position.y;
 		index += sizeof(float);
 		
-		*((float*)(&data[index])) = gladiators[i].m_velocity_x;
+		*((float*)(&data[index])) = gladiators[i].m_velocity.x;
 		index += sizeof(float);
 		
-		*((float*)(&data[index])) = gladiators[i].m_velocity_y;
+		*((float*)(&data[index])) = gladiators[i].m_velocity.y;
 		index += sizeof(float);
 		
 		*((float*)(&data[index])) = gladiators[i].m_rotation;
@@ -279,59 +351,62 @@ void Server::receiveMovePacket(unsigned char* data, unsigned id)
 
 	// these should be saved on playerinput
 	printf("%d\n", m_gladiatorVector.size());
-	m_clientArray[id].input.xDir = *((float*)(&data[index]));
+	m_clientArray[id].input.x = *((float*)(&data[index]));
 	index += sizeof(float);
 
-	m_clientArray[id].input.yDir = *((float*)(&data[index]));
+	m_clientArray[id].input.y = *((float*)(&data[index]));
 	index += sizeof(float);
 
 }
+
 void Server::physics()
 {
 	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
 		// Check if players are moving in maximun speed and allow input only if they arent.
-		if (m_gladiatorVector[i].m_velocity_x < 10)
+		if (m_gladiatorVector[i].m_velocity.x < 10)
 		{
-			m_gladiatorVector[i].m_velocity_x += m_clientArray[i].input.xDir;
+			m_gladiatorVector[i].m_velocity.x += m_clientArray[i].input.x;
 		}
 
-		if (m_gladiatorVector[i].m_velocity_y < 10)
+		if (m_gladiatorVector[i].m_velocity.y < 10)
 		{
-			m_gladiatorVector[i].m_velocity_y += m_clientArray[i].input.yDir;
+			m_gladiatorVector[i].m_velocity.y += m_clientArray[i].input.y;
 		}
 
 		// Move players according to speed.
-		m_gladiatorVector[i].m_position_x += m_gladiatorVector[i].m_velocity_x;
-		m_gladiatorVector[i].m_position_y += m_gladiatorVector[i].m_velocity_y + m_world.gravity;
+		m_gladiatorVector[i].m_position.x += m_gladiatorVector[i].m_velocity.x;
+		m_gladiatorVector[i].m_position.y += m_gladiatorVector[i].m_velocity.y + m_world.gravity;
 
 		// Check some limits and keep our brave warriors inside battlefield
-		if (m_gladiatorVector[i].m_position_x > m_world.limits.x)
+		if (m_gladiatorVector[i].m_position.x > m_world.limits.x)
 		{
-			m_gladiatorVector[i].m_position_x = m_world.limits.x - 10;
-			m_gladiatorVector[i].m_velocity_x = -m_gladiatorVector[i].m_velocity_x;
+			m_gladiatorVector[i].m_position.x = m_world.limits.x - 10;
+			m_gladiatorVector[i].m_velocity.x = -m_gladiatorVector[i].m_velocity.x;
 		}
-		else if (m_gladiatorVector[i].m_position_x < 0)
+		else if (m_gladiatorVector[i].m_position.x < 0)
 		{
-			m_gladiatorVector[i].m_position_x = 10;
-			m_gladiatorVector[i].m_velocity_x = -m_gladiatorVector[i].m_velocity_x;
+			m_gladiatorVector[i].m_position.x = 10;
+			m_gladiatorVector[i].m_velocity.x = -m_gladiatorVector[i].m_velocity.x;
 		}
 
-		if (m_gladiatorVector[i].m_position_y > m_world.limits.y)
+		if (m_gladiatorVector[i].m_position.y > m_world.limits.y)
 		{
-			m_gladiatorVector[i].m_position_y = m_world.limits.y - 10;
-			m_gladiatorVector[i].m_velocity_y = -m_gladiatorVector[i].m_velocity_y;
+			m_gladiatorVector[i].m_position.y = m_world.limits.y - 10;
+			m_gladiatorVector[i].m_velocity.y = -m_gladiatorVector[i].m_velocity.y;
 		}
-		else if (m_gladiatorVector[i].m_position_y < 0)
+		else if (m_gladiatorVector[i].m_position.y < 0)
 		{
-			m_gladiatorVector[i].m_position_y = 10;
-			m_gladiatorVector[i].m_velocity_y = -m_gladiatorVector[i].m_velocity_y;
+			m_gladiatorVector[i].m_position.y = 10;
+			m_gladiatorVector[i].m_velocity.y = -m_gladiatorVector[i].m_velocity.y;
 		}
 
 		// Slow velocities down with every update.
-		m_gladiatorVector[i].m_velocity_x = 0.9 *m_gladiatorVector[i].m_velocity_x;
-		m_gladiatorVector[i].m_velocity_y = 0.9 *m_gladiatorVector[i].m_velocity_y;
+		m_gladiatorVector[i].m_velocity.x = 0.9 *m_gladiatorVector[i].m_velocity.x;
+		m_gladiatorVector[i].m_velocity.y = 0.9 *m_gladiatorVector[i].m_velocity.y;
 
 
 	}
 }
+
+#endif

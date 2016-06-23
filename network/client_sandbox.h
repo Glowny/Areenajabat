@@ -1,4 +1,6 @@
 #pragma once
+#if defined(ARENA_CLIENT)
+
 #include <enet\enet.h>
 #include <string>
 #include <queue>
@@ -40,3 +42,5 @@ private:
 	ENetEvent m_eEvent;
 	ENetPeer* m_peer;
 };
+
+#endif

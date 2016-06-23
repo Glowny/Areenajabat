@@ -107,12 +107,13 @@ project "server"
 	
 	defines { 
 		"ARENA_SERVER",
-		"SFML_STATIC",
-		"_HAS_ITERATOR_DEBUGGING=1"
+		--"SFML_STATIC",
+		--"_HAS_ITERATOR_DEBUGGING=1"
 	}
 	
 	includedirs { 
-		ARENA_THIRD_DIR
+		ARENA_THIRD_DIR,
+		path.join(BX_DIR, "include")
 	}
 	
 	files {
@@ -132,13 +133,7 @@ project "server"
 		"enet64",
 		"ws2_32",
 		"winmm",
-		"sfml-window-s-d",
-		"sfml-graphics-s-d",
-		"sfml-system-s-d",
-		"opengl32",
-		"gdi32",
-		"freetype",
-		"jpeg"
+		"Box2D"
 	}
 	
 	configuration {}
@@ -153,7 +148,8 @@ project "client_sandbox"
 	}
 	
 	includedirs { 
-		ARENA_THIRD_DIR
+		ARENA_THIRD_DIR,
+		path.join(BX_DIR, "include")
 	}
 	
 	files {

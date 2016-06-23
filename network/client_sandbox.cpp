@@ -1,3 +1,4 @@
+#if defined(ARENA_CLIENT)
 #include "client_sandbox.h"
 #include "MessageIdentifiers.h"
 #include "SFML\System\Time.hpp"
@@ -48,14 +49,20 @@ void Client::start(char* address, unsigned port)
 		}
 		window.display();
 
-		if (deltaTime.getElapsedTime() > sf::milliseconds(5))
+		
+
+		if (deltaTime.getElapsedTime() > sf::milliseconds(200))
 		{
-			size_t size;
-			unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
-				m_gladiatorVector[m_myId].m_movedir_y);
-			sendPacket(data, size);
-			m_gladiatorVector[m_myId].m_movedir_x = 0;
-			m_gladiatorVector[m_myId].m_movedir_y = 0;
+			if (m_gladiatorVector[m_myId].m_movedir_x != 0 ||
+				m_gladiatorVector[m_myId].m_movedir_y != 0)
+			{
+				size_t size;
+				unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
+					m_gladiatorVector[m_myId].m_movedir_y);
+				sendPacket(data, size);
+				m_gladiatorVector[m_myId].m_movedir_x = 0;
+				m_gladiatorVector[m_myId].m_movedir_y = 0;
+			}
 
 		}
 
@@ -238,3 +245,5 @@ unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
 
 	return data;
 }
+
+#endif
