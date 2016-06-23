@@ -31,6 +31,45 @@ namespace arena
         s_exit = true;
     }
 
+
+    struct Character
+    {
+        Character()
+            : m_legs(
+                getResources()->get<TextureResource>(
+                    ResourceType::Texture,
+                    "character/Run_BareLegs1_ss.png"),
+                64, 64, 1024 / 64),
+
+            m_greaves(
+                getResources()->get<TextureResource>(
+                    ResourceType::Texture,
+                    "character/Run_Greaves1_ss.png"),
+                64, 64, 1024 / 64),
+            m_torso(
+                getResources()->get<TextureResource>(
+                    ResourceType::Texture,
+                    "character/Torso1.png")
+            )
+        {
+
+        }
+
+        void update(float dt)
+        {
+            m_legs.update(dt);
+            m_greaves.update(dt);
+        }
+        // draw this first
+        SpriteAnimation m_legs;
+        // draw this then
+        SpriteAnimation m_greaves;
+
+        TextureResource* m_torso;
+    };
+
+    static Character* s_char;
+
     static const InputBinding s_bindings[] =
     {
         { arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
@@ -126,6 +165,8 @@ namespace arena
             uint16_t(64),
             3 * 4 + 2
         );
+
+        s_char = new Character;
     }
 
     // return trues if we want to exit
@@ -246,7 +287,7 @@ namespace arena
 
 
         s_animation->update(lastDeltaTime);
-        
+        s_char->update(lastDeltaTime);
         
         static float angle = 0.001f;
         angle += 0.001f;
@@ -255,10 +296,12 @@ namespace arena
         //s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(300, 300));
         //s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 0));
 
-        auto i = s_animation->m_currentFrame;
-        Frame& frame = s_animation->m_frames[i];
-        glm::vec4 src(frame.x, frame.y, s_animation->m_frameWidth, s_animation->m_frameHeight);
-        s_spriteBatch->draw(s_animation->m_spritesheet, &src, 0xffffffff, glm::vec2(100, 100), glm::vec2(0, 0), glm::vec2(2, 2), 0.f);
+        auto i = s_char->m_legs.m_currentFrame;
+        Frame& frame = s_char->m_legs.m_frames[i];
+        glm::vec4 src(frame.x, frame.y, s_char->m_legs.m_frameWidth, s_char->m_legs.m_frameHeight);
+        s_spriteBatch->draw(s_char->m_torso, 0xffffffff, glm::vec2(117, 280));
+        s_spriteBatch->draw(s_char->m_legs.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
+        s_spriteBatch->draw(s_char->m_greaves.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
         s_spriteBatch->submit(0);
 
         bgfx::frame();
