@@ -25,26 +25,26 @@ function strip() end
 
 configuration { "vs*" }
 	includedirs { 
-		BX_DIR .. "include/compat/msvc"
+		path.join(BX_DIR, "include/compat/msvc")
 	} 
 	links { "psapi"}
 
-buildoptions {
-	"/Oy-", -- Suppresses creation of frame pointers on the call stack.
-	"/Ob2", -- The Inline Function Expansion
-}
-linkoptions {
-	"/ignore:4199", -- LNK4199: /DELAYLOAD:*.dll ignored; no imports found from *.dll
-	"/ignore:4221", -- LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
-	"/ignore:4099", -- LNK4099: The linker was unable to find your .pdb file.
-}
+	buildoptions {
+		"/Oy-", -- Suppresses creation of frame pointers on the call stack.
+		"/Ob2", -- The Inline Function Expansion
+	}
+	linkoptions {
+		"/ignore:4199", -- LNK4199: /DELAYLOAD:*.dll ignored; no imports found from *.dll
+		"/ignore:4221", -- LNK4221: This object file does not define any previously undefined public symbols, so it will not be used by any link operation that consumes this library
+		"/ignore:4099", -- LNK4099: The linker was unable to find your .pdb file.
+	}
 
-defines {
-	"__STDC_CONSTANT_MACROS",
-	"__STDC_FORMAT_MACROS",
-	"__STDC_LIMIT_MACROS",
-	"BX_CONFIG_ENABLE_MSVC_LEVEL4_WARNINGS=1"
-}
+	defines {
+		"__STDC_CONSTANT_MACROS",
+		"__STDC_FORMAT_MACROS",
+		"__STDC_LIMIT_MACROS",
+		"BX_CONFIG_ENABLE_MSVC_LEVEL4_WARNINGS=1"
+	}
 
 configuration {}
 
@@ -63,7 +63,9 @@ project "Box2D"
 		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
 	}
 	vpaths { [""] = "Box2D" }
-	includedirs { path.join(ARENA_THIRD_DIR) }	
+	includedirs { 
+		path.join(ARENA_THIRD_DIR) 
+	}	
 	
 project ("arena")
 	kind ("ConsoleApp")
@@ -72,8 +74,7 @@ project ("arena")
 		path.join(BX_DIR, "include"),
 		path.join(BGFX_DIR, "include"),
 		path.join(BGFX_DIR, "3rdparty"),
-		path.join(ARENA_THIRD_DIR),
-		path.join(BGFX_DIR, "examples/common/imgui"),
+		path.join(ARENA_THIRD_DIR)
 	}
 
 	links {
@@ -107,7 +108,7 @@ project "server"
 	defines { 
 		"ARENA_SERVER",
 		"SFML_STATIC",
-		"_HAS_ITERATOR_DEBUGGING=1"
+		"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
 	}
 	
 	includedirs { 
@@ -142,13 +143,15 @@ project "server"
 	
 	configuration {}
 	
+
+-- remove this project soon
 project "client_sandbox"
 	kind "ConsoleApp"
 
 	defines { 
 		"ARENA_CLIENT",
 		"SFML_STATIC",
-		"_HAS_ITERATOR_DEBUGGING=1"
+		"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
 	}
 	
 	includedirs { 
