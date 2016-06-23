@@ -18,7 +18,7 @@
 namespace arena
 {
     static bool s_exit = false;
-    static uint32_t s_reset = BGFX_RESET_VSYNC;
+    static uint32_t s_reset = BGFX_RESET_NONE;
 
     static MouseState s_mouseState;
 
@@ -60,7 +60,7 @@ namespace arena
         void update(float dt)
         {
             m_elapsed += dt;
-            printf("%.5f\n", sinf(m_elapsed));
+            //printf("%.5f\n", m_elapsed);
             m_torsoPosition.y += cosf(m_elapsed * 6.f) * 0.5f;
             m_legs.update(dt);
             m_greaves.update(dt);
@@ -315,7 +315,7 @@ namespace arena
 
         bgfx::frame();
 
-        bx::sleep(16);
+        //bx::sleep(16);
 
         return s_exit;
     }

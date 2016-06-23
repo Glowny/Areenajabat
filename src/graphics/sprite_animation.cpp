@@ -14,7 +14,7 @@ namespace arena
         uint16_t columns = texture->width / m_frameWidth;
 
         uint32_t time = 0;
-        uint32_t delta = 100;
+        uint32_t delta = (1000u / frameCount);
         for (uint16_t i = 0; i < frameCount; ++i)
         {
             m_frames[i] = (Frame{
@@ -30,12 +30,12 @@ namespace arena
 
     void SpriteAnimation::update(float dt)
     {
-        m_elapsed += uint32_t(dt * 1000);
-
-        if (m_elapsed >= m_frames[m_currentFrame].time)
+        m_elapsed += dt;
+        const uint32_t asMillis = uint32_t(m_elapsed * 1000.0);
+        if (asMillis >= m_frames[m_currentFrame].time)
         {
             m_currentFrame = (m_currentFrame + 1) % m_frames.size();
-            m_elapsed = m_elapsed % m_totalTime;
+            m_elapsed = (asMillis % m_totalTime) / 1000.0;
         }
     }
 }

@@ -29,7 +29,7 @@ namespace arena
         uint16_t m_frameWidth;
         uint16_t m_frameHeight;
 
-        uint32_t m_elapsed;
+        double m_elapsed;
         uint32_t m_totalTime;
         std::vector<Frame> m_frames;
     };
