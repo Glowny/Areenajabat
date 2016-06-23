@@ -186,3 +186,11 @@ project "client_sandbox"
 	
 	
 	configuration {}
+
+project "spriterengine"
+	kind "StaticLib"
+
+	files {
+		path.join(ARENA_THIRD_DIR, "spriterengine", "**.cpp"),
+		path.join(ARENA_THIRD_DIR, "spriterengine", "**.h")
+	}
