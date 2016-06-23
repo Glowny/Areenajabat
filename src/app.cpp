@@ -124,8 +124,6 @@ namespace arena
             getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png"),
             uint16_t(64),
             uint16_t(64),
-            4,
-            4,
             3 * 4 + 2
         );
     }

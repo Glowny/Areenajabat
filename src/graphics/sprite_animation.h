@@ -19,8 +19,7 @@ namespace arena
     {
     public:
         SpriteAnimation(const TextureResource* spritesheet, 
-            uint16_t frameWidth, uint16_t frameHeight,
-            uint16_t rows, uint16_t columns, uint32_t frameCount);
+            uint16_t frameWidth, uint16_t frameHeight, uint32_t frameCount);
 
         void update(float dt);
     public:
