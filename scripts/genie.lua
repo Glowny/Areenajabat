@@ -25,8 +25,7 @@ function strip() end
 
 configuration { "vs*" }
 	includedirs { 
-		BX_DIR .. "include/compat/msvc",
-		path.join(ARENA_THIRD_DIR, "SDL2/include")
+		BX_DIR .. "include/compat/msvc"
 	} 
 	links { "psapi"}
 

@@ -8,7 +8,7 @@
 Server::Server()
 {
 	m_clientAmount = 0;
-	m_world.gravity = 9.81;
+	m_world.gravity = 9.81f;
 	m_world.limits.x = 1000;
 	m_world.limits.y = 1000;
 
@@ -29,15 +29,15 @@ void Server::start(unsigned port, unsigned playerAmount)
 	initializeENet();
 	m_server = createENetServer(0, port, playerAmount);
 	
-	for (int i = 0; i< playerAmount; i++)
+	for (unsigned i = 0; i< playerAmount; i++)
 	{
 		Gladiator glad;
 		glad.m_id = i;
-		glad.m_position_x = 50*i+1;
-		glad.m_position_y = 65;
-		glad.m_velocity_x = 0;
-		glad.m_velocity_y = 0;
-		glad.m_rotation = 17;
+		glad.m_position_x = 50.f*i+1.f;
+		glad.m_position_y = 65.f;
+		glad.m_velocity_x = 0.f;
+		glad.m_velocity_y = 0.f;
+		glad.m_rotation = 17.f;
 		m_gladiatorVector.push_back(glad);
 	}
 	sf::Clock deltaTime, networktime;
@@ -329,8 +329,8 @@ void Server::physics()
 		}
 
 		// Slow velocities down with every update.
-		m_gladiatorVector[i].m_velocity_x = 0.9 *m_gladiatorVector[i].m_velocity_x;
-		m_gladiatorVector[i].m_velocity_y = 0.9 *m_gladiatorVector[i].m_velocity_y;
+		m_gladiatorVector[i].m_velocity_x = 0.9f *m_gladiatorVector[i].m_velocity_x;
+		m_gladiatorVector[i].m_velocity_y = 0.9f *m_gladiatorVector[i].m_velocity_y;
 
 
 	}
