@@ -2,6 +2,7 @@
 #include <enet\enet.h>
 #include <string>
 #include <queue>
+#include "MessageIdentifiers.h"
 struct Gladiator 
 {
 	unsigned id;
@@ -20,16 +21,18 @@ public:
 	Client() {};
 	~Client() {};
 	void start(char* address, unsigned port);
-	Gladiator m_gladiator;
+	std::vector<Gladiator> m_gladiatorVector;
 private:
 
-	
+	unsigned m_myId;
 	void connect(char* address, unsigned port);
 	void initializeENet();
 	ENetHost* createENetClient();
 	void sendPacket(unsigned char* data, unsigned size);
 	void checkEvent();
+	MessageIdentifiers getID(unsigned char* data);
 	void openUpdatePackage(unsigned char* data);
+	void openStartPackage(unsigned char* data);
 	unsigned char* createMovePacket(size_t &size, float velocity_x,
 									float velocity_y);
 	std::queue<unsigned char*> messages;
