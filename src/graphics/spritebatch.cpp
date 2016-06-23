@@ -56,10 +56,10 @@ namespace arena
 
     void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position)
     {
-        draw(texture, nullptr, color, position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
+        draw(texture, nullptr, color, position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 0.f);
     }
 
-    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle)
+    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle, float depth)
     {
         if (m_spriteQueueCount >= m_spriteQueue.size())
         {
@@ -116,7 +116,7 @@ namespace arena
         sprite->br = glm::vec2(points[3].x, points[3].y);
         sprite->u = glm::vec2(minu, maxu);
         sprite->v = glm::vec2(minv, maxv);
-
+        sprite->depth = depth;
         ++m_spriteQueueCount;
     }
 
@@ -137,7 +137,7 @@ namespace arena
                 std::begin(m_sortedSprites) + m_spriteQueueCount,
                 [](const SpriteInfo* x, const SpriteInfo* y)
             {
-                return x->texture->handle.idx < y->texture->handle.idx;
+                return x->depth < y->depth;
             });
         }
         

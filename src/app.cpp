@@ -299,9 +299,9 @@ namespace arena
         auto i = s_char->m_legs.m_currentFrame;
         Frame& frame = s_char->m_legs.m_frames[i];
         glm::vec4 src(frame.x, frame.y, s_char->m_legs.m_frameWidth, s_char->m_legs.m_frameHeight);
-        s_spriteBatch->draw(s_char->m_torso, 0xffffffff, glm::vec2(117, 280));
-        s_spriteBatch->draw(s_char->m_legs.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
-        s_spriteBatch->draw(s_char->m_greaves.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f);
+        s_spriteBatch->draw(s_char->m_torso, nullptr, 0xffffffff, glm::vec2(117, 280), glm::vec2(0,0), glm::vec2(1,1), 0.f, 0.f);
+        s_spriteBatch->draw(s_char->m_legs.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
+        s_spriteBatch->draw(s_char->m_greaves.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 2.f);
         s_spriteBatch->submit(0);
 
         bgfx::frame();
