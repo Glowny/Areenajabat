@@ -105,7 +105,11 @@ project ("arena")
 project "server"
 	kind "ConsoleApp"
 	
-	defines { "ARENA_SERVER"}
+	defines { 
+		"ARENA_SERVER",
+		"SFML_STATIC",
+		"_HAS_ITERATOR_DEBUGGING=1"
+	}
 	
 	includedirs { 
 		ARENA_THIRD_DIR
@@ -127,7 +131,14 @@ project "server"
 	links { 
 		"enet64",
 		"ws2_32",
-		"winmm"
+		"winmm",
+		"sfml-window-s-d",
+		"sfml-graphics-s-d",
+		"sfml-system-s-d",
+		"opengl32",
+		"gdi32",
+		"freetype",
+		"jpeg"
 	}
 	
 	configuration {}
@@ -135,7 +146,11 @@ project "server"
 project "client_sandbox"
 	kind "ConsoleApp"
 
-	defines { "ARENA_CLIENT" }
+	defines { 
+		"ARENA_CLIENT",
+		"SFML_STATIC",
+		"_HAS_ITERATOR_DEBUGGING=1"
+	}
 	
 	includedirs { 
 		ARENA_THIRD_DIR
@@ -157,7 +172,14 @@ project "client_sandbox"
 	links { 
 		"enet64",
 		"ws2_32",
-		"winmm"
+		"winmm",
+		"sfml-window-s-d",
+		"sfml-graphics-s-d",
+		"sfml-system-s-d",
+		"opengl32",
+		"gdi32",
+		"freetype",
+		"jpeg"
 	}
 	
 	

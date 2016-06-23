@@ -171,12 +171,8 @@
     <ClInclude Include="..\..\src\glsl\ir_stats.h">
       <Filter>src\glsl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\util\hash_table.h">
-      <Filter>src\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\util\ralloc.h">
-      <Filter>src\util</Filter>
-    </ClInclude>
+    <ClInclude Include="..\..\src\util\hash_table.h" />
+    <ClInclude Include="..\..\src\util\ralloc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\glsl\ast_expr.cpp">
@@ -491,12 +487,8 @@
     <ClCompile Include="..\..\src\glsl\ir_stats.cpp">
       <Filter>src\glsl</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\util\hash_table.c">
-      <Filter>src\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\util\ralloc.c">
-      <Filter>src\util</Filter>
-    </ClCompile>
+    <ClCompile Include="..\..\src\util\hash_table.c" />
+    <ClCompile Include="..\..\src\util\ralloc.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />

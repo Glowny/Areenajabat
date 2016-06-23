@@ -4,11 +4,30 @@
 #include <vector>
 struct Message {};
 
+struct PlayerInput
+{
+	float xDir= 0;
+	float yDir= 0;
+};
+
+
 struct Client
 {
 	ENetPeer* peer;
 	std::queue<unsigned char*> messageQueue;
+	PlayerInput input;
 };
+
+struct WorldPhysics
+{
+	struct vec2
+	{
+		float x, y;
+	};
+	float gravity;
+	vec2 limits;
+};
+
 
 struct Gladiator
 {
@@ -46,12 +65,12 @@ private:
 	void broadcastPacket(unsigned char* packet, unsigned size);
 	void disconnectClient(unsigned clientIndex);
 	void physics();
-	unsigned char* createGameSetupPacket(unsigned playerAmount);
+	unsigned char* createGameSetupPacket(unsigned playerAmount, unsigned id, size_t &size);
 	unsigned char* createGameUpdatePacket(std::vector<Gladiator> &gladiators,
 								std::vector<Bullet> &bullets, size_t &size);
-	void receiveMovePacket(unsigned char* data);
+	void receiveMovePacket(unsigned char* data, unsigned id);
 
-	
+	WorldPhysics m_world;
 	std::vector<Gladiator> m_gladiatorVector;
 	std::vector<Bullet> m_bulletVector;
 	ENetHost* m_server;
