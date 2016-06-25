@@ -3,6 +3,7 @@
 #include "../io/io.h"
 #include "../res/texture_resource.h"
 #include "../res/shader_resource.h"
+#include "../res/spriter_resource.h"
 
 namespace arena
 {
@@ -56,6 +57,7 @@ namespace arena
     {
         registerLoader(ResourceType::Shader, loadShader, NULL);
         registerLoader(ResourceType::Texture, loadTexture, NULL);
+        registerLoader(ResourceType::Spriter, spriter::load, spriter::unload);
     }
 
     ResourceManager::~ResourceManager()

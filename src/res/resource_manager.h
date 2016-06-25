@@ -12,6 +12,7 @@ namespace arena
         {
             Shader,
             Texture,
+            Spriter,
             Count
         };
     };
