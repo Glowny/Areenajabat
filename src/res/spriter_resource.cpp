@@ -1,5 +1,6 @@
 #include "spriter_resource.h"
 #include <bx/macros.h>
+#include <rapidxml/rapidxml.hpp>
 
 BX_PRAGMA_DIAGNOSTIC_PUSH_MSVC()
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not override any base class virtual member function
