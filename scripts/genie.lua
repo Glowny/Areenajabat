@@ -80,7 +80,8 @@ project ("arena")
 	links {
 		"bgfx",
 		"SDL2",
-		"Box2D"
+		"Box2D",
+		"spriterengine"
 	}
 
 	files {
