@@ -1,11 +1,15 @@
 #pragma once
 #include <string>
+#include <spriterengine/model/spritermodel.h>
 
 namespace arena
 {
     class SpriterResource
     {
-
+    public:
+        SpriterResource(const std::string&);
+    private:
+        SpriterEngine::SpriterModel m_model;
     };
 
     namespace spriter

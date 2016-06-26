@@ -231,13 +231,19 @@ namespace arena
         }
     };
 
+    SpriterResource::SpriterResource(const std::string& name)
+        : m_model(name, new SpriterFileFactory, new SpriterObjectFactory)
+    {
+
+    }
+
     namespace spriter
     {
 
         void* load(const std::string name)
         {
-            SpriterEngine::SpriterModel model(name, new SpriterFileFactory, new SpriterObjectFactory);
-            return nullptr;
+            SpriterResource* resource = new SpriterResource(name);
+            return resource;
         }
 
         void unload(void*)
