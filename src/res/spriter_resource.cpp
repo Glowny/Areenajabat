@@ -20,6 +20,8 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not
 #include "glm/gtx/matrix_transform_2d.hpp"
 #include "spriterengine/override/objectfactory.h"
 #include "spriterengine/global/settings.h"
+#include "spriterengine/objectinfo/boneinstanceinfo.h"
+#include "spriterengine/objectinfo/boxinstanceinfo.h"
 BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
 
 namespace arena
@@ -179,7 +181,7 @@ namespace arena
             glm::vec2 scale(spriteInfo->getScale().x, spriteInfo->getScale().y);
             point pivot = spriteInfo->getPivot();
             glm::vec2 origin(pivot.x * m_texture->width, pivot.y * m_texture->height);
-            arena::draw(m_texture, nullptr, color, position, origin, scale, rotation, 0.f);
+            arena::draw(m_texture, nullptr, color, position - origin, origin, scale, rotation, 1.f);
         }
 
     private:
@@ -208,6 +210,14 @@ namespace arena
     private:
     };
 
+    // dummy, just so this fucking spriter works....
+    class SpriterBoneInstanceInfo : public BoneInstanceInfo
+    {
+    public:
+        SpriterBoneInstanceInfo(point initialSize):BoneInstanceInfo(initialSize){}
+        void render() override {}
+    };
+
     class SpriterObjectFactory : public ObjectFactory
     {
     public:
@@ -223,19 +233,17 @@ namespace arena
 
         BoxInstanceInfo *newBoxInstanceInfo(point size) override
         {
-            (void)size;
-            return nullptr;
+            return new BoxInstanceInfo(size);
         }
 
         BoneInstanceInfo *newBoneInstanceInfo(point size) override
         {
-            (void)size;
-            return nullptr;
+            return new SpriterBoneInstanceInfo(size);
         }
     };
 
     SpriterResource::SpriterResource(const std::string& name)
-        : m_model(name, new SpriterFileFactory, new SpriterObjectFactory)
+        : m_model(name, new SpriterFileFactory, /*new SpriterObjectFactory*/nullptr)
     {
 
     }
@@ -246,6 +254,9 @@ namespace arena
         void* load(const std::string name)
         {
             SpriterEngine::Settings::setErrorFunction(SpriterEngine::Settings::nullError);
+            //Settings::reversePivotYOnLoad = false;
+            //Settings::reverseYOnLoad = false;
+            //Settings::reverseAngleOnLoad = false;
             SpriterResource* resource = new SpriterResource(name);
             return resource;
         }

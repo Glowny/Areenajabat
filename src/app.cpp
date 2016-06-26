@@ -173,10 +173,8 @@ namespace arena
         SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
         
         s_instance = spritermodel->m_model.getNewEntityInstance("Player");
-        s_instance->setCurrentAnimation(0);
+        s_instance->setCurrentAnimation("walk");
         s_instance->setPosition(SpriterEngine::point(500, 500));
-        s_instance->setTimeElapsed(50.0);
-        //s_instance->render();
 
         s_char = new Character;
     }
@@ -299,6 +297,9 @@ namespace arena
         s_animation->update(lastDeltaTime);
         s_char->update(lastDeltaTime);
         
+        s_instance->setTimeElapsed(lastDeltaTime * 1000.0);
+        s_instance->render();
+
         static float angle = 0.001f;
         angle += 0.001f;
         
@@ -306,12 +307,12 @@ namespace arena
         //s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(300, 300));
         //s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 0));
 
-        auto i = s_char->m_legs.m_currentFrame;
+   /*     auto i = s_char->m_legs.m_currentFrame;
         Frame& frame = s_char->m_legs.m_frames[i];
         glm::vec4 src(frame.x, frame.y, s_char->m_legs.m_frameWidth, s_char->m_legs.m_frameHeight);
         s_spriteBatch->draw(s_char->m_torso, nullptr, 0xffffffff, s_char->m_torsoPosition, glm::vec2(0,0), glm::vec2(1,1), 0.f, 0.f);
         s_spriteBatch->draw(s_char->m_legs.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
-        s_spriteBatch->draw(s_char->m_greaves.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 2.f);
+        s_spriteBatch->draw(s_char->m_greaves.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 2.f);*/
         s_spriteBatch->submit(0);
 
         bgfx::frame();
