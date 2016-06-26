@@ -2,13 +2,16 @@
 #include <string>
 #include <spriterengine/model/spritermodel.h>
 
+namespace SpriterEngine { class EntityInstance; }
 namespace arena
 {
     class SpriterResource
     {
     public:
         SpriterResource(const std::string&);
-    public:
+        SpriterEngine::EntityInstance* getNewEntityInstance(int entityId);
+        SpriterEngine::EntityInstance* getNewEntityInstance(std::string entityName);
+    private:
         SpriterEngine::SpriterModel m_model;
     };
 

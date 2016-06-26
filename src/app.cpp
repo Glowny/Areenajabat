@@ -17,6 +17,7 @@
 #include "render.h"
 #include "res/spriter_resource.h"
 
+// TODO REMOVE
 BX_PRAGMA_DIAGNOSTIC_PUSH_MSVC()
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not override any base class virtual member function
 #include "spriterengine/entity/entityinstance.h"
@@ -172,7 +173,7 @@ namespace arena
 
         SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
         
-        s_instance = spritermodel->m_model.getNewEntityInstance("Player");
+        s_instance = spritermodel->getNewEntityInstance("Player");
         s_instance->setCurrentAnimation("walk");
         s_instance->setPosition(SpriterEngine::point(500, 500));
 

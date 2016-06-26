@@ -248,9 +248,19 @@ namespace arena
 
     }
 
+    SpriterEngine::EntityInstance* SpriterResource::getNewEntityInstance(int entityId)
+    {
+        return m_model.getNewEntityInstance(entityId);
+    }
+
+
+    SpriterEngine::EntityInstance* SpriterResource::getNewEntityInstance(std::string entityName)
+    {
+        return m_model.getNewEntityInstance(entityName);
+    }
+
     namespace spriter
     {
-
         void* load(const std::string name)
         {
             SpriterEngine::Settings::setErrorFunction(SpriterEngine::Settings::nullError);
