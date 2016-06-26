@@ -14,6 +14,9 @@
 #include "res/texture_resource.h"
 #include <bx/timer.h>
 #include "graphics/sprite_animation.h"
+#include "render.h"
+#include "res/spriter_resource.h"
+#include "res/spriter_animation_player.h"
 
 namespace arena
 {
@@ -30,54 +33,6 @@ namespace arena
     {
         s_exit = true;
     }
-
-
-    struct Character
-    {
-        Character()
-            : m_legs(
-                getResources()->get<TextureResource>(
-                    ResourceType::Texture,
-                    "character/Run_BareLegs1_ss.png"),
-                64, 64, 1024 / 64),
-
-            m_greaves(
-                getResources()->get<TextureResource>(
-                    ResourceType::Texture,
-                    "character/Run_Greaves1_ss.png"),
-                64, 64, 1024 / 64),
-            m_torso(
-                getResources()->get<TextureResource>(
-                    ResourceType::Texture,
-                    "character/Torso1.png")
-            ),
-            m_torsoPosition(glm::vec2(117, 280)),
-            m_elapsed(0)
-        {
-
-        }
-
-        void update(float dt)
-        {
-            m_elapsed += dt;
-            //printf("%.5f\n", m_elapsed);
-            m_torsoPosition.y += cosf(m_elapsed * 6.f) * 0.5f;
-            m_legs.update(dt);
-            m_greaves.update(dt);
-        }
-
-        float m_elapsed;
-        // draw this first
-        SpriteAnimation m_legs;
-        // draw this then
-        SpriteAnimation m_greaves;
-
-        TextureResource* m_torso;
-
-        glm::vec2 m_torsoPosition;
-    };
-
-    static Character* s_char;
 
     static const InputBinding s_bindings[] =
     {
@@ -115,25 +70,11 @@ namespace arena
         }
     };
 
-    uint32_t toABGR(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
-    {
-        return (alpha << 24) | (blue << 16) | (green << 8) | red;
-    }
-
-    uint32_t toABGR(uint32_t rgbaHex)
-    {
-        return
-            (((rgbaHex >> 0) & 0xFF) << 24) | // alpha
-            (((rgbaHex >> 8) & 0xFF) << 16) | // blue
-            (((rgbaHex >> 16) & 0xFF) << 8) | // green
-            (((rgbaHex >> 24) & 0xFF) << 0);   // red
-    }
-
     static Camera s_camera(1280.f, 720.f);
 
     static int64_t s_last_time = 0;
 
-    static SpriteAnimation* s_animation;
+    static SpriterAnimationPlayer* s_instance;
 
     void App::init(int32_t width, int32_t height)
     {
@@ -168,14 +109,11 @@ namespace arena
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
 
-        s_animation = new SpriteAnimation(
-            getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png"),
-            uint16_t(64),
-            uint16_t(64),
-            3 * 4 + 2
-        );
-
-        s_char = new Character;
+        SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
+        
+        s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance("Player"));
+        s_instance->setCurrentAnimation("walk");
+        s_instance->setPosition(glm::vec2(500, 500));
     }
 
     // return trues if we want to exit
@@ -289,33 +227,13 @@ namespace arena
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
         bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
-
-        //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
-     //   auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
-      //  auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
-
-
-        s_animation->update(lastDeltaTime);
-        s_char->update(lastDeltaTime);
         
-        static float angle = 0.001f;
-        angle += 0.001f;
+        s_instance->setTimeElapsed(lastDeltaTime * 1000.0f);
+        s_instance->render();
         
-        //s_spriteBatch->draw(tex, &src, 0xFFFFFFFF, glm::vec2(400, 300), /*glm::vec2(tex->width / 2.f, tex->height / 2.f)*/glm::vec2(32,32), glm::vec2(1.0, 1.0), angle);
-        //s_spriteBatch->draw(tex, 0xFFFFFFFF, glm::vec2(300, 300));
-        //s_spriteBatch->draw(tex2, 0xFFFFFFFF, glm::vec2(0, 0));
-
-        auto i = s_char->m_legs.m_currentFrame;
-        Frame& frame = s_char->m_legs.m_frames[i];
-        glm::vec4 src(frame.x, frame.y, s_char->m_legs.m_frameWidth, s_char->m_legs.m_frameHeight);
-        s_spriteBatch->draw(s_char->m_torso, nullptr, 0xffffffff, s_char->m_torsoPosition, glm::vec2(0,0), glm::vec2(1,1), 0.f, 0.f);
-        s_spriteBatch->draw(s_char->m_legs.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
-        s_spriteBatch->draw(s_char->m_greaves.m_spritesheet, &src, 0xffffffff, glm::vec2(100, 300), glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 2.f);
         s_spriteBatch->submit(0);
 
         bgfx::frame();
-
-        //bx::sleep(16);
 
         return s_exit;
     }
@@ -340,5 +258,20 @@ namespace arena
     ResourceManager* getResources()
     {
         return s_resources;
+    }
+
+
+    void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle, float depth)
+    {
+        s_spriteBatch->draw(
+            texture,
+            src,
+            color,
+            position,
+            origin,
+            scale,
+            angle,
+            depth
+            );
     }
 }

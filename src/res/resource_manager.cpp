@@ -3,6 +3,7 @@
 #include "../io/io.h"
 #include "../res/texture_resource.h"
 #include "../res/shader_resource.h"
+#include "../res/spriter_resource.h"
 
 namespace arena
 {
@@ -56,6 +57,7 @@ namespace arena
     {
         registerLoader(ResourceType::Shader, loadShader, NULL);
         registerLoader(ResourceType::Texture, loadTexture, NULL);
+        registerLoader(ResourceType::Spriter, spriter::load, spriter::unload);
     }
 
     ResourceManager::~ResourceManager()
@@ -78,10 +80,18 @@ namespace arena
                     bgfx::getRendererType() == bgfx::RendererType::Direct3D11 ?
                     "shaders/dx11/" : "shaders/gl/";
                 path = root + std::string(shaderPath) + name;
-            } 
+            }
             else
             {
-                path = root + name;
+                // if it starts with root, its from spriter loader..... HAXXX :D
+                if (type == ResourceType::Texture && name.find(root) == 0)
+                {
+                    path = name;
+                }
+                else
+                {
+                    path = root + name;
+                }
             }
 
             entry.references = 1;
