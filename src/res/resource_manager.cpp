@@ -80,10 +80,18 @@ namespace arena
                     bgfx::getRendererType() == bgfx::RendererType::Direct3D11 ?
                     "shaders/dx11/" : "shaders/gl/";
                 path = root + std::string(shaderPath) + name;
-            } 
+            }
             else
             {
-                path = root + name;
+                // if it starts with root, its from spriter loader..... HAXXX :D
+                if (type == ResourceType::Texture && name.find(root) == 0)
+                {
+                    path = name;
+                }
+                else
+                {
+                    path = root + name;
+                }
             }
 
             entry.references = 1;

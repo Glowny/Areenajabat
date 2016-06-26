@@ -233,12 +233,10 @@ namespace arena
 
     namespace spriter
     {
-        static SpriterFileFactory s_fileFactory;
-        static SpriterObjectFactory s_objectFactory;
 
         void* load(const std::string name)
         {
-            SpriterEngine::SpriterModel model(name, &s_fileFactory, &s_objectFactory);
+            SpriterEngine::SpriterModel model(name, new SpriterFileFactory, new SpriterObjectFactory);
             return nullptr;
         }
 
