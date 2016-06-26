@@ -4,6 +4,10 @@
 #include "../io/io.h"
 #include <bx/readerwriter.h>
 #include <vector>
+#include "../app.h"
+#include "resource_manager.h"
+#include "../utils/color.h"
+#include "../render.h"
 
 BX_PRAGMA_DIAGNOSTIC_PUSH_MSVC()
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not override any base class virtual member function
@@ -11,6 +15,9 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not
 #include "spriterengine/override/filefactory.h"
 #include "spriterengine/override/spriterfileelementwrapper.h"
 #include "spriterengine/override/spriterfileattributewrapper.h"
+#include "spriterengine/override/imagefile.h"
+#include "texture_resource.h"
+#include "glm/gtx/matrix_transform_2d.hpp"
 BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
 
 namespace arena
@@ -144,6 +151,31 @@ namespace arena
 
         rapidxml::xml_document<> m_doc;
         std::vector<char> m_buffer;
+    };
+
+    class SpriterImageFile : public ImageFile
+    {
+    public:
+        SpriterImageFile(std::string initialFilePath, point initialDefaultPivot)
+            : ImageFile(initialFilePath, initialDefaultPivot),
+            m_texture(nullptr)
+        {
+            m_texture = arena::getResources()->get<TextureResource>(ResourceType::Texture, initialFilePath);
+        }
+
+        void renderSprite(UniversalObjectInterface * spriteInfo) override
+        {
+            uint32_t color = color::toABGR(255, 255, 255, uint8_t(255 * spriteInfo->getAlpha()));
+            glm::vec2 position(spriteInfo->getPosition().x, spriteInfo->getPosition().y);
+            float rotation = float(spriteInfo->getAngle()); // in radians
+            glm::vec2 scale(spriteInfo->getScale().x, spriteInfo->getScale().y);
+            point pivot = spriteInfo->getPivot();
+            glm::vec2 origin(pivot.x * m_texture->width, pivot.y * m_texture->height);
+            arena::draw(m_texture, nullptr, color, position, origin, scale, rotation, 0.f);
+        }
+
+    private:
+        TextureResource* m_texture;
     };
 
     class SpriterFileFactory : public SpriterEngine::FileFactory

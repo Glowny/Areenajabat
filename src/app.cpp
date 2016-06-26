@@ -14,6 +14,7 @@
 #include "res/texture_resource.h"
 #include <bx/timer.h>
 #include "graphics/sprite_animation.h"
+#include "render.h"
 
 namespace arena
 {
@@ -326,5 +327,20 @@ namespace arena
     ResourceManager* getResources()
     {
         return s_resources;
+    }
+
+
+    void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle, float depth)
+    {
+        s_spriteBatch->draw(
+            texture,
+            src,
+            color,
+            position,
+            origin,
+            scale,
+            angle,
+            depth
+            );
     }
 }
