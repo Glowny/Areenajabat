@@ -8,7 +8,7 @@ namespace arena
     {
     public:
         SpriterResource(const std::string&);
-    private:
+    public:
         SpriterEngine::SpriterModel m_model;
     };
 

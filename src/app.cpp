@@ -15,6 +15,12 @@
 #include <bx/timer.h>
 #include "graphics/sprite_animation.h"
 #include "render.h"
+#include "res/spriter_resource.h"
+
+BX_PRAGMA_DIAGNOSTIC_PUSH_MSVC()
+BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not override any base class virtual member function
+#include "spriterengine/entity/entityinstance.h"
+BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
 
 namespace arena
 {
@@ -122,6 +128,8 @@ namespace arena
 
     static SpriteAnimation* s_animation;
 
+    static SpriterEngine::EntityInstance* s_instance;
+
     void App::init(int32_t width, int32_t height)
     {
         this->width = width;
@@ -162,8 +170,14 @@ namespace arena
             3 * 4 + 2
         );
 
-        void* spritermodel = getResources()->get(ResourceType::Spriter, "GreyGuy/player.scml");
-        (void)spritermodel;
+        SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
+        
+        s_instance = spritermodel->m_model.getNewEntityInstance("Player");
+        s_instance->setCurrentAnimation(0);
+        s_instance->setPosition(SpriterEngine::point(500, 500));
+        s_instance->setTimeElapsed(50.0);
+        //s_instance->render();
+
         s_char = new Character;
     }
 
@@ -282,8 +296,6 @@ namespace arena
         //s_sprite.m_origin = glm::vec2(s_sprite.m_res->width / 2.f, s_sprite.m_res->height / 2.f);
      //   auto tex = getResources()->get<TextureResource>(ResourceType::Texture, "juoksu_ss.png");
       //  auto tex2 = getResources()->get<TextureResource>(ResourceType::Texture, "rgb.png");
-
-
         s_animation->update(lastDeltaTime);
         s_char->update(lastDeltaTime);
         

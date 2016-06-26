@@ -19,6 +19,7 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not
 #include "texture_resource.h"
 #include "glm/gtx/matrix_transform_2d.hpp"
 #include "spriterengine/override/objectfactory.h"
+#include "spriterengine/global/settings.h"
 BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
 
 namespace arena
@@ -83,7 +84,7 @@ namespace arena
 
         bool isValid() override
         {
-            return m_node != 0;
+            return m_node != NULL;
         }
 
         void advanceToNextSiblingElement() override
@@ -92,7 +93,7 @@ namespace arena
         }
         void advanceToNextSiblingElementOfSameName() override
         {
-            m_node = m_node->next_sibling(m_node->name(), m_node->name_size());
+            m_node = m_node->next_sibling(m_node->name());
         }
 
     private:
@@ -115,11 +116,13 @@ namespace arena
             return new RapidXmlFileElementWrapper(m_node->first_node(elementName.c_str()));
         }
 
-        SpriterFileElementWrapper *newElementWrapperFromNextSiblingElement() override
+        // same name must
+        SpriterFileElementWrapper *newElementWrapperFromNextSiblingElement() override 
         {
-            return new RapidXmlFileElementWrapper(m_node->next_sibling());
+            return new RapidXmlFileElementWrapper(m_node->next_sibling(m_node->name()));
         }
 
+        // same name must
         SpriterFileElementWrapper *newElementClone() override
         {
             return new RapidXmlFileElementWrapper(m_node);
@@ -242,6 +245,7 @@ namespace arena
 
         void* load(const std::string name)
         {
+            SpriterEngine::Settings::setErrorFunction(SpriterEngine::Settings::nullError);
             SpriterResource* resource = new SpriterResource(name);
             return resource;
         }
