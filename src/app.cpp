@@ -16,12 +16,7 @@
 #include "graphics/sprite_animation.h"
 #include "render.h"
 #include "res/spriter_resource.h"
-
-// TODO REMOVE
-BX_PRAGMA_DIAGNOSTIC_PUSH_MSVC()
-BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not override any base class virtual member function
-#include "spriterengine/entity/entityinstance.h"
-BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
+#include "res/spriter_animation_player.h"
 
 namespace arena
 {
@@ -129,7 +124,7 @@ namespace arena
 
     static SpriteAnimation* s_animation;
 
-    static SpriterEngine::EntityInstance* s_instance;
+    static SpriterAnimationPlayer* s_instance;
 
     void App::init(int32_t width, int32_t height)
     {
@@ -173,9 +168,9 @@ namespace arena
 
         SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
         
-        s_instance = spritermodel->getNewEntityInstance("Player");
+        s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance("Player"));
         s_instance->setCurrentAnimation("walk");
-        s_instance->setPosition(SpriterEngine::point(500, 500));
+        s_instance->setPosition(glm::vec2(500, 500));
 
         s_char = new Character;
     }
@@ -298,7 +293,7 @@ namespace arena
         s_animation->update(lastDeltaTime);
         s_char->update(lastDeltaTime);
         
-        s_instance->setTimeElapsed(lastDeltaTime * 1000.0);
+        s_instance->setTimeElapsed(lastDeltaTime * 1000.0f);
         s_instance->render();
 
         static float angle = 0.001f;

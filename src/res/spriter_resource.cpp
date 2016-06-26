@@ -319,6 +319,16 @@ namespace arena
         m_entity->render();
     }
 
+    void SpriterAnimationPlayer::setCurrentAnimation(const std::string& anim)
+    {
+        m_entity->setCurrentAnimation(anim);
+    }
+
+    void SpriterAnimationPlayer::setCurrentAnimation(int anim)
+    {
+        m_entity->setCurrentAnimation(anim);
+    }
+
     namespace spriter
     {
         void* load(const std::string name)
