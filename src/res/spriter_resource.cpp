@@ -10,69 +10,111 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not
 #include <spriterengine/spriterengine.h>
 #include "spriterengine/override/filefactory.h"
 #include "spriterengine/override/spriterfileelementwrapper.h"
+#include "spriterengine/override/spriterfileattributewrapper.h"
 BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
 
 namespace arena
 {
     using namespace SpriterEngine;
 
-    class RapidXmlFileElementWrapper : public SpriterFileElementWrapper
+    class RapidXmlFileAttributeWrapper : public SpriterFileAttributeWrapper
     {
     public:
-        RapidXmlFileElementWrapper(rapidxml::xml_node<char>* node)
+        RapidXmlFileAttributeWrapper(rapidxml::xml_attribute<char>* attrib)
+            : m_attribute(attrib)
         {
 
         }
 
         std::string getName() override
         {
-            return std::string();
+            return m_attribute->name();
         }
 
         bool isValid() override
         {
-            return false;
+            return m_attribute != NULL;
+        }
+
+        real getRealValue() override
+        {
+            return atof(m_attribute->value());
+        }
+
+        int getIntValue() override
+        {
+            return atoi(m_attribute->value());
+        }
+
+        std::string getStringValue() override
+        {
+            return m_attribute->value();
+        }
+
+        void advanceToNextAttribute() override;
+    private:
+        rapidxml::xml_attribute<char>* m_attribute;
+    };
+
+    class RapidXmlFileElementWrapper : public SpriterFileElementWrapper
+    {
+    public:
+        RapidXmlFileElementWrapper(rapidxml::xml_node<char>* node)
+            : m_node(node)
+        {
+            
+        }
+
+        std::string getName() override
+        {
+            return m_node->name();
+        }
+
+        bool isValid() override
+        {
+            return m_node != 0;
         }
 
         void advanceToNextSiblingElement() override
         {
-
+            m_node = m_node->next_sibling();
         }
         void advanceToNextSiblingElementOfSameName() override
         {
-
+            m_node = m_node->next_sibling(m_node->name(), m_node->name_size());
         }
 
     private:
 
         SpriterFileAttributeWrapper *newAttributeWrapperFromFirstAttribute() override
         {
-            return NULL;
+            return new RapidXmlFileAttributeWrapper(m_node->first_attribute());
         }
         SpriterFileAttributeWrapper *newAttributeWrapperFromFirstAttribute(const std::string & attributeName) override
         {
-            return NULL;
+            return new RapidXmlFileAttributeWrapper(m_node->first_attribute(attributeName.c_str()));
         }
 
         SpriterFileElementWrapper *newElementWrapperFromFirstElement() override
         {
-            return NULL;
+            return new RapidXmlFileElementWrapper(m_node->first_node());
         }
         SpriterFileElementWrapper *newElementWrapperFromFirstElement(const std::string & elementName) override
         {
-            return NULL;
+            return new RapidXmlFileElementWrapper(m_node->first_node(elementName.c_str()));
         }
 
         SpriterFileElementWrapper *newElementWrapperFromNextSiblingElement() override
         {
-            return NULL;
+            return new RapidXmlFileElementWrapper(m_node->next_sibling());
         }
 
         SpriterFileElementWrapper *newElementClone() override
         {
-            return NULL;
+            return new RapidXmlFileElementWrapper(m_node);
         }
 
+        rapidxml::xml_node<char>* m_node;
     };
 
     class RapidxmlDocumentWrapper : public SpriterFileDocumentWrapper
@@ -97,7 +139,7 @@ namespace arena
         }
         SpriterFileElementWrapper* newElementWrapperFromFirstElement(const std::string& elementName) override
         {
-            return nullptr;
+            return new RapidXmlFileElementWrapper(m_doc.first_node(elementName.c_str()));
         }
 
         rapidxml::xml_document<> m_doc;
