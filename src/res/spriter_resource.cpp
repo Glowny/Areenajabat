@@ -138,8 +138,9 @@ namespace arena
 
             
             int64_t size = bx::getSize(&reader);
-            m_buffer.resize((uint32_t)size);
+            m_buffer.resize((uint32_t)size + 1); // null terminator
             bx::read(&reader, m_buffer.data(), (int32_t)size);
+            m_buffer[uint32_t(size)] = '\0';
             m_doc.parse<0>(m_buffer.data());
             
         }

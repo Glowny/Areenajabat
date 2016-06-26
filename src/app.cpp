@@ -162,6 +162,8 @@ namespace arena
             3 * 4 + 2
         );
 
+        void* spritermodel = getResources()->get(ResourceType::Spriter, "GreyGuy/player.scml");
+        (void)spritermodel;
         s_char = new Character;
     }
 
