@@ -18,6 +18,7 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not
 #include "spriterengine/override/imagefile.h"
 #include "texture_resource.h"
 #include "glm/gtx/matrix_transform_2d.hpp"
+#include "spriterengine/override/objectfactory.h"
 BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
 
 namespace arena
@@ -58,7 +59,10 @@ namespace arena
             return m_attribute->value();
         }
 
-        void advanceToNextAttribute() override;
+        void advanceToNextAttribute() override
+        {
+            m_attribute = m_attribute->next_attribute();
+        }
     private:
         rapidxml::xml_attribute<char>* m_attribute;
     };
@@ -184,7 +188,7 @@ namespace arena
 
         ImageFile* newImageFile(const std::string& initialFilePath, point initialDefaultPivot) override
         {
-
+            return new SpriterImageFile(initialFilePath, initialDefaultPivot);
         }
 
         SoundFile* newSoundFile(const std::string&) override
@@ -195,17 +199,46 @@ namespace arena
 
         SpriterFileDocumentWrapper *newScmlDocumentWrapper() override
         {
-            //rapidxml
-            return nullptr;
+            return new RapidxmlDocumentWrapper();
         }
     private:
     };
 
+    class SpriterObjectFactory : public ObjectFactory
+    {
+    public:
+        SpriterObjectFactory()
+        {
+
+        }
+
+        PointInstanceInfo *newPointInstanceInfo() override
+        {
+            return nullptr;
+        }
+
+        BoxInstanceInfo *newBoxInstanceInfo(point size) override
+        {
+            (void)size;
+            return nullptr;
+        }
+
+        BoneInstanceInfo *newBoneInstanceInfo(point size) override
+        {
+            (void)size;
+            return nullptr;
+        }
+    };
+
     namespace spriter
     {
+        static SpriterFileFactory s_fileFactory;
+        static SpriterObjectFactory s_objectFactory;
+
         void* load(const std::string name)
         {
-            return NULL;
+            SpriterEngine::SpriterModel model(name, &s_fileFactory, &s_objectFactory);
+            return nullptr;
         }
 
         void unload(void*)
