@@ -8,6 +8,7 @@
 #include "resource_manager.h"
 #include "../utils/color.h"
 #include "../render.h"
+#include "spriter_animation_player.h"
 
 BX_PRAGMA_DIAGNOSTIC_PUSH_MSVC()
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not override any base class virtual member function
@@ -257,6 +258,65 @@ namespace arena
     SpriterEngine::EntityInstance* SpriterResource::getNewEntityInstance(std::string entityName)
     {
         return m_model.getNewEntityInstance(entityName);
+    }
+
+    SpriterAnimationPlayer::SpriterAnimationPlayer(SpriterEngine::EntityInstance* instance)
+        : m_entity(instance)
+    {
+
+    }
+
+    void SpriterAnimationPlayer::setPosition(const glm::vec2& position)
+    {
+        m_entity->setPosition(SpriterEngine::point(position.x, position.y));
+    }
+
+
+    void SpriterAnimationPlayer::setAngle(float radians)
+    {
+        m_entity->setAngle(radians);
+    }
+
+    void SpriterAnimationPlayer::setScale(const glm::vec2& scale)
+    {
+        m_entity->setScale(SpriterEngine::point(scale.x, scale.y));
+    }
+
+    void SpriterAnimationPlayer::setAlpha(float alpha)
+    {
+        m_entity->setAlpha(alpha);
+    }
+
+    glm::vec2 SpriterAnimationPlayer::getPosition() const
+    {
+        auto pos = m_entity->getPosition();
+        return glm::vec2(pos.x, pos.y);
+    }
+
+    glm::vec2 SpriterAnimationPlayer::getScale() const
+    {
+        auto s = m_entity->getScale();
+        return glm::vec2(s.x, s.y);
+    }
+
+    float SpriterAnimationPlayer::getAngle() const
+    {
+        return float(m_entity->getAngle());
+    }
+
+    float SpriterAnimationPlayer::getAlpha() const
+    {
+        return float(m_entity->getAlpha());
+    }
+
+    void SpriterAnimationPlayer::setTimeElapsed(float milliseconds)
+    {
+        m_entity->setTimeElapsed(milliseconds);
+    }
+
+    void SpriterAnimationPlayer::render()
+    {
+        m_entity->render();
     }
 
     namespace spriter
