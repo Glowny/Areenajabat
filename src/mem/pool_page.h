@@ -16,13 +16,12 @@ namespace arena
 	{
 	public:
 		PoolPage(const uint32 pageSize) : m_pageSize(pageSize),
-										  m_pagePointer(0),
-										  m_lastAddress(pageSize * sizeof(T))
+										  m_pagePointer(0)
 		{
-			m_memory		= new char[m_lastAddress];
+			m_memory		= new char[pageSize * sizeof(T)];
 
 			m_lowAddress	= reinterpret_cast<UintPtr>(&m_memory[0]);
-			m_highAddress	= reinterpret_cast<UintPtr>(&m_memory[m_lastAddress]);
+			m_highAddress	= reinterpret_cast<UintPtr>(&m_memory[pageSize * sizeof(T)]);
 		}
 
 		// Returns an uninitialized handle to element
@@ -94,7 +93,6 @@ namespace arena
 		UintPtr	m_lowAddress;		// Low address of the page.
 		UintPtr	m_highAddress;		// High address of the page.
 		uint64	m_pagePointer;		// Pointer poinint to the current element of the page (bytes).
-		uint64	m_pageSize;			// Page size in elements (elements).
-		uint64  m_lastAddress;
+		uint32	m_pageSize;			// Page size in elements (elements).
 	};
 }

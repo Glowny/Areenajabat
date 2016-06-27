@@ -16,7 +16,7 @@ namespace arena
 		Entity allocator.
 	*/
 
-	EntityAllocator::EntityAllocator(const uint64 initialPages, const uint32 pageSize) : m_allocator(initialPages, pageSize)
+	EntityAllocator::EntityAllocator(const uint32 initialPages, const uint32 pageSize) : m_allocator(initialPages, pageSize)
 	{
 	}
 
