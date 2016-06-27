@@ -11,15 +11,19 @@ using PageList = std::vector<PoolPage<T>>;
 namespace arena
 {
 	template<typename T>
-	class PoolAllocator final {
+	class PoolAllocator final 
+	{
 	public:
-		PoolAllocator(const uint64 initialPagesCount, const uint64 pageSize) : pageSize(pageSize) {
+		PoolAllocator(const uint64 initialPagesCount, const uint64 pageSize) : pageSize(pageSize) 
+		{
 			for (auto i = 0; i < initialPagesCount; i++) m_pages.push_back(PoolPage(pageSize));
 		}
 
-		T* allocate() {
+		T* allocate()
+		{
 			// Try to allocate from existing pages.
-			for (auto& page : m_pages) {
+			for (auto& page : m_pages) 
+			{
 				const auto element = page.allocate();
 
 				if (element != nullptr) return element;
@@ -32,11 +36,14 @@ namespace arena
 
 			return page->allocate();
 		}
-		bool deallocate(const T* const element) {
+		bool deallocate(const T* const element)
+		{
 			const auto address = static_cast<UintPtr>(element);
 
-			for (auto& page : m_pages) {
-				if (page.isInAddressSpace(address)) {
+			for (auto& page : m_pages)
+			{
+				if (page.isInAddressSpace(address))
+				{
 					page.deallocate(element);
 
 					return true;
@@ -46,10 +53,12 @@ namespace arena
 			return false;
 		}
 
-		uint32 pagesCount() const {
+		uint32 pagesCount() const
+		{
 			return m_pages.size();
 		}
-		uint64 bytes() const {
+		uint64 bytes() const 
+		{
 			return m_pages.size() * m_pageSize * sizeof(T);
 		}
 

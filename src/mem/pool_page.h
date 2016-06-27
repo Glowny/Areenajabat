@@ -10,10 +10,12 @@ using HandleStack = std::stack<T>;
 namespace arena
 {
 	template<typename T>
-	class PoolPage final {
+	class PoolPage final
+	{
 	public:
 		PoolPage(const uint64 pageSize) : pageSize(pageSize),
-										  m_pagePointer(0) {
+										  m_pagePointer(0) 
+		{
 			m_elements		= new T[pageSize];
 
 			m_lowAddress	= static_cast<UintPtr>(&m_elements[0]);
@@ -22,15 +24,19 @@ namespace arena
 
 		// Returns an uninitialized handle to element
 		// of type T.
-		T* allocate() {
-			if (canAllocateFromReleased()) {
+		T* allocate() 
+		{
+			if (canAllocateFromReleased()) 
+			{
 				// Alloc from released.
 				const auto handle = m_releasedHandles.top();
 				
 				m_releasedHandles.pop();
 
 				return handle;
-			} else if (canAllocateFromPool()) {
+			} 
+			else if (canAllocateFromPool()) 
+			{
 				// Alloc from pool.
 				return m_elements[m_pagePointer++];
 			} 
@@ -40,26 +46,31 @@ namespace arena
 		}
 		// Deallocates the given element.
 		// Calls destructor.
-		void deallocate(T* const element) {
+		void deallocate(T* const element)
+		{
 			m_releasedHandles.push(element);
 
 			DYNAMIC_DTOR(ptr, T);
 		}
 
-		bool isInAddressSpace(const T* const element) const {
+		bool isInAddressSpace(const T* const element) const 
+		{
 			const auto address = static_cast<UintPtr>(element);
 
 			return address >= m_lowAddress && address <= m_highAddress;
 		}
 
-		~PoolPage() {
+		~PoolPage() 
+		{
 			delete m_memory;
 		}
 	private:
-		bool canAllocateFromReleased() const {
+		bool canAllocateFromReleased() const
+		{
 			return !m_releasedHandles.empty();
 		}
-		bool canAllocateFromPool() const {
+		bool canAllocateFromPool() const 
+		{
 			return m_pagePointer < m_pageSize;
 		}
 

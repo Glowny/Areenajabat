@@ -13,7 +13,8 @@ using ComponentIterator = std::vector<arena::Component*>::iterator;
 
 namespace arena
 {
-	class EntityAllocator final {
+	class EntityAllocator final 
+	{
 	public:
 		EntityAllocator(const uint64 initialPages, const uint64 pageSize);
 		
@@ -27,7 +28,8 @@ namespace arena
 		PoolAllocator<Entity> m_allocator;
 	};
 
-	class Entity final {
+	class Entity final 
+	{
 		friend class EntityAllocator;
 	public:
 		/*
