@@ -3,15 +3,15 @@
 #include "entity.h"
 #include "component.h"
 
-/*
-	Change these to optimize allocations.
-*/
-
-#define ENTITITES_INITIAL_PAGES		4u
-#define ENTITIES_PAGE_SIZE			1024u
-
 namespace arena
 {
+	/*
+		Change these to optimize allocations.
+	*/
+
+	const uint32 InitialPages	= 4;
+	const uint32 PageSize		= 1024;
+
 	/*
 		Entity allocator.
 	*/
@@ -50,7 +50,7 @@ namespace arena
 	*/
 
 	// Init static allocator.
-	EntityAllocator Entity::s_allocator = EntityAllocator(ENTITITES_INITIAL_PAGES, ENTITIES_PAGE_SIZE);
+	EntityAllocator Entity::s_allocator = EntityAllocator(InitialPages, PageSize);
 
 	Entity::Entity(const String& tags) : m_tags(tags) 
 	{
