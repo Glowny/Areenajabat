@@ -9,7 +9,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 
 namespace arena
 {
-	class Component final
+	class Component
 	{
 	DEFINE_RTTI_TYPE
 	public:

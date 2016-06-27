@@ -4,9 +4,10 @@
 
 namespace arena
 {
-	uint32 RTTIData::s_IDGenerator = 0u;
+	uint32 RTTIData::s_IDGenerator = 0;
 
-	RTTIData::RTTIData(const String tname) : m_typename(tname),
-											 m_typeID(s_IDGenerator++) {
+	RTTIData::RTTIData(const String tname, const uint32 size) : m_typename(tname),
+																m_size(size),
+																m_typeID(s_IDGenerator++) {
 	}
 }
