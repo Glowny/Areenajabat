@@ -7,8 +7,8 @@
 	Change these to optimize allocations.
 */
 
-#define ENTITITES_INITIAL_PAGES		4
-#define ENTITIES_PAGE_SIZE			1024
+#define ENTITITES_INITIAL_PAGES		4u
+#define ENTITIES_PAGE_SIZE			1024u
 
 namespace arena
 {
@@ -16,7 +16,7 @@ namespace arena
 		Entity allocator.
 	*/
 
-	EntityAllocator::EntityAllocator(const uint64 initialPages, const uint64 pageSize) : m_allocator(initialPages, pageSize)
+	EntityAllocator::EntityAllocator(const uint64 initialPages, const uint32 pageSize) : m_allocator(initialPages, pageSize)
 	{
 	}
 
@@ -39,7 +39,7 @@ namespace arena
 		return entity;
 	}
 
-	void EntityAllocator::destroy(Entity* const entity)
+	void EntityAllocator::destroy(Entity* entity)
 	{
 		// Deallocate, calls dtor.
 		m_allocator.deallocate(entity);

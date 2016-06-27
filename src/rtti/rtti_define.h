@@ -9,7 +9,8 @@
 namespace arena
 {
 	// Class to contain basic RTTI data.
-	class RTTIData final {
+	class RTTIData final 
+	{
 	public:
 		const String	m_typename;
 		const uint64	m_typeID;
@@ -27,19 +28,18 @@ namespace arena
 	class declaration to create new RTTI type.
 */
 
-#define DEFINE_RTTI_TYPE() private: \
+#define DEFINE_RTTI_TYPE  private: \
 						      static arena::RTTIData s_rttiData; \
 						   public: \
-							   static uint64 RTTIGetID() const; \
-							   static String RTTIGetTypename() const; \
+							  static uint64 RTTIGetID(); \
+							  static String RTTIGetTypename(); \
 
 
 #define REGISTER_RTTI_TYPE(__typename__) arena::RTTIData __typename__::s_rttiData = arena::RTTIData(__typename__) \
-										 uint64 __typename__::RTTIGetID() const { return __typename__::s_rttiData.m_typeID; } \
-										 String __typename__::RTTIGetTypename() const { return __typename__::s_rttiData.m_typename; } \
+										 uint64 __typename__::RTTIGetID() { return __typename__::s_rttiData.m_typeID; } \
+										 String __typename__::RTTIGetTypename() { return __typename__::s_rttiData.m_typename; } \
 
 #define TYPENAMEOF(__ptr__)			__ptr__->RTTIGetTypename()
 #define TYPEOF(__ptr__)				__ptr__->RTTIGetID()	
 
-#define TYPENAMEOF(__typename__)	__typename__::RTTIGetTypename()
-#define TYPEOF(__typename__)		__typename__::RTTIGetID()	
+#define IS_OF_TYPE(__ptr__, __typename__) (__ptr__->RTTIGetID() == __typename__::RTTIGetID())

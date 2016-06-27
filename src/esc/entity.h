@@ -13,10 +13,12 @@ using ComponentIterator = std::vector<arena::Component*>::iterator;
 
 namespace arena
 {
+	class Entity;
+
 	class EntityAllocator final 
 	{
 	public:
-		EntityAllocator(const uint64 initialPages, const uint64 pageSize);
+		EntityAllocator(const uint64 initialPages, const uint32 pageSize);
 		
 		Entity* create(const String& tags);
 		Entity* create();
@@ -30,11 +32,9 @@ namespace arena
 
 	class Entity final 
 	{
-		friend class EntityAllocator;
 	public:
 		/*
 			Static members.
-
 		*/
 		static Entity* create(const String& tags);
 		static Entity* create();
@@ -42,6 +42,8 @@ namespace arena
 		/*
 			Instance members.
 		*/
+		Entity(const String& tags);
+		Entity();
 
 		void destroy();
 
@@ -69,10 +71,5 @@ namespace arena
 		std::vector<Component*> m_components;
 
 		String					m_tags;
-	
-		// Hide constructors to prevent initialization
-		// outside the create and destroy functions.
-		Entity(const String& tags);
-		Entity();
 	};
 }
