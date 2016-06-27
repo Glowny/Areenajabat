@@ -1,8 +1,53 @@
+#include "..\mem\mem.h"
+
 #include "entity.h"
 #include "component.h"
 
+/*
+	Change these to optimize allocations.
+*/
+
+#define ENTITITES_INITIAL_PAGES		4
+#define ENTITIES_PAGE_SIZE			1024
+
 namespace arena
 {
+	/*
+		Entity allocator.
+	*/
+
+	EntityAllocator::EntityAllocator(const uint64 initialPages, const uint64 pageSize) : m_allocator(initialPages, pageSize) {
+	}
+
+	Entity* EntityAllocator::create(const String& tags) {
+		Entity* entity = m_allocator.allocate();
+		
+		DYNAMIC_NEW(entity, Entity, tags);
+	}
+	Entity* EntityAllocator::create() {
+	}
+
+	void EntityAllocator::destroy(Entity* const entity) {
+	}
+
+	/*
+		Entity.
+	*/
+
+	// Init static allocator.
+	EntityAllocator Entity::s_allocator = EntityAllocator(ENTITITES_INITIAL_PAGES, ENTITIES_PAGE_SIZE);
+
+	Entity::Entity(const String& tags) : m_tags(tags) {
+	}
+	Entity::Entity() : m_tags(String()) {
+	}
+
+	Entity* create(const String& tags) {
+		//Entity* const entity = Entity::
+	}
+	Entity* create() {
+	}
+
 	void Entity::destroy() {
 		// TODO: release all components.
 	}

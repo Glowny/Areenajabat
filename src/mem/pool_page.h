@@ -43,7 +43,7 @@ namespace arena
 		void deallocate(T* const element) {
 			m_releasedHandles.push(element);
 
-			element->~T();
+			DYNAMIC_DTOR(ptr, T);
 		}
 
 		bool isInAddressSpace(const T* const element) const {
