@@ -29,13 +29,13 @@ namespace arena
 */
 
 #define DEFINE_RTTI_TYPE  private: \
-						      static arena::RTTIData s_rttiData; \
+						      static RTTIData s_rttiData; \
 						   public: \
 							  static uint64 RTTIGetID(); \
 							  static String RTTIGetTypename(); \
 
 
-#define REGISTER_RTTI_TYPE(__typename__) arena::RTTIData __typename__::s_rttiData = arena::RTTIData(__typename__) \
+#define REGISTER_RTTI_TYPE(__typename__) RTTIData __typename__::s_rttiData = RTTIData(__typename__); \
 										 uint64 __typename__::RTTIGetID() { return __typename__::s_rttiData.m_typeID; } \
 										 String __typename__::RTTIGetTypename() { return __typename__::s_rttiData.m_typename; } \
 

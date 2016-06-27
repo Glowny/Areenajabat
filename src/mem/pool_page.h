@@ -2,7 +2,9 @@
 
 #include "..\arena_types.h"
 
+#include <assert.h>
 #include <stack>
+#include <new>
 
 template<typename T>
 using HandleStack = std::stack<T>;
@@ -14,12 +16,13 @@ namespace arena
 	{
 	public:
 		PoolPage(const uint32 pageSize) : m_pageSize(pageSize),
-										  m_pagePointer(0) 
+										  m_pagePointer(0),
+										  m_lastAddress(pageSize * sizeof(T))
 		{
-			m_elements		= new T[pageSize];
+			m_memory		= new char[m_lastAddress];
 
-			m_lowAddress	= reinterpret_cast<UintPtr>(&m_elements[0]);
-			m_highAddress	= reinterpret_cast<UintPtr>(&m_elements[pageSize]);
+			m_lowAddress	= reinterpret_cast<UintPtr>(&m_memory[0]);
+			m_highAddress	= reinterpret_cast<UintPtr>(&m_memory[m_lastAddress]);
 		}
 
 		// Returns an uninitialized handle to element
@@ -29,7 +32,7 @@ namespace arena
 			if (canAllocateFromReleased()) 
 			{
 				// Alloc from released.
-				T* handle = m_releasedHandles.top();
+				T* handle = reinterpret_cast<T*>(m_releasedHandles.top());
 				
 				m_releasedHandles.pop();
 
@@ -38,8 +41,13 @@ namespace arena
 			else if (canAllocateFromPool()) 
 			{
 				// Alloc from pool.
-				return &m_elements[m_pagePointer++];
-			} 
+				T* handle = reinterpret_cast<T*>(&m_memory[m_pagePointer]);
+				
+				m_pagePointer += sizeof(T);
+
+				return handle;
+			}
+
 
 			// Could not allocate.
 			return nullptr;
@@ -48,7 +56,7 @@ namespace arena
 		// Calls destructor.
 		void deallocate(T* const element)
 		{
-			m_releasedHandles.push(element);
+			m_releasedHandles.push(reinterpret_cast<Char*>(element));
 
 			DYNAMIC_DTOR(element, T);
 		}
@@ -62,8 +70,14 @@ namespace arena
 
 		~PoolPage() 
 		{
-			delete m_elements;
+			delete m_memory;
 		}
+
+		PoolPage(PoolPage& other) = delete;
+		PoolPage(PoolPage&& other) = delete;
+
+		PoolPage& operator =(PoolPage& other) = delete;
+		PoolPage& operator =(PoolPage&& other) = delete;
 	private:
 		bool canAllocateFromReleased() const
 		{
@@ -74,12 +88,13 @@ namespace arena
 			return m_pagePointer < m_pageSize;
 		}
 
-		HandleStack<T*>	m_releasedHandles;
-		T*				m_elements;			// Page memory.
+		HandleStack<Char*>	m_releasedHandles;
+		Char*				m_memory;			// Page memory.
 
 		UintPtr	m_lowAddress;		// Low address of the page.
 		UintPtr	m_highAddress;		// High address of the page.
-		uint64	m_pagePointer;		// Pointer poinint to the current element of the page.
-		uint64	m_pageSize;			// Page size in elements.
+		uint64	m_pagePointer;		// Pointer poinint to the current element of the page (bytes).
+		uint64	m_pageSize;			// Page size in elements (elements).
+		uint64  m_lastAddress;
 	};
 }

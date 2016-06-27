@@ -13,33 +13,33 @@ namespace arena
 	public:
 		PoolAllocator(const uint64 initialPagesCount, const uint32 pageSize) : m_pageSize(pageSize) 
 		{
-			for (auto i = 0; i < initialPagesCount; i++) m_pages.push_back(PoolPage<T>(pageSize));
+			for (auto i = 0; i < initialPagesCount; i++) m_pages.push_back(new PoolPage<T>(pageSize));
 		}
 
 		T* allocate()
 		{
 			// Try to allocate from existing pages.
-			for (PoolPage<T>& page : m_pages) 
+			for (PoolPage<T>* page : m_pages) 
 			{
-				T* element = page.allocate();
+				T* element = page->allocate();
 
 				if (element != nullptr) return element;
 			}
 
 			// Add new page.
-			m_pages.push_back(PoolPage<T>(m_pageSize));
+			m_pages.push_back(new PoolPage<T>(m_pageSize));
 
-			const auto page = &m_pages.back();
+			const auto page = m_pages.back();
 
 			return page->allocate();
 		}
 		bool deallocate(T* const element)
 		{
-			for (auto& page : m_pages)
+			for (PoolPage<T>* page : m_pages)
 			{
-				if (page.isInAddressSpace(element))
+				if (page->isInAddressSpace(element))
 				{
-					page.deallocate(element);
+					page->deallocate(element);
 
 					return true;
 				}
@@ -59,8 +59,8 @@ namespace arena
 
 		~PoolAllocator() = default;
 	private:
-		std::vector<arena::PoolPage<T>>		m_pages;
+		std::vector<arena::PoolPage<T>*>		m_pages;
 
-		const uint32						m_pageSize;
+		const uint32							m_pageSize;
 	};
 }

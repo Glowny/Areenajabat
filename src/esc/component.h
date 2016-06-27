@@ -1,17 +1,27 @@
 #pragma once
 
+#include "..\forward_declare.h"
 #include "..\rtti\rtti_define.h"
 #include "..\arena_types.h"
 
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
+
 namespace arena
 {
-	class Component 
+	class Component;
+
+	class ComponentAllocator final {
+	};
+
+	class Component final
 	{
 	DEFINE_RTTI_TYPE
 	public:
-		Component(Entity* const owner);
+		Component(Entity* owner) {
+		}
 
-		virtual ~Component() = default;
+		virtual ~Component() {
+		}
 	private:
 		/*
 			Static members.
@@ -20,6 +30,6 @@ namespace arena
 		/*
 			Instance members.
 		*/
-		const uint64 m_typeID;
+		Entity* owner { nullptr };
 	};
 }

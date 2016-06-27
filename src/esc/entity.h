@@ -42,6 +42,8 @@ namespace arena
 		/*
 			Instance members.
 		*/
+
+		// TODO: hide these?
 		Entity(const String& tags);
 		Entity();
 
