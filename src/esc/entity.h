@@ -53,6 +53,8 @@ namespace arena
 		ComponentIterator end();
 
 		~Entity()	= default;
+
+		// TODO: overwrite new and delete operators?
 	private:
 		/*
 			Static members.
@@ -66,7 +68,7 @@ namespace arena
 
 		String					m_tags;
 	
-		// Hide constructor to prevent initialization
+		// Hide constructors to prevent initialization
 		// outside the create and destroy functions.
 		Entity(const String& tags);
 		Entity();

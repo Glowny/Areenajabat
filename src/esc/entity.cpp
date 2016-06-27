@@ -22,12 +22,23 @@ namespace arena
 	Entity* EntityAllocator::create(const String& tags) {
 		Entity* entity = m_allocator.allocate();
 		
+		// Ctor with tags call.
 		DYNAMIC_NEW(entity, Entity, tags);
+		
+		return entity;
 	}
 	Entity* EntityAllocator::create() {
+		Entity* entity = m_allocator.allocate();
+
+		// No args ctro call.
+		DYNAMIC_NEW_DEFAULT(entity, Entity);
+
+		return entity;
 	}
 
 	void EntityAllocator::destroy(Entity* const entity) {
+		// Deallocate, calls dtor.
+		m_allocator.deallocate(entity);
 	}
 
 	/*
@@ -42,14 +53,19 @@ namespace arena
 	Entity::Entity() : m_tags(String()) {
 	}
 
-	Entity* create(const String& tags) {
-		//Entity* const entity = Entity::
+	Entity* Entity::create(const String& tags) {
+		Entity* entity = Entity::s_allocator.create(tags);
+
+		return entity;
 	}
-	Entity* create() {
+	Entity* Entity::create() {
+		Entity* entity = Entity::s_allocator.create();
+
+		return entity;
 	}
 
 	void Entity::destroy() {
-		// TODO: release all components.
+		s_allocator.destroy(this);
 	}
 
 	void Entity::add(Component* const component) {
