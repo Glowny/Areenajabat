@@ -9,6 +9,8 @@ namespace arena
 
 	HeapAllocator Component::s_allocator = HeapAllocator(InitialPages, PageSize);
 
+	REGISTER_RTTI_TYPE(Component)
+
 	Component::Component(Entity* owner) : m_owner(owner) 
 	{
 	}

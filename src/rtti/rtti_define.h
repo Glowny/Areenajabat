@@ -13,13 +13,13 @@ namespace arena
 	{
 	public:
 		const String	m_typename;
-		const uint64	m_typeID;
+		const uint32	m_typeID;
 
 		RTTIData(const String tname);
 		
 		~RTTIData() = default;
 	private:
-		static uint64 s_IDGenerator;
+		static uint32 s_IDGenerator;
 	};	
 }
 
@@ -31,13 +31,13 @@ namespace arena
 #define DEFINE_RTTI_TYPE  private: \
 						      static RTTIData s_rttiData; \
 						   public: \
-							  static uint64 RTTIGetID(); \
+							  static uint32 RTTIGetID(); \
 							  static String RTTIGetTypename(); \
 
 
-#define REGISTER_RTTI_TYPE(__typename__) RTTIData __typename__::s_rttiData = RTTIData(__typename__); \
-										 uint64 __typename__::RTTIGetID() { return __typename__::s_rttiData.m_typeID; } \
-										 String __typename__::RTTIGetTypename() { return __typename__::s_rttiData.m_typename; } \
+#define REGISTER_RTTI_TYPE(__typename__) RTTIData __typename__::s_rttiData = RTTIData(#__typename__); \
+										 uint32 __typename__::RTTIGetID()		{	return __typename__::s_rttiData.m_typeID;		} \
+										 String __typename__::RTTIGetTypename() {	return __typename__::s_rttiData.m_typename;		} \
 
 #define TYPENAMEOF(__ptr__)			__ptr__->RTTIGetTypename()
 #define TYPEOF(__ptr__)				__ptr__->RTTIGetID()	
