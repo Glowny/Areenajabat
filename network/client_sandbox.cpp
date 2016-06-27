@@ -1,6 +1,6 @@
 #if defined(ARENA_CLIENT)
 #include "client_sandbox.h"
-#include "MessageIdentifiers.h"
+#include "Enumerations.h"
 #include "SFML\System\Time.hpp"
 #include "SFML\System\Clock.hpp"
 #include <SFML/Graphics.hpp>
@@ -114,7 +114,7 @@ void Client::checkEvent()
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
 				// Use data on destroy packet
-				MessageIdentifiers id = getID(EEvent.packet->data);
+				MessageIdentifier id = getID(EEvent.packet->data);
 				switch(id)
 					{ 
 					case Update:
@@ -136,14 +136,14 @@ void Client::checkEvent()
 	
 }
 
-MessageIdentifiers Client::getID(unsigned char* data)
+MessageIdentifier Client::getID(unsigned char* data)
 {
-	return *((MessageIdentifiers*)(&data[0]));
+	return *((MessageIdentifier*)(&data[0]));
 }
 
 void Client::openUpdatePackage(unsigned char* data)
 {
-	size_t index = sizeof(MessageIdentifiers);
+	size_t index = sizeof(MessageIdentifier);
 
 	for(unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
@@ -167,7 +167,7 @@ void Client::openUpdatePackage(unsigned char* data)
 void Client::openStartPackage(unsigned char* data)
 {
 	// This should be called only once.
-	size_t index = sizeof(MessageIdentifiers);
+	size_t index = sizeof(MessageIdentifier);
 
 	m_myId = *((unsigned*)(&data[index]));
 	index += sizeof(unsigned);
@@ -234,8 +234,8 @@ unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
 	size_t index = 0;
 	unsigned char* data = (unsigned char*)malloc(size);
 
-	*((MessageIdentifiers*)(&data[index])) = ClientFeedback;
-	index += sizeof(MessageIdentifiers);
+	*((MessageIdentifier*)(&data[index])) = ClientFeedback;
+	index += sizeof(MessageIdentifier);
 
 	*((float*)(&data[index])) = movedir_x;
 	index += sizeof(float);

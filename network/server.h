@@ -4,32 +4,14 @@
 #include <queue>
 #include <vector>
 #include <Box2D\Box2D.h>
+#include "Network.h"
+#include "Physics.h"
 
-struct vec2
+struct PlayerInput
 {
-	float x, y;
-};
+	vec2 moveDir;
+	// add more when needed;
 
-// Data client needs + input from players.
-struct Client
-{
-	ENetPeer* peer;
-	std::queue<unsigned char*> messageQueue;
-	vec2 input;
-};
-
-// Temporary physics for the world, replace with Box2D.
-struct WorldPhysics
-{
-	float gravity = 9.81;
-	vec2 limits;
-};
-struct Platform
-{
-	b2ChainShape m_shape;
-	b2BodyDef m_bodydef;
-	b2Body* m_body;
-	b2FixtureDef m_fixtureDef;
 };
 
 struct Gladiator
@@ -40,7 +22,7 @@ struct Gladiator
 	vec2 m_velocity;
 	float m_rotation;
 
-	b2Body* m_body;
+	
 };
 
 struct Bullet
@@ -62,40 +44,26 @@ class Server
 public:
 	Server();
 	~Server();
-	void start(unsigned port, unsigned playerAmount);
+	void start(unsigned address, unsigned port, unsigned playerAmount);
 	
 private:
-	// Networking low level.
-	void initializeENet();
-	ENetHost* createENetServer(unsigned address, unsigned port, unsigned playerAmount);
-	void checkEvent();
-	void sendPacket(unsigned char* packet, unsigned size, unsigned clientIndex);
-	void broadcastPacket(unsigned char* packet, unsigned size);
-	void disconnectClient(unsigned clientIndex);
-	
 	// Networking game related.
 	unsigned char* createGameSetupPacket(unsigned playerAmount, unsigned id, size_t &size);
 	unsigned char* createGameUpdatePacket(std::vector<Gladiator> &gladiators, size_t &size);
 	void receiveMovePacket(unsigned char* data, unsigned id);
 	
-	// physics.
-	void physics();
-	WorldPhysics m_world;
-	b2World* m_b2DWorld; 
 
 	// Networking low level.
-	ENetHost* m_server;
-	unsigned m_clientAmount;
-	Client m_clientArray[10];	// raise if needed to.
-
-	// Space reserved for gameupdatePacket.
-	size_t m_updateSize;
-	unsigned char* m_updateMemory;
+	Network network;
 
 	// Game entities.
-	std::vector<Platform> m_platformVector;
+	Physics physics;
+	
 	std::vector<Gladiator> m_gladiatorVector;
 	std::vector<Bullet> m_bulletVector;
+	std::queue<Message>* m_messageQueue;
+
+	std::vector<PlayerInput> m_playerVector;
 };
 
 #endif

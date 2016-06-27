@@ -4,7 +4,7 @@
 #include <enet\enet.h>
 #include <string>
 #include <queue>
-#include "MessageIdentifiers.h"
+#include "Enumerations.h"
 struct Gladiator 
 {
 	unsigned id;
@@ -32,7 +32,7 @@ private:
 	ENetHost* createENetClient();
 	void sendPacket(unsigned char* data, unsigned size);
 	void checkEvent();
-	MessageIdentifiers getID(unsigned char* data);
+	MessageIdentifier getID(unsigned char* data);
 	void openUpdatePackage(unsigned char* data);
 	void openStartPackage(unsigned char* data);
 	unsigned char* createMovePacket(size_t &size, float velocity_x,
