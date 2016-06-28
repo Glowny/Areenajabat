@@ -75,6 +75,8 @@ namespace arena
 
     static int64_t s_last_time = 0;
 
+    static double s_timeSinceStart = 0;
+
     static SpriterAnimationPlayer* s_instance;
 
     void App::init(int32_t width, int32_t height)
@@ -210,9 +212,8 @@ namespace arena
 
         // seconds
         float lastDeltaTime = float(time * (1.0 / frequency));
-
-		// TODO: idk if this is right.
-		GameTime gameTime(lastDeltaTime, float(currentTime));
+        s_timeSinceStart += lastDeltaTime;
+		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
         s_camera.calculate();
 

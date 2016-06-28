@@ -8,9 +8,9 @@ namespace arena
 	{
 	public:
 		const float32 m_delta;
-		const float32 m_total;
+		const float64 m_total;
 
-		GameTime(const float32 delta, const float32 total);
+		GameTime(const float32 delta, const float64 total);
 
 		~GameTime() = default;
 	};
