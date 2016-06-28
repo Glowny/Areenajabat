@@ -109,10 +109,10 @@ namespace arena
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
 
-        SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
+        SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml");
         
-        s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance("Player"));
-        s_instance->setCurrentAnimation("walk");
+        s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance(0));
+        s_instance->setCurrentAnimation(0);
         s_instance->setPosition(glm::vec2(500, 500));
     }
 
