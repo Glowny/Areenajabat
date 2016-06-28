@@ -103,4 +103,14 @@ namespace arena
 	{
 		return m_components.end();
 	}
+
+	bool Entity::operator ==(Entity* lhs)
+	{
+		if (lhs == nullptr) return false;
+
+		const UintPtr rhsAddr = reinterpret_cast<UintPtr>(this);
+		const UintPtr lhsAddr = reinterpret_cast<UintPtr>(lhs);
+
+		return lhsAddr == rhsAddr;
+	}
 }

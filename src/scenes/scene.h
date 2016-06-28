@@ -22,8 +22,6 @@ namespace arena
 	class Scene
 	{
 	public:
-		Scene(T* impl);
-
 		const String& name() const;
 		SceneState state() const;
 
@@ -33,6 +31,10 @@ namespace arena
 
 		void update(const GameTime& gameTime);
 		void draw(const GameTime& gameTime);
+
+		virtual ~Scene();
+	protected:
+		Scene(T* impl);
 	private:
 		T*			m_impl;
 

@@ -8,7 +8,7 @@
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 
-using EntityIterator = std::vector<arena::Entity>::iterator;
+using EntityIterator = std::vector<arena::Entity*>::iterator;
 
 namespace arena
 {
@@ -41,7 +41,7 @@ namespace arena
 
 		Entity* const find(Predicate<Entity* const> pred);
 	private:
-		std::vector<Entity*> entities;
+		std::vector<Entity*> m_entities;
 
 		const String m_name;
 	};

@@ -61,6 +61,7 @@ namespace arena
 		~Entity()	= default;
 
 		// TODO: overwrite new and delete operators?
+		bool operator ==(Entity* lhs);
 	private:
 		/*
 			Static members.
