@@ -19,10 +19,10 @@ namespace arena
     private:
         int32_t width;
         int32_t height;
-
     };
 
     const Event* poll();
+
     void release(const Event* event);
 
     void setWindowSize(uint32_t width, uint32_t height, bool force = false);
