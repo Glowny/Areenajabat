@@ -1,3 +1,4 @@
+#include "game_time.h"
 #include "app.h"
 #include <bgfx/bgfx.h>
 #include "input/input.h"
@@ -209,6 +210,9 @@ namespace arena
 
         // seconds
         float lastDeltaTime = float(time * (1.0 / frequency));
+
+		// TODO: idk if this is right.
+		GameTime gameTime(lastDeltaTime, float(currentTime));
 
         s_camera.calculate();
 
