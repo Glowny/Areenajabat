@@ -10,10 +10,12 @@ namespace arena
 	class Transform final : public Component
 	{
 	public:
-		glm::vec2 m_position;
-		glm::vec2 m_origin;
-		glm::vec2 m_scale;
+		glm::vec2 m_position { 0.0f, 0.0f };
+		glm::vec2 m_origin	 { 0.0f, 0.0f };
+		glm::vec2 m_scale	 { 1.0f, 1.0f };
 
-		float32 rotation;
+		float32 rotation	 { 0.0f };
+
+		virtual ~Transform() = default;
 	};
 }

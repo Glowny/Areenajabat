@@ -1,4 +1,4 @@
-#include "..\mem\mem.h"
+#include "..\mem\memory.h"
 
 #include "entity.h"
 #include "component.h"
@@ -10,7 +10,7 @@ namespace arena
 	*/
 
 	const uint32 InitialPages	= 4;
-	const uint32 PageSize		= 1024;
+	const uint32 PageSize		= Mem1K;
 
 	/*
 		Entity allocator.
