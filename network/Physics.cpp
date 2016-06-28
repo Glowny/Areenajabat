@@ -17,16 +17,16 @@ void Physics::update()
 	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
 };
 
-void Physics::createPlatform(vec2 position,unsigned pointAmount, vec2 platformPoints[])
+void Physics::createPlatform(vec2 position, std::vector<vec2> platform)
 {
-	b2Vec2* points = new b2Vec2[pointAmount];
-	for (unsigned i = 0; i < pointAmount; i++)
+	b2Vec2* points = new b2Vec2[platform.size()];
+	for (unsigned i = 0; i < platform.size(); i++)
 	{
-		points[i].Set(platformPoints[i].x, platformPoints[i].y);
+		points[i].Set(platform[i].x, platform[i].y);
 	}
 
 	Platform temp_platform;
-	temp_platform.m_shape.CreateChain(points, pointAmount);
+	temp_platform.m_shape.CreateChain(points, platform.size());
 	temp_platform.m_bodydef.type = b2_staticBody;
 	temp_platform.m_bodydef.position.Set(position.x, position.y);
 	temp_platform.m_body = m_b2DWorld->CreateBody(&temp_platform.m_bodydef);

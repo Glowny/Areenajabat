@@ -5,7 +5,23 @@
 #include <string>
 #include <queue>
 #include "Enumerations.h"
+#include <SFML/Graphics.hpp>
+struct vec2 // temporary
+{
+	double x;
+	double y;
 
+};
+
+struct PlatformPoints
+{
+	// array of points that determine platform
+	vec2 position;
+	
+	sf::Vertex* platform;
+	size_t m_size;
+	
+};
 
 struct Gladiator 
 {
@@ -26,8 +42,9 @@ public:
 	~Client() {};
 	void start(char* address, unsigned port);
 	std::vector<Gladiator> m_gladiatorVector;
+	std::vector<PlatformPoints> m_points;
 private:
-
+	float ennakointi;
 	unsigned m_myId;
 	void connect(char* address, unsigned port);
 	void initializeENet();
@@ -36,9 +53,10 @@ private:
 	void checkEvent();
 	MessageIdentifier getID(unsigned char* data);
 	void openUpdatePackage(unsigned char* data);
+	void openPlatformPackage(unsigned char* data); 
 	void openStartPackage(unsigned char* data);
-	unsigned char* createMovePacket(size_t &size, float velocity_x,
-									float velocity_y);
+	unsigned char* createMovePacket(size_t &size, double velocity_x,
+		double velocity_y);
 	std::queue<unsigned char*> messages;
 	ENetHost* m_client;
 	ENetEvent m_eEvent;
