@@ -17,6 +17,8 @@
 #include "render.h"
 #include "res/spriter_resource.h"
 #include "res/spriter_animation_player.h"
+#include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace arena
 {
@@ -104,14 +106,19 @@ namespace arena
               m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Helmet.png")),
               m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "player/body/Torso.png")),
               m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
+              m_rightUpperArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightUpperArm.png")),
+              m_rightForeArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightForearm.png")),
               m_crestOffset(-1.5f, 0.f),
               m_helmetOffset(-3.f, 14.f),
               m_torsoOffset(0.f, 37.f),
               m_legOffset(11, 124),
-              m_elapsed(0.0)
-
+              m_elapsed(0.0),
+              m_rightUpperArmOffset(7.f, 40.f),
+              m_rightForeArmOffset(-13.f, 47.f)
         {
             m_legs.setCurrentAnimation(0);
+            m_rightForeArmOrigin = glm::vec2(m_rightForeArm->width / 2.f, 5.f);
+            m_rightUpperArmOrigin = glm::vec2(m_rightUpperArm->width / 2.f, 5.f);
             setPosition(glm::vec2(200.f));
         }
 
@@ -141,10 +148,25 @@ namespace arena
 
         void render()
         {
+
+            static float angle = 0.00f;
+            //angle += 0.001f;
+
+            glm::mat4 m(1.f);
+            glm::vec2 p(m_position + m_rightForeArmOffset + m_perFrameTorsoOffset);
+            // local transform
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-m_rightForeArmOrigin.x, -m_rightForeArmOrigin.y, 0.f))
+                *  glm::rotate(glm::mat4(1.0f), glm::radians(110.f), glm::vec3(0, 0, 1))
+                *  glm::translate(glm::mat4(1.0f), glm::vec3(p.x, p.y, 0.f));
+
+            
+
             m_legs.render();
             draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
             draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
             draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
+            draw(m_rightUpperArm, nullptr, 0xffffffff, m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset, m_rightUpperArmOrigin, glm::vec2(1), glm::radians(70.f) + angle, 0.25f);
+            draw(m_rightForeArm, nullptr, 0xffffffff, m_position + m_rightForeArmOffset + m_perFrameTorsoOffset, m_rightUpperArmOrigin, glm::vec2(1), glm::radians(110.f) + angle, 0.24f);
         }
 
         void setPosition(const glm::vec2& position)
@@ -159,7 +181,14 @@ namespace arena
         TextureResource* m_crest;
         TextureResource* m_torso;
 
+        TextureResource* m_rightUpperArm;
+        glm::vec2 m_rightUpperArmOffset;
+        glm::vec2 m_rightUpperArmOrigin;
         double m_elapsed;
+
+        TextureResource* m_rightForeArm;
+        glm::vec2 m_rightForeArmOffset;
+        glm::vec2 m_rightForeArmOrigin;
 
         glm::vec2 m_position;
 
