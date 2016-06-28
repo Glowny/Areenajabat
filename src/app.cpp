@@ -74,7 +74,62 @@ namespace arena
 
     static int64_t s_last_time = 0;
 
-    static SpriterAnimationPlayer* s_instance;
+    class Character
+    {
+    public:
+        Character()
+            : m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
+              m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Helmet.png")),
+              m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "player/body/Torso.png")),
+              m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
+              m_crestOffset(-1.5f, 0.f),
+              m_helmetOffset(-3.f, 14.f),
+              m_torsoOffset(0.f, 37.f),
+              m_legOffset(11, 124)
+
+        {
+            m_legs.setCurrentAnimation(0);
+            setPosition(glm::vec2(200.f));
+        }
+
+        void update(float dt)
+        {
+            m_legs.setTimeElapsed(dt * 1000.f);
+        }
+
+        void render()
+        {
+            m_legs.render();
+            draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
+            draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
+            draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
+        }
+
+        void setPosition(const glm::vec2& position)
+        {
+            m_position = position;
+            m_legs.setPosition(position + m_legOffset);
+        }
+
+    private:
+        SpriterAnimationPlayer m_legs;
+        TextureResource* m_helmet;
+        TextureResource* m_crest;
+        TextureResource* m_torso;
+
+        glm::vec2 m_position;
+
+        glm::vec2 m_crestOffset;
+        // relative from posiiton
+        glm::vec2 m_helmetOffset;
+        // relative from posiiton
+        glm::vec2 m_legOffset;
+        // relative from posiiton
+        glm::vec2 m_torsoOffset;
+        //const glm::vec2 m_torsoSpawn;
+    };
+
+    static Character* s_char;
 
     void App::init(int32_t width, int32_t height)
     {
@@ -108,12 +163,8 @@ namespace arena
 
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
-
-        SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml");
         
-        s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance(0));
-        s_instance->setCurrentAnimation(0);
-        s_instance->setPosition(glm::vec2(500, 500));
+        s_char = new Character;
     }
 
     // return trues if we want to exit
@@ -219,17 +270,17 @@ namespace arena
         
 
         bgfx::touch(0);
-        bgfx::dbgTextClear();
+     /*   bgfx::dbgTextClear();
         bgfx::dbgTextPrintf(0, 1, 0x4f, "Perkeleen perkele");
         bgfx::dbgTextPrintf(0, 2, 0x6f, "Mouse x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
         bgfx::dbgTextPrintf(0, 3, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s", 
             s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up", 
             s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
-        bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
+        bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);*/
         
-        s_instance->setTimeElapsed(lastDeltaTime * 1000.0f);
-        s_instance->render();
+        s_char->update(lastDeltaTime);
+        s_char->render();
         
         s_spriteBatch->submit(0);
 
