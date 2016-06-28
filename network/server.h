@@ -7,10 +7,11 @@
 #include "Network.h"
 #include "Physics.h"
 
-struct Platforma
+struct PlatformPoints
 {
 	// array of points that determine platform
-	vec2* m_platform;
+	vec2 position;
+	std::vector<vec2> m_platform;
 	size_t m_size;
 
 };
@@ -57,6 +58,7 @@ public:
 private:
 	// Networking game related.
 	unsigned char* createGameSetupPacket(unsigned playerAmount, unsigned id, size_t &size);
+	unsigned char* createPlatformPacket(PlatformPoints platform, size_t &size);
 	unsigned char* createGameUpdatePacket(std::vector<Gladiator> &gladiators, size_t &size);
 	size_t m_updateSize;  //update packet size wont change during gameloop. 
 	unsigned char* m_updateMemory; // memory set for update packet.
@@ -78,6 +80,7 @@ private:
 	std::queue<Message>* m_messageQueue;
 
 	std::vector<PlayerInput> m_playerVector;
+	std::vector<PlatformPoints> m_platformVector;
 };
 
 #endif

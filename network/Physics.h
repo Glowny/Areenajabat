@@ -36,7 +36,7 @@ public:
 
 	void update();
 
-	void createPlatform(vec2 position, unsigned pointAmount, vec2 platformPoints[]);
+	void createPlatform(vec2 position, std::vector<vec2> platform);
 	unsigned addGladiator(float position_x, float position_y);
 	void moveGladiator(float direction_x, float direction_y, unsigned id);
 	vec2 getGladiatorVelocity(unsigned id);

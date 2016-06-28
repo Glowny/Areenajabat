@@ -2,6 +2,7 @@
 enum MessageIdentifier
 {
 	Start,
+	PlatformData,
 	Update,
 	ClientMove,
 	ClientShoot
