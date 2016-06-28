@@ -1,11 +1,12 @@
 #pragma once
+#if defined(ARENA_SERVER)
 #include <Box2D\Box2D.h>
 #include <stdarg.h>
 #include <vector>
 struct vec2 // temporary
 {
-	float x;
-	float y;
+	double x;
+	double y;
 
 };
 
@@ -35,7 +36,7 @@ public:
 
 	void update();
 
-	void createPlatform(vec2 position, unsigned pointAmount, ...);
+	void createPlatform(vec2 position, unsigned pointAmount, vec2 platformPoints[]);
 	unsigned addGladiator(float position_x, float position_y);
 	void moveGladiator(float direction_x, float direction_y, unsigned id);
 	vec2 getGladiatorVelocity(unsigned id);
@@ -49,3 +50,4 @@ private:
 	std::vector<p_Gladiator> m_gladiatorVector;
 	std::vector<Platform> m_platformVector;
 };
+#endif

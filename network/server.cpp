@@ -8,14 +8,16 @@
 
 Server::Server()
 {
-	
-	b2Vec2 platform3[6];
-	platform3[0].Set(0,0);
-	platform3[1].Set(0,500);
-	platform3[2].Set(250,650);
-	platform3[3].Set(750,650);
-	platform3[4].Set(1000,500);
-	platform3[5].Set(1000,0);
+	vec2 platform[6];
+	platform[0].x =0   ;platform[0].y = 0;
+	platform[1].x =0   ;platform[1].y = 500;
+	platform[2].x =250 ;platform[2].y = 650;
+	platform[3].x =750 ;platform[3].y = 650;
+	platform[4].x =1000;platform[4].y = 500;
+	platform[5].x =1000;platform[5].y = 0;
+	vec2 position;
+	position.x = 0; position.y = 0;
+	physics.createPlatform(position, 6, platform);
 
 
 }
@@ -45,15 +47,15 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 	for (int i = 0; i < playerAmount; i++)
 	{
 		Gladiator glad;
-		glad.m_id = physics.addGladiator(i*50,50);
-		
+		glad.m_id = physics.addGladiator(i*100,50);
+		glad.m_rotation = 0;
+		glad.m_position.x = 100 * i;
+		glad.m_position.y = 50;
 		m_gladiatorVector.push_back(glad);
 	}
 	
-
-	// reserve space for update message.
-	//m_updateSize = sizeof(MessageIdentifier) + sizeof(float) * 5 * m_gladiatorVector.size();;
-	//m_updateMemory =(unsigned char*)malloc(m_updateSize);
+	m_updateSize = sizeof(MessageIdentifier) + sizeof(double) * 5 * m_gladiatorVector.size();
+	m_updateMemory = (unsigned char*)malloc(m_updateSize);
 	
 	for(unsigned i = 0; i < playerAmount; i++)
 		{
@@ -67,8 +69,7 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 	float updateNetwork = 0;
 
 	float timeStep = 1.0f/60.0f;
-	int32 velocityIterations = 6;
-	int32 positionIterations = 2;
+
 	while (true)
 	{
 		int64_t currentTime = bx::getHPCounter();
@@ -81,12 +82,23 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 		float lastDeltaTime = float(time * (1.0f / frequency));
 		updatePhysics += lastDeltaTime;
 		updateNetwork += lastDeltaTime;
+
 		if (updatePhysics > timeStep)
 		{
+			for (unsigned i = 0; i < m_playerVector.size(); i++)
+			{
+				if (m_playerVector[i].moveDir.x != 0 || m_playerVector[i].moveDir.y != 0)
+				{ 
+					physics.moveGladiator(m_playerVector[i].moveDir.x*300, m_playerVector[i].moveDir.y*300, i);
+					m_playerVector[i].moveDir.x = 0.0;
+					m_playerVector[i].moveDir.y = 0.0;
+				}
+			}
+			
 			updatePhysics = 0;
 			physics.update();
 
-			for (int i = 0; i < m_gladiatorVector.size(); i++)
+			for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
 			{
 				m_gladiatorVector[i].m_position = physics.getGladiatorPosition(i);
 				m_gladiatorVector[i].m_velocity = physics.getGladiatorVelocity(i);
@@ -94,21 +106,7 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 		}
 		network.checkEvent();
 
-		// Handle messages
-		for (unsigned playerIndex= 0; playerIndex < playerAmount; playerIndex++)
-		{
-			while (m_messageQueue->size() != 0)
-			{
-				unsigned char* data;
-				data = m_messageQueue->front().data;
-				unsigned id = m_messageQueue->front().clientID;
-				// handle data here
-				receiveMovePacket(data, id);
-				free(data);
-				m_messageQueue->pop();
-
-			}
-		}
+		handleClientMessages();
 		
 		if(updateNetwork > 0.1)
 		{
@@ -121,71 +119,85 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 	}
 }
 
+void Server::handleClientMessages()
+{
+	while (m_messageQueue->size() != 0)
+	{
+		handleMessage(m_messageQueue->front());
+		free(m_messageQueue->front().data);
+		m_messageQueue->pop();
+	}
+}
+void Server::handleMessage(Message &message)
+{
+	unsigned playerID = message.clientID;
+	unsigned packetID = getID(message.data);
 
-
+	switch (packetID)
+	{
+	case ClientMove:
+		receiveMovePacket(message.data, playerID);
+		break;
+	case ClientShoot:
+		receiveShootPacket(message.data, playerID);
+	}
+}
 
 unsigned char* Server::createGameSetupPacket(unsigned playerAmount, unsigned id, size_t &size)
 {
-	/*
-	// Send data that has to be only send once.
-	size = sizeof(MessageIdentifier) + sizeof(unsigned)*2;
-	unsigned char* data = (unsigned char*)malloc(size);
-	size_t index = 0;
-
-	*((MessageIdentifier*)(&data[index])) = Start;
-	index += sizeof(MessageIdentifier);
-
-	*((unsigned*)(&data[index])) = id;
-	index += sizeof(unsigned);
 	
-	*((unsigned*)(&data[index])) = playerAmount;
-	index += sizeof(unsigned);
+	DataType dataTypes[3]{ messageID, unsignedInt, unsignedInt};
+	unsigned char* data = reserveSpace(dataTypes, 3, size);
+	
+	data = serialize(data, dataTypes, 3, Start, id, playerAmount);
 
 	return data;
-	*/
 }
 
 unsigned char* Server::createGameUpdatePacket(std::vector<Gladiator> &gladiators,
 	size_t &size)
 {
-	/*
-	// Game update-packet sends data that needs to be constantly updated
-	// Bullet data should be send separately
-
-	size = m_updateSize;  // gladiator data
+	
+	size = m_updateSize; 
 	unsigned char* data = m_updateMemory;
+
+	DataType idDataType[1] = { messageID };
+	DataType dataTypes[5]{ Float, Float, Float, Float, Float};
+	double tpx, tpy, tvx, tvy, r;
 	size_t index = 0;
-
-	*((MessageIdentifier*)(&data[index])) = Update;
-	index += sizeof(MessageIdentifier);
-
+	size_t temp_index = sizeof(MessageIdentifier);
+	serializeWithIndex(data, index, idDataType, 1, Update);
 	for (unsigned i = 0; i < gladiators.size(); i++)
 	{
-		*((float*)(&data[index])) = gladiators[i].m_position.x;
-		index += sizeof(float);
+		printf("S  position: %f, %f\n velocity: %f, %f\n rotation: %f\n", m_gladiatorVector[i].m_position.x, m_gladiatorVector[i].m_position.y,
+			m_gladiatorVector[i].m_velocity.x, m_gladiatorVector[i].m_velocity.y, m_gladiatorVector[i].m_rotation);
 
-		*((float*)(&data[index])) = gladiators[i].m_position.y;
-		index += sizeof(float);
+		serializeWithIndex(data, index, dataTypes, 5,  gladiators[i].m_position.x, gladiators[i].m_position.y,
+			gladiators[i].m_velocity.x, gladiators[i].m_velocity.y, gladiators[i].m_rotation);
 		
-		*((float*)(&data[index])) = gladiators[i].m_velocity.x;
-		index += sizeof(float);
-		
-		*((float*)(&data[index])) = gladiators[i].m_velocity.y;
-		index += sizeof(float);
-		
-		*((float*)(&data[index])) = gladiators[i].m_rotation;
-		index += sizeof(float);
+		deSerializeWithIndex(data, temp_index, dataTypes, 5, &tpx, &tpy, &tvx, &tvy, &r);
+		printf("DS position: %f, %f\n velocity: %f, %f\n rotation: %f\n", tpx, tpy, tvx, tvy, r);
+
 	}
-
 	return data;
-	*/
 }
 
-void Server::receiveMovePacket(unsigned char* data, unsigned id)
+void Server::receiveMovePacket(unsigned char* data, unsigned playerID)
 {
-	DataType dataTypes[3]{ unsignedInt, Float, Float };
-	deSerialize(dataTypes, 3, data, &m_playerVector[id].moveDir.x, &m_playerVector[id].moveDir.y);
+	DataType dataTypes[3]{ messageID, Float, Float };
+	MessageIdentifier temp;
+	deSerialize(data,dataTypes, 3, &temp, &m_playerVector[playerID].moveDir.x, &m_playerVector[playerID].moveDir.y);
 }
 
+void Server::receiveShootPacket(unsigned char* data, unsigned playerID)
+{
+	DataType dataTypes[2]{ messageID, Float };
+	unsigned temp = playerID;
+	temp += 0;
+	float rotation;
+	unsigned type;
+	deSerialize(data, dataTypes, 2, &type ,&rotation);
+	// create bullet
+}
 
 #endif

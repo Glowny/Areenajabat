@@ -7,6 +7,14 @@
 #include "Network.h"
 #include "Physics.h"
 
+struct Platforma
+{
+	// array of points that determine platform
+	vec2* m_platform;
+	size_t m_size;
+
+};
+
 struct PlayerInput
 {
 	vec2 moveDir;
@@ -20,7 +28,7 @@ struct Gladiator
 	unsigned m_id;
 	vec2 m_position;
 	vec2 m_velocity;
-	float m_rotation;
+	double m_rotation;
 
 	
 };
@@ -32,9 +40,9 @@ struct Bullet
 	// Server calculates serverside physics, and notifies clients on hit.
 
 	unsigned m_id;
-	float m_position_x;
-	float m_position_y;
-	float m_rotation;
+	double m_position_x;
+	double m_position_y;
+	double m_rotation;
 
 	b2BodyDef m_body;
 };
@@ -50,8 +58,14 @@ private:
 	// Networking game related.
 	unsigned char* createGameSetupPacket(unsigned playerAmount, unsigned id, size_t &size);
 	unsigned char* createGameUpdatePacket(std::vector<Gladiator> &gladiators, size_t &size);
+	size_t m_updateSize;  //update packet size wont change during gameloop. 
+	unsigned char* m_updateMemory; // memory set for update packet.
+
+	void handleClientMessages();
+	void handleMessage(Message &message);
 	void receiveMovePacket(unsigned char* data, unsigned id);
-	
+	void receiveShootPacket(unsigned char* data, unsigned id);
+
 
 	// Networking low level.
 	Network network;

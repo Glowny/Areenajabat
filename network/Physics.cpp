@@ -1,7 +1,11 @@
+#if defined(ARENA_SERVER)
 #include "Physics.h"
 
 
-Physics::Physics() {};
+Physics::Physics() 
+{
+	m_b2DWorld = new b2World(b2Vec2(0,9.81));
+};
 Physics::~Physics() {};
 
 void Physics::update()
@@ -13,18 +17,13 @@ void Physics::update()
 	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
 };
 
-void Physics::createPlatform(vec2 position,unsigned pointAmount, ...)
+void Physics::createPlatform(vec2 position,unsigned pointAmount, vec2 platformPoints[])
 {
-	va_list listPointer;
-	va_start(listPointer, pointAmount);
-
 	b2Vec2* points = new b2Vec2[pointAmount];
-	for (unsigned i = 1; i < pointAmount; i++)
+	for (unsigned i = 0; i < pointAmount; i++)
 	{
-		vec2 currentPoint = va_arg(listPointer, vec2);
-		points[i].Set(currentPoint.x, currentPoint.y);
+		points[i].Set(platformPoints[i].x, platformPoints[i].y);
 	}
-	va_end(listPointer);
 
 	Platform temp_platform;
 	temp_platform.m_shape.CreateChain(points, pointAmount);
@@ -65,6 +64,8 @@ unsigned Physics::addGladiator(float position_x, float position_y)
 
 	glad.m_body->CreateFixture(&fixtureDef);
 
+	m_gladiatorVector.push_back(glad);
+
 	return glad.m_id;
 };
 
@@ -90,7 +91,6 @@ vec2 Physics::getGladiatorVelocity(unsigned id)
 	return velocity;
 }
 
-
 void Physics::removeGladiator(unsigned id)
 {
 
@@ -103,3 +103,4 @@ void Physics::removeBullet()
 {
 
 };
+#endif

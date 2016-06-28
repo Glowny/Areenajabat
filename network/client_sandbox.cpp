@@ -4,7 +4,7 @@
 #include "SFML\System\Time.hpp"
 #include "SFML\System\Clock.hpp"
 #include <SFML/Graphics.hpp>
-
+#include "Serializer.h"
 
 void Client::start(char* address, unsigned port)
 {
@@ -144,24 +144,18 @@ MessageIdentifier Client::getID(unsigned char* data)
 void Client::openUpdatePackage(unsigned char* data)
 {
 	size_t index = sizeof(MessageIdentifier);
-
+	DataType dataTypes[5]{ Float, Float, Float, Float, Float };
+	
 	for(unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
-		m_gladiatorVector[i].m_position_x = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_position_y = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_velocity_x = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_velocity_y = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_rotation = *((float*)(&data[index]));
-		index += sizeof(float);
+		deSerializeWithIndex(data, index, dataTypes, 5,
+			&m_gladiatorVector[i].m_position_x, &m_gladiatorVector[i].m_position_y,
+			&m_gladiatorVector[i].m_velocity_x, &m_gladiatorVector[i].m_velocity_y,
+			&m_gladiatorVector[i].m_rotation);
+		printf("position: %f, %f\n velocity: %f, %f\n rotation: %f\n", m_gladiatorVector[i].m_position_x, m_gladiatorVector[i].m_position_y,
+									m_gladiatorVector[i].m_velocity_x, m_gladiatorVector[i].m_velocity_y, m_gladiatorVector[i].m_rotation);
 	}
+
 }
 
 void Client::openStartPackage(unsigned char* data)
@@ -230,17 +224,17 @@ void Client::sendPacket(unsigned char* data, unsigned size)
 unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
 										float movedir_y)
 {
-	size = sizeof(size_t) + sizeof(float) * 2;
+	size = sizeof(size_t) + sizeof(double) * 2;
 	size_t index = 0;
 	unsigned char* data = (unsigned char*)malloc(size);
 
-	*((MessageIdentifier*)(&data[index])) = ClientFeedback;
+	*((MessageIdentifier*)(&data[index])) = ClientMove;
 	index += sizeof(MessageIdentifier);
 
-	*((float*)(&data[index])) = movedir_x;
-	index += sizeof(float);
+	*((double*)(&data[index])) = movedir_x;
+	index += sizeof(double);
 
-	*((float*)(&data[index])) = movedir_y;
+	*((double*)(&data[index])) = movedir_y;
 
 
 	return data;

@@ -3,12 +3,14 @@ enum MessageIdentifier
 {
 	Start,
 	Update,
-	ClientFeedback
+	ClientMove,
+	ClientShoot
 
 };
 
 enum DataType
 {
+	messageID,
 	unsignedInt,
 	Int,
 	Float,

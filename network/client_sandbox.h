@@ -5,16 +5,18 @@
 #include <string>
 #include <queue>
 #include "Enumerations.h"
+
+
 struct Gladiator 
 {
 	unsigned id;
-	float m_position_y;
-	float m_position_x;
-	float m_velocity_x;
-	float m_velocity_y;
-	float m_movedir_x;
-	float m_movedir_y;
-	float m_rotation;
+	double m_position_y;
+	double m_position_x;
+	double m_velocity_x;
+	double m_velocity_y;
+	double m_movedir_x;
+	double m_movedir_y;
+	double m_rotation;
 };
 
 class Client

@@ -64,7 +64,7 @@ void Network::checkEvent()
 }
 
 void Network::sendPacket(unsigned char* data, size_t size, 
-	unsigned clientIndex, bool reliable = true)
+	unsigned clientIndex, bool reliable)
 {
 	_ENetPacketFlag flag;
 	if (reliable)
@@ -81,7 +81,7 @@ void Network::sendPacket(unsigned char* data, size_t size,
 	enet_host_flush(m_server);
 }
 
-void Network::broadcastPacket(unsigned char* data, size_t size, bool reliable = true)
+void Network::broadcastPacket(unsigned char* data, size_t size, bool reliable)
 {
 	_ENetPacketFlag flag;
 	if (reliable)
@@ -104,10 +104,12 @@ void Network::disconnectClient(unsigned clientIndex)
 		switch (EEvent.type)
 		{
 		case ENET_EVENT_TYPE_RECEIVE:
+		{
 			unsigned id = unsigned(EEvent.peer->data);
 			if (id == clientIndex)
 				enet_packet_destroy(EEvent.packet);
 			break;
+		}
 		case ENET_EVENT_TYPE_DISCONNECT:
 			puts("Disconnection succeeded.");
 			return;
