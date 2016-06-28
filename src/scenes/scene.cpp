@@ -7,7 +7,7 @@ namespace arena
 {
 	const String& Scene::name() const
 	{
-		return name();
+		return m_name;
 	}
 	SceneState Scene::state() const
 	{
