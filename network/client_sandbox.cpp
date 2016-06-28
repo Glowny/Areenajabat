@@ -1,9 +1,10 @@
+#if defined(ARENA_CLIENT)
 #include "client_sandbox.h"
-#include "MessageIdentifiers.h"
+#include "Enumerations.h"
 #include "SFML\System\Time.hpp"
 #include "SFML\System\Clock.hpp"
 #include <SFML/Graphics.hpp>
-
+#include "Serializer.h"
 
 void Client::start(char* address, unsigned port)
 {
@@ -48,14 +49,20 @@ void Client::start(char* address, unsigned port)
 		}
 		window.display();
 
-		if (deltaTime.getElapsedTime() > sf::milliseconds(5))
+		
+
+		if (deltaTime.getElapsedTime() > sf::milliseconds(200))
 		{
-			size_t size;
-			unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
-				m_gladiatorVector[m_myId].m_movedir_y);
-			sendPacket(data, size);
-			m_gladiatorVector[m_myId].m_movedir_x = 0;
-			m_gladiatorVector[m_myId].m_movedir_y = 0;
+			if (m_gladiatorVector[m_myId].m_movedir_x != 0 ||
+				m_gladiatorVector[m_myId].m_movedir_y != 0)
+			{
+				size_t size;
+				unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
+					m_gladiatorVector[m_myId].m_movedir_y);
+				sendPacket(data, size);
+				m_gladiatorVector[m_myId].m_movedir_x = 0;
+				m_gladiatorVector[m_myId].m_movedir_y = 0;
+			}
 
 		}
 
@@ -107,7 +114,7 @@ void Client::checkEvent()
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
 				// Use data on destroy packet
-				MessageIdentifiers id = getID(EEvent.packet->data);
+				MessageIdentifier id = getID(EEvent.packet->data);
 				switch(id)
 					{ 
 					case Update:
@@ -129,38 +136,32 @@ void Client::checkEvent()
 	
 }
 
-MessageIdentifiers Client::getID(unsigned char* data)
+MessageIdentifier Client::getID(unsigned char* data)
 {
-	return *((MessageIdentifiers*)(&data[0]));
+	return *((MessageIdentifier*)(&data[0]));
 }
 
 void Client::openUpdatePackage(unsigned char* data)
 {
-	size_t index = sizeof(MessageIdentifiers);
-
+	size_t index = sizeof(MessageIdentifier);
+	DataType dataTypes[5]{ Float, Float, Float, Float, Float };
+	
 	for(unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
-		m_gladiatorVector[i].m_position_x = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_position_y = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_velocity_x = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_velocity_y = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_rotation = *((float*)(&data[index]));
-		index += sizeof(float);
+		deSerializeWithIndex(data, index, dataTypes, 5,
+			&m_gladiatorVector[i].m_position_x, &m_gladiatorVector[i].m_position_y,
+			&m_gladiatorVector[i].m_velocity_x, &m_gladiatorVector[i].m_velocity_y,
+			&m_gladiatorVector[i].m_rotation);
+		printf("position: %f, %f\n velocity: %f, %f\n rotation: %f\n", m_gladiatorVector[i].m_position_x, m_gladiatorVector[i].m_position_y,
+									m_gladiatorVector[i].m_velocity_x, m_gladiatorVector[i].m_velocity_y, m_gladiatorVector[i].m_rotation);
 	}
+
 }
 
 void Client::openStartPackage(unsigned char* data)
 {
 	// This should be called only once.
-	size_t index = sizeof(MessageIdentifiers);
+	size_t index = sizeof(MessageIdentifier);
 
 	m_myId = *((unsigned*)(&data[index]));
 	index += sizeof(unsigned);
@@ -223,18 +224,20 @@ void Client::sendPacket(unsigned char* data, unsigned size)
 unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
 										float movedir_y)
 {
-	size = sizeof(size_t) + sizeof(float) * 2;
+	size = sizeof(size_t) + sizeof(double) * 2;
 	size_t index = 0;
 	unsigned char* data = (unsigned char*)malloc(size);
 
-	*((MessageIdentifiers*)(&data[index])) = ClientFeedback;
-	index += sizeof(MessageIdentifiers);
+	*((MessageIdentifier*)(&data[index])) = ClientMove;
+	index += sizeof(MessageIdentifier);
 
-	*((float*)(&data[index])) = movedir_x;
-	index += sizeof(float);
+	*((double*)(&data[index])) = movedir_x;
+	index += sizeof(double);
 
-	*((float*)(&data[index])) = movedir_y;
+	*((double*)(&data[index])) = movedir_y;
 
 
 	return data;
 }
+
+#endif

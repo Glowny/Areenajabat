@@ -108,12 +108,13 @@ project "server"
 	
 	defines { 
 		"ARENA_SERVER",
-		"SFML_STATIC",
-		"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
+		--"SFML_STATIC",
+		--"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
 	}
 	
 	includedirs { 
-		ARENA_THIRD_DIR
+		ARENA_THIRD_DIR,
+		path.join(BX_DIR, "include/")
 	}
 	
 	files {
@@ -125,7 +126,7 @@ project "server"
 	links { 
 		"enet",
 		"ws2_32",
-		"winmm"
+		"winmm",
 	}
 	
 	configuration { "vs*" and "x64"}
@@ -139,7 +140,8 @@ project "server"
 		"opengl32",
 		"gdi32",
 		"freetype",
-		"jpeg"
+		"jpeg",
+		"Box2D"
 	}
 	
 	configuration {}

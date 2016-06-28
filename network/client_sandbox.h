@@ -1,18 +1,22 @@
 #pragma once
+#if defined(ARENA_CLIENT)
+
 #include <enet\enet.h>
 #include <string>
 #include <queue>
-#include "MessageIdentifiers.h"
+#include "Enumerations.h"
+
+
 struct Gladiator 
 {
 	unsigned id;
-	float m_position_y;
-	float m_position_x;
-	float m_velocity_x;
-	float m_velocity_y;
-	float m_movedir_x;
-	float m_movedir_y;
-	float m_rotation;
+	double m_position_y;
+	double m_position_x;
+	double m_velocity_x;
+	double m_velocity_y;
+	double m_movedir_x;
+	double m_movedir_y;
+	double m_rotation;
 };
 
 class Client
@@ -30,7 +34,7 @@ private:
 	ENetHost* createENetClient();
 	void sendPacket(unsigned char* data, unsigned size);
 	void checkEvent();
-	MessageIdentifiers getID(unsigned char* data);
+	MessageIdentifier getID(unsigned char* data);
 	void openUpdatePackage(unsigned char* data);
 	void openStartPackage(unsigned char* data);
 	unsigned char* createMovePacket(size_t &size, float velocity_x,
@@ -40,3 +44,5 @@ private:
 	ENetEvent m_eEvent;
 	ENetPeer* m_peer;
 };
+
+#endif
