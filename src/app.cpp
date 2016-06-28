@@ -1,3 +1,4 @@
+#include "game_time.h"
 #include "app.h"
 #include <bgfx/bgfx.h>
 #include "input/input.h"
@@ -73,6 +74,8 @@ namespace arena
     static Camera s_camera(1280.f, 720.f);
 
     static int64_t s_last_time = 0;
+
+    static double s_timeSinceStart = 0;
 
     static SpriterAnimationPlayer* s_instance;
 
@@ -209,6 +212,8 @@ namespace arena
 
         // seconds
         float lastDeltaTime = float(time * (1.0 / frequency));
+        s_timeSinceStart += lastDeltaTime;
+		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
         s_camera.calculate();
 

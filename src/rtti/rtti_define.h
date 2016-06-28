@@ -40,9 +40,10 @@ namespace arena
 #define REGISTER_RTTI_TYPE(__typename__) RTTIData __typename__::s_rttiData = RTTIData(#__typename__, sizeof(__typename__)); \
 										 uint32 __typename__::RTTIGetID()		{	return __typename__::s_rttiData.m_typeID;		} \
 										 String __typename__::RTTIGetTypename() {	return __typename__::s_rttiData.m_typename;		} \
-										 RTTIData __typename__::RTTIGetType()	{	return __typename__::s_rttiData;				} \												
+										 RTTIData __typename__::RTTIGetType()	{	return __typename__::s_rttiData;				} 												
 
-#define TYPENAMEOF(__ptr__)			__ptr__->RTTIGetTypename()
-#define TYPEOF(__ptr__)				__ptr__->RTTIGetID()	
+#define TYPEOF(__ptr__)				__ptr__->RTTIGetType()
+#define TYPENAME(__ptr__)			__ptr__->RTTIGetTypename()
+#define TYPEID(__ptr__)				__ptr__->RTTIGetID()	
 
 #define IS_OF_TYPE(__ptr__, __typename__) (__ptr__->RTTIGetID() == __typename__::RTTIGetID())
