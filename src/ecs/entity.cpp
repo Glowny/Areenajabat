@@ -52,10 +52,12 @@ namespace arena
 	// Init static allocator.
 	EntityAllocator Entity::s_allocator = EntityAllocator(InitialPages, PageSize);
 
-	Entity::Entity(const String& tags) : m_tags(tags) 
+	Entity::Entity(const String& tags) : m_tags(tags),
+									     m_destroyed(false)
 	{
 	}
-	Entity::Entity() : m_tags(String())
+	Entity::Entity() : m_tags(String()),
+					   m_destroyed(false)
 	{
 	}
 
@@ -74,7 +76,16 @@ namespace arena
 
 	void Entity::destroy()
 	{
+		if (m_destroyed) return;
+
 		s_allocator.destroy(this);
+
+		// TODO: cleanup components.
+		m_destroyed = true;
+	}
+	bool Entity::destroyed() 
+	{
+		return m_destroyed;
 	}
 
 	void Entity::add(Component* const component) 
