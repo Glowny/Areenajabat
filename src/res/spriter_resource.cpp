@@ -309,7 +309,7 @@ namespace arena
         return float(m_entity->getAlpha());
     }
 
-    void SpriterAnimationPlayer::setTimeElapsed(float milliseconds)
+    void SpriterAnimationPlayer::setTimeElapsed(double milliseconds)
     {
         m_entity->setTimeElapsed(milliseconds);
     }

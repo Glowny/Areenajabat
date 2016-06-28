@@ -74,6 +74,28 @@ namespace arena
 
     static int64_t s_last_time = 0;
 
+
+    static const float s_directionTransitionTable[] =
+    {
+         0.f, // 0
+        -1.f, // 50
+         1.f, // 100
+         2.f, // 150
+         1.f, // 200
+         0.5f, // 250
+         0.f, // 300
+        -1.f, // 350
+         1.f, // 400
+         2.f, // 450
+         1.f, // 500
+         0.5f // 550
+    };
+
+    template <typename T>
+    inline T lerp(T v0, T v1, T t) {
+        return (1 - t)*v0 + t*v1;
+    }
+
     class Character
     {
     public:
@@ -85,7 +107,8 @@ namespace arena
               m_crestOffset(-1.5f, 0.f),
               m_helmetOffset(-3.f, 14.f),
               m_torsoOffset(0.f, 37.f),
-              m_legOffset(11, 124)
+              m_legOffset(11, 124),
+              m_elapsed(0.0)
 
         {
             m_legs.setCurrentAnimation(0);
@@ -94,15 +117,34 @@ namespace arena
 
         void update(float dt)
         {
-            m_legs.setTimeElapsed(dt * 1000.f);
+
+            static const uint32_t length = 600;
+
+            m_elapsed += dt; 
+
+
+            const uint32_t asMillis = uint32_t(m_elapsed * 1000.0);
+
+            uint32_t index = uint32_t(asMillis / 50) % BX_COUNTOF(s_directionTransitionTable);
+            uint32_t nextIndex = (index + 1) % BX_COUNTOF(s_directionTransitionTable);
+            
+            float t = (asMillis % 50) / 50.f;
+            m_perFrameTorsoOffset.y = lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
+            
+            m_legs.setTimeElapsed(dt * 1000.0);
+            
+            if (asMillis >= length)
+            {
+                m_elapsed = m_elapsed - 0.6;
+            }
         }
 
         void render()
         {
             m_legs.render();
-            draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
-            draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
-            draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
+            draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
+            draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
+            draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
         }
 
         void setPosition(const glm::vec2& position)
@@ -117,6 +159,8 @@ namespace arena
         TextureResource* m_crest;
         TextureResource* m_torso;
 
+        double m_elapsed;
+
         glm::vec2 m_position;
 
         glm::vec2 m_crestOffset;
@@ -126,6 +170,8 @@ namespace arena
         glm::vec2 m_legOffset;
         // relative from posiiton
         glm::vec2 m_torsoOffset;
+
+        glm::vec2 m_perFrameTorsoOffset;
         //const glm::vec2 m_torsoSpawn;
     };
 
