@@ -20,9 +20,16 @@
 #include "res/spriter_animation_player.h"
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
+#include <glm/gtc/type_ptr.hpp>
 namespace arena
 {
+
+    void transform(const glm::vec2& value, const glm::mat4& matrix, glm::vec2* result)
+    {
+        result->x = (value.x * matrix[0].x) + (value.y * matrix[1].x) + matrix[3].x;
+        result->y = (value.x * matrix[0].y) + (value.y * matrix[1].y) + matrix[3].y;
+    }
+
 	/*
 		Structs/classes.
 	*/
@@ -40,7 +47,7 @@ namespace arena
 			m_position(0.f, 0.f),
 			m_zoom(1.f),
 			m_angle(0.f),
-			m_bounds(width / 2.f, height / 2.f),
+			m_bounds(width, height),
 			m_matrix(1.f)
 		{
 
@@ -48,12 +55,11 @@ namespace arena
 
 		void calculate()
 		{
-			m_matrix =
-				glm::translate(glm::mat4(1.f), glm::vec3(m_position, 0)) *
-				glm::rotate(glm::mat4(1.f), m_angle, glm::vec3(0, 0, 1.f)) *
-				glm::scale(glm::mat4(1.f), glm::vec3(m_zoom)) *
-				glm::translate(glm::mat4(1.f), glm::vec3(m_bounds, 0.f));
-
+            m_matrix =
+                glm::translate(glm::mat4(1.f), glm::vec3(m_bounds * 0.5f, 0.f)) *
+                glm::scale(glm::mat4(1.f), glm::vec3(m_zoom)) *
+                glm::rotate(glm::mat4(1.f), m_angle, glm::vec3(0, 0, 1.f)) *
+                glm::translate(glm::mat4(1.f), glm::vec3(-m_position, 0.f));
 		}
 	};
 
@@ -141,7 +147,7 @@ namespace arena
 
             decompose(globalmtx, &position, &rotation);
 
-            draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0, 0), glm::vec2(1, 1), rotation, m_depth);
+            draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), rotation, m_depth);
             for (Sprite* s : m_children)
             {
                 s->render(globalmtx);
@@ -216,7 +222,7 @@ namespace arena
             m_rightForeArmSprite.m_rotation = glm::radians(40.f);
             m_rightForeArmSprite.m_depth = 2.f;
 
-            setPosition(glm::vec2(200.f));
+            setPosition(glm::vec2(0.f));
         }
 
         void update(float dt)
@@ -452,11 +458,13 @@ namespace arena
 
         bgfx::touch(0);
         
+        s_camera.m_position = glm::vec2(width, height / 2.f);
 		s_camera.calculate();
+
 
 		float ortho[16];
 		bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, /*glm::value_ptr(s_camera.m_matrix)*/NULL, ortho);
+		bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
 		bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
 
 		bgfx::touch(0);
@@ -469,8 +477,15 @@ namespace arena
 			s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 		bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
+        s_char->setPosition(glm::vec2(1280.f, 0.f));
         s_char->update(lastDeltaTime);
         s_char->render();
+
+        glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
+        transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
+
+        bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+
 
 		s_spriteBatch->submit(0);
 
