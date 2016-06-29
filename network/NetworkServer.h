@@ -1,4 +1,5 @@
 #pragma once
+#if defined(ARENA_SERVER)
 #include <queue>
 #include <vector>
 #include <enet\enet.h>
@@ -17,7 +18,7 @@ class Network
 		void startServer(std::queue<Message>* messageQueue, unsigned address,
 			unsigned port, unsigned clientAmount);
 		
-		unsigned getConnectedPlayerAmount()
+		size_t getConnectedPlayerAmount()
 		{
 			return m_clientVector.size();
 		}
@@ -36,3 +37,4 @@ class Network
 		std::queue<Message>* m_messageQueue;
 		std::vector<ENetPeer*> m_clientVector;
 };
+#endif

@@ -17,7 +17,7 @@ void Physics::update()
 	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
 };
 
-void Physics::createPlatform(vec2 position, std::vector<vec2> platform)
+void Physics::createPlatform(glm::vec2 position, std::vector<glm::vec2> platform)
 {
 	b2Vec2* points = new b2Vec2[platform.size()];
 	for (unsigned i = 0; i < platform.size(); i++)
@@ -25,7 +25,7 @@ void Physics::createPlatform(vec2 position, std::vector<vec2> platform)
 		points[i].Set(platform[i].x, platform[i].y);
 	}
 
-	Platform temp_platform;
+	p_Platform temp_platform;
 	temp_platform.m_shape.CreateChain(points, platform.size());
 	temp_platform.m_bodydef.type = b2_staticBody;
 	temp_platform.m_bodydef.position.Set(position.x, position.y);
@@ -74,18 +74,18 @@ void Physics::moveGladiator(float direction_x, float direction_y, unsigned id)
 	m_gladiatorVector[id].m_body->ApplyForce(b2Vec2(direction_x, direction_y),
 		m_gladiatorVector[id].m_body->GetWorldCenter(), 1);
 }
-vec2 Physics::getGladiatorPosition(unsigned id)
+glm::vec2 Physics::getGladiatorPosition(unsigned id)
 {
 	b2Vec2 pos = m_gladiatorVector[id].m_body->GetPosition();
-	vec2 position;
+	glm::vec2 position;
 	position.x = pos.x;
 	position.y = pos.y;
 	return position;
 }
-vec2 Physics::getGladiatorVelocity(unsigned id)
+glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
 	b2Vec2 vel = m_gladiatorVector[id].m_body->GetLinearVelocity();
-	vec2 velocity;
+	glm::vec2 velocity;
 	velocity.x = vel.x;
 	velocity.y = vel.y;
 	return velocity;
