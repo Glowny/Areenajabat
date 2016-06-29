@@ -20,9 +20,21 @@ Server::Server()
 	vec.x = 1000; vec.y = 0;
 	platformPoints.points.push_back(vec);
 
+	Platform platformPoints2;
+	vec.x = 300; vec.y = 300;
+	platformPoints2.points.push_back(vec);
+	vec.x = 700; vec.y = 300;
+	platformPoints2.points.push_back(vec);
+	vec.x = 450; vec.y = 500;
+	platformPoints2.points.push_back(vec);
+	vec.x = 300; vec.y = 300;
+	platformPoints2.points.push_back(vec);
+
 	
 	m_physics.createPlatform(glm::vec2(0,0), platformPoints.points);
+	m_physics.createPlatform(glm::vec2(0, 0), platformPoints2.points);
 	m_platformVector.push_back(platformPoints);
+	m_platformVector.push_back(platformPoints2);
 
 }
 

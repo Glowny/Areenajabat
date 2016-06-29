@@ -99,14 +99,12 @@ template <typename T>
 void serializeSingle(unsigned char*& dataPointer, T single)
 {
 	memcpy(dataPointer, &single, sizeof(T));
-	//*((T*)(dataPointer)) = single;
 	dataPointer += sizeof(T);
 }
 
 template <typename T>
 void deSerializeSingle(unsigned char*& dataPointer, T &single)
 {
-	//single = *((T*)(dataPointer));
 	memcpy(&single, dataPointer, sizeof(T));
 	dataPointer += sizeof(T);
 }

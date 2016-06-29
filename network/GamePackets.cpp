@@ -92,7 +92,24 @@ unsigned char* createPlatformPacket(size_t &packetSize, std::vector<Platform> &p
 	}
 	return preData;
 }
+unsigned char* createBulletInputPacket(size_t &packetSize, std::vector<BulletInputData> &bulletVector, unsigned char* preData)
+{
+	packetSize = sizeof(MessageIdentifier) + (sizeof(float) + sizeof(unsigned) + sizeof(BulletType)) * bulletVector.size();
+	if (preData == NULL)
+	{
+		preData = (unsigned char*)malloc(packetSize);
+	}
+	unsigned char* dataPointer = preData;
 
+	serializeSingle(dataPointer, ClientShoot);
+	serializeSingle(dataPointer, bulletVector.size());
+	for (unsigned i = 0; i < bulletVector.size(); i++)
+	{
+		serializeSingle(dataPointer, bulletVector[i].bulletType);
+		serializeSingle(dataPointer, bulletVector[i].rotation);
+	}
+	return preData;
+}
 
 void openMovePacket(unsigned char* data, glm::vec2 &moveDir)
 {
@@ -149,5 +166,20 @@ void openPlatformPacket(unsigned char* data, std::vector<Platform> &platformVect
 		}
 
 		platformVector.push_back(platform);
+	}
+	
+}
+
+void openBulletInputPacket(unsigned char* data, std::vector<BulletInputData> &bulletVector)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	size_t bulletAmount;
+	deSerializeSingle(dataPointer, bulletAmount);
+	for (unsigned i = 0; i < bulletAmount; i++)
+	{
+		BulletInputData bulletData;
+		deSerializeSingle(dataPointer, bulletData.bulletType);
+		deSerializeSingle(dataPointer, bulletData.rotation);
+		bulletVector.push_back(bulletData);
 	}
 }
