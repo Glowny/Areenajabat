@@ -20,7 +20,7 @@ namespace arena
         float getAngle() const;
         float getAlpha() const;
 
-        void setTimeElapsed(float milliseconds);
+        void setTimeElapsed(double milliseconds);
         void render();
 
         void setCurrentAnimation(const std::string& anim);

@@ -18,45 +18,15 @@
 #include "render.h"
 #include "res/spriter_resource.h"
 #include "res/spriter_animation_player.h"
-#include "scenes\scene_manager.h"
-#include "scenes\sandbox_scene.h"
+#include <glm/gtc/type_ptr.hpp>
+#include "utils/math.h"
+#include "camera.h"
+#include "graphics/composite_sprite.h"
+#include "scenes/scene_manager.h"
+#include "scenes/sandbox_scene.h"
 
 namespace arena
 {
-	/*
-		Structs/classes.
-	*/
-	
-	struct Camera
-	{
-		glm::vec2 m_position;
-		float m_zoom;
-		float m_angle;
-		glm::vec2 m_bounds;
-		glm::mat4 m_matrix;
-
-		Camera(float width, float height)
-			:
-			m_position(0.f, 0.f),
-			m_zoom(1.f),
-			m_angle(0.f),
-			m_bounds(width / 2.f, height / 2.f),
-			m_matrix(1.f)
-		{
-
-		}
-
-		void calculate()
-		{
-			m_matrix =
-				glm::translate(glm::mat4(1.f), glm::vec3(m_position, 0)) *
-				glm::rotate(glm::mat4(1.f), m_angle, glm::vec3(0, 0, 1.f)) *
-				glm::scale(glm::mat4(1.f), glm::vec3(m_zoom)) *
-				glm::translate(glm::mat4(1.f), glm::vec3(m_bounds, 0.f));
-
-		}
-	};
-
 	/*
 		Static members.
 	*/
@@ -67,7 +37,6 @@ namespace arena
     static ResourceManager*			s_resources;
     static SpriteBatch*				s_spriteBatch;
 	static Camera					s_camera(1280.f, 720.f);
-	static SpriterAnimationPlayer*	s_instance;
 
 	static const InputBinding		s_bindings[] =
 	{
@@ -88,6 +57,128 @@ namespace arena
     {
         s_exit = true;
     }
+
+    static const float s_directionTransitionTable[] =
+    {
+         0.f, // 0
+        -1.f, // 50
+         1.f, // 100
+         2.f, // 150
+         1.f, // 200
+         0.5f, // 250
+         0.f, // 300
+        -1.f, // 350
+         1.f, // 400
+         2.f, // 450
+         1.f, // 500
+         0.5f // 550
+    };
+
+
+
+    class Character
+    {
+    public:
+        Character()
+            : m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
+              m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Helmet.png")),
+              m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "player/body/Torso.png")),
+              m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
+              m_rightUpperArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightUpperArm.png")),
+              m_rightForeArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightForearm.png")),
+              m_crestOffset(-1.5f, 0.f),
+              m_helmetOffset(-3.f, 14.f),
+              m_torsoOffset(0.f, 37.f),
+              m_legOffset(11, 124),
+              m_elapsed(0.0),
+              m_rightUpperArmOffset(11.f, 46.f),
+              m_rightArmSprite(m_rightUpperArm),
+              m_rightForeArmSprite(m_rightForeArm)
+        {
+            m_legs.setCurrentAnimation(0);
+            
+            m_rightArmSprite.m_children.push_back(&m_rightForeArmSprite);
+            m_rightArmSprite.m_origin = glm::vec2(m_rightUpperArm->width / 2.f, 5.f);
+            m_rightArmSprite.m_rotation = glm::radians(70.f);
+            m_rightArmSprite.m_depth = 2.f;
+
+            m_rightForeArmSprite.m_origin = glm::vec2(m_rightForeArm->width / 2.f, m_rightUpperArm->height + 5.f);;
+            m_rightForeArmSprite.m_position = glm::vec2(-12, 45);
+            m_rightForeArmSprite.m_rotation = glm::radians(40.f);
+            m_rightForeArmSprite.m_depth = 2.f;
+
+            setPosition(glm::vec2(0.f));
+        }
+
+        void update(float dt)
+        {
+
+            static const uint32_t length = 600;
+
+            m_elapsed += dt; 
+
+
+            const uint32_t asMillis = uint32_t(m_elapsed * 1000.0);
+
+            uint32_t index = uint32_t(asMillis / 50) % BX_COUNTOF(s_directionTransitionTable);
+            uint32_t nextIndex = (index + 1) % BX_COUNTOF(s_directionTransitionTable);
+            
+            float t = (asMillis % 50) / 50.f;
+            m_perFrameTorsoOffset.y = lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
+            
+            m_legs.setTimeElapsed(dt * 1000.0);
+            
+            if (asMillis >= length)
+            {
+                m_elapsed = m_elapsed - 0.6;
+            }
+        }
+
+        void render()
+        {
+            m_legs.render();
+            draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
+            draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
+            draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
+            m_rightArmSprite.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
+            m_rightArmSprite.render();
+        }
+
+        void setPosition(const glm::vec2& position)
+        {
+            m_position = position;
+            m_legs.setPosition(position + m_legOffset);
+        }
+
+    private:
+        SpriterAnimationPlayer m_legs;
+        TextureResource* m_helmet;
+        TextureResource* m_crest;
+        TextureResource* m_torso;
+
+        TextureResource* m_rightUpperArm;
+        glm::vec2 m_rightUpperArmOffset;
+        double m_elapsed;
+
+        TextureResource* m_rightForeArm;
+
+        glm::vec2 m_position;
+
+        glm::vec2 m_crestOffset;
+        // relative from posiiton
+        glm::vec2 m_helmetOffset;
+        // relative from posiiton
+        glm::vec2 m_legOffset;
+        // relative from posiiton
+        glm::vec2 m_torsoOffset;
+
+        glm::vec2 m_perFrameTorsoOffset;
+
+        CompositeSprite m_rightArmSprite;
+        CompositeSprite m_rightForeArmSprite;
+    };
+
+    static Character* s_char;
 
 	static bool processEvents(int32_t& width, int32_t& height)
 	{
@@ -230,12 +321,8 @@ namespace arena
 
         s_resources = new ResourceManager("assets/");
         s_spriteBatch = new SpriteBatch;
-
-        SpriterResource* spritermodel = getResources()->get<SpriterResource>(ResourceType::Spriter, "GreyGuy/player.scml");
         
-        s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance("Player"));
-        s_instance->setCurrentAnimation("walk");
-        s_instance->setPosition(glm::vec2(500, 500));
+        s_char = new Character;
 
 		SandboxSecene* scene = new  SandboxSecene();
 		
@@ -260,11 +347,15 @@ namespace arena
 		s_timeSinceStart += lastDeltaTime;
 		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
+        bgfx::touch(0);
+        
+        s_camera.m_position = glm::vec2(width, height / 2.f);
 		s_camera.calculate();
+
 
 		float ortho[16];
 		bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, /*glm::value_ptr(s_camera.m_matrix)*/NULL, ortho);
+		bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
 		bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
 
 		bgfx::touch(0);
@@ -277,8 +368,15 @@ namespace arena
 			s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 		bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
-		s_instance->setTimeElapsed(lastDeltaTime * 1000.0f);
-		s_instance->render();
+        s_char->setPosition(glm::vec2(1280.f, 0.f));
+        s_char->update(lastDeltaTime);
+        s_char->render();
+
+        glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
+        transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
+
+        bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+
 
 		s_spriteBatch->submit(0);
 
