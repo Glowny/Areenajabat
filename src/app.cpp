@@ -59,6 +59,8 @@ namespace arena
 		Static members.
 	*/
 
+    static void cmdExit(const void*);
+
     static MouseState				s_mouseState;
     static ResourceManager*			s_resources;
     static SpriteBatch*				s_spriteBatch;
