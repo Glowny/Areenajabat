@@ -403,8 +403,9 @@ namespace arena
         
         const glm::vec2& crosspos = s_char->m_cross.m_position;
         const glm::vec2& handpos = s_char->m_rightArmSprite.m_position;
-        const float m = (crosspos.y - handpos.y) / (crosspos.x - handpos.x);
-        float a = glm::atan(m);
+        glm::vec2 dir(crosspos - handpos);
+        //const float m = glm::abs(crosspos.y - handpos.y) / (crosspos.x - handpos.x);
+        float a = glm::atan(dir.y, dir.x) - glm::radians(180.f);
         s_char->m_rightArmSprite.m_rotation = glm::radians(70.f) + a;
         printf("%.2f\n", a);
 
