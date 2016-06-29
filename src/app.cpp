@@ -65,6 +65,7 @@ namespace arena
             m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
             m_rightUpperArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightUpperArm.png")),
             m_rightForeArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightForearm.png")),
+            m_gunTexture(getResources()->get<TextureResource>(ResourceType::Texture, "player/gun/GladiusLeft.png")),
             m_crestOffset(-1.5f, 0.f),
             m_helmetOffset(-3.f, 14.f),
             m_torsoOffset(0.f, 37.f),
@@ -72,7 +73,9 @@ namespace arena
             m_elapsed(0.0),
             m_rightUpperArmOffset(11.f, 46.f),
             m_rightArmSprite(m_rightUpperArm),
-            m_rightForeArmSprite(m_rightForeArm)
+            m_rightForeArmSprite(m_rightForeArm),
+            m_gunSprite(m_gunTexture)
+            
         {
             m_legs.setCurrentAnimation(0);
 
@@ -86,16 +89,20 @@ namespace arena
             m_rightForeArmSprite.m_rotation = glm::radians(40.f);
             m_rightForeArmSprite.m_depth = 2.f;
 
+            m_rightForeArmSprite.m_children.push_back(&m_gunSprite);
+            m_gunSprite.m_depth = 1.9f;
+            m_gunSprite.m_origin = glm::vec2(m_gunTexture->width, m_gunTexture->height) / 2.f;
+            m_gunSprite.m_rotation = glm::radians(250.f);
+            m_gunSprite.m_position = glm::vec2(05.f, 15.f);
+
             setPosition(glm::vec2(0.f));
         }
 
         void update(float dt)
         {
-
             static const uint32_t length = 600;
 
             m_elapsed += dt;
-
 
             const uint32_t asMillis = uint32_t(m_elapsed * 1000.0);
 
@@ -135,6 +142,7 @@ namespace arena
         TextureResource* m_helmet;
         TextureResource* m_crest;
         TextureResource* m_torso;
+        TextureResource* m_gunTexture;
 
         TextureResource* m_rightUpperArm;
         glm::vec2 m_rightUpperArmOffset;
@@ -156,7 +164,7 @@ namespace arena
 
         CompositeSprite m_rightArmSprite;
         CompositeSprite m_rightForeArmSprite;
-
+        CompositeSprite m_gunSprite;
         Crosshair m_cross;
     };
 
@@ -404,10 +412,9 @@ namespace arena
         const glm::vec2& crosspos = s_char->m_cross.m_position;
         const glm::vec2& handpos = s_char->m_rightArmSprite.m_position;
         glm::vec2 dir(crosspos - handpos);
-        //const float m = glm::abs(crosspos.y - handpos.y) / (crosspos.x - handpos.x);
+        
         float a = glm::atan(dir.y, dir.x) - glm::radians(180.f);
         s_char->m_rightArmSprite.m_rotation = glm::radians(70.f) + a;
-        printf("%.2f\n", a);
 
         s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, s_char->m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
 
