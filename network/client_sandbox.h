@@ -1,66 +1,59 @@
 #pragma once
 #if defined(ARENA_CLIENT)
 
-#include <enet\enet.h>
-#include <string>
+#include <glm\glm.hpp>
 #include <queue>
-#include "Enumerations.h"
+#include "GamePackets.h"
+#include "NetworkClient.h"
 #include <SFML/Graphics.hpp>
-struct vec2 // temporary
-{
-	double x;
-	double y;
-
-};
-
-struct PlatformPoints
-{
-	// array of points that determine platform
-	vec2 position;
-	
-	sf::Vertex* platform;
-	size_t m_size;
-	
-};
-
-struct Gladiator 
-{
-	unsigned id;
-	double m_position_y;
-	double m_position_x;
-	double m_velocity_x;
-	double m_velocity_y;
-	double m_movedir_x;
-	double m_movedir_y;
-	double m_rotation;
-};
 
 class Client
 {
 public:
 	Client() {};
 	~Client() {};
+
 	void start(char* address, unsigned port);
-	std::vector<Gladiator> m_gladiatorVector;
-	std::vector<PlatformPoints> m_points;
+	
 private:
-	float ennakointi;
+	// Loop throught messages that came from server
+	void handleMessages();
+	// Handle single message
+	void handleMessage(unsigned char* data);
+	
+	void draw();
+	// Get controller input
+	void getInput();
+	// Send data to server
+	void sendData();
+	// Update fake physics
+	void updatePhysics();
+
+	// Data send from server
+	// players
+	std::vector<GladiatorData> m_gladiatorVector;
+	// platforms send by server
+	std::vector<Platform> m_points;
+	
+	// Data send to server
+	glm::vec2 m_movedir;
+
+	// Messages server send.
+	std::queue<unsigned char*> m_messageQueue;
+	
+	// Network low level	
+	Network m_network;
+
+	// Id used for broadcasted messages
 	unsigned m_myId;
-	void connect(char* address, unsigned port);
-	void initializeENet();
-	ENetHost* createENetClient();
-	void sendPacket(unsigned char* data, unsigned size);
-	void checkEvent();
-	MessageIdentifier getID(unsigned char* data);
-	void openUpdatePackage(unsigned char* data);
-	void openPlatformPackage(unsigned char* data); 
-	void openStartPackage(unsigned char* data);
-	unsigned char* createMovePacket(size_t &size, double velocity_x,
-		double velocity_y);
-	std::queue<unsigned char*> messages;
-	ENetHost* m_client;
-	ENetEvent m_eEvent;
-	ENetPeer* m_peer;
+
+	// SFML stuff for window, draw and clock.
+	sf::RenderWindow* m_window;
+	sf::Clock m_networkClock;
+	sf::Clock m_physicsClock;
+	// Vertex data about platforms used for drawing by SFML
+	std::vector<std::vector<sf::Vertex>> m_vertexes;
+	sf::RectangleShape m_rectangle;
 };
 
 #endif

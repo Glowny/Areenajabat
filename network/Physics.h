@@ -3,15 +3,10 @@
 #include <Box2D\Box2D.h>
 #include <stdarg.h>
 #include <vector>
-struct vec2 // temporary
-{
-	double x;
-	double y;
-
-};
+#include <glm\glm.hpp>
 
 // TODO: platform has extra stuff that could be removed.
-struct Platform
+struct p_Platform
 {
 	b2ChainShape m_shape;
 	b2BodyDef m_bodydef;
@@ -36,11 +31,11 @@ public:
 
 	void update();
 
-	void createPlatform(vec2 position, std::vector<vec2> platform);
+	void createPlatform(glm::vec2 position, std::vector<glm::vec2> platform);
 	unsigned addGladiator(float position_x, float position_y);
 	void moveGladiator(float direction_x, float direction_y, unsigned id);
-	vec2 getGladiatorVelocity(unsigned id);
-	vec2 getGladiatorPosition(unsigned id);
+	glm::vec2 getGladiatorVelocity(unsigned id);
+	glm::vec2 getGladiatorPosition(unsigned id);
 	void removeGladiator(unsigned id);
 	void addBullet();
 	void removeBullet();
@@ -48,6 +43,6 @@ public:
 private:
 	b2World* m_b2DWorld;
 	std::vector<p_Gladiator> m_gladiatorVector;
-	std::vector<Platform> m_platformVector;
+	std::vector<p_Platform> m_platformVector;
 };
 #endif
