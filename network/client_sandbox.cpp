@@ -1,9 +1,10 @@
+#if defined(ARENA_CLIENT)
 #include "client_sandbox.h"
-#include "MessageIdentifiers.h"
+#include "Enumerations.h"
 #include "SFML\System\Time.hpp"
 #include "SFML\System\Clock.hpp"
 #include <SFML/Graphics.hpp>
-
+#include "Serializer.h"
 
 void Client::start(char* address, unsigned port)
 {
@@ -12,7 +13,8 @@ void Client::start(char* address, unsigned port)
 	connect(address, port);
 
 	sf::Clock deltaTime;
-	sf::RenderWindow window(sf::VideoMode(1000,1000), "Networktest");
+	sf::Clock physicsClock;
+	sf::RenderWindow window(sf::VideoMode(1100,1000), "Networktest");
 	sf::RectangleShape rectangle;
 	rectangle.setSize(sf::Vector2f(32, 128));
 	rectangle.setFillColor(sf::Color::Green);
@@ -23,7 +25,7 @@ void Client::start(char* address, unsigned port)
 	{
 		checkEvent();
 	}
-
+	ennakointi = 0;
 	while (true)
 	{
 		sf::Event event;
@@ -31,12 +33,26 @@ void Client::start(char* address, unsigned port)
 		if (event.type == sf::Event::Closed)
 			window.close();
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			m_gladiatorVector[m_myId].m_movedir_x = -3;
+			m_gladiatorVector[m_myId].m_movedir_x = -3.0f;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			m_gladiatorVector[m_myId].m_movedir_x = 3;
+			m_gladiatorVector[m_myId].m_movedir_x = 3.0f;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			m_gladiatorVector[m_myId].m_movedir_y = -10;
+			m_gladiatorVector[m_myId].m_movedir_y = -10.0f;
 
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::T))
+			ennakointi += 0.000001;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::G))
+			ennakointi -= 0.000001;
+		if (physicsClock.getElapsedTime() > sf::milliseconds(16.0f))
+		{ 
+
+			for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+			{
+				m_gladiatorVector[i].m_position_x += m_gladiatorVector[i].m_velocity_y * ennakointi;
+				m_gladiatorVector[i].m_position_y += m_gladiatorVector[i].m_velocity_x * ennakointi;
+			}
+			physicsClock.restart();
+		}
 		checkEvent();
 
 		window.clear();
@@ -45,17 +61,31 @@ void Client::start(char* address, unsigned port)
 		{ 
 			rectangle.setPosition(m_gladiatorVector[i].m_position_x, m_gladiatorVector[i].m_position_y);
 			window.draw(rectangle);
+			for (unsigned i = 0; i < m_points.size(); i++)
+			{
+				for (unsigned j = 0; j < m_points[i].m_size; j++)
+				{
+					window.draw(&m_points[i].platform[j], 2, sf::Lines);
+				}
+			}
 		}
 		window.display();
 
-		if (deltaTime.getElapsedTime() > sf::milliseconds(5))
+		
+
+		if (deltaTime.getElapsedTime() > sf::milliseconds(200))
 		{
-			size_t size;
-			unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
-				m_gladiatorVector[m_myId].m_movedir_y);
-			sendPacket(data, size);
-			m_gladiatorVector[m_myId].m_movedir_x = 0;
-			m_gladiatorVector[m_myId].m_movedir_y = 0;
+			if (m_gladiatorVector[m_myId].m_movedir_x != 0 ||
+				m_gladiatorVector[m_myId].m_movedir_y != 0)
+			{
+				size_t size;
+				unsigned char* data = createMovePacket(size, m_gladiatorVector[m_myId].m_movedir_x,
+					m_gladiatorVector[m_myId].m_movedir_y);
+				sendPacket(data, size);
+				m_gladiatorVector[m_myId].m_movedir_x = 0;
+				m_gladiatorVector[m_myId].m_movedir_y = 0;
+				deltaTime.restart();
+			}
 
 		}
 
@@ -107,7 +137,7 @@ void Client::checkEvent()
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
 				// Use data on destroy packet
-				MessageIdentifiers id = getID(EEvent.packet->data);
+				MessageIdentifier id = getID(EEvent.packet->data);
 				switch(id)
 					{ 
 					case Update:
@@ -115,6 +145,9 @@ void Client::checkEvent()
 						break;
 					case Start:
 						openStartPackage(EEvent.packet->data);
+						break;
+					case PlatformData:
+						openPlatformPackage(EEvent.packet->data);
 						break;
 					}
 				enet_packet_destroy(EEvent.packet);
@@ -129,38 +162,57 @@ void Client::checkEvent()
 	
 }
 
-MessageIdentifiers Client::getID(unsigned char* data)
+MessageIdentifier Client::getID(unsigned char* data)
 {
-	return *((MessageIdentifiers*)(&data[0]));
+	return *((MessageIdentifier*)(&data[0]));
 }
 
 void Client::openUpdatePackage(unsigned char* data)
 {
-	size_t index = sizeof(MessageIdentifiers);
-
+	size_t index = sizeof(MessageIdentifier);
+	DataType dataTypes[5]{ Float, Float, Float, Float, Float };
+	
 	for(unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
-		m_gladiatorVector[i].m_position_x = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_position_y = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_velocity_x = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_velocity_y = *((float*)(&data[index]));
-		index += sizeof(float);
-
-		m_gladiatorVector[i].m_rotation = *((float*)(&data[index]));
-		index += sizeof(float);
+		double tempx, tempy;
+		tempx = m_gladiatorVector[i].m_position_x; tempy = m_gladiatorVector[i].m_position_y;
+		deSerializeWithIndex(data, index, dataTypes, 5,
+			&m_gladiatorVector[i].m_position_x, &m_gladiatorVector[i].m_position_y,
+			&m_gladiatorVector[i].m_velocity_x, &m_gladiatorVector[i].m_velocity_y,
+			&m_gladiatorVector[i].m_rotation);
+		printf("position difference: %f, %f\n velocity: %f, %f\n ennakointi: %f\n", m_gladiatorVector[i].m_position_x-tempx, m_gladiatorVector[i].m_position_y-tempy,
+									m_gladiatorVector[i].m_velocity_x, m_gladiatorVector[i].m_velocity_y, ennakointi);
 	}
-}
 
+}
+void Client::openPlatformPackage(unsigned char* data)
+{
+	DataType dataTypes[1]{ unsignedInt };
+	size_t index = sizeof(MessageIdentifier);
+
+	unsigned pointAmount;
+	deSerializeWithIndex(data, index, dataTypes, 1, &pointAmount);
+	
+	PlatformPoints points;
+	points.platform = new sf::Vertex[pointAmount];
+	points.m_size = pointAmount;
+
+	DataType pointTypes[2]{ Float,Float };
+	double tempx, tempy;
+	for (unsigned i = 0; i < pointAmount; i++)
+	{
+		deSerializeWithIndex(data, index, pointTypes, 2, 
+			&tempx, &tempy);
+		points.platform[i]= sf::Vertex(sf::Vector2f(float(tempx), float(tempy)));
+	}
+
+	m_points.push_back(points);
+	
+}
 void Client::openStartPackage(unsigned char* data)
 {
 	// This should be called only once.
-	size_t index = sizeof(MessageIdentifiers);
+	size_t index = sizeof(MessageIdentifier);
 
 	m_myId = *((unsigned*)(&data[index]));
 	index += sizeof(unsigned);
@@ -220,21 +272,22 @@ void Client::sendPacket(unsigned char* data, unsigned size)
 	enet_host_flush(m_client);
 }
 
-unsigned char* Client::createMovePacket(size_t &size, float movedir_x,
-										float movedir_y)
+unsigned char* Client::createMovePacket(size_t &size, double movedir_x,
+	double movedir_y)
 {
-	size = sizeof(size_t) + sizeof(float) * 2;
+	size = sizeof(size_t) + sizeof(double) * 2;
 	size_t index = 0;
 	unsigned char* data = (unsigned char*)malloc(size);
 
-	*((MessageIdentifiers*)(&data[index])) = ClientFeedback;
-	index += sizeof(MessageIdentifiers);
+	*((MessageIdentifier*)(&data[index])) = ClientMove;
+	index += sizeof(MessageIdentifier);
 
-	*((float*)(&data[index])) = movedir_x;
-	index += sizeof(float);
+	*((double*)(&data[index])) = movedir_x;
+	index += sizeof(double);
 
-	*((float*)(&data[index])) = movedir_y;
-
+	*((double*)(&data[index])) = movedir_y;
 
 	return data;
 }
+
+#endif

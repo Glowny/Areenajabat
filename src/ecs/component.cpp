@@ -9,18 +9,16 @@ namespace arena
 
 	HeapAllocator Component::s_allocator = HeapAllocator(InitialPages, PageSize);
 
-	// TODO: fill rest of the RTTI system etc.
-	//REGISTER_RTTI_TYPE(Component)
+	REGISTER_RTTI_TYPE(Component)
 
-	// TODO: how.
-	//Component* Component::create(Entity* owner, const RTTIData& type) 
-	//{
-	//	Char* handle = Component::s_allocator.allocate(type.m_size);
-	//	
-	//	Component* component = reinterpret_cast<Component*>(handle);
+	Component* Component::create(Entity* owner, const RTTIData& type) 
+	{
+		Char* handle = Component::s_allocator.allocate(type.m_size);
+		
+		Component* component = reinterpret_cast<Component*>(handle);
 
-	//	return component;
-	//}
+		return component;
+	}
 
 	Component::Component(Entity* owner) : m_owner(owner) 
 	{

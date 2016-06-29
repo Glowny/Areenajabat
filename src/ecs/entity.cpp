@@ -1,4 +1,4 @@
-#include "..\mem\mem.h"
+#include "..\mem\memory.h"
 
 #include "entity.h"
 #include "component.h"
@@ -10,7 +10,7 @@ namespace arena
 	*/
 
 	const uint32 InitialPages	= 4;
-	const uint32 PageSize		= 1024;
+	const uint32 PageSize		= Mem1K;
 
 	/*
 		Entity allocator.
@@ -52,10 +52,12 @@ namespace arena
 	// Init static allocator.
 	EntityAllocator Entity::s_allocator = EntityAllocator(InitialPages, PageSize);
 
-	Entity::Entity(const String& tags) : m_tags(tags) 
+	Entity::Entity(const String& tags) : m_tags(tags),
+									     m_destroyed(false)
 	{
 	}
-	Entity::Entity() : m_tags(String())
+	Entity::Entity() : m_tags(String()),
+					   m_destroyed(false)
 	{
 	}
 
@@ -74,7 +76,16 @@ namespace arena
 
 	void Entity::destroy()
 	{
+		if (m_destroyed) return;
+
 		s_allocator.destroy(this);
+
+		// TODO: cleanup components.
+		m_destroyed = true;
+	}
+	bool Entity::destroyed() 
+	{
+		return m_destroyed;
 	}
 
 	void Entity::add(Component* const component) 
@@ -102,5 +113,15 @@ namespace arena
 	ComponentIterator Entity::end() 
 	{
 		return m_components.end();
+	}
+
+	bool Entity::operator ==(Entity* lhs)
+	{
+		if (lhs == nullptr) return false;
+
+		const UintPtr rhsAddr = reinterpret_cast<UintPtr>(this);
+		const UintPtr lhsAddr = reinterpret_cast<UintPtr>(lhs);
+
+		return lhsAddr == rhsAddr;
 	}
 }

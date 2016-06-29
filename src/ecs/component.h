@@ -7,6 +7,8 @@
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 
+#define COMPONENT_INITIALIZE(__ptr__, __type__, ...) DYNAMIC_NEW(__ptr__, __type__, ...)
+
 namespace arena
 {
 	class Component
@@ -16,8 +18,8 @@ namespace arena
 		/*
 			Static members.
 		*/
-		static Component* create(Entity* owner);
-
+		static Component* create(Entity* owner, const RTTIData& type);
+		
 		/*
 			Instance members.
 		*/

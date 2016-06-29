@@ -48,6 +48,7 @@ namespace arena
 		Entity();
 
 		void destroy();
+		bool destroyed();
 
 		void add(Component* const component);
 		void remove(Component* const component);
@@ -61,6 +62,7 @@ namespace arena
 		~Entity()	= default;
 
 		// TODO: overwrite new and delete operators?
+		bool operator ==(Entity* lhs);
 	private:
 		/*
 			Static members.
@@ -73,5 +75,7 @@ namespace arena
 		std::vector<Component*> m_components;
 
 		String					m_tags;
+
+		bool					m_destroyed;
 	};
 }
