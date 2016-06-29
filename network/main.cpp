@@ -1,3 +1,4 @@
+#pragma once
 #include <enet/enet.h>
 
 #if defined(ARENA_CLIENT)
@@ -18,7 +19,7 @@ int main()
 	client.start("localhost", 8888);
 #else
 	Server server;
-	server.start(0, 8888, 2);
+	server.start(0, 8888, 7);
 #endif
 }
 

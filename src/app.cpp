@@ -22,6 +22,8 @@
 #include "utils/math.h"
 #include "camera.h"
 #include "graphics/composite_sprite.h"
+#include "scenes/scene_manager.h"
+#include "scenes/sandbox_scene.h"
 
 namespace arena
 {
@@ -321,6 +323,12 @@ namespace arena
         s_spriteBatch = new SpriteBatch;
         
         s_char = new Character;
+
+		SandboxSecene* scene = new  SandboxSecene();
+		
+		SceneManager::instance().push(scene);
+		
+		scene->activate();
     }
 
 	bool App::update()
@@ -371,6 +379,8 @@ namespace arena
 
 
 		s_spriteBatch->submit(0);
+
+		SceneManager::instance().update(gameTime);
 
 		bgfx::frame();
 

@@ -6,7 +6,7 @@
 #include <assert.h>
 
 // raw version, could be more automatic
-unsigned char* serialize(unsigned char* data, DataType dataTypes[], size_t argumentAmount,  ...)
+inline unsigned char* serialize(unsigned char* data, DataType dataTypes[], size_t argumentAmount,  ...)
 {
 
 	va_list listPointer;
@@ -50,7 +50,7 @@ unsigned char* serialize(unsigned char* data, DataType dataTypes[], size_t argum
 	va_end(listPointer);
 	return data;
 }
-unsigned char* serializeWithIndex(unsigned char *data, size_t &index, DataType dataTypes[],
+inline unsigned char* serializeWithIndex(unsigned char *data, size_t &index, DataType dataTypes[],
 	size_t argumentAmount, ...)
 {
 
@@ -74,8 +74,7 @@ unsigned char* serializeWithIndex(unsigned char *data, size_t &index, DataType d
 			break;
 		case Float:
 		{
-			double mitävittua = va_arg(listPointer, double);
-			*((double*)(&data[index])) = mitävittua;
+			*((double*)(&data[index])) = va_arg(listPointer, double);
 			index += sizeof(double);
 			break;
 		}
@@ -96,7 +95,24 @@ unsigned char* serializeWithIndex(unsigned char *data, size_t &index, DataType d
 	va_end(listPointer);
 	return data;
 }
-void deSerialize(unsigned char* data, DataType dataTypes[], size_t argumentAmount,  ...)
+template <typename T>
+void serializeSingle(unsigned char*& dataPointer, T single)
+{
+	memcpy(dataPointer, &single, sizeof(T));
+	//*((T*)(dataPointer)) = single;
+	dataPointer += sizeof(T);
+}
+
+template <typename T>
+void deSerializeSingle(unsigned char*& dataPointer, T &single)
+{
+	//single = *((T*)(dataPointer));
+	memcpy(&single, dataPointer, sizeof(T));
+	dataPointer += sizeof(T);
+}
+
+
+inline void deSerialize(unsigned char* data, DataType dataTypes[], size_t argumentAmount,  ...)
 {
 	va_list listPointer;
 	va_start(listPointer, argumentAmount);
@@ -155,7 +171,7 @@ void deSerialize(unsigned char* data, DataType dataTypes[], size_t argumentAmoun
 
 }
 
-void deSerializeWithIndex(unsigned char* data, size_t &index, DataType dataTypes[], size_t argumentAmount, ...)
+inline void deSerializeWithIndex(unsigned char* data, size_t &index, DataType dataTypes[], size_t argumentAmount, ...)
 {
 	va_list listPointer;
 	va_start(listPointer, argumentAmount);
@@ -215,14 +231,12 @@ void deSerializeWithIndex(unsigned char* data, size_t &index, DataType dataTypes
 	va_end(listPointer);
 
 }
-unsigned getID(unsigned char* data)
+inline MessageIdentifier getID(unsigned char* data)
 {
-	return *((unsigned*)(&data[0]));
-	
-	return 0;
+	return *((MessageIdentifier*)(&data[0]));
 }
 
-unsigned char* reserveSpace(DataType dataTypes[], size_t argumentAmount, size_t &size)
+inline unsigned char* reserveSpace(DataType dataTypes[], size_t argumentAmount, size_t &size)
 {
 	unsigned char* data;
 	size = 0;

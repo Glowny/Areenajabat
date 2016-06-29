@@ -1,5 +1,5 @@
-#include "Network.h"
-
+#include "NetworkServer.h"
+#if defined(ARENA_SERVER)
 Network::Network() {}
 
 Network::~Network()
@@ -7,7 +7,6 @@ Network::~Network()
 	enet_host_destroy(m_server);
 	enet_deinitialize();
 
-	enet_host_destroy(m_server);
 }
 void Network::startServer(std::queue<Message>* messageQueue, unsigned address,
 	unsigned port, unsigned clientAmount)
@@ -35,20 +34,13 @@ void Network::checkEvent()
 
 	case ENET_EVENT_TYPE_RECEIVE:
 	{
-		printf("A packet of length %u containing %s was received from %d on channel %u.\n",
-			EEvent.packet->dataLength,
-			EEvent.packet->data,
-			EEvent.peer->data,
-			EEvent.channelID);
-		unsigned id = unsigned(EEvent.peer->data);
-		printf("%u\n", id);
-	
+
 		// !!TODO: Data is copied because the message has to be destroyed at some point by ENet
 		// This should be handled differently, reserving and freeing space twice for the data is wasteful.
 		Message message;
 		message.data = (unsigned char*)malloc(EEvent.packet->dataLength);
 		memcpy(message.data, EEvent.packet->data, EEvent.packet->dataLength);
-		message.clientID = id;
+		message.clientID = (unsigned)EEvent.peer->data;
 		m_messageQueue->push(message);
 
 		enet_packet_destroy(EEvent.packet);
@@ -153,3 +145,4 @@ ENetHost* Network::createENetServer(unsigned address, unsigned port,
 	}
 	return eServer;
 }
+#endif
