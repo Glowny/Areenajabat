@@ -109,13 +109,15 @@ namespace arena
         return (1 - t)*v0 + t*v1;
     }
 
-    struct Sprite
+    class Sprite
     {
+    public:
         Sprite(TextureResource* texture)
             : m_texture(texture),
             m_position(0,0),
             m_origin(0,0),
-            m_rotation(0.f)
+            m_rotation(0.f),
+            m_depth(0.f)
         {
 
         }
@@ -124,7 +126,7 @@ namespace arena
         {
             render(glm::mat4(1.f));
         }
-
+    private:
         void render(const glm::mat4& parentmtx)
         {
             glm::mat4 globalmtx = parentmtx 
@@ -139,7 +141,7 @@ namespace arena
 
             decompose(globalmtx, &position, &rotation);
 
-            draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0, 0), glm::vec2(1, 1), rotation, 0.25f);
+            draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0, 0), glm::vec2(1, 1), rotation, m_depth);
             for (Sprite* s : m_children)
             {
                 s->render(globalmtx);
@@ -173,11 +175,12 @@ namespace arena
             result->x = (float)((double)value.x * (1.0 - (double)rot5.y - (double)rot5.z) + (double)value.y * ((double)rot4.y - (double)rot4.z));
             result->y = (float)((double)value.x * ((double)rot4.y + (double)rot4.z) + (double)value.y * (1.0 - (double)rot4.x - (double)rot5.z));
         }
-
+    public:
         TextureResource* m_texture;
         glm::vec2 m_position;
         glm::vec2 m_origin;
         float m_rotation;
+        float m_depth;
 
         std::vector<Sprite*> m_children;
     };
@@ -206,10 +209,12 @@ namespace arena
             m_rightArmSprite.m_children.push_back(&m_rightForeArmSprite);
             m_rightArmSprite.m_origin = glm::vec2(m_rightUpperArm->width / 2.f, 5.f);
             m_rightArmSprite.m_rotation = glm::radians(70.f);
+            m_rightArmSprite.m_depth = 2.f;
 
             m_rightForeArmSprite.m_origin = glm::vec2(m_rightForeArm->width / 2.f, m_rightUpperArm->height + 5.f);;
             m_rightForeArmSprite.m_position = glm::vec2(-12, 45);
             m_rightForeArmSprite.m_rotation = glm::radians(40.f);
+            m_rightForeArmSprite.m_depth = 2.f;
 
             setPosition(glm::vec2(200.f));
         }
@@ -240,14 +245,10 @@ namespace arena
 
         void render()
         {
-
-            static float angle = 0.00f;
-
             m_legs.render();
             draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
             draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
             draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
-            m_rightArmSprite.m_rotation += 0.001f;
             m_rightArmSprite.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
             m_rightArmSprite.render();
         }
