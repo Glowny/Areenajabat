@@ -18,51 +18,13 @@
 #include "render.h"
 #include "res/spriter_resource.h"
 #include "res/spriter_animation_player.h"
-#include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "utils/math.h"
+#include "camera.h"
+#include "graphics/composite_sprite.h"
+
 namespace arena
 {
-
-    void transform(const glm::vec2& value, const glm::mat4& matrix, glm::vec2* result)
-    {
-        result->x = (value.x * matrix[0].x) + (value.y * matrix[1].x) + matrix[3].x;
-        result->y = (value.x * matrix[0].y) + (value.y * matrix[1].y) + matrix[3].y;
-    }
-
-	/*
-		Structs/classes.
-	*/
-	
-	struct Camera
-	{
-		glm::vec2 m_position;
-		float m_zoom;
-		float m_angle;
-		glm::vec2 m_bounds;
-		glm::mat4 m_matrix;
-
-		Camera(float width, float height)
-			:
-			m_position(0.f, 0.f),
-			m_zoom(1.f),
-			m_angle(0.f),
-			m_bounds(width, height),
-			m_matrix(1.f)
-		{
-
-		}
-
-		void calculate()
-		{
-            m_matrix =
-                glm::translate(glm::mat4(1.f), glm::vec3(m_bounds * 0.5f, 0.f)) *
-                glm::scale(glm::mat4(1.f), glm::vec3(m_zoom)) *
-                glm::rotate(glm::mat4(1.f), m_angle, glm::vec3(0, 0, 1.f)) *
-                glm::translate(glm::mat4(1.f), glm::vec3(-m_position, 0.f));
-		}
-	};
-
 	/*
 		Static members.
 	*/
@@ -110,86 +72,7 @@ namespace arena
          0.5f // 550
     };
 
-    template <typename T>
-    inline T lerp(T v0, T v1, T t) {
-        return (1 - t)*v0 + t*v1;
-    }
 
-    class Sprite
-    {
-    public:
-        Sprite(TextureResource* texture)
-            : m_texture(texture),
-            m_position(0,0),
-            m_origin(0,0),
-            m_rotation(0.f),
-            m_depth(0.f)
-        {
-
-        }
-
-        void render()
-        {
-            render(glm::mat4(1.f));
-        }
-    private:
-        void render(const glm::mat4& parentmtx)
-        {
-            glm::mat4 globalmtx = parentmtx 
-                * glm::translate(glm::mat4(1.f), glm::vec3(m_position.x, m_position.y, 0.f))
-                * glm::rotate(glm::mat4(1.f), m_rotation, glm::vec3(0.f, 0.f, 1.f))
-                //* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f)) // identity
-                * glm::translate(glm::mat4(1.f), glm::vec3(-m_origin.x, -m_origin.y, 0.f));
-                
-
-            glm::vec2 position(glm::uninitialize);
-            float rotation;
-
-            decompose(globalmtx, &position, &rotation);
-
-            draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), rotation, m_depth);
-            for (Sprite* s : m_children)
-            {
-                s->render(globalmtx);
-            }
-        }
-
-        void decompose(const glm::mat4& mtx, glm::vec2* position, float* rotation)
-        {
-            glm::vec3 pos3(glm::uninitialize), scale3(glm::uninitialize), skew3(glm::uninitialize);
-            glm::vec4 pers(glm::uninitialize);
-            glm::quat rotQ(glm::uninitialize);
-            
-            glm::decompose(mtx, scale3, rotQ, pos3, skew3, pers);
-
-            glm::vec2 direction(glm::uninitialize);
-            transform(glm::vec2(1.f, 0.f), rotQ, &direction);
-
-            *rotation = -glm::atan(direction.y, direction.x);
-            *position = glm::vec2(pos3.x, pos3.y);
-        }
-
-        void transform(const glm::vec2& value, const glm::quat& rotation, glm::vec2* result)
-        {
-            glm::vec3 rot1(rotation.x + rotation.x, rotation.y + rotation.y, rotation.z + rotation.z);
-            glm::vec3 rot2(rotation.x, rotation.x, rotation.w);
-            glm::vec3 rot3(1.f, rotation.y, rotation.z);
-            glm::vec3 rot4(rot1*rot2);
-            glm::vec3 rot5(rot1*rot3);
-
-            
-            result->x = (float)((double)value.x * (1.0 - (double)rot5.y - (double)rot5.z) + (double)value.y * ((double)rot4.y - (double)rot4.z));
-            result->y = (float)((double)value.x * ((double)rot4.y + (double)rot4.z) + (double)value.y * (1.0 - (double)rot4.x - (double)rot5.z));
-        }
-    public:
-        TextureResource* m_texture;
-        glm::vec2 m_position;
-        glm::vec2 m_origin;
-        float m_rotation;
-        float m_depth;
-
-        std::vector<Sprite*> m_children;
-    };
 
     class Character
     {
@@ -289,8 +172,8 @@ namespace arena
 
         glm::vec2 m_perFrameTorsoOffset;
 
-        Sprite m_rightArmSprite;
-        Sprite m_rightForeArmSprite;
+        CompositeSprite m_rightArmSprite;
+        CompositeSprite m_rightForeArmSprite;
     };
 
     static Character* s_char;
