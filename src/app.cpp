@@ -109,6 +109,79 @@ namespace arena
         return (1 - t)*v0 + t*v1;
     }
 
+    struct Sprite
+    {
+        Sprite(TextureResource* texture)
+            : m_texture(texture),
+            m_position(0,0),
+            m_origin(0,0),
+            m_rotation(0.f)
+        {
+
+        }
+
+        void render()
+        {
+            render(glm::mat4(1.f));
+        }
+
+        void render(const glm::mat4& parentmtx)
+        {
+            glm::mat4 globalmtx = parentmtx 
+                * glm::translate(glm::mat4(1.f), glm::vec3(m_position.x, m_position.y, 0.f))
+                * glm::rotate(glm::mat4(1.f), m_rotation, glm::vec3(0.f, 0.f, 1.f))
+                //* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f)) // identity
+                * glm::translate(glm::mat4(1.f), glm::vec3(-m_origin.x, -m_origin.y, 0.f));
+                
+
+            glm::vec2 position(glm::uninitialize);
+            float rotation;
+
+            decompose(globalmtx, &position, &rotation);
+
+            draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0, 0), glm::vec2(1, 1), rotation, 0.f);
+            for (Sprite* s : m_children)
+            {
+                s->render(globalmtx);
+            }
+        }
+
+        void decompose(const glm::mat4& mtx, glm::vec2* position, float* rotation)
+        {
+            glm::vec3 pos3(glm::uninitialize), scale3(glm::uninitialize), skew3(glm::uninitialize);
+            glm::vec4 pers(glm::uninitialize);
+            glm::quat rotQ(glm::uninitialize);
+            
+            glm::decompose(mtx, scale3, rotQ, pos3, skew3, pers);
+
+            glm::vec2 direction(glm::uninitialize);
+            transform(glm::vec2(1.f, 0.f), rotQ, &direction);
+
+            *rotation = -glm::atan(direction.y, direction.x);
+            *position = glm::vec2(pos3.x, pos3.y);
+        }
+
+        void transform(const glm::vec2& value, const glm::quat& rotation, glm::vec2* result)
+        {
+            glm::vec3 rot1(rotation.x + rotation.x, rotation.y + rotation.y, rotation.z + rotation.z);
+            glm::vec3 rot2(rotation.x, rotation.x, rotation.w);
+            glm::vec3 rot3(1.f, rotation.y, rotation.z);
+            glm::vec3 rot4(rot1*rot2);
+            glm::vec3 rot5(rot1*rot3);
+
+            
+            result->x = (float)((double)value.x * (1.0 - (double)rot5.y - (double)rot5.z) + (double)value.y * ((double)rot4.y - (double)rot4.z));
+            result->y = (float)((double)value.x * ((double)rot4.y + (double)rot4.z) + (double)value.y * (1.0 - (double)rot4.x - (double)rot5.z));
+        }
+
+        TextureResource* m_texture;
+        glm::vec2 m_position;
+        glm::vec2 m_origin;
+        float m_rotation;
+
+        std::vector<Sprite*> m_children;
+    };
+
     class Character
     {
     public:
@@ -125,11 +198,24 @@ namespace arena
               m_legOffset(11, 124),
               m_elapsed(0.0),
               m_rightUpperArmOffset(7.f, 40.f),
-              m_rightForeArmOffset(-13.f, 47.f)
+              m_rightForeArmOffset(-13.f, 47.f),
+              m_rightArmSprite(m_rightUpperArm),
+              m_rightForeArmSprite(m_rightForeArm)
         {
             m_legs.setCurrentAnimation(0);
-            m_rightForeArmOrigin = glm::vec2(m_rightForeArm->width / 2.f, 5.f);
+            
+            m_rightForeArmOrigin = glm::vec2(m_rightForeArm->width / 2.f, m_rightUpperArm->height + 5.f);
             m_rightUpperArmOrigin = glm::vec2(m_rightUpperArm->width / 2.f, 5.f);
+
+            m_rightArmSprite.m_children.push_back(&m_rightForeArmSprite);
+            m_rightArmSprite.m_origin = m_rightUpperArmOrigin;
+            m_rightArmSprite.m_rotation = glm::radians(70.f);
+
+            m_rightForeArmSprite.m_origin = m_rightForeArmOrigin;
+            m_rightForeArmSprite.m_position = glm::vec2(-12, 45);
+            m_rightForeArmSprite.m_rotation = glm::radians(40.f);
+            
+
             setPosition(glm::vec2(200.f));
         }
 
@@ -161,23 +247,18 @@ namespace arena
         {
 
             static float angle = 0.00f;
-            //angle += 0.001f;
-
-            glm::mat4 m(1.f);
-            glm::vec2 p(m_position + m_rightForeArmOffset + m_perFrameTorsoOffset);
-            // local transform
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-m_rightForeArmOrigin.x, -m_rightForeArmOrigin.y, 0.f))
-                *  glm::rotate(glm::mat4(1.0f), glm::radians(110.f), glm::vec3(0, 0, 1))
-                *  glm::translate(glm::mat4(1.0f), glm::vec3(p.x, p.y, 0.f));
-
-            
 
             m_legs.render();
             draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
             draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
             draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
-            draw(m_rightUpperArm, nullptr, 0xffffffff, m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset, m_rightUpperArmOrigin, glm::vec2(1), glm::radians(70.f) + angle, 0.25f);
-            draw(m_rightForeArm, nullptr, 0xffffffff, m_position + m_rightForeArmOffset + m_perFrameTorsoOffset, m_rightUpperArmOrigin, glm::vec2(1), glm::radians(110.f) + angle, 0.24f);
+            //m_rightArmSprite.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
+            //m_rightForeArmSprite.m_position = m_position + m_rightForeArmOffset + m_perFrameTorsoOffset;
+            m_rightArmSprite.m_rotation += 0.001f;
+            m_rightArmSprite.m_position = glm::vec2(500, 500);
+            m_rightArmSprite.render();
+            //draw(m_rightUpperArm, nullptr, 0xffffffff, m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset, m_rightUpperArmOrigin, glm::vec2(1), glm::radians(70.f) + angle, 0.25f);
+            //draw(m_rightForeArm, nullptr, 0xffffffff, m_position + m_rightForeArmOffset + m_perFrameTorsoOffset, m_rightUpperArmOrigin, glm::vec2(1), glm::radians(110.f) + angle, 0.24f);
         }
 
         void setPosition(const glm::vec2& position)
@@ -212,6 +293,9 @@ namespace arena
         glm::vec2 m_torsoOffset;
 
         glm::vec2 m_perFrameTorsoOffset;
+
+        Sprite m_rightArmSprite;
+        Sprite m_rightForeArmSprite;
         //const glm::vec2 m_torsoSpawn;
     };
 
