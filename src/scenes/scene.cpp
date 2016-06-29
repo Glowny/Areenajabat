@@ -131,7 +131,8 @@ namespace arena
 		}
 	}
 
-	Scene::Scene() : m_state(SceneState::Uninitialized)
+	Scene::Scene(const String& name) :  m_name(name),
+										m_state(SceneState::Uninitialized)
 	{
 	}
 }

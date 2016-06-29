@@ -18,6 +18,8 @@
 #include "render.h"
 #include "res/spriter_resource.h"
 #include "res/spriter_animation_player.h"
+#include "scenes\scene_manager.h"
+#include "scenes\sandbox_scene.h"
 
 namespace arena
 {
@@ -234,6 +236,12 @@ namespace arena
         s_instance = new SpriterAnimationPlayer(spritermodel->getNewEntityInstance("Player"));
         s_instance->setCurrentAnimation("walk");
         s_instance->setPosition(glm::vec2(500, 500));
+
+		SandboxSecene* scene = new  SandboxSecene();
+		
+		SceneManager::instance().push(scene);
+		
+		scene->activate();
     }
 
 	bool App::update()
@@ -273,6 +281,8 @@ namespace arena
 		s_instance->render();
 
 		s_spriteBatch->submit(0);
+
+		SceneManager::instance().update(gameTime);
 
 		bgfx::frame();
 
