@@ -16,6 +16,6 @@ namespace arena
 
 		float32 rotation	 { 0.0f };
 
-		virtual ~Transform() = default;
+		~Transform() = default;
 	};
 }

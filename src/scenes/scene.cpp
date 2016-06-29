@@ -7,7 +7,7 @@ namespace arena
 {
 	const String& Scene::name() const
 	{
-        return m_name;
+		return m_name;
 	}
 	SceneState Scene::state() const
 	{
@@ -131,7 +131,8 @@ namespace arena
 		}
 	}
 
-	Scene::Scene() : m_state(SceneState::Uninitialized)
+	Scene::Scene(const String& name) :  m_name(name),
+										m_state(SceneState::Uninitialized)
 	{
 	}
 }

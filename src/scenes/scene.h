@@ -43,7 +43,7 @@ namespace arena
 
 		virtual ~Scene();
 	protected:
-		Scene();
+		Scene(const String& name);
 
 		virtual void onUpdate(const GameTime& time);
 		virtual void onInitialize();

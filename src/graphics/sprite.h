@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <bx/bx.h>
 
+#include "color.h"
+
 namespace bgfx { struct ProgramHandle; };
 
 namespace arena
@@ -16,7 +18,7 @@ namespace arena
             : m_position(0, 0),
               m_origin(0, 0),
               m_scale(1, 1),
-              m_abgr(0xFFFFFFFF), // white
+              m_abgr(color::White), // white
               m_angle(0.f),
               m_texture(texture)
         {
