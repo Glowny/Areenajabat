@@ -445,6 +445,8 @@ namespace arena
     {
         bgfx::init();
 
+        inputInit();
+
         s_app.init(s_ctx.m_width, s_ctx.m_height);
 
         while (!s_app.update());
@@ -457,6 +459,8 @@ namespace arena
         SDL_PushEvent(&event);
 
         bgfx::shutdown();
+
+        inputShutdown();
 
         return 0;
     }

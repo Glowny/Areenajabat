@@ -27,76 +27,55 @@
 
 namespace arena
 {
-	/*
-		Static members.
-	*/
 
-    static void cmdExit(const void*);
-
-    static MouseState				s_mouseState;
-    static ResourceManager*			s_resources;
-    static SpriteBatch*				s_spriteBatch;
-	static Camera					s_camera(1280.f, 720.f);
-
-	static const InputBinding		s_bindings[] =
-	{
-		{ arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
-		INPUT_BINDING_END
-	};
-
-	static double		s_timeSinceStart = 0;
-	static int64_t		s_last_time = 0;
-	static bool			s_exit = false;
-	static uint32_t		s_reset = BGFX_RESET_NONE;
-
-	/*
-		Static and non-member functions.	
-	*/
-    
-	static void cmdExit(const void*)
+    struct Crosshair
     {
-        s_exit = true;
-    }
+        Crosshair()
+            : m_texture(getResources()->get<TextureResource>(ResourceType::Texture, "crosshair.png"))
+        {
+
+        }
+        TextureResource* m_texture;
+        glm::vec2 m_position;
+    };
 
     static const float s_directionTransitionTable[] =
     {
-         0.f, // 0
+        0.f, // 0
         -1.f, // 50
-         1.f, // 100
-         2.f, // 150
-         1.f, // 200
-         0.5f, // 250
-         0.f, // 300
+        1.f, // 100
+        2.f, // 150
+        1.f, // 200
+        0.5f, // 250
+        0.f, // 300
         -1.f, // 350
-         1.f, // 400
-         2.f, // 450
-         1.f, // 500
-         0.5f // 550
+        1.f, // 400
+        2.f, // 450
+        1.f, // 500
+        0.5f // 550
     };
-
-
 
     class Character
     {
     public:
         Character()
             : m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
-              m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Helmet.png")),
-              m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "player/body/Torso.png")),
-              m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
-              m_rightUpperArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightUpperArm.png")),
-              m_rightForeArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightForearm.png")),
-              m_crestOffset(-1.5f, 0.f),
-              m_helmetOffset(-3.f, 14.f),
-              m_torsoOffset(0.f, 37.f),
-              m_legOffset(11, 124),
-              m_elapsed(0.0),
-              m_rightUpperArmOffset(11.f, 46.f),
-              m_rightArmSprite(m_rightUpperArm),
-              m_rightForeArmSprite(m_rightForeArm)
+            m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Helmet.png")),
+            m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "player/body/Torso.png")),
+            m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
+            m_rightUpperArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightUpperArm.png")),
+            m_rightForeArm(getResources()->get<TextureResource>(ResourceType::Texture, "player/arms/RightForearm.png")),
+            m_crestOffset(-1.5f, 0.f),
+            m_helmetOffset(-3.f, 14.f),
+            m_torsoOffset(0.f, 37.f),
+            m_legOffset(11, 124),
+            m_elapsed(0.0),
+            m_rightUpperArmOffset(11.f, 46.f),
+            m_rightArmSprite(m_rightUpperArm),
+            m_rightForeArmSprite(m_rightForeArm)
         {
             m_legs.setCurrentAnimation(0);
-            
+
             m_rightArmSprite.m_children.push_back(&m_rightForeArmSprite);
             m_rightArmSprite.m_origin = glm::vec2(m_rightUpperArm->width / 2.f, 5.f);
             m_rightArmSprite.m_rotation = glm::radians(70.f);
@@ -115,23 +94,25 @@ namespace arena
 
             static const uint32_t length = 600;
 
-            m_elapsed += dt; 
+            m_elapsed += dt;
 
 
             const uint32_t asMillis = uint32_t(m_elapsed * 1000.0);
 
             uint32_t index = uint32_t(asMillis / 50) % BX_COUNTOF(s_directionTransitionTable);
             uint32_t nextIndex = (index + 1) % BX_COUNTOF(s_directionTransitionTable);
-            
+
             float t = (asMillis % 50) / 50.f;
             m_perFrameTorsoOffset.y = lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
-            
+
             m_legs.setTimeElapsed(dt * 1000.0);
-            
+
             if (asMillis >= length)
             {
                 m_elapsed = m_elapsed - 0.6;
             }
+
+            m_rightArmSprite.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
         }
 
         void render()
@@ -140,7 +121,6 @@ namespace arena
             draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
             draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
             draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
-            m_rightArmSprite.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
             m_rightArmSprite.render();
         }
 
@@ -150,7 +130,7 @@ namespace arena
             m_legs.setPosition(position + m_legOffset);
         }
 
-    private:
+    public:
         SpriterAnimationPlayer m_legs;
         TextureResource* m_helmet;
         TextureResource* m_crest;
@@ -176,9 +156,49 @@ namespace arena
 
         CompositeSprite m_rightArmSprite;
         CompositeSprite m_rightForeArmSprite;
+
+        Crosshair m_cross;
     };
 
     static Character* s_char;
+	/*
+		Static members.
+	*/
+
+    static void cmdExit(const void*);
+    static void moveLeft(const void*);
+    static void moveRight(const void*);
+    static void moveDown(const void*);
+    static void moveUp(const void*);
+
+    static MouseState				s_mouseState;
+    static ResourceManager*			s_resources;
+    static SpriteBatch*				s_spriteBatch;
+	static Camera					s_camera(1280.f, 720.f);
+
+	static const InputBinding		s_bindings[] =
+	{
+		{ arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
+        { arena::Key::KeyW, arena::Modifier::None, 0, moveUp, "move up" },
+        { arena::Key::KeyA, arena::Modifier::None, 0, moveLeft, "move up" },
+        { arena::Key::KeyS, arena::Modifier::None, 0, moveDown, "move up" },
+        { arena::Key::KeyD, arena::Modifier::None, 0, moveRight, "move up" },
+		INPUT_BINDING_END
+	};
+
+	static double		s_timeSinceStart = 0;
+	static int64_t		s_last_time = 0;
+	static bool			s_exit = false;
+	static uint32_t		s_reset = BGFX_RESET_NONE;
+
+	/*
+		Static and non-member functions.	
+	*/
+    
+	static void cmdExit(const void*)
+    {
+        s_exit = true;
+    }
 
 	static bool processEvents(int32_t& width, int32_t& height)
 	{
@@ -305,8 +325,8 @@ namespace arena
         bx::pwd(workingdir, 512);
         printf("CWD: %s\n", workingdir);
 #endif
-        inputInit();
         inputAddBindings("bindings", s_bindings);
+        
 
         bgfx::reset(width, height, s_reset);
         bgfx::setDebug(BGFX_DEBUG_TEXT);
@@ -329,6 +349,8 @@ namespace arena
 		SceneManager::instance().push(scene);
 		
 		scene->activate();
+
+        s_char->setPosition(glm::vec2(1280.f, 0.f));
     }
 
 	bool App::update()
@@ -349,7 +371,7 @@ namespace arena
 
         bgfx::touch(0);
         
-        s_camera.m_position = glm::vec2(width, height / 2.f);
+        s_camera.m_position = s_char->m_position;
 		s_camera.calculate();
 
 
@@ -368,15 +390,27 @@ namespace arena
 			s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 		bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
-        s_char->setPosition(glm::vec2(1280.f, 0.f));
+        
         s_char->update(lastDeltaTime);
-        s_char->render();
 
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
         transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
 
         bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
+        Crosshair& cross = s_char->m_cross;
+        s_char->m_cross.m_position = mouseLoc - glm::vec2(cross.m_texture->width, cross.m_texture->height) / 2.f;
+        
+        const glm::vec2& crosspos = s_char->m_cross.m_position;
+        const glm::vec2& handpos = s_char->m_rightArmSprite.m_position;
+        const float m = (crosspos.y - handpos.y) / (crosspos.x - handpos.x);
+        float a = glm::atan(m);
+        s_char->m_rightArmSprite.m_rotation = glm::radians(70.f) + a;
+        printf("%.2f\n", a);
+
+        s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, s_char->m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
+
+        s_char->render();
 
 		s_spriteBatch->submit(0);
 
@@ -390,11 +424,27 @@ namespace arena
 	void App::shutdown()
 	{
 		inputRemoveBindings("bindings");
-		inputShutdown();
 
 		delete s_resources;
 		s_resources = NULL;
 		delete s_spriteBatch;
 		s_spriteBatch = NULL;
 	}
+
+    static void moveLeft(const void*)
+    {
+        s_char->setPosition(s_char->m_position + glm::vec2(-0.1f, 0.f));
+    }
+    static void moveRight(const void*)
+    {
+        s_char->setPosition(s_char->m_position + glm::vec2(0.1f, 0.f));
+    }
+    static void moveDown(const void*)
+    {
+        s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, 0.1f));
+    }
+    static void moveUp(const void*)
+    {
+        s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, -0.1f));
+    }
 }
