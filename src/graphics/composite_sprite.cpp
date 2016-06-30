@@ -17,12 +17,12 @@ namespace arena
 
     }
 
-    void CompositeSprite::render()
+    void CompositeSprite::render(uint8_t effect)
     {
-        render(glm::mat4(1.f));
+        render(glm::mat4(1.f), effect);
     }
 
-    void CompositeSprite::render(const glm::mat4& parentmtx)
+    void CompositeSprite::render(const glm::mat4& parentmtx, uint8_t effect)
     {
         glm::mat4 globalmtx = parentmtx
             * glm::translate(glm::mat4(1.f), glm::vec3(m_position.x, m_position.y, 0.f))
@@ -37,10 +37,10 @@ namespace arena
 
         decompose(globalmtx, &m_globalPosition, &scale, &rotation);
 
-        draw(m_texture, nullptr, 0xffffffff, m_globalPosition, glm::vec2(0.f, 0.f), scale, SpriteEffects::None, rotation, m_depth);
+        draw(m_texture, nullptr, 0xffffffff, m_globalPosition, glm::vec2(0.f, 0.f), scale, effect, rotation, m_depth);
         for (CompositeSprite* s : m_children)
         {
-            s->render(globalmtx);
+            s->render(globalmtx, effect);
         }
     }
 }

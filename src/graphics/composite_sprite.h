@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include "sprite_effects.h"
 
 namespace arena
 {
@@ -11,9 +12,9 @@ namespace arena
     {
     public:
         CompositeSprite(TextureResource* texture);
-        void render();
+        void render(uint8_t effect = SpriteEffects::None);
     private:
-        void render(const glm::mat4& parentmtx);
+        void render(const glm::mat4& parentmtx, uint8_t effect);
     public:
         TextureResource* m_texture;
         glm::vec2 m_position;

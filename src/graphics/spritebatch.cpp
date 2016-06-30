@@ -59,7 +59,7 @@ namespace arena
         draw(texture, nullptr, color, position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 0.f);
     }
 
-    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, SpriteEffects::Enum effects, float angle, float depth)
+    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, uint8_t effects, float angle, float depth)
     {
         if (m_spriteQueueCount >= m_spriteQueue.size())
         {
