@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <stdint.h>
 #include <vector>
+#include "sprite_effects.h"
 
 namespace arena
 {
@@ -42,7 +43,7 @@ namespace arena
 
         void submit(uint8_t view);
         void draw(const TextureResource* texture, uint32_t color, const glm::vec2& position);
-        void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle, float depth);
+        void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, SpriteEffects::Enum effects, float angle, float depth);
 
         SpriteBatch(SpriteBatch const&) = delete;
         SpriteBatch& operator=(SpriteBatch const&) = delete;

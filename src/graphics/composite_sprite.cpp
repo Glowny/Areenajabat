@@ -36,7 +36,7 @@ namespace arena
 
         decompose(globalmtx, &position, &scale, &rotation);
 
-        draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), rotation, m_depth);
+        draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), SpriteEffects::None, rotation, m_depth);
         for (CompositeSprite* s : m_children)
         {
             s->render(globalmtx);
