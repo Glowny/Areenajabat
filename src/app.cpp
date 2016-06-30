@@ -410,11 +410,11 @@ namespace arena
         s_char->m_cross.m_position = mouseLoc - glm::vec2(cross.m_texture->width, cross.m_texture->height) / 2.f;
         
         const glm::vec2& crosspos = s_char->m_cross.m_position;
-        const glm::vec2& handpos = s_char->m_rightArmSprite.m_position;
+        const glm::vec2 handpos = s_char->m_rightArmSprite.m_position + s_char->m_gunSprite.m_position;
         glm::vec2 dir(crosspos - handpos);
         
         float a = glm::atan(dir.y, dir.x) - glm::radians(180.f);
-        s_char->m_rightArmSprite.m_rotation = glm::radians(70.f) + a;
+        s_char->m_rightArmSprite.m_rotation = glm::radians(65.f) + a;
 
         s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, s_char->m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
 
