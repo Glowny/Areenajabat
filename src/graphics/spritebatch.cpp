@@ -56,10 +56,10 @@ namespace arena
 
     void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position)
     {
-        draw(texture, nullptr, color, position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 0.f);
+        draw(texture, nullptr, color, position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 0.f);
     }
 
-    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle, float depth)
+    void SpriteBatch::draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, SpriteEffects::Enum effects, float angle, float depth)
     {
         if (m_spriteQueueCount >= m_spriteQueue.size())
         {
@@ -91,6 +91,23 @@ namespace arena
             maxv = OriginBottomLeft ? 0.0f : 1.f;
             width = texture->width;
             height = texture->height;
+        }
+
+        if ((effects & SpriteEffects::FlipVertically) != 0)
+        {
+            // bottom right = max
+            // top left = min
+            float temp = maxv;
+            // bottom right y = top left y
+            maxv = minv;
+            minv = temp;
+        }
+
+        if ((effects & SpriteEffects::FlipHorizontally) != 0)
+        {
+            float temp = maxu;
+            maxu = minu;
+            minu = temp;
         }
 
         glm::vec2 pos(position + origin);

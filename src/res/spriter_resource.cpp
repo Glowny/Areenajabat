@@ -182,7 +182,7 @@ namespace arena
             glm::vec2 scale(spriteInfo->getScale().x, spriteInfo->getScale().y);
             point pivot = spriteInfo->getPivot();
             glm::vec2 origin(pivot.x * m_texture->width, pivot.y * m_texture->height);
-            arena::draw(m_texture, nullptr, color, position - origin, origin, scale, rotation, 1.f);
+            arena::draw(m_texture, nullptr, color, position - origin, origin, scale, SpriteEffects::None, rotation, 1.f);
         }
 
     private:

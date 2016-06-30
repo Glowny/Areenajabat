@@ -125,9 +125,9 @@ namespace arena
         void render()
         {
             m_legs.render();
-            draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.f);
-            draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.1f);
-            draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), 0.f, 0.2f);
+            draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), SpriteEffects::None, 0.f, 0.f);
+            draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), SpriteEffects::None, 0.f, 0.1f);
+            draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), SpriteEffects::None, 0.f, 0.2f);
             m_rightArmSprite.render();
         }
 
@@ -299,7 +299,9 @@ namespace arena
 		return s_resources;
 	}
 
-	void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, float angle, float depth)
+	void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, 
+        const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, 
+        SpriteEffects::Enum effect, float angle, float depth)
 	{
 		s_spriteBatch->draw(
 			texture,
@@ -308,6 +310,7 @@ namespace arena
 			position,
 			origin,
 			scale,
+            effect,
 			angle,
 			depth
 		);
@@ -416,7 +419,7 @@ namespace arena
         float a = glm::atan(dir.y, dir.x) - glm::radians(180.f);
         s_char->m_rightArmSprite.m_rotation = glm::radians(65.f) + a;
 
-        s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, s_char->m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), 0.f, 1.f);
+        s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, s_char->m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 1.f);
 
         s_char->render();
 
