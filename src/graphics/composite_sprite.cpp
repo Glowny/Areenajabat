@@ -10,6 +10,7 @@ namespace arena
         : m_texture(texture),
         m_position(0, 0),
         m_origin(0, 0),
+        m_scale(1,1),
         m_rotation(0.f),
         m_depth(0.f)
     {
@@ -26,17 +27,17 @@ namespace arena
         glm::mat4 globalmtx = parentmtx
             * glm::translate(glm::mat4(1.f), glm::vec3(m_position.x, m_position.y, 0.f))
             * glm::rotate(glm::mat4(1.f), m_rotation, glm::vec3(0.f, 0.f, 1.f))
-            //* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f)) // identity
+            * glm::scale(glm::mat4(1.f), glm::vec3(m_scale, 1.f))
             * glm::translate(glm::mat4(1.f), glm::vec3(-m_origin.x, -m_origin.y, 0.f));
 
 
-        glm::vec2 position(glm::uninitialize);
+        
         glm::vec2 scale(glm::uninitialize);
         float rotation;
 
-        decompose(globalmtx, &position, &scale, &rotation);
+        decompose(globalmtx, &m_globalPosition, &scale, &rotation);
 
-        draw(m_texture, nullptr, 0xffffffff, position, glm::vec2(0.f, 0.f), glm::vec2(1.f, 1.f), SpriteEffects::None, rotation, m_depth);
+        draw(m_texture, nullptr, 0xffffffff, m_globalPosition, glm::vec2(0.f, 0.f), scale, SpriteEffects::None, rotation, m_depth);
         for (CompositeSprite* s : m_children)
         {
             s->render(globalmtx);

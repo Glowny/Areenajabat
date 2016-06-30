@@ -113,8 +113,8 @@ namespace arena
         glm::vec2 pos(position + origin);
         glm::mat3 transform =
             glm::translate(glm::mat3(1.f), pos)
-            * glm::scale(glm::mat3(1.f), scale)
             * glm::rotate(glm::mat3(1.f), angle)
+            * glm::scale(glm::mat3(1.f), scale)
             * glm::translate(glm::mat3(1.f), -pos);
 
         glm::vec3 points[4] =

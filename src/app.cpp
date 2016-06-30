@@ -58,8 +58,8 @@ namespace arena
     class Character
     {
     public:
-        Character()
-            : m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
+        Character() :
+            m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
             m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Helmet.png")),
             m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "player/body/Torso.png")),
             m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "player/head/Crest4.png")),
@@ -74,7 +74,8 @@ namespace arena
             m_rightUpperArmOffset(11.f, 46.f),
             m_rightArmSprite(m_rightUpperArm),
             m_rightForeArmSprite(m_rightForeArm),
-            m_gunSprite(m_gunTexture)
+            m_gunSprite(m_gunTexture),
+            m_laser(getResources()->get<TextureResource>(ResourceType::Texture, "blank.png"))
             
         {
             m_legs.setCurrentAnimation(0);
@@ -95,6 +96,10 @@ namespace arena
             m_gunSprite.m_rotation = glm::radians(250.f);
             m_gunSprite.m_position = glm::vec2(05.f, 15.f);
 
+            m_gunSprite.m_children.push_back(&m_laser);
+            m_laser.m_scale = glm::vec2(400, 1);
+            m_laser.m_rotation = glm::radians(180.f);
+            m_laser.m_position = glm::vec2(0, 23.f);
             setPosition(glm::vec2(0.f));
         }
 
@@ -120,6 +125,9 @@ namespace arena
             }
 
             m_rightArmSprite.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
+
+            /*glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
+            transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);*/
         }
 
         void render()
@@ -165,6 +173,7 @@ namespace arena
         CompositeSprite m_rightArmSprite;
         CompositeSprite m_rightForeArmSprite;
         CompositeSprite m_gunSprite;
+        CompositeSprite m_laser;
         Crosshair m_cross;
     };
 
@@ -410,16 +419,14 @@ namespace arena
         bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
         Crosshair& cross = s_char->m_cross;
-        s_char->m_cross.m_position = mouseLoc - glm::vec2(cross.m_texture->width, cross.m_texture->height) / 2.f;
+        cross.m_position = mouseLoc - glm::vec2(cross.m_texture->width, cross.m_texture->height) / 2.f;
         
-        const glm::vec2& crosspos = s_char->m_cross.m_position;
-        const glm::vec2 handpos = s_char->m_rightArmSprite.m_position + s_char->m_gunSprite.m_position;
-        glm::vec2 dir(crosspos - handpos);
-        
+        const glm::vec2 handpos = s_char->m_rightArmSprite.m_globalPosition;
+        glm::vec2 dir(mouseLoc - handpos);
         float a = glm::atan(dir.y, dir.x) - glm::radians(180.f);
-        s_char->m_rightArmSprite.m_rotation = glm::radians(65.f) + a;
+        s_char->m_rightArmSprite.m_rotation = glm::radians(70.f) + a;
 
-        s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, s_char->m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 1.f);
+        s_spriteBatch->draw(s_char->m_cross.m_texture, nullptr, 0xffffffff, cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 1.f);
 
         s_char->render();
 
