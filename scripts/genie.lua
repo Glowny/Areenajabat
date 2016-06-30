@@ -197,3 +197,12 @@ project "spriterengine"
 		path.join(ARENA_THIRD_DIR, "spriterengine", "**.cpp"),
 		path.join(ARENA_THIRD_DIR, "spriterengine", "**.h")
 	}
+
+	configuration { "vs*" }
+
+	buildoptions {
+		"/wd4244", --return': conversion from '__int64' to 'int', possible loss of data
+		"/wd4267",  --'return': conversion from 'size_t' to 'int', possible loss of data
+		"/wd4800", --'int': forcing value to bool 'true' or 'false' (performance warning)
+
+	}
