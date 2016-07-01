@@ -6,6 +6,15 @@
 #include <glm\glm.hpp>
 
 // TODO: platform has extra stuff that could be removed.
+
+enum bodyType
+{
+	B_Platform,
+	B_Gladiator,
+	B_Bullet,
+	B_NONE
+};
+
 struct p_Platform
 {
 	b2ChainShape m_shape;
@@ -24,13 +33,43 @@ struct p_Gladiator
 struct p_Bullet
 {
 	bool m_contact;
+	bodyType m_contactBody;
 	b2Body* m_body;
-	void startContact() { m_contact = true; }
-	void endContact() { m_contact = false; }
-};
+	void startContact(bodyType contact) 
+	{ 
+		m_contact = true; m_contactBody = contact; 
+	};
 
+};
+class ContactListener : public b2ContactListener
+{
+	void BeginContact(b2Contact* contact)
+	{
+		void* bodyUserData = contact->GetFixtureA()->GetBody()->GetUserData();
+		bodyType type = *((bodyType*)bodyUserData);
+		if (type == B_Platform)
+		{ 
+			
+			void* bodyUserData2 = contact->GetFixtureB()->GetBody()->GetUserData();
+			
+			bodyType type2 = *((bodyType*)bodyUserData2);
+			if (type2 == B_Bullet)
+			{
+				p_Bullet* bullet = static_cast<p_Bullet*>(bodyUserData2);
+				bullet->startContact(B_Platform);
+			}
+			
+		}
+	}
+};
 class Physics
 {
+	bodyType types[3]
+	{
+		B_Platform,
+		B_Gladiator,
+		B_Bullet
+	};
 	// add movement functions
 	// add functions for getting position and velocity data
 public:
@@ -47,11 +86,11 @@ public:
 	void removeGladiator(unsigned id);
 	void addBullet(glm::vec2 position, glm::vec2 velocity);
 	void removeBullet();
-
+	ContactListener m_ContactListener;
 private:
 	b2World* m_b2DWorld;
 	std::vector<p_Gladiator> m_gladiatorVector;
 	std::vector<p_Platform*> m_platformVector;
-	std::vector<p_Bullet> m_bulletVector;
+	std::vector<p_Bullet*> m_bulletVector;
 };
 #endif

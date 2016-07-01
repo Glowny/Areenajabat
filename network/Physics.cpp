@@ -4,7 +4,9 @@
 
 Physics::Physics() 
 {
+
 	m_b2DWorld = new b2World(b2Vec2(0,9.81));
+	m_b2DWorld->SetContactListener(&m_ContactListener);
 };
 Physics::~Physics() {};
 
@@ -15,6 +17,33 @@ void Physics::update()
 	int32 positionIterations = 2;
 
 	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
+
+	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	{
+		if (m_bulletVector[i]->m_contact == true)
+		{
+			switch (m_bulletVector[i]->m_contactBody)
+			{
+			case B_Platform:
+			{
+				printf("PLATFORM HIT O HUMANITY\n");
+			}
+			break;
+			case B_Gladiator:
+			{
+				printf("GLADIATOR HIT O HUM ANIT\n");
+			}
+			break;
+			default:
+				break;
+			}
+			m_bulletVector[i]->m_contact == false;
+		}
+		//glm::vec2 position;
+		//position.x = m_bulletVector[0]->m_body->GetPosition().x;
+		//position.y = m_bulletVector[0]->m_body->GetPosition().y;
+		//printf("%f, %f\n", position.x, position.y);
+	}
 };
 
 void Physics::createPlatform(std::vector<glm::vec2> platform)
@@ -36,6 +65,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 	m_platformVector[index]->m_fixtureDef.density = 1.0f;
 	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
 	m_platformVector[index]->m_body->CreateFixture(&m_platformVector[index]->m_fixtureDef);
+	m_platformVector[index]->m_body->SetUserData(&types[B_Platform]);
 }
 
 // returns id.
@@ -63,9 +93,9 @@ unsigned Physics::addGladiator(glm::vec2 position)
 	glad.m_body->SetMassData(&data);
 
 	glad.m_body->CreateFixture(&fixtureDef);
+	glad.m_body->SetUserData(&types[B_Gladiator]);
 
 	m_gladiatorVector.push_back(glad);
-
 	return glad.m_id;
 };
 
@@ -96,12 +126,13 @@ void Physics::removeGladiator(unsigned id)
 };
 void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 {
-	b2Body* body;
+	
 
 	b2Vec2 pos(position.x, position.y), vel(velocity.x, velocity.y);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
+	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(5.0f, 5.0f);
@@ -118,10 +149,12 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
 
-	p_Bullet bullet;
-	bullet.m_body = body;
-	bullet.m_contact = false;
-
+	p_Bullet* bullet = new p_Bullet;
+	bullet->m_body = body;
+	bullet->m_contact = false;
+	bullet->m_contactBody = B_NONE;
+	body->SetUserData(&types[B_Bullet]);
+	bullet->m_body->ApplyForce(b2Vec2(9000,0), b2Vec2(2.5,2.5), true);
 	m_bulletVector.push_back(bullet);
 
 };
