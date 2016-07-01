@@ -2,11 +2,24 @@
 
 #include "..\graphics\sprite.h"
 
-#include "component.h"
+#include "render_component.h"
 
 namespace arena
 {
-	class SpriteRenderer final : public Component
+	struct Sprite final 
+	{
+	public:
+		TextureResource* m_texture;
+		glm::vec2		 m_position;
+		glm::vec2		 m_origin;
+		glm::vec2		 m_scale;
+		float32			 m_rotation;
+
+		Sprite()		 = default;
+		~Sprite()		 = default;
+	};
+
+	class SpriteRenderer final : public RenderComponent
 	{
 	public:	
 		~SpriteRenderer() = default;

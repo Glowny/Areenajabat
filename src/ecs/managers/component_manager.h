@@ -26,12 +26,16 @@ namespace arena
 			assert(component != nullptr);
 			
 			m_components.push_back(component);
+
+			onRegister(component);
 		}
 		void unregisterComponent(T* const component)
 		{
 			assert(component != nullptr);
 
 			m_components.erase(std::find(m_components.begin(), m_components.end(), component), m_components.end());
+
+			onUnregister(component);
 		}
 
 		ComponentIterator begin()
@@ -60,7 +64,16 @@ namespace arena
 		ComponentManager() = default;
 
 		// To handle component specific update logic.
-		virtual void onUpdate(const GameTime& gameTime);
+		virtual void onUpdate(const GameTime& gameTime)
+		{
+		}
+
+		virtual void onRegister(Component* const component)
+		{
+		}
+		virtual void onUnregister(Component* const component)
+		{
+		}
 	private:
 		std::vector<T*> m_components;
 	};
