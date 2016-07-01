@@ -167,42 +167,18 @@ namespace arena
         Character() :
             m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
             m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
-            m_crestOffset(0, 0.f),
-            m_helmetOffset(-3.f, 14.f),
-            m_torsoOffset(0.f, 37.f),
+            m_torsoOffset(-4.f, 37.f),
             m_legOffset(11, 124),
             m_elapsed(0.0),
-            m_rightUpperArmOffset(11.f, 40.f),
             m_flipX(false)
         {
             m_legs.setCurrentAnimation(0);
 
-            m_torso.m_position = glm::vec2(1280, 0);
+            // setup hierarchy, torso holds head and arms
             m_torso.m_children.push_back(&m_head.m_helmet);
             m_torso.m_children.push_back(&m_arm.m_upperArm);
 
             m_arm.m_upperArm.m_position = glm::vec2(16, 10);
-            /*m_rightArmSprite.m_children.push_back(&m_rightForeArmSprite);
-            m_rightArmSprite.m_origin = glm::vec2(m_rightUpperArm->width / 2.f, 5.f);
-            m_rightArmSprite.m_rotation = glm::radians(-70.f);
-            m_rightArmSprite.m_depth = 2.f;
-
-            m_rightForeArmSprite.m_origin = glm::vec2(m_rightForeArm->width / 2.f, 0.f);;
-            m_rightForeArmSprite.m_position = glm::vec2(5, 22);
-            m_rightForeArmSprite.m_rotation = glm::radians(-40.f);
-            m_rightForeArmSprite.m_depth = 2.f;
-
-            m_rightForeArmSprite.m_children.push_back(&m_gunSprite);
-            m_gunSprite.m_depth = 1.9f;
-            m_gunSprite.m_origin = glm::vec2(m_gunTexture->width, m_gunTexture->height) / 2.f;
-            m_gunSprite.m_rotation = glm::radians(250.f);
-            m_gunSprite.m_position = glm::vec2(05.f, 10.f);
-
-            m_gunSprite.m_children.push_back(&m_laser);
-            m_laser.m_scale = glm::vec2(400, 1);
-            //m_laser.m_rotation = glm::radians(-360.f);
-            m_laser.m_position = glm::vec2(0, 23.f);
-            m_laser.m_depth = 100.f;*/
             setPosition(glm::vec2(0.f));
         }
 
@@ -227,7 +203,7 @@ namespace arena
                 m_elapsed = m_elapsed - 0.6;
             }
 
-            //m_arm.m_upperArm.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
+            m_torso.m_position = m_position + m_torsoOffset + m_perFrameTorsoOffset;
 
             glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
             transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
@@ -239,8 +215,6 @@ namespace arena
 
             m_flipX = mouseLoc.x >= m_position.x;
 
-            //m_arm.m_foreArm.m_rotation += 0.001f;
-#if 1
             float a = glm::atan(dir.y, dir.x);
 
             if (m_flipX)
@@ -250,8 +224,7 @@ namespace arena
             else
             {
                 m_arm.m_upperArm.m_rotation = glm::radians(m_arm.m_upperAngle) - glm::radians(180.f) + a;
-            }
-#endif       
+            }     
         }
 
         void render()
@@ -288,28 +261,22 @@ namespace arena
     public:
         SpriterAnimationPlayer m_legs;
         CompositeSprite m_torso;
-
-        glm::vec2 m_rightUpperArmOffset;
-        double m_elapsed;
-
-        TextureResource* m_rightForeArm;
-
-        glm::vec2 m_position;
-
-        glm::vec2 m_crestOffset;
-        // relative from posiiton
-        glm::vec2 m_helmetOffset;
-        // relative from posiiton
-        glm::vec2 m_legOffset;
-        // relative from posiiton
-        glm::vec2 m_torsoOffset;
-
-        glm::vec2 m_perFrameTorsoOffset;
+        RightArm m_arm;
+        Head m_head;
 
         Crosshair m_cross;
 
-        RightArm m_arm;
-        Head m_head;
+        double m_elapsed;
+
+        // global position
+        glm::vec2 m_position;
+
+        // relative from position
+        glm::vec2 m_legOffset;
+        // relative from position
+        glm::vec2 m_torsoOffset;
+
+        glm::vec2 m_perFrameTorsoOffset;
 
         bool m_flipX;
     };
