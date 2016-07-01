@@ -165,7 +165,7 @@ namespace arena
     {
     public:
         Character() :
-            m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "player/legs.scml")->getNewEntityInstance(0)),
+            m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)),
             m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
             m_torsoOffset(-4.f, 37.f),
             m_legOffset(11, 124),
