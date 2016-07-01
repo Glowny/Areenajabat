@@ -44,6 +44,16 @@ namespace arena
         glm::vec2 m_position;
     };
 
+    struct AnimationType
+    {
+        enum Enum
+        {
+            Gladius = 0,
+
+            Count
+        };
+    };
+
     struct RightArm
     {
         RightArm() :
@@ -53,13 +63,13 @@ namespace arena
             m_upperArm(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png")),
             m_foreArm(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png")),
             m_gun(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/guns/GladiusLeft.png")),
-            m_laser(getResources()->get<TextureResource>(ResourceType::Texture, "blank.png")),
+            //m_laser(getResources()->get<TextureResource>(ResourceType::Texture, "blank.png")),
             m_flipX(false)
         {
             // setup children hierarchy
             m_upperArm.m_children.push_back(&m_foreArm);
             m_foreArm.m_children.push_back(&m_gun);
-            m_gun.m_children.push_back(&m_laser);
+            //m_gun.m_children.push_back(&m_laser);
 
             // upper arm
             m_upperArm.m_origin = glm::vec2(m_upperArm.m_texture->width / 2.f, 10.f);
@@ -68,7 +78,7 @@ namespace arena
 
             // fore arm
             m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 10.f);;
-            m_foreArm.m_position = glm::vec2(8, 25);
+            m_foreArm.m_position = glm::vec2(5, 30);
             m_foreArm.m_rotation = glm::radians(m_forearmAngle);
             m_foreArm.m_depth = 2.f;
 
@@ -78,11 +88,11 @@ namespace arena
             m_gun.m_rotation = glm::radians(m_gunAngle);
             m_gun.m_position = glm::vec2(5.f, 18.f); // 10.f
 
-            // laser
+            /*// laser
             m_laser.m_scale = glm::vec2(400, 1);
             m_laser.m_position = glm::vec2(0, 23.f);
             m_laser.m_rotation = glm::radians(-180.f);
-            m_laser.m_depth = 100.f;
+            m_laser.m_depth = 100.f;*/
         }
 
         void flip()
@@ -94,12 +104,14 @@ namespace arena
                 m_upperArm.m_rotation = glm::radians(-m_upperAngle);
                 m_foreArm.m_rotation = glm::radians(-m_forearmAngle);
                 m_gun.m_rotation = glm::radians(-m_gunAngle);
+                m_foreArm.m_position.x = 9.f;
             }
             else
             {
                 m_upperArm.m_rotation = glm::radians(m_upperAngle);
                 m_foreArm.m_rotation = glm::radians(m_forearmAngle);
                 m_gun.m_rotation = glm::radians(m_gunAngle);
+                m_foreArm.m_position.x = 5.f;
             }
         }
 
@@ -117,7 +129,7 @@ namespace arena
         CompositeSprite m_upperArm;
         CompositeSprite m_foreArm;
         CompositeSprite m_gun;
-        CompositeSprite m_laser;
+        //CompositeSprite m_laser;
 
         bool m_flipX;
     };
