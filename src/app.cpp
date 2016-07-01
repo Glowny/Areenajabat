@@ -83,8 +83,8 @@ namespace arena
             m_upperArm.m_depth = 2.f;
 
             // fore arm
-            m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 0.f);;
-            m_foreArm.m_position = glm::vec2(5, 22);
+            m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 10.f);;
+            m_foreArm.m_position = glm::vec2(8, 25);
             m_foreArm.m_rotation = glm::radians(m_forearmAngle);
             m_foreArm.m_depth = 2.f;
 
@@ -92,11 +92,12 @@ namespace arena
             m_gun.m_depth = 1.9f;
             m_gun.m_origin = glm::vec2(m_gun.m_texture->width, m_gun.m_texture->height) / 2.f;
             m_gun.m_rotation = glm::radians(m_gunAngle);
-            m_gun.m_position = glm::vec2(-5.f, 10.f); // 10.f
+            m_gun.m_position = glm::vec2(5.f, 18.f); // 10.f
 
             // laser
             m_laser.m_scale = glm::vec2(400, 1);
             m_laser.m_position = glm::vec2(0, 23.f);
+            m_laser.m_rotation = glm::radians(-180.f);
             m_laser.m_depth = 100.f;
         }
 
@@ -121,7 +122,6 @@ namespace arena
         void render()
         {
             SpriteEffects::Enum effects = m_flipX ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
-            //m_gun.m_rotation += 0.001f;
             m_upperArm.render(effects);
         }
 
@@ -238,6 +238,8 @@ namespace arena
             glm::vec2 dir(mouseLoc - handpos);            
 
             m_flipX = mouseLoc.x >= m_position.x;
+
+            //m_arm.m_foreArm.m_rotation += 0.001f;
 #if 1
             float a = glm::atan(dir.y, dir.x);
 
