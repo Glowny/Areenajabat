@@ -5,17 +5,9 @@ enum MessageIdentifier
 	PlatformData,
 	Update,
 	ClientMove,
-	ClientShoot
+	ClientShoot,
+	CreateBullet,
 
-};
-
-enum DataType
-{
-	messageID,
-	unsignedInt,
-	Int,
-	Float,
-	Char
 };
 
 enum BulletType
