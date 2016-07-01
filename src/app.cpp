@@ -155,17 +155,21 @@ namespace arena
     class Character
     {
     public:
+        glm::vec2 m_reloadOffset;
+
         Character() :
             m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)),
             m_reload(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAnimations/Gladius.scml")->getNewEntityInstance(0)),
             m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
             m_torsoOffset(-6.f, 37.f), 
             m_legOffset(11, 124),
+            m_reloadOffset(12, 45),
             m_elapsed(0.0),
             m_flipX(false)
         {
             m_legs.setCurrentAnimation("1_Left");
             m_reload.setCurrentAnimation(0);
+            
             // setup hierarchy, torso holds head and arms
             m_torso.m_children.push_back(&m_head.m_helmet);
             m_torso.m_children.push_back(&m_arm.m_upperArm);
@@ -235,6 +239,9 @@ namespace arena
             {
                 m_arm.m_upperArm.m_rotation = glm::radians(m_arm.m_upperAngle) - glm::radians(180.f) + a;
             }
+
+            static float angle = 0.000f;
+            m_reload.setAngle(glm::radians(90.f));
         }
 
         void render()
@@ -249,6 +256,7 @@ namespace arena
                 if (m_legs.getCurrentAnimationName() == "1_Left")
                 {
                     m_legs.setCurrentAnimation("1_Right");
+                    m_reload.setCurrentAnimation("1_Right");
                     m_elapsed = m_legs.getCurrentTime();
                 }
 
@@ -261,6 +269,7 @@ namespace arena
                 if (m_legs.getCurrentAnimationName() == "1_Right")
                 {
                     m_legs.setCurrentAnimation("1_Left");
+                    m_reload.setCurrentAnimation("1_Left");
                     m_elapsed = m_legs.getCurrentTime();
                 }
 
@@ -268,7 +277,8 @@ namespace arena
             }
 
             
-            m_reload.setPosition(glm::vec2(100, 100) + m_position);
+            m_reload.setPosition(m_position + m_reloadOffset + m_perFrameTorsoOffset);
+            m_reload.render();
             m_legs.render();
             
             m_torso.render(effects);
@@ -517,7 +527,7 @@ namespace arena
         bgfx::touch(0);
         
         s_camera.m_position = s_char->m_position;
-        s_camera.m_zoom = 3.f;
+        s_camera.m_zoom = 1.f;
 		s_camera.calculate();
 
 
