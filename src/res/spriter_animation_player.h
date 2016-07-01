@@ -24,7 +24,10 @@ namespace arena
         void render();
 
         void setCurrentAnimation(const std::string& anim);
+        std::string SpriterAnimationPlayer::getCurrentAnimationName();
         void setCurrentAnimation(int anim);
+
+        double getCurrentTime() const;
     private:
         SpriterEngine::EntityInstance* m_entity;
     };

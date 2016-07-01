@@ -324,9 +324,19 @@ namespace arena
         m_entity->setCurrentAnimation(anim);
     }
 
+    std::string SpriterAnimationPlayer::getCurrentAnimationName()
+    {
+        return m_entity->currentAnimationName();
+    }
+
     void SpriterAnimationPlayer::setCurrentAnimation(int anim)
     {
         m_entity->setCurrentAnimation(anim);
+    }
+
+    double SpriterAnimationPlayer::getCurrentTime() const
+    {
+        return m_entity->getCurrentTime();
     }
 
     namespace spriter

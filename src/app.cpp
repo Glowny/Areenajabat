@@ -44,22 +44,6 @@ namespace arena
         glm::vec2 m_position;
     };
 
-    static const float s_directionTransitionTable[] =
-    {
-        0.f, // 0
-        -1.f, // 50
-        1.f, // 100
-        2.f, // 150
-        1.f, // 200
-        0.5f, // 250
-        0.f, // 300
-        -1.f, // 350
-        1.f, // 400
-        2.f, // 450
-        1.f, // 500
-        0.5f // 550
-    };
-
     struct RightArm
     {
         RightArm() :
@@ -152,11 +136,6 @@ namespace arena
             m_crest.m_position = glm::vec2(0, -9);
         }
 
-        void render()
-        {
-            m_helmet.render(SpriteEffects::None);
-        }
-
         CompositeSprite m_helmet;
         CompositeSprite m_crest;
     };
@@ -167,16 +146,18 @@ namespace arena
         Character() :
             m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)),
             m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
-            m_torsoOffset(-4.f, 37.f),
+            m_torsoOffset(-6.f, 37.f), 
             m_legOffset(11, 124),
             m_elapsed(0.0),
             m_flipX(false)
         {
-            m_legs.setCurrentAnimation(0);
+            m_legs.setCurrentAnimation("1_Left");
 
             // setup hierarchy, torso holds head and arms
             m_torso.m_children.push_back(&m_head.m_helmet);
             m_torso.m_children.push_back(&m_arm.m_upperArm);
+
+            //m_torso.m_origin = glm::vec2(m_torso.m_texture->width / 2.f, m_torso.m_texture->height - 4);
 
             m_arm.m_upperArm.m_position = glm::vec2(16, 10);
             setPosition(glm::vec2(0.f));
@@ -185,6 +166,22 @@ namespace arena
         void update(float dt)
         {
             static const uint32_t length = 600;
+
+            static const float s_directionTransitionTable[] =
+            {
+                0.f, // 0
+                -1.f, // 50
+                1.f, // 100
+                2.f, // 150
+                1.f, // 200
+                0.5f, // 250
+                0.f, // 300
+                -1.f, // 350
+                1.f, // 400
+                2.f, // 450
+                1.f, // 500
+                0.5f // 550
+            };
 
             m_elapsed += dt;
 
@@ -204,7 +201,6 @@ namespace arena
             }
 
             m_torso.m_position = m_position + m_torsoOffset + m_perFrameTorsoOffset;
-
             glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
             transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
 
@@ -224,7 +220,7 @@ namespace arena
             else
             {
                 m_arm.m_upperArm.m_rotation = glm::radians(m_arm.m_upperAngle) - glm::radians(180.f) + a;
-            }     
+            }
         }
 
         void render()
@@ -235,19 +231,30 @@ namespace arena
                 effects = SpriteEffects::FlipHorizontally;
                 if (!m_arm.m_flipX)
                     m_arm.flip();
+
+                if (m_legs.getCurrentAnimationName() == "1_Left")
+                {
+                    m_legs.setCurrentAnimation("1_Right");
+                    m_elapsed = m_legs.getCurrentTime();
+                }
+
+                m_torsoOffset.x = -6.f;
             }
             else
             {
                 if (m_arm.m_flipX) m_arm.flip();
+
+                if (m_legs.getCurrentAnimationName() == "1_Right")
+                {
+                    m_legs.setCurrentAnimation("1_Left");
+                    m_elapsed = m_legs.getCurrentTime();
+                }
+
+                m_torsoOffset.x = -4.f;
             }
 
             m_legs.render();
             m_torso.render(effects);
-            //draw(m_crest, nullptr, 0xffffffff, m_position + m_crestOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), effects, 0.f, 0.f);
-            //draw(m_helmet, nullptr, 0xffffffff, m_position + m_helmetOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), effects, 0.f, 0.1f);
-            //draw(m_torso, nullptr, 0xffffffff, m_position + m_torsoOffset + m_perFrameTorsoOffset, glm::vec2(0), glm::vec2(1), effects, 0.f, 0.2f);
-            
-            //m_arm.render();
 
             draw(m_cross.m_texture, nullptr, 0xffffffff, m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 1.f);
         }
