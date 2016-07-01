@@ -157,6 +157,7 @@ namespace arena
     public:
         Character() :
             m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)),
+            m_reload(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAnimations/Gladius.scml")->getNewEntityInstance(0)),
             m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
             m_torsoOffset(-6.f, 37.f), 
             m_legOffset(11, 124),
@@ -164,7 +165,7 @@ namespace arena
             m_flipX(false)
         {
             m_legs.setCurrentAnimation("1_Left");
-
+            m_reload.setCurrentAnimation(0);
             // setup hierarchy, torso holds head and arms
             m_torso.m_children.push_back(&m_head.m_helmet);
             m_torso.m_children.push_back(&m_arm.m_upperArm);
@@ -206,6 +207,7 @@ namespace arena
             m_perFrameTorsoOffset.y = lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
 
             m_legs.setTimeElapsed(dt * 1000.0);
+            m_reload.setTimeElapsed(dt * 1000.0);
 
             if (asMillis >= length)
             {
@@ -265,7 +267,10 @@ namespace arena
                 m_torsoOffset.x = -4.f;
             }
 
+            
+            m_reload.setPosition(glm::vec2(100, 100) + m_position);
             m_legs.render();
+            
             m_torso.render(effects);
 
             draw(m_cross.m_texture, nullptr, 0xffffffff, m_cross.m_position, glm::vec2(0, 0), glm::vec2(1, 1), SpriteEffects::None, 0.f, 1.f);
@@ -279,6 +284,8 @@ namespace arena
 
     public:
         SpriterAnimationPlayer m_legs;
+        SpriterAnimationPlayer m_reload;
+
         CompositeSprite m_torso;
         RightArm m_arm;
         Head m_head;
@@ -551,6 +558,7 @@ namespace arena
 	void App::shutdown()
 	{
 		inputRemoveBindings("bindings");
+        inputShutdown();
 
 		delete s_resources;
 		s_resources = NULL;

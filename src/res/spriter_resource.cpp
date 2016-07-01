@@ -339,6 +339,11 @@ namespace arena
         return m_entity->getCurrentTime();
     }
 
+    bool SpriterAnimationPlayer::isFinished() const
+    {
+        return m_entity->animationJustFinished();
+    }
+
     namespace spriter
     {
         void* load(const std::string name)

@@ -26,7 +26,7 @@
         <obj_info name="bone_003" type="bone" w="20.1294" h="10"/>
         <obj_info name="bone_004" type="bone" w="40.9172" h="10"/>
         <obj_info name="bone_005" type="bone" w="21.9042" h="10"/>
-        <animation id="0" name="1_Left" length="1400" interval="100" looping="false">
+        <animation id="0" name="1_Left" length="1400" interval="100" looping="true">
             <mainline>
                 <key id="0">
                     <bone_ref id="0" timeline="4" key="0"/>
@@ -576,7 +576,7 @@
                 </key>
             </timeline>
         </animation>
-        <animation id="1" name="1_Right" length="1400" interval="100" looping="false">
+        <animation id="1" name="1_Right" length="1400" interval="100" looping="true">
             <mainline>
                 <key id="0">
                     <bone_ref id="0" timeline="4" key="0"/>

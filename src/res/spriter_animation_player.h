@@ -28,6 +28,8 @@ namespace arena
         void setCurrentAnimation(int anim);
 
         double getCurrentTime() const;
+
+        bool isFinished() const;
     private:
         SpriterEngine::EntityInstance* m_entity;
     };
