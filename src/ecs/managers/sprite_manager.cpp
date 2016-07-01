@@ -2,6 +2,9 @@
 
 #include <algorithm>
 
+#include "..\..\game_time.h"
+#include "..\component.h"
+
 namespace arena
 {
 	struct Comparer final
@@ -21,15 +24,15 @@ namespace arena
 
 	void SpriteManager::invalidate()
 	{
-		std::sort(begin(), end(), Comparer());
+		std::sort(components().begin(), components().end(), Comparer());
 	}
 
-	void SpriteManager::onUpdate(const GameTime& gameTime)
+	void SpriteManager::onUpdate(const GameTime&)
 	{
 		// TODO: draw.
 	}
 
-	void SpriteManager::onRegister(Component* const component) 
+	void SpriteManager::onRegister(Component* const) 
 	{
 		invalidate();
 	}

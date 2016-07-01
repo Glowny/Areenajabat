@@ -35,6 +35,11 @@ namespace arena
 		Component::s_allocator.deallocate(reinterpret_cast<Char*>(this), sizeof(this));
 	}
 
+	bool Component::destroyed() const
+	{
+		return m_destroyed;
+	}
+
 	Component::~Component()
 	{
 		m_owner = nullptr;

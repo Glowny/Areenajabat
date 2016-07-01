@@ -3,6 +3,8 @@
 #include "component_manager.h"
 
 #include "..\sprite_renderer.h"
+#include "..\..\game_time.h"
+#include "..\component.h"
 
 namespace arena
 {

@@ -8,8 +8,6 @@
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameTime)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Component)
 
-using ComponentIterator = std::vector<arena::Component*>::iterator;
-
 namespace arena
 {
 	// Base class for component managers.
@@ -38,15 +36,6 @@ namespace arena
 			onUnregister(component);
 		}
 
-		ComponentIterator begin()
-		{
-			return m_components.begin();
-		}
-		ComponentIterator end()
-		{
-			return m_components.end();
-		}
-
 		void update(const GameTime& gameTime)
 		{
 			for (auto it = m_components.begin(); it != m_components.end(); it++)
@@ -73,6 +62,11 @@ namespace arena
 		}
 		virtual void onUnregister(Component* const component)
 		{
+		}
+
+		std::vector<T*> components()
+		{
+			return m_components;
 		}
 	private:
 		std::vector<T*> m_components;

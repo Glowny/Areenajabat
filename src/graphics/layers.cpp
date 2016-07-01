@@ -6,7 +6,7 @@ namespace arena
 	{
 		bool isValidLayerID(const uint32 layerID) 
 		{
-			return layerID & Layers;
+			return (layerID & Layers) == 1;
 		}
 	}
 }

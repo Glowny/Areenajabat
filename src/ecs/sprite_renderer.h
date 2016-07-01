@@ -6,7 +6,7 @@
 
 namespace arena
 {
-	struct Sprite final 
+	struct SpriteData final 
 	{
 	public:
 		TextureResource* m_texture;
@@ -15,8 +15,8 @@ namespace arena
 		glm::vec2		 m_scale;
 		float32			 m_rotation;
 
-		Sprite()		 = default;
-		~Sprite()		 = default;
+		SpriteData()		 = default;
+		~SpriteData()		 = default;
 	};
 
 	class SpriteRenderer final : public RenderComponent
@@ -34,6 +34,6 @@ namespace arena
 		TextureResource* const getTexture();
 		void setTexture(TextureResource* const texture);
 	private:
-		Sprite m_sprite;
+		SpriteData m_sprite;
 	};
 }

@@ -28,6 +28,7 @@ namespace arena
 		Entity* owner();
 
 		void destroy();
+		bool destroyed() const;
 
 		virtual ~Component();
 	private:
@@ -40,5 +41,7 @@ namespace arena
 			Instance members.
 		*/
 		Entity* m_owner;
+
+		bool m_destroyed;
 	};
 }

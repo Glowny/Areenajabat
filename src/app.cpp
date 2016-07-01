@@ -1,4 +1,5 @@
 #include "game_time.h"
+#include "ecs\managers\sprite_manager.h"
 #include "app.h"
 #include <bgfx/bgfx.h>
 #include "input/input.h"
@@ -525,7 +526,9 @@ namespace arena
 
 		s_spriteBatch->submit(0);
 
+		// Update systems.
 		SceneManager::instance().update(gameTime);
+		SpriteManager::instance().update(gameTime);
 
 		bgfx::frame();
 
