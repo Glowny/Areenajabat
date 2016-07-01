@@ -17,7 +17,7 @@ void Physics::update()
 	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
 };
 
-void Physics::createPlatform(glm::vec2 position, std::vector<glm::vec2> platform)
+void Physics::createPlatform(std::vector<glm::vec2> platform)
 {
 	b2Vec2* points = new b2Vec2[platform.size()];
 	for (unsigned i = 0; i < platform.size(); i++)
@@ -25,31 +25,31 @@ void Physics::createPlatform(glm::vec2 position, std::vector<glm::vec2> platform
 		points[i].Set(platform[i].x, platform[i].y);
 	}
 
-	p_Platform temp_platform;
-	temp_platform.m_shape.CreateChain(points, platform.size());
-	temp_platform.m_bodydef.type = b2_staticBody;
-	temp_platform.m_bodydef.position.Set(position.x, position.y);
-	temp_platform.m_body = m_b2DWorld->CreateBody(&temp_platform.m_bodydef);
-	temp_platform.m_fixtureDef.shape = &temp_platform.m_shape;
-	temp_platform.m_fixtureDef.density = 1.0f;
-	temp_platform.m_fixtureDef.friction = 0.3f;
-	temp_platform.m_body->CreateFixture(&temp_platform.m_fixtureDef);
-
+	p_Platform* temp_platform = new p_Platform;
+	unsigned index = m_platformVector.size();
 	m_platformVector.push_back(temp_platform);
+	m_platformVector[index]->m_shape.CreateChain(points, platform.size());
+	m_platformVector[index]->m_bodydef.type = b2_staticBody;
+	m_platformVector[index]->m_bodydef.position.Set(0, 0);
+	m_platformVector[index]->m_body = m_b2DWorld->CreateBody(&m_platformVector[index]->m_bodydef);
+	m_platformVector[index]->m_fixtureDef.shape = &m_platformVector[index]->m_shape;
+	m_platformVector[index]->m_fixtureDef.density = 1.0f;
+	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
+	m_platformVector[index]->m_body->CreateFixture(&m_platformVector[index]->m_fixtureDef);
 }
 
 // returns id.
-unsigned Physics::addGladiator(float position_x, float position_y)
+unsigned Physics::addGladiator(glm::vec2 position)
 {
 	p_Gladiator glad;
 	glad.m_id = m_gladiatorVector.size();
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
-	bodydef.position.Set(position_x, position_y);
+	bodydef.position.Set(position.x, position.y);
 	glad.m_body = m_b2DWorld->CreateBody(&bodydef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(1.0f, 1.0f);
+	dynamicBox.SetAsBox(32.0f, 32.0f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
@@ -58,7 +58,7 @@ unsigned Physics::addGladiator(float position_x, float position_y)
 
 	b2MassData data;
 	data.mass = 1;
-	data.center = b2Vec2(20, 20);
+	data.center = b2Vec2(16, 64);
 
 	glad.m_body->SetMassData(&data);
 
@@ -69,9 +69,9 @@ unsigned Physics::addGladiator(float position_x, float position_y)
 	return glad.m_id;
 };
 
-void Physics::moveGladiator(float direction_x, float direction_y, unsigned id)
+void Physics::moveGladiator(glm::vec2 direction, unsigned id)
 {
-	m_gladiatorVector[id].m_body->ApplyForce(b2Vec2(direction_x, direction_y),
+	m_gladiatorVector[id].m_body->ApplyForce(b2Vec2(direction.x, direction.y),
 		m_gladiatorVector[id].m_body->GetWorldCenter(), 1);
 }
 glm::vec2 Physics::getGladiatorPosition(unsigned id)
@@ -90,13 +90,39 @@ glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 	velocity.y = vel.y;
 	return velocity;
 }
-
 void Physics::removeGladiator(unsigned id)
 {
 
 };
-void Physics::addBullet()
+void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 {
+	b2Body* body;
+
+	b2Vec2 pos(position.x, position.y), vel(velocity.x, velocity.y);
+	b2BodyDef bulletBodyDef;
+	bulletBodyDef.type = b2_dynamicBody;
+	bulletBodyDef.position.Set(pos.x, pos.y);
+
+	b2PolygonShape dynamicBox;
+	dynamicBox.SetAsBox(5.0f, 5.0f);
+
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &dynamicBox;
+	fixtureDef.density = 1.0f;
+	fixtureDef.friction = 0.3f;
+
+	b2MassData data;
+	data.mass = 0.05;
+	data.center = b2Vec2(2.5, 2.5);
+
+	body->SetMassData(&data);
+	body->CreateFixture(&fixtureDef);
+
+	p_Bullet bullet;
+	bullet.m_body = body;
+	bullet.m_contact = false;
+
+	m_bulletVector.push_back(bullet);
 
 };
 void Physics::removeBullet()

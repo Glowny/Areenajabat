@@ -21,6 +21,14 @@ struct p_Gladiator
 	b2Body* m_body;
 };
 
+struct p_Bullet
+{
+	bool m_contact;
+	b2Body* m_body;
+	void startContact() { m_contact = true; }
+	void endContact() { m_contact = false; }
+};
+
 class Physics
 {
 	// add movement functions
@@ -31,18 +39,19 @@ public:
 
 	void update();
 
-	void createPlatform(glm::vec2 position, std::vector<glm::vec2> platform);
-	unsigned addGladiator(float position_x, float position_y);
-	void moveGladiator(float direction_x, float direction_y, unsigned id);
+	void createPlatform(std::vector<glm::vec2> platform);
+	unsigned addGladiator(glm::vec2 position);
+	void moveGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
 	void removeGladiator(unsigned id);
-	void addBullet();
+	void addBullet(glm::vec2 position, glm::vec2 velocity);
 	void removeBullet();
 
 private:
 	b2World* m_b2DWorld;
 	std::vector<p_Gladiator> m_gladiatorVector;
-	std::vector<p_Platform> m_platformVector;
+	std::vector<p_Platform*> m_platformVector;
+	std::vector<p_Bullet> m_bulletVector;
 };
 #endif

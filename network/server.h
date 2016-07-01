@@ -10,20 +10,8 @@ struct PlayerInput
 {
 	glm::vec2 moveDir;
 	// add more when needed;
-
 };
 
-struct Bullet
-{
-	// This data is send only when bullet is created.
-	// Client will calculate clientside physics for bullet.
-	// Server calculates serverside physics, and notifies clients on hit.
-	unsigned m_id;
-	double m_position_x;
-	double m_position_y;
-	double m_rotation;
-
-};
 
 class Server 
 {
@@ -39,6 +27,10 @@ private:
 
 	void handleClientMessages();
 	void handleMessage(Message &message);
+	
+	// Gameplay
+	// Pushes back bullets on m_bulletVector.
+	void createOutputBullets(std::vector<BulletInputData> &bulletInputVector, unsigned playerId);
 
 	// Networking low level.
 	Network m_network;
@@ -47,11 +39,11 @@ private:
 	Physics m_physics;
 	
 	std::vector<GladiatorData> m_gladiatorVector;
-	std::vector<Bullet> m_bulletVector;
+	std::vector<BulletOutputData> m_bulletOutputVector;
 	std::queue<Message>* m_messageQueue;
-
 	std::vector<PlayerInput> m_playerInputVector;
 	std::vector<Platform> m_platformVector;
+	void tempPlatformCreation();
 };
 
 #endif
