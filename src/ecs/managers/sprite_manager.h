@@ -15,9 +15,12 @@ namespace arena
 
 		// Causes the manager to reorder all the sprites.
 		void invalidate();
+
+		SpriteRenderer* create(Entity* const owner);
 	protected:
 		virtual void onUpdate(const GameTime& gameTime) final override;
 
 		virtual void onRegister(Component* const component) final override;
+	private:
 	};
 }
