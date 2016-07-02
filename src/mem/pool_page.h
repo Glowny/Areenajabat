@@ -55,7 +55,14 @@ namespace arena
 		// Calls destructor.
 		void deallocate(T* const element)
 		{
-			m_releasedHandles.push(reinterpret_cast<Char*>(element));
+			Char* handle = reinterpret_cast<Char*>(element);
+
+			m_releasedHandles.push(handle);
+
+#if _DEBUG
+			// Check that the handle is not already released.
+			for (Char* released : m_releasedHandles) assert(handle != released);
+#endif
 
 			DYNAMIC_DTOR(element, T);
 		}

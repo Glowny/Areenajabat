@@ -35,7 +35,6 @@ namespace arena
 		// TODO: draw.
 	}
 
-
 	SpriteRenderer* SpriteManager::create(Entity* const owner)
 	{
 		SpriteRenderer* const renderer = m_allocator.allocate();
@@ -47,6 +46,7 @@ namespace arena
 	}
 	bool SpriteManager::release(SpriteRenderer* const component)
 	{
+		return m_allocator.deallocate(component);
 	}
 
 	void SpriteManager::onRegister(Component* const) 
