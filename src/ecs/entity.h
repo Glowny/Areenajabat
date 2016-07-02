@@ -54,12 +54,20 @@ namespace arena
 		void add(Component* const component);
 		void remove(Component* const component);
 
+		// Returns true if the entity owns a component
+		// of given type. 
 		bool contains(const RTTIData& componentType) const;
+		// Returns the count of given components.
 		uint32 count(const RTTIData& componentType) const;
 
+		// Returns the first component of given type.
 		Component* const first(const RTTIData& componentType) const;
-		Component* const ofType(const RTTIData& componentType) const;
+		// Returns list of components of given type. Does not work
+		// with inheritance, always as for conrete types.
+		void ofType(const RTTIData& componentType, std::vector<Component*>& outResults) const;
 
+		// Returns the first component that matches the given
+		// predicate, if no matches are found, will return a null pointer.
 		Component* const find(Predicate<Component*> predicate);
 
 		const String& getTags() const;
