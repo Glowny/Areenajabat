@@ -26,9 +26,8 @@ namespace arena
 
 	class SpriteRenderer final : public RenderComponent
 	{
+	friend class SpriteManager;
 	public:	
-		SpriteRenderer(Entity* const owner);
-
 		glm::vec2& position();
 		glm::vec2& origin();
 		glm::vec2& scale();
@@ -42,6 +41,8 @@ namespace arena
 		void setTexture(TextureResource* const texture, bool fitToArea = true);
 
 		~SpriteRenderer() = default;
+	protected:
+		SpriteRenderer(Entity* const owner);
 	private:
 		SpriteData m_sprite;
 	};

@@ -34,12 +34,24 @@ namespace arena
 
 	void SpriteManager::invalidate()
 	{
-		std::sort(begin(), end(), Comparer());
+		//std::sort(begin(), end(), Comparer());
 	}
 
 	void SpriteManager::onUpdate(const GameTime&)
 	{
+		// No need to draw, nothing to see here.
+		if (empty()) return;
+
 		SpriteBatch* spriteBatch = App::instance().spriteBatch();
+		
+		auto itCur			= begin();
+		const auto itEnd	= end();
+
+		uint32 lastLayer = (*itCur)->getLayer();
+
+		while (itCur != itEnd) {
+			SpriteRenderer* renderer = *itCur;
+		}
 	}
 
 	SpriteRenderer* SpriteManager::create(Entity* const owner)

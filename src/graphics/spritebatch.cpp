@@ -136,6 +136,20 @@ namespace arena
         sprite->depth = depth;
         ++m_spriteQueueCount;
     }
+	void SpriteBatch::draw(const TextureResource* texture, Rectf& src, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, uint8_t effects, float angle, float depth)
+	{
+		glm::vec4 v4src;
+		v4src.x = src.x;
+		v4src.y = src.y;
+		v4src.z = src.w;
+		v4src.w = src.h;
+
+		draw(texture, &v4src, color, position, origin, scale, effects, angle, depth);
+	}
+	void SpriteBatch::draw(const TextureResource* texture, uint32_t color, const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, uint8_t effects, float angle, float depth)
+	{
+		draw(texture, nullptr, color, position, origin, scale, effects, angle, depth);
+	}
 
     void SpriteBatch::submit(uint8_t view)
     {

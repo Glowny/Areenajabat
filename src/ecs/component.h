@@ -14,7 +14,6 @@ namespace arena
 {
 	class Component
 	{
-	friend class SpriteManager;
 	DEFINE_RTTI_TYPE
 	public:
 		Entity* owner();
