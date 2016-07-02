@@ -36,4 +36,22 @@ namespace arena
 	{
 		m_visible = false;
 	}
+
+	void RenderComponent::anchor()
+	{
+		m_anchored = true;
+	}
+	void RenderComponent::unanchor()
+	{
+		m_anchored = false;
+	}
+	bool RenderComponent::isAnchored() const 
+	{
+		return m_anchored;
+	}
+
+	glm::vec2& RenderComponent::getOffset()
+	{
+		return m_offset;
+	}
 }

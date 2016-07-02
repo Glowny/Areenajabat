@@ -47,10 +47,29 @@ namespace arena
 		auto itCur			= begin();
 		const auto itEnd	= end();
 
-		uint32 lastLayer = (*itCur)->getLayer();
+		//uint32 lastLayer = (*itCur)->getLayer();
 
 		while (itCur != itEnd) {
 			SpriteRenderer* renderer = *itCur;
+
+			/*if (renderer->isAnchored())
+			{
+				glm::vec2& position = renderer->getPosition();
+				glm::vec2& offset = renderer->getOffset();
+			}*/
+
+			spriteBatch->draw(
+				renderer->getTexture(),
+				renderer->getSource(),
+				renderer->getColor(),
+				renderer->getPosition(),
+				renderer->getOrigin(),
+				renderer->getScale(),
+				renderer->getEffects(),
+				renderer->getRotation(),
+				0.0f);
+
+			itCur++;
 		}
 	}
 
