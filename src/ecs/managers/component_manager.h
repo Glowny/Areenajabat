@@ -78,6 +78,6 @@ namespace arena
 		{
 		}
 	private:
-		std::vector<T*> m_components;
+		std::vector<T* const> m_components;
 	};
 }
