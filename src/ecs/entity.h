@@ -4,6 +4,7 @@
 #include "..\forward_declare.h"
 #include "..\arena_types.h"
 #include "..\functional.h"
+#include "..\rtti\rtti_define.h"
 
 #include <vector>
 #include <iterator>

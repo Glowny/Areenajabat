@@ -99,13 +99,16 @@ namespace arena
 
 	bool Entity::contains(const RTTIData& componentType) const
 	{
+		return false;
 	}
 	uint32 Entity::count(const RTTIData& componentType) const
 	{
+		return 0;
 	}
 
 	Component* const Entity::first(const RTTIData& componentType) const
 	{
+		return nullptr;
 	}
 	void Entity::ofType(const RTTIData& componentType, std::vector<Component*>& outResults) const
 	{
@@ -113,6 +116,7 @@ namespace arena
 
 	Component* const Entity::find(Predicate<Component*> predicate)
 	{
+		return nullptr;
 	}
 
 	const String& Entity::getTags() const 

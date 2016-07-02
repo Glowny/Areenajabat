@@ -12,6 +12,8 @@ namespace arena
 										  m_destroyed(false)
 	{
 		assert(owner != nullptr);
+
+		//RTTI_CTOR(Component);
 	}
 
 	Entity* Component::owner() 

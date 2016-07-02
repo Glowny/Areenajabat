@@ -55,12 +55,12 @@ namespace arena
 
 			if (renderer->isAnchored())
 			{
-				Entity* const owner = renderer->owner();
+				//Entity* const owner = renderer->owner();
 
 				//if (owner->be)
 
-				glm::vec2& position = renderer->getPosition();
-				glm::vec2& offset = renderer->getOffset();
+				//glm::vec2& position = renderer->getPosition();
+				//glm::vec2& offset = renderer->getOffset();
 			}
 
 			spriteBatch->draw(
