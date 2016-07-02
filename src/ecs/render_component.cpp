@@ -30,8 +30,10 @@ namespace arena
 	}
 	void RenderComponent::show()
 	{
+		m_visible = true;
 	}
 	void RenderComponent::hide()
 	{
+		m_visible = false;
 	}
 }
