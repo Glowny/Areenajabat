@@ -3,6 +3,7 @@
 #include "..\mem\pool_allocator.h"
 #include "..\forward_declare.h"
 #include "..\arena_types.h"
+#include "..\functional.h"
 
 #include <vector>
 #include <iterator>
@@ -52,6 +53,14 @@ namespace arena
 
 		void add(Component* const component);
 		void remove(Component* const component);
+
+		bool contains(const RTTIData& componentType) const;
+		uint32 count(const RTTIData& componentType) const;
+
+		Component* const first(const RTTIData& componentType) const;
+		Component* const ofType(const RTTIData& componentType) const;
+
+		Component* const find(Predicate<Component*> predicate);
 
 		const String& getTags() const;
 		void setTags(const String& tags);

@@ -97,6 +97,14 @@ namespace arena
 		m_components.erase(std::find(m_components.begin(), m_components.end(), component));
 	}
 
+	bool contains(const RTTIData& componentType) const;
+	uint32 count(const RTTIData& componentType) const;
+
+	Component* const first(const RTTIData& componentType) const;
+	Component* const ofType(const RTTIData& componentType) const;
+
+	Component* const find(Predicate<Component*> predicate);
+
 	const String& Entity::getTags() const 
 	{
 		return m_tags;

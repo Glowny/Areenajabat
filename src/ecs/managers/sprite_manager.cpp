@@ -4,6 +4,7 @@
 #include "..\..\game_time.h"
 #include "..\component.h"
 #include "..\..\app.h"
+#include "..\entity.h"
 
 #include <algorithm>
 
@@ -52,11 +53,15 @@ namespace arena
 		while (itCur != itEnd) {
 			SpriteRenderer* renderer = *itCur;
 
-			/*if (renderer->isAnchored())
+			if (renderer->isAnchored())
 			{
+				Entity* const owner = renderer->owner();
+
+				//if (owner->be)
+
 				glm::vec2& position = renderer->getPosition();
 				glm::vec2& offset = renderer->getOffset();
-			}*/
+			}
 
 			spriteBatch->draw(
 				renderer->getTexture(),
