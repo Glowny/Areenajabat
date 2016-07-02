@@ -3,6 +3,7 @@
 #include "..\..\forward_declare.h"
 
 #include <cassert>
+#include <iterator>
 #include <vector>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameTime)
@@ -48,6 +49,19 @@ namespace arena
 			onUpdate(gameTime);
 		}
 
+		decltype(auto) begin()
+		{
+			return m_components.begin();
+		}
+		decltype(auto) end()
+		{
+			return m_components.end();
+		}
+		bool empty() const
+		{
+			return m_components.empty();
+		}
+
 		virtual ~ComponentManager() = default;
 	protected:
 		ComponentManager() = default;
@@ -62,11 +76,6 @@ namespace arena
 		}
 		virtual void onUnregister(Component* const)
 		{
-		}
-
-		std::vector<T*> components()
-		{
-			return m_components;
 		}
 	private:
 		std::vector<T*> m_components;

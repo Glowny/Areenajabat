@@ -1,9 +1,11 @@
 #include "sprite_manager.h"
 
-#include <algorithm>
-
+#include "..\..\graphics\spritebatch.h"
 #include "..\..\game_time.h"
 #include "..\component.h"
+#include "..\..\app.h"
+
+#include <algorithm>
 
 namespace arena
 {
@@ -32,11 +34,12 @@ namespace arena
 
 	void SpriteManager::invalidate()
 	{
-		std::sort(components().begin(), components().end(), Comparer());
+		std::sort(begin(), end(), Comparer());
 	}
 
 	void SpriteManager::onUpdate(const GameTime&)
 	{
+		SpriteBatch* spriteBatch = App::instance().spriteBatch();
 	}
 
 	SpriteRenderer* SpriteManager::create(Entity* const owner)
