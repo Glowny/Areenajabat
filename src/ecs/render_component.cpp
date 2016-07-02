@@ -23,4 +23,15 @@ namespace arena
 	{
 		m_color = color;
 	}
+
+	bool RenderComponent::visible() const
+	{
+		return m_visible;
+	}
+	void RenderComponent::show()
+	{
+	}
+	void RenderComponent::hide()
+	{
+	}
 }

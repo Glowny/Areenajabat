@@ -1,8 +1,12 @@
 #include "sandbox_scene.h"
+#include "..\res\resource_manager.h"
+#include "..\app.h"
 
 #include "..\ecs\entity.h"
 #include "..\ecs\sprite_renderer.h"
 #include "..\ecs\managers\sprite_manager.h"
+
+#include "..\game_time.h"
 
 #ifdef _DEBUG
 #	include <iostream>
@@ -17,15 +21,18 @@ namespace arena
 	{
 	}
 
-	void SandboxSecene::onUpdate(const GameTime& time)
+	void SandboxSecene::onUpdate(const GameTime&)
+	{
+	}
+	void SandboxSecene::onInitialize()
 	{
 		ent1 = Entity::create("ent1");
 		ent2 = Entity::create("ent2");
 		
 		SpriteRenderer* ent1rend = SpriteManager::instance().create(ent1);
-	}
-	void SandboxSecene::onInitialize()
-	{
+		ent1rend->setTexture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "perkele"));
+		ent1->add(ent1rend);
+		SpriteManager::instance().registerComponent(ent1rend);
 	}
 	void SandboxSecene::onDestroy()
 	{

@@ -53,14 +53,14 @@ namespace arena
 		ComponentManager() = default;
 
 		// To handle component specific update logic.
-		virtual void onUpdate(const GameTime& gameTime)
+		virtual void onUpdate(const GameTime&)
 		{
 		}
 
-		virtual void onRegister(Component* const component)
+		virtual void onRegister(Component* const)
 		{
 		}
-		virtual void onUnregister(Component* const component)
+		virtual void onUnregister(Component* const)
 		{
 		}
 

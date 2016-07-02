@@ -1,7 +1,13 @@
 #pragma once
+
 #include <stdint.h>
 #include <bx/allocator.h>
-#include "graphics\spritebatch.h"
+
+#include "forward_declare.h"
+#include "camera.h"
+
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteBatch)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, ResourceManager)
 
 namespace arena
 {
@@ -28,12 +34,12 @@ namespace arena
 		App(App const& copy) = delete;
 		App& operator=(App const& copy) = delete;
 	private:
-		App() = default;
+		App();
 
-        int32_t				m_width;
-        int32_t				m_height;
-		ResourceManager*	m_resources;
-		SpriteBatch*		m_spriteBatch;
+        int32_t				m_width			{ 0 };
+        int32_t				m_height		{ 0 };
+		ResourceManager*	m_resources		{ nullptr };
+		SpriteBatch*		m_spriteBatch	{ nullptr };
 		Camera				m_camera;
     };
 
@@ -42,8 +48,6 @@ namespace arena
     void release(const Event* event);
 
     void setWindowSize(uint32_t width, uint32_t height, bool force = false);
-
-    ResourceManager* getResources();
 
     bx::AllocatorI* getAllocator();
 }

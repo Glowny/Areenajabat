@@ -25,6 +25,10 @@ namespace arena
 
         }
 
+		Camera() : Camera(0.0f, 0.0f)
+		{
+		}
+
         void calculate()
         {
             m_matrix =

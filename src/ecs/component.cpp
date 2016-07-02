@@ -8,7 +8,8 @@ namespace arena
 {
 	REGISTER_RTTI_TYPE(Component)
 
-	Component::Component(Entity* owner) : m_owner(owner) 
+	Component::Component(Entity* owner) : m_owner(owner),
+										  m_destroyed(false)
 	{
 		assert(owner != nullptr);
 	}

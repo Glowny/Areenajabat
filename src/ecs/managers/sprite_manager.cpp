@@ -37,7 +37,6 @@ namespace arena
 
 	void SpriteManager::onUpdate(const GameTime&)
 	{
-		// TODO: draw.
 	}
 
 	SpriteRenderer* SpriteManager::create(Entity* const owner)

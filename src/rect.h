@@ -7,10 +7,10 @@ namespace arena
 	template<typename T>
 	struct Rect final
 	{
-		T x;
-		T y;
-		T w;
-		T h;
+		T x { T(NULL) };
+		T y { T(NULL) };
+		T w { T(NULL) };
+		T h { T(NULL) };
 
 		Rect() = default;
 
