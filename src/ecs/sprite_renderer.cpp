@@ -3,8 +3,12 @@
 
 #include "..\res\texture_resource.h"
 
+#include "..\rtti\rtti_define.h"
+
 namespace arena
 {
+	REGISTER_RTTI_SUB_TYPE(SpriteRenderer)
+
 	SpriteRenderer::SpriteRenderer(Entity* const owner) : RenderComponent(owner)
 	{
 	}

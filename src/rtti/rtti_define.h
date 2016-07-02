@@ -2,6 +2,8 @@
 
 #include "..\arena_types.h"
 
+#include <vector>
+
 /*
 	Basic RTTI support that has typenames and IDs.
 */
@@ -17,11 +19,11 @@ namespace arena
 		const uint32	m_size;
 
 		RTTIData(const String tname, const uint32 size);
-		
+
 		~RTTIData() = default;
 	private:
 		static uint32 s_IDGenerator;
-	};	
+	};
 }
 
 /*
@@ -29,21 +31,20 @@ namespace arena
 	class declaration to create new RTTI type.
 */
 
-#define DEFINE_RTTI_TYPE  private: \
-						      static RTTIData s_rttiData; \
-						   public: \
-							  static uint32 RTTIGetID(); \
-							  static String RTTIGetTypename(); \
-							  static RTTIData RTTIGetType(); \
+#define DEFINE_RTTI_SUB_TYPE(__typename__ ) public: \
+												static RTTIData s_rtti_data_##__typename__; \
 
+#define DEFINE_RTTI_SUPER_TYPE(__typename__)   DEFINE_RTTI_SUB_TYPE(__typename__) \
+											   private: \
 
-#define REGISTER_RTTI_TYPE(__typename__) RTTIData __typename__::s_rttiData = RTTIData(#__typename__, sizeof(__typename__)); \
-										 uint32 __typename__::RTTIGetID()		{	return __typename__::s_rttiData.m_typeID;		} \
-										 String __typename__::RTTIGetTypename() {	return __typename__::s_rttiData.m_typename;		} \
-										 RTTIData __typename__::RTTIGetType()	{	return __typename__::s_rttiData;				} 												
+#define REGISTER_RTTI_SUB_TYPE(__typename__) RTTIData __typename__::s_rtti_data_##__typename__ = RTTIData(#__typename__, sizeof(__typename__));
 
-#define TYPEOF(__ptr__)				__ptr__->RTTIGetType()
-#define TYPENAME(__ptr__)			__ptr__->RTTIGetTypename()
-#define TYPEID(__ptr__)				__ptr__->RTTIGetID()	
+#define INITIALIZE_RTTI_SUPER_TYPE(__typename__) REGISTER_RTTI_SUB_TYPE(__typename__) 											
 
-#define IS_OF_TYPE(__ptr__, __typename__) (__ptr__->RTTIGetID() == __typename__::RTTIGetID())
+#define TYPEOF(__typename__)				__typename__::s_rtti_data_##__typename__
+#define TYPENAME(__typename__)				__typename__::s_rtti_data_##__typename__.m_name
+#define TYPEID(__typename__)				__typename__::s_rtti_data_##__typename__.m_typeID
+
+/*
+	TODO: add inheritance (base class) checks if needed.
+*/

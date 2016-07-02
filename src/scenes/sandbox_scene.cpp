@@ -10,6 +10,9 @@
 
 #ifdef _DEBUG
 #	include <iostream>
+#   include "..\rtti\rtti_define.h"
+#   include "..\ecs\transform.h"
+#   include "..\ecs\sprite_renderer.h"
 #endif
 
 namespace arena
@@ -21,11 +24,25 @@ namespace arena
 	{
 	}
 
+	static void test_RTTI()
+	{
+		const auto transt = TYPEOF(Transform);
+		const auto spritt = TYPEOF(SpriteRenderer);
+		const auto rendtt = TYPEOF(RenderComponent);
+		const auto comptt = TYPEOF(Component);
+
+		volatile static int j = 0;
+
+		if (j == 0) return;
+	}
+
 	void SandboxSecene::onUpdate(const GameTime&)
 	{
 	}
 	void SandboxSecene::onInitialize()
 	{
+		test_RTTI();
+
 		ent1 = Entity::create("ent1");
 		ent2 = Entity::create("ent2");
 		

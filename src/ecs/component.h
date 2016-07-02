@@ -14,7 +14,7 @@ namespace arena
 {
 	class Component
 	{
-	DEFINE_RTTI_TYPE
+	DEFINE_RTTI_SUPER_TYPE(Component)
 	public:
 		Entity* owner();
 

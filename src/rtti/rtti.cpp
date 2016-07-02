@@ -2,6 +2,9 @@
 
 #include "rtti_define.h"
 
+#include <map>
+#include <algorithm>
+
 namespace arena
 {
 	uint32 RTTIData::s_IDGenerator = 0;

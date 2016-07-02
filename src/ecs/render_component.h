@@ -14,6 +14,7 @@ namespace arena
 {
 	class RenderComponent : public Component
 	{
+	DEFINE_RTTI_SUB_TYPE(RenderComponent)
 	public:
 		uint32 getLayer() const;
 		void setLayer(const uint32 layer);

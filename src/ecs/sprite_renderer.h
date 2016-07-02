@@ -28,8 +28,8 @@ namespace arena
 
 	class SpriteRenderer final : public RenderComponent
 	{
-	REGISTER_RTTI_TYPE(SpriteRenderer)
 	friend class SpriteManager;
+	DEFINE_RTTI_SUB_TYPE(SpriteRenderer)
 	public:	
 		glm::vec2& getPosition();
 		glm::vec2& getOrigin();

@@ -9,7 +9,7 @@ namespace arena
 {
 	class Transform final : public Component
 	{
-	REGISTER_RTTI_TYPE(Transform)
+	DEFINE_RTTI_SUB_TYPE(Transform)
 	public:
 		glm::vec2 m_position { 0.0f, 0.0f };
 		glm::vec2 m_origin	 { 0.0f, 0.0f };
@@ -19,4 +19,6 @@ namespace arena
 
 		~Transform() = default;
 	};
+
+	REGISTER_RTTI_SUB_TYPE(Transform)
 }

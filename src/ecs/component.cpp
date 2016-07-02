@@ -6,7 +6,7 @@
 
 namespace arena
 {
-	REGISTER_RTTI_TYPE(Component)
+	INITIALIZE_RTTI_SUPER_TYPE(Component)
 
 	Component::Component(Entity* owner) : m_owner(owner),
 										  m_destroyed(false)
