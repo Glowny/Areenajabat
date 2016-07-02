@@ -25,6 +25,11 @@ namespace arena
 		return spriteManager;
 	}
 
+	SpriteManager::SpriteManager() : ComponentManager(),
+									 m_allocator(PagesCount, PageSize)
+	{
+	}
+
 	void SpriteManager::invalidate()
 	{
 		std::sort(components().begin(), components().end(), Comparer());

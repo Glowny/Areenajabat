@@ -30,10 +30,7 @@ namespace arena
 {
 
     static MouseState s_mouseState;
-    static ResourceManager*			s_resources;
-    static SpriteBatch*				s_spriteBatch;
-    static Camera					s_camera(1280.f, 720.f);
-
+    
     struct Crosshair
     {
         Crosshair()
@@ -204,7 +201,7 @@ namespace arena
             m_arm.m_upperArm.m_position = m_position + m_rightUpperArmOffset + m_perFrameTorsoOffset;
 
             glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
-            transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
+            transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
 
             m_cross.m_position = mouseLoc - glm::vec2(m_cross.m_texture->width, m_cross.m_texture->height) / 2.f;
 
@@ -409,14 +406,14 @@ namespace arena
 
 	ResourceManager* getResources()
 	{
-		return s_resources;
+		return m_resources;
 	}
 
 	void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, 
         const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, 
         uint8_t effect, float angle, float depth)
 	{
-		s_spriteBatch->draw(
+		m_spriteBatch->draw(
 			texture,
 			src,
 			color,
@@ -432,6 +429,13 @@ namespace arena
 	/*
 		App member functions.
 	*/
+
+	App& App::instance()
+	{
+		static App app;
+
+		return app;
+	}
 
     void App::init(int32_t width, int32_t height)
     {
@@ -463,8 +467,8 @@ namespace arena
             , 0
             );
 
-        s_resources = new ResourceManager("assets/");
-        s_spriteBatch = new SpriteBatch;
+        m_resources = new ResourceManager("assets/");
+        m_spriteBatch = new SpriteBatch;
         
         s_char = new Character;
 
@@ -495,13 +499,13 @@ namespace arena
 
         bgfx::touch(0);
         
-        s_camera.m_position = s_char->m_position;
-		s_camera.calculate();
+        m_camera.m_position = s_char->m_position;
+		m_camera.calculate();
 
 
 		float ortho[16];
 		bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
+		bgfx::setViewTransform(0, glm::value_ptr(m_camera.m_matrix), ortho);
 		bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
 
 		bgfx::touch(0);
@@ -518,13 +522,13 @@ namespace arena
         s_char->update(lastDeltaTime);
 
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
-        transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
+        transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
 
         bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
         s_char->render();
 
-		s_spriteBatch->submit(0);
+		m_spriteBatch->submit(0);
 
 		// Update systems.
 		SceneManager::instance().update(gameTime);
@@ -539,10 +543,24 @@ namespace arena
 	{
 		inputRemoveBindings("bindings");
 
-		delete s_resources;
-		s_resources = NULL;
-		delete s_spriteBatch;
-		s_spriteBatch = NULL;
+		delete m_resources;
+		m_resources = NULL;
+		delete m_spriteBatch;
+		m_spriteBatch = NULL;
+	}
+
+
+	SpriteBatch* const App::spriteBatch()
+	{
+		return m_spriteBatch;
+	}
+	ResourceManager* const App::resources()
+	{
+		return m_resources;
+	}
+	Camera& App::camera()
+	{
+		return m_camera;
 	}
 
     static void moveLeft(const void*)

@@ -59,11 +59,6 @@ namespace arena
 
 			m_releasedHandles.push(handle);
 
-#if _DEBUG
-			// Check that the handle is not already released.
-			for (Char* released : m_releasedHandles) assert(handle != released);
-#endif
-
 			DYNAMIC_DTOR(element, T);
 		}
 

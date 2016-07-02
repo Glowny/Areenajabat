@@ -10,7 +10,7 @@
 
 namespace arena
 {
-	class SpriteManager : public ComponentManager<SpriteRenderer>
+	class SpriteManager final : public ComponentManager<SpriteRenderer>
 	{
 	public:
 		static SpriteManager& instance();
@@ -20,6 +20,9 @@ namespace arena
 
 		SpriteRenderer* create(Entity* const owner);
 		bool release(SpriteRenderer* const component);
+
+		SpriteManager(SpriteManager const& copy) = delete;
+		SpriteManager& operator=(SpriteManager const& copy) = delete;
 	protected:
 		virtual void onUpdate(const GameTime& gameTime) final override;
 
