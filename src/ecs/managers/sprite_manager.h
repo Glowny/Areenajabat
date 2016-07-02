@@ -6,6 +6,8 @@
 #include "..\..\game_time.h"
 #include "..\component.h"
 
+#include "..\..\mem\pool_allocator.h"
+
 namespace arena
 {
 	class SpriteManager : public ComponentManager<SpriteRenderer>
@@ -17,10 +19,14 @@ namespace arena
 		void invalidate();
 
 		SpriteRenderer* create(Entity* const owner);
+		bool release(SpriteRenderer* const component);
 	protected:
 		virtual void onUpdate(const GameTime& gameTime) final override;
 
 		virtual void onRegister(Component* const component) final override;
 	private:
+		SpriteManager();
+
+		PoolAllocator<SpriteRenderer> m_allocator;
 	};
 }

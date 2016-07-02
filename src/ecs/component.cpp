@@ -1,3 +1,5 @@
+#include "managers\sprite_manager.h"
+
 #include "component.h"
 
 #include <cassert>

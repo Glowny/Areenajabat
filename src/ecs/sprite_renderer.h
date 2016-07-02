@@ -22,7 +22,7 @@ namespace arena
 	class SpriteRenderer final : public RenderComponent
 	{
 	public:	
-		~SpriteRenderer() = default;
+		SpriteRenderer(Entity* const owner);
 
 		glm::vec2& position();
 		glm::vec2& origin();
@@ -33,6 +33,8 @@ namespace arena
 
 		TextureResource* const getTexture();
 		void setTexture(TextureResource* const texture);
+
+		~SpriteRenderer() = default;
 	private:
 		SpriteData m_sprite;
 	};
