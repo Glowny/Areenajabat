@@ -4,6 +4,8 @@
 #include "..\graphics\sprite.h"
 #include "render_component.h"
 
+#include "..\rect.h"
+
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 
 namespace arena
@@ -14,10 +16,9 @@ namespace arena
 		TextureResource* m_texture;
 		glm::vec2		 m_position;
 		glm::vec2		 m_origin;
-		glm::vec2		 m_scale;
-		glm::vec2		 m_srcxy;
-		glm::vec2		 m_srcwh;
-		float32			 m_rotation;
+		glm::vec2		 m_scale		{ 1.0f, 1.0f };
+		Rectf			 m_src;
+		float32			 m_rotation		{ 0.0f };
 
 		SpriteData()		 = default;
 		~SpriteData()		 = default;
@@ -31,15 +32,14 @@ namespace arena
 		glm::vec2& position();
 		glm::vec2& origin();
 		glm::vec2& scale();
-		glm::vec2& sourcePosition();
-		glm::vec2& sourceSize();
+		Rectf& source();
 
 		void rotate(const float32 amount);
 		void setRotation(const float32 rotation);
 		float32 getRotation() const;
 
 		TextureResource* const getTexture();
-		void setTexture(TextureResource* const texture);
+		void setTexture(TextureResource* const texture, bool fitToArea = true);
 
 		~SpriteRenderer() = default;
 	private:

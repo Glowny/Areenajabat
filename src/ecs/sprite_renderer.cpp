@@ -1,6 +1,8 @@
 #include "sprite_renderer.h"
 #include "entity.h"
 
+#include "..\res\texture_resource.h"
+
 namespace arena
 {
 	SpriteRenderer::SpriteRenderer(Entity* const owner) : RenderComponent(owner)
@@ -19,13 +21,9 @@ namespace arena
 	{
 		return m_sprite.m_scale;
 	}
-	glm::vec2& SpriteRenderer::sourcePosition()
+	Rectf& SpriteRenderer::source()
 	{
-		return m_sprite.m_srcxy;
-	}
-	glm::vec2& SpriteRenderer::sourceSize()
-	{
-		return m_sprite.m_srcwh;
+		return m_sprite.m_src;
 	}
 
 	void SpriteRenderer::rotate(const float32 amount)
@@ -45,8 +43,19 @@ namespace arena
 	{
 		return m_sprite.m_texture;
 	}
-	void SpriteRenderer::setTexture(TextureResource* const texture)
+	void SpriteRenderer::setTexture(TextureResource* const texture, bool fitToArea)
 	{
+		if (texture == nullptr) return;
+
 		m_sprite.m_texture = texture;
+
+		if (fitToArea) 
+		{
+			Rectf& src = m_sprite.m_src;
+			src.x = 0.0f;
+			src.y = 0.0f;
+			src.h = float32(texture->width);
+			src.w = float32(texture->height);
+		}
 	}
 }
