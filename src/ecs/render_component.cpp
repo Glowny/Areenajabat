@@ -2,6 +2,10 @@
 
 namespace arena
 {
+	RenderComponent::RenderComponent(Entity* const owner) : Component(owner)
+	{
+	}
+
 	uint32 RenderComponent::getLayer() const
 	{
 		return m_layer;

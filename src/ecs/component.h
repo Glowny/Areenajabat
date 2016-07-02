@@ -24,10 +24,10 @@ namespace arena
 
 		virtual ~Component();
 	protected:
-		virtual void onDestroy();
-	private:
 		Component(Entity* owner);
 
+		virtual void onDestroy();
+	private:
 		Entity* m_owner;
 
 		bool m_destroyed;
