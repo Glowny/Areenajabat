@@ -61,13 +61,11 @@ namespace arena
             m_upperArm(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png")),
             m_foreArm(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png")),
             m_gun(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/guns/GladiusLeft.png")),
-            //m_laser(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "blank.png")),
             m_flipX(false)
         {
             // setup children hierarchy
             m_upperArm.m_children.push_back(&m_foreArm);
             m_foreArm.m_children.push_back(&m_gun);
-            //m_gun.m_children.push_back(&m_laser);
 
             // upper arm
             m_upperArm.m_origin = glm::vec2(m_upperArm.m_texture->width / 2.f, 10.f);
@@ -85,12 +83,6 @@ namespace arena
             m_gun.m_origin = glm::vec2(m_gun.m_texture->width, m_gun.m_texture->height) / 2.f;
             m_gun.m_rotation = glm::radians(m_gunAngle);
             m_gun.m_position = glm::vec2(5.f, 18.f); // 10.f
-
-            /*// laser
-            m_laser.m_scale = glm::vec2(400, 1);
-            m_laser.m_position = glm::vec2(0, 23.f);
-            m_laser.m_rotation = glm::radians(-180.f);
-            m_laser.m_depth = 100.f;*/
         }
 
         void flip()
@@ -127,7 +119,6 @@ namespace arena
         CompositeSprite m_upperArm;
         CompositeSprite m_foreArm;
         CompositeSprite m_gun;
-        //CompositeSprite m_laser;
 
         bool m_flipX;
     };
