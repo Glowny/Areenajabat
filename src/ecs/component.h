@@ -8,7 +8,8 @@
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteManager)
 
-#define COMPONENT_INITIALIZE(__ptr__, __type__, ...) DYNAMIC_NEW(__ptr__, __type__, ...)
+#define SET_FRIENDS template<typename T> \
+					friend class ComponentManager;
 
 namespace arena
 {
@@ -16,8 +17,7 @@ namespace arena
 	{
 	friend class Entity;
 
-	template<typename T>
-	friend class ComponentManager;
+	SET_FRIENDS
 	
 	DEFINE_RTTI_SUPER_TYPE(Component)
 	

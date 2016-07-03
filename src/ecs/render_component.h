@@ -14,8 +14,7 @@ namespace arena
 {
 	class RenderComponent : public Component
 	{
-	template<typename T>
-	friend class ComponentManager;
+	SET_FRIENDS
 
 	DEFINE_RTTI_SUB_TYPE(RenderComponent)
 
