@@ -42,7 +42,9 @@ namespace arena
 		auto it			= begin();
 		const auto last	= end();
 
-		//uint32 lastLayer = (*itCur)->getLayer();
+		//uint32 lastLayer = (*itCur)->getLayer()
+
+		// TODO: draw to layers.
 
 		while (it != last) 
 		{
@@ -50,19 +52,20 @@ namespace arena
 
 			if (renderer->isAnchored())
 			{
-				Entity* const owner			= renderer->owner();
+				Entity* const owner = renderer->owner();
 
-				Component* const component	= owner->first(TYPEOF(Transform));
+				Component* const component = owner->first(TYPEOF(Transform));
 
-				if (component == nullptr) return;
+				if (component != nullptr)
+				{
+					Transform* const transform = static_cast<Transform* const>(component);
 
-				Transform* const transform  = static_cast<Transform* const>(component);
+					glm::vec2 offset = renderer->getOffset();
+					glm::vec2 ownerPosition = transform->m_position;
 
-				glm::vec2 offset		= renderer->getOffset();
-				glm::vec2 ownerPosition = transform->m_position;
-
-				glm::vec2& position		= renderer->getPosition();
-				position = ownerPosition + offset;
+					glm::vec2& position = renderer->getPosition();
+					position = ownerPosition + offset;
+				}
 			}
 
 			spriteBatch->draw(

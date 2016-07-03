@@ -80,7 +80,10 @@ namespace arena
 
 		s_allocator.destroy(this);
 
-		// TODO: cleanup components.
+		for (Component* component : m_components) component->destroy();
+		
+		m_components.clear();
+
 		m_destroyed = true;
 	}
 	bool Entity::destroyed() 

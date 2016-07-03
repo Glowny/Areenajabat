@@ -15,25 +15,14 @@
 #   include "..\ecs\sprite_renderer.h"
 #endif
 
+#include "..\ecs\entity_builder.h"
+
 namespace arena
 {
-	static Entity* ent1 { nullptr };
-	static Entity* ent2 { nullptr };
+	static Entity* entity;
 
 	SandboxSecene::SandboxSecene() : Scene("sandbox")
 	{
-	}
-
-	static void test_RTTI()
-	{
-		const auto transt = TYPEOF(Transform);
-		const auto spritt = TYPEOF(SpriteRenderer);
-		const auto rendtt = TYPEOF(RenderComponent);
-		const auto comptt = TYPEOF(Component);
-
-		volatile static int j = 0;
-
-		if (j == 0) return;
 	}
 
 	void SandboxSecene::onUpdate(const GameTime&)
@@ -41,15 +30,21 @@ namespace arena
 	}
 	void SandboxSecene::onInitialize()
 	{
-		test_RTTI();
+		EntityBuilder builder;
 
-		ent1 = Entity::create("ent1");
-		ent2 = Entity::create("ent2");
+		builder.begin();
 		
-		SpriteRenderer* ent1rend = SpriteManager::instance().create();
-		ent1rend->setTexture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "perkele.png"));
-		ent1->add(ent1rend);
-		SpriteManager::instance().registerComponent(ent1rend);
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+		renderer->setTexture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "perkele.png"));
+		renderer->anchor();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position.x = 0.0f;
+		transform->m_position.y = 0.0f;
+
+		entity = builder.getResults();
+	
+		registerEntity(entity);
 	}
 	void SandboxSecene::onDestroy()
 	{
