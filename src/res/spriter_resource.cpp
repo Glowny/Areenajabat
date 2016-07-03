@@ -171,7 +171,7 @@ namespace arena
             : ImageFile(initialFilePath, initialDefaultPivot),
             m_texture(nullptr)
         {
-            m_texture = arena::getResources()->get<TextureResource>(ResourceType::Texture, initialFilePath);
+            m_texture = App::instance().resources()->get<TextureResource>(ResourceType::Texture, initialFilePath);
         }
 
         void renderSprite(UniversalObjectInterface * spriteInfo) override

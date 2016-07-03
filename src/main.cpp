@@ -415,8 +415,7 @@ namespace arena
     };
 
     static Context s_ctx;
-    static arena::App s_app;
-
+    
     void setWindowSize(uint32_t width, uint32_t height, bool force)
     {
         if (width != s_ctx.m_width
@@ -447,16 +446,18 @@ namespace arena
 
         inputInit();
 
-        s_app.init(s_ctx.m_width, s_ctx.m_height);
+		App& app = App::instance();
 
-        while (!s_app.update());
+		app.init(s_ctx.m_width, s_ctx.m_height);
+
+        while (!app.update());
 
         SDL_Event event;
         SDL_QuitEvent& qev = event.quit;
         qev.type = SDL_QUIT;
         SDL_PushEvent(&event);
 
-        s_app.shutdown();
+        app.shutdown();
 
         bgfx::shutdown();
 

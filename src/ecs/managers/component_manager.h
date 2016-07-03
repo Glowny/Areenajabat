@@ -3,12 +3,11 @@
 #include "..\..\forward_declare.h"
 
 #include <cassert>
+#include <iterator>
 #include <vector>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameTime)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Component)
-
-using ComponentIterator = std::vector<arena::Component*>::iterator;
 
 namespace arena
 {
@@ -26,21 +25,16 @@ namespace arena
 			assert(component != nullptr);
 			
 			m_components.push_back(component);
+
+			onRegister(component);
 		}
 		void unregisterComponent(T* const component)
 		{
 			assert(component != nullptr);
 
 			m_components.erase(std::find(m_components.begin(), m_components.end(), component), m_components.end());
-		}
 
-		ComponentIterator begin()
-		{
-			return m_components.begin();
-		}
-		ComponentIterator end()
-		{
-			return m_components.end();
+			onUnregister(component);
 		}
 
 		void update(const GameTime& gameTime)
@@ -55,12 +49,34 @@ namespace arena
 			onUpdate(gameTime);
 		}
 
+		decltype(auto) begin()
+		{
+			return m_components.begin();
+		}
+		decltype(auto) end()
+		{
+			return m_components.end();
+		}
+		bool empty() const
+		{
+			return m_components.empty();
+		}
+
 		virtual ~ComponentManager() = default;
 	protected:
 		ComponentManager() = default;
 
 		// To handle component specific update logic.
-		virtual void onUpdate(const GameTime& gameTime);
+		virtual void onUpdate(const GameTime&)
+		{
+		}
+
+		virtual void onRegister(Component* const)
+		{
+		}
+		virtual void onUnregister(Component* const)
+		{
+		}
 	private:
 		std::vector<T*> m_components;
 	};

@@ -97,6 +97,35 @@ namespace arena
 		m_components.erase(std::find(m_components.begin(), m_components.end(), component));
 	}
 
+	bool Entity::contains(const Type& type) const
+	{
+		for (Component* const component : m_components) if (component->getType() == type) return true;
+		
+		return false;
+	}
+	uint32 Entity::count(const Type& type) const
+	{
+		uint32 count = 0;
+
+		for (Component* const component : m_components) if (component->getType() == type) count++;
+		
+		return count;
+	}
+
+	Component* const Entity::first(const Type& type) const
+	{
+		for (Component* const component : m_components) if (component->getType() == type) return component;
+
+		return nullptr;
+	}
+
+	Component* const Entity::find(Predicate<Component*> predicate)
+	{
+		for (Component* const component : m_components) if (predicate(component)) return component;
+		
+		return nullptr;
+	}
+
 	const String& Entity::getTags() const 
 	{
 		return m_tags;

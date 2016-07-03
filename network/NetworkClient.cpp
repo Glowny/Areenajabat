@@ -61,7 +61,12 @@ void Network::sendPacket(unsigned char* data, size_t size, bool reliable)
 		flag);
 	enet_peer_send(m_peer, 0, ePacket);
 	
-	// When all packets are ready to send 
+	
+	
+}
+// When all packets are ready to send 
+void Network::sendMessages()
+{
 	enet_host_flush(m_client);
 }
 

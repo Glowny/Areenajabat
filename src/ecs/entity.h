@@ -3,6 +3,8 @@
 #include "..\mem\pool_allocator.h"
 #include "..\forward_declare.h"
 #include "..\arena_types.h"
+#include "..\functional.h"
+#include "..\rtti\rtti_define.h"
 
 #include <vector>
 #include <iterator>
@@ -52,6 +54,19 @@ namespace arena
 
 		void add(Component* const component);
 		void remove(Component* const component);
+
+		// Returns true if the entity owns a component
+		// of given type. 
+		bool contains(const Type& type) const;
+		// Returns the count of given components.
+		uint32 count(const Type& type) const;
+
+		// Returns the first component of given type.
+		Component* const first(const Type& type) const;
+		
+		// Returns the first component that matches the given
+		// predicate, if no matches are found, will return a null pointer.
+		Component* const find(Predicate<Component*> predicate);
 
 		const String& getTags() const;
 		void setTags(const String& tags);

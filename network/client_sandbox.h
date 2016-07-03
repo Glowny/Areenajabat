@@ -7,6 +7,14 @@
 #include "NetworkClient.h"
 #include <SFML/Graphics.hpp>
 
+struct LiveBullet
+{
+	glm::vec2 position;
+	glm::vec2 velocity;
+	sf::RectangleShape* m_rectangle;
+	
+};
+
 class Client
 {
 public:
@@ -30,17 +38,21 @@ private:
 	void updatePhysics();
 
 	// Data send from server
-	// players
-	std::vector<GladiatorData> m_gladiatorVector;
+	
 	// platforms send by server
 	std::vector<Platform> m_points;
-	
+	bool noMoreBullets;
+	std::vector<BulletInputData> m_bulletVector;
+	std::queue<unsigned char*> m_messageQueueIn;
+
 	// Data send to server
 	glm::vec2 m_movedir;
 
 	// Messages server send.
-	std::queue<unsigned char*> m_messageQueue;
 	
+	// game objects
+	std::vector<GladiatorData> m_gladiatorVector;
+	std::vector<LiveBullet> m_liveBulletVector;
 	// Network low level	
 	Network m_network;
 
@@ -49,11 +61,13 @@ private:
 
 	// SFML stuff for window, draw and clock.
 	sf::RenderWindow* m_window;
+	sf::View m_view;
 	sf::Clock m_networkClock;
 	sf::Clock m_physicsClock;
 	// Vertex data about platforms used for drawing by SFML
 	std::vector<std::vector<sf::Vertex>> m_vertexes;
 	sf::RectangleShape m_rectangle;
+	sf::RectangleShape m_bulletRectangle;
 };
 
 #endif

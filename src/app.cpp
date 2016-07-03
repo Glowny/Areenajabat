@@ -1,4 +1,5 @@
 #include "game_time.h"
+#include "ecs\managers\sprite_manager.h"
 #include "app.h"
 #include <bgfx/bgfx.h>
 #include "input/input.h"
@@ -29,14 +30,11 @@ namespace arena
 {
 
     static MouseState s_mouseState;
-    static ResourceManager*			s_resources;
-    static SpriteBatch*				s_spriteBatch;
-    static Camera					s_camera(1280.f, 720.f);
-
+    
     struct Crosshair
     {
         Crosshair()
-            : m_texture(getResources()->get<TextureResource>(ResourceType::Texture, "crosshair.png"))
+            : m_texture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "crosshair.png"))
         {
 
         }
@@ -60,10 +58,10 @@ namespace arena
             m_upperAngle(70.f),
             m_forearmAngle(40.f),
             m_gunAngle(250.f),
-            m_upperArm(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png")),
-            m_foreArm(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png")),
-            m_gun(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/guns/GladiusLeft.png")),
-            //m_laser(getResources()->get<TextureResource>(ResourceType::Texture, "blank.png")),
+            m_upperArm(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png")),
+            m_foreArm(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png")),
+            m_gun(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/guns/GladiusLeft.png")),
+            //m_laser(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "blank.png")),
             m_flipX(false)
         {
             // setup children hierarchy
@@ -137,8 +135,8 @@ namespace arena
     struct Head
     {
         Head() :
-            m_helmet(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png")),
-            m_crest(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"))
+            m_helmet(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png")),
+            m_crest(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"))
         {
             // setup hierarchy
             m_helmet.m_children.push_back(&m_crest);
@@ -158,10 +156,10 @@ namespace arena
         glm::vec2 m_reloadOffset;
 
         Character() :
-            m_legs(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)),
-            m_reload(getResources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAnimations/Gladius.scml")->getNewEntityInstance(0)),
-            m_torso(getResources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
-            m_torsoOffset(-6.f, 37.f), 
+            m_legs(App::instance().resources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)),
+            m_reload(App::instance().resources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAnimations/Gladius.scml")->getNewEntityInstance(0)),
+            m_torso(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png")),
+            m_torsoOffset(-6.f, 37.f),
             m_legOffset(11, 124),
             m_reloadOffset(12, 45),
             m_elapsed(0.0),
@@ -220,7 +218,7 @@ namespace arena
 
             m_torso.m_position = m_position + m_torsoOffset + m_perFrameTorsoOffset;
             glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
-            transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
+            transform(mouseLoc, glm::inverse(App::instance().camera().m_matrix), &mouseLoc);
 
             m_cross.m_position = mouseLoc - glm::vec2(m_cross.m_texture->width, m_cross.m_texture->height) / 2.f;
 
@@ -438,16 +436,11 @@ namespace arena
 		return &s_allocator;
 	}
 
-	ResourceManager* getResources()
-	{
-		return s_resources;
-	}
-
 	void draw(const TextureResource* texture, glm::vec4* src, uint32_t color, 
         const glm::vec2& position, const glm::vec2& origin, const glm::vec2& scale, 
         uint8_t effect, float angle, float depth)
 	{
-		s_spriteBatch->draw(
+		App::instance().spriteBatch()->draw(
 			texture,
 			src,
 			color,
@@ -464,10 +457,22 @@ namespace arena
 		App member functions.
 	*/
 
+	App::App()
+	{
+	}
+
+	App& App::instance()
+	{
+		static App app;
+
+		return app;
+	}
+
     void App::init(int32_t width, int32_t height)
     {
-        this->width = width;
-        this->height = height;
+		m_width = width;
+		m_height = height;
+		m_camera = Camera(float32(width), float32(height));
 
         s_last_time = bx::getHPCounter();
 
@@ -494,8 +499,8 @@ namespace arena
             , 0
             );
 
-        s_resources = new ResourceManager("assets/");
-        s_spriteBatch = new SpriteBatch;
+        m_resources = new ResourceManager("assets/");
+        m_spriteBatch = new SpriteBatch;
         
         s_char = new Character;
 
@@ -511,7 +516,7 @@ namespace arena
 	bool App::update()
 	{
 		// return true if we want to exit
-		if (processEvents(width, height)) return true;
+		if (processEvents(m_width, m_height)) return true;
 
 		int64_t currentTime = bx::getHPCounter();
 		const int64_t time = currentTime - s_last_time;
@@ -526,15 +531,15 @@ namespace arena
 
         bgfx::touch(0);
         
-        s_camera.m_position = s_char->m_position;
-        s_camera.m_zoom = 1.f;
-		s_camera.calculate();
+        m_camera.m_position = s_char->m_position;
+        m_camera.m_zoom = 1.f;
+		m_camera.calculate();
 
 
 		float ortho[16];
-		bx::mtxOrtho(ortho, 0.0f, float(width), float(height), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, glm::value_ptr(s_camera.m_matrix), ortho);
-		bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
+		bx::mtxOrtho(ortho, 0.0f, float(m_width), float(m_height), 0.0f, 0.0f, 1000.0f);
+		bgfx::setViewTransform(0, glm::value_ptr(m_camera.m_matrix), ortho);
+		bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
 
 		bgfx::touch(0);
 		bgfx::dbgTextClear();
@@ -550,15 +555,17 @@ namespace arena
         s_char->update(lastDeltaTime);
 
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
-        transform(mouseLoc, glm::inverse(s_camera.m_matrix), &mouseLoc);
+        transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
 
         bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
         s_char->render();
 
-		s_spriteBatch->submit(0);
+		m_spriteBatch->submit(0);
 
+		// Update systems.
 		SceneManager::instance().update(gameTime);
+		SpriteManager::instance().update(gameTime);
 
 		bgfx::frame();
 
@@ -570,10 +577,23 @@ namespace arena
 		inputRemoveBindings("bindings");
         inputShutdown();
 
-		delete s_resources;
-		s_resources = NULL;
-		delete s_spriteBatch;
-		s_spriteBatch = NULL;
+		delete m_resources;
+		m_resources = NULL;
+		delete m_spriteBatch;
+		m_spriteBatch = NULL;
+	}
+
+	SpriteBatch* const App::spriteBatch()
+	{
+		return m_spriteBatch;
+	}
+	ResourceManager* const App::resources()
+	{
+		return m_resources;
+	}
+	Camera& App::camera()
+	{
+		return m_camera;
 	}
 
     static void moveLeft(const void*)
