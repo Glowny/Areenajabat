@@ -24,6 +24,7 @@
 #include "camera.h"
 #include "graphics/composite_sprite.h"
 #include "scenes/scene_manager.h"
+#include "graphics\layers.h"
 #include "scenes/sandbox_scene.h"
 
 namespace arena
@@ -499,7 +500,9 @@ namespace arena
 
         bgfx::touch(0);
         
-        m_camera.m_position = s_char->m_position;
+		m_camera.m_position.x = 0.0f;
+		m_camera.m_position.y = 0.0f;
+		//s_char->m_position;
 		m_camera.calculate();
 
 
@@ -528,11 +531,12 @@ namespace arena
 
         s_char->render();
 
-		m_spriteBatch->submit(0);
-
 		// Update systems.
 		SceneManager::instance().update(gameTime);
 		SpriteManager::instance().update(gameTime);
+
+		//for (uint32 layer : layers::Layers) m_spriteBatch->submit(layer);
+		m_spriteBatch->submit(0);
 
 		bgfx::frame();
 
