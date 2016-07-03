@@ -3,6 +3,7 @@
 namespace SpriterEngine { class EntityInstance; }
 
 #include <glm/glm.hpp>
+#include <string>
 
 namespace arena
 {
@@ -30,7 +31,7 @@ namespace arena
         double getCurrentTime() const;
 
         bool isFinished() const;
-    private:
+    public:
         SpriterEngine::EntityInstance* m_entity;
     };
 }

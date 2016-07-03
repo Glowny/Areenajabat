@@ -25,6 +25,8 @@
 #include "graphics/composite_sprite.h"
 #include "scenes/scene_manager.h"
 #include "scenes/sandbox_scene.h"
+#include "graphics/animation_system.h"
+#include "graphics/character_animator.h"
 
 namespace arena
 {
@@ -42,105 +44,8 @@ namespace arena
         glm::vec2 m_position;
     };
 
-    struct AnimationType
-    {
-        enum Enum
-        {
-            Gladius = 0,
 
-            Count
-        };
-    };
-
-    struct RightArm
-    {
-        RightArm() :
-            m_upperAngle(70.f),
-            m_forearmAngle(40.f),
-            m_gunAngle(250.f),
-            m_upperArm(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png")),
-            m_foreArm(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png")),
-            m_gun(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/guns/GladiusLeft.png")),
-            m_flipX(false)
-        {
-            // setup children hierarchy
-            m_upperArm.m_children.push_back(&m_foreArm);
-            m_foreArm.m_children.push_back(&m_gun);
-
-            // upper arm
-            m_upperArm.m_origin = glm::vec2(m_upperArm.m_texture->width / 2.f, 10.f);
-            m_upperArm.m_rotation = glm::radians(m_upperAngle);
-            m_upperArm.m_depth = 2.f;
-
-            // fore arm
-            m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 10.f);;
-            m_foreArm.m_position = glm::vec2(5, 30);
-            m_foreArm.m_rotation = glm::radians(m_forearmAngle);
-            m_foreArm.m_depth = 2.f;
-
-            // gun
-            m_gun.m_depth = 1.9f;
-            m_gun.m_origin = glm::vec2(m_gun.m_texture->width, m_gun.m_texture->height) / 2.f;
-            m_gun.m_rotation = glm::radians(m_gunAngle);
-            m_gun.m_position = glm::vec2(5.f, 18.f); // 10.f
-        }
-
-        void flip()
-        {
-            m_flipX = !m_flipX;
-
-            if (m_flipX)
-            {
-                m_upperArm.m_rotation = glm::radians(-m_upperAngle);
-                m_foreArm.m_rotation = glm::radians(-m_forearmAngle);
-                m_gun.m_rotation = glm::radians(-m_gunAngle);
-                m_foreArm.m_position.x = 9.f;
-            }
-            else
-            {
-                m_upperArm.m_rotation = glm::radians(m_upperAngle);
-                m_foreArm.m_rotation = glm::radians(m_forearmAngle);
-                m_gun.m_rotation = glm::radians(m_gunAngle);
-                m_foreArm.m_position.x = 5.f;
-            }
-        }
-
-        void render()
-        {
-            SpriteEffects::Enum effects = m_flipX ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
-            m_upperArm.render(effects);
-        }
-
-        // left angles
-        float m_upperAngle;
-        float m_forearmAngle;
-        float m_gunAngle;
-
-        CompositeSprite m_upperArm;
-        CompositeSprite m_foreArm;
-        CompositeSprite m_gun;
-
-        bool m_flipX;
-    };
-
-    struct Head
-    {
-        Head() :
-            m_helmet(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png")),
-            m_crest(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"))
-        {
-            // setup hierarchy
-            m_helmet.m_children.push_back(&m_crest);
-
-            m_helmet.m_position = glm::vec2(0, -28);
-
-            m_crest.m_position = glm::vec2(0, -9);
-        }
-
-        CompositeSprite m_helmet;
-        CompositeSprite m_crest;
-    };
-
+#if 0
     class Character
     {
     public:
@@ -154,23 +59,24 @@ namespace arena
             m_legOffset(11, 124),
             m_reloadOffset(12, 45),
             m_elapsed(0.0),
-            m_flipX(false)
+            m_animationParts(getAnimationDataFor(WeaponAnimationType::Gladius)),
+            m_flipX(false),
+            m_wasFlipped(false)
         {
             m_legs.setCurrentAnimation("1_Left");
             m_reload.setCurrentAnimation(0);
             
             // setup hierarchy, torso holds head and arms
             m_torso.m_children.push_back(&m_head.m_helmet);
-            m_torso.m_children.push_back(&m_arm.m_upperArm);
+            m_torso.m_children.push_back(m_animationParts->m_rightHand->getParent());
 
             //m_torso.m_origin = glm::vec2(m_torso.m_texture->width / 2.f, m_torso.m_texture->height - 4);
-
-            m_arm.m_upperArm.m_position = glm::vec2(16, 10);
             setPosition(glm::vec2(0.f));
         }
 
         void update(float dt)
         {
+            m_wasFlipped = m_flipX;
             static const uint32_t length = 600;
 
             static const float s_directionTransitionTable[] =
@@ -213,22 +119,25 @@ namespace arena
 
             m_cross.m_position = mouseLoc - glm::vec2(m_cross.m_texture->width, m_cross.m_texture->height) / 2.f;
 
-            const glm::vec2 handpos = m_arm.m_upperArm.m_globalPosition;
+            CompositeSprite* handSprite = m_animationParts->m_rightHand->getParent();
+
+            const glm::vec2 handpos = handSprite->m_globalPosition;
+
             glm::vec2 dir(mouseLoc - handpos);            
 
             m_flipX = mouseLoc.x >= m_position.x;
-
+#if 0
             float a = glm::atan(dir.y, dir.x);
 
             if (m_flipX)
             {
-                m_arm.m_upperArm.m_rotation = glm::radians(-m_arm.m_upperAngle) + a;
+                handSprite->m_rotation = glm::radians(-handSprite->m_upperAngle) + a;
             }
             else
             {
                 m_arm.m_upperArm.m_rotation = glm::radians(m_arm.m_upperAngle) - glm::radians(180.f) + a;
             }
-
+#endif
             static float angle = 0.000f;
             m_reload.setAngle(glm::radians(90.f));
         }
@@ -239,8 +148,8 @@ namespace arena
             if (m_flipX)
             {
                 effects = SpriteEffects::FlipHorizontally;
-                if (!m_arm.m_flipX)
-                    m_arm.flip();
+                if (!m_wasFlipped)
+                    m_animationParts->m_rightHand->flip();
 
                 if (m_legs.getCurrentAnimationName() == "1_Left")
                 {
@@ -253,7 +162,7 @@ namespace arena
             }
             else
             {
-                if (m_arm.m_flipX) m_arm.flip();
+                if (m_wasFlipped) m_animationParts->m_rightHand->flip();
 
                 if (m_legs.getCurrentAnimationName() == "1_Right")
                 {
@@ -284,9 +193,9 @@ namespace arena
     public:
         SpriterAnimationPlayer m_legs;
         SpriterAnimationPlayer m_reload;
+        AnimationData* m_animationParts;
 
         CompositeSprite m_torso;
-        RightArm m_arm;
         Head m_head;
 
         Crosshair m_cross;
@@ -304,9 +213,12 @@ namespace arena
         glm::vec2 m_perFrameTorsoOffset;
 
         bool m_flipX;
+        bool m_wasFlipped;
     };
+#endif
+    static CharacterAnimator s_anim;
 
-    static Character* s_char;
+    //static Character* s_char;
 	/*
 		Static members.
 	*/
@@ -491,9 +403,22 @@ namespace arena
             );
 
         m_resources = new ResourceManager("assets/");
+        animationSystemInit();
+
+
+        s_anim.setStaticContent(
+            resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
+            resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
+            resources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
+            resources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
+            );
+
+        s_anim.setWeaponAnimation(WeaponAnimationType::Gladius);
+        s_anim.setPosition(glm::vec2(-100, -100));
+
         m_spriteBatch = new SpriteBatch;
         
-        s_char = new Character;
+        //s_char = new Character;
 
 		SandboxSecene* scene = new  SandboxSecene();
 		
@@ -501,7 +426,7 @@ namespace arena
 		
 		scene->activate();
 
-        s_char->setPosition(glm::vec2(1280.f, 0.f));
+        //s_char->setPosition(glm::vec2(1280.f, 0.f));
     }
 
 	bool App::update()
@@ -522,7 +447,7 @@ namespace arena
 
         bgfx::touch(0);
         
-        m_camera.m_position = s_char->m_position;
+        //m_camera.m_position = s_char->m_position;
         m_camera.m_zoom = 1.f;
 		m_camera.calculate();
 
@@ -543,14 +468,15 @@ namespace arena
 		bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
         
-        s_char->update(lastDeltaTime);
+        //s_char->update(lastDeltaTime);
+        s_anim.update(lastDeltaTime);
 
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
         transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
 
         bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
-        s_char->render();
+        s_anim.render();
 
 		m_spriteBatch->submit(0);
 
@@ -567,6 +493,8 @@ namespace arena
 	{
 		inputRemoveBindings("bindings");
         inputShutdown();
+
+        animationSystemShutdown();
 
 		delete m_resources;
 		m_resources = NULL;
@@ -589,18 +517,18 @@ namespace arena
 
     static void moveLeft(const void*)
     {
-        s_char->setPosition(s_char->m_position + glm::vec2(-0.1f, 0.f));
+        //s_char->setPosition(s_char->m_position + glm::vec2(-0.1f, 0.f));
     }
     static void moveRight(const void*)
     {
-        s_char->setPosition(s_char->m_position + glm::vec2(0.1f, 0.f));
+        //s_char->setPosition(s_char->m_position + glm::vec2(0.1f, 0.f));
     }
     static void moveDown(const void*)
     {
-        s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, 0.1f));
+        //s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, 0.1f));
     }
     static void moveUp(const void*)
     {
-        s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, -0.1f));
+        //s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, -0.1f));
     }
 }
