@@ -28,8 +28,11 @@ namespace arena
 
 	class SpriteRenderer final : public RenderComponent
 	{
-	friend class SpriteManager;
+	template<typename T>
+	friend class ComponentManager;
+
 	DEFINE_RTTI_SUB_TYPE(SpriteRenderer)
+	
 	public:	
 		glm::vec2& getPosition();
 		glm::vec2& getOrigin();
@@ -50,7 +53,7 @@ namespace arena
 
 		~SpriteRenderer() = default;
 	protected:
-		SpriteRenderer(Entity* const owner);
+		SpriteRenderer() = default;
 	private:
 		SpriteData m_sprite;
 	};

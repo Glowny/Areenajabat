@@ -14,11 +14,6 @@ namespace arena
 															 m_typeID(s_IDGenerator++) {
 	}
 
-	Type::Type() : m_typename(nullptr),
-				   m_size(NULL),
-				   m_typeID(NULL) {
-	}
-
 	bool Type::operator ==(const Type& lhs) const
 	{
 		return lhs.m_typeID == m_typeID;

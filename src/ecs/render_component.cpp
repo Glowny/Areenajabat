@@ -4,10 +4,6 @@ namespace arena
 {
 	REGISTER_RTTI_SUB_TYPE(RenderComponent)
 
-	RenderComponent::RenderComponent(Entity* const owner) : Component(owner)
-	{
-	}
-
 	uint32 RenderComponent::getLayer() const
 	{
 		return m_layer;

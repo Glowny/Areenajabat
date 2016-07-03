@@ -14,7 +14,11 @@ namespace arena
 {
 	class RenderComponent : public Component
 	{
+	template<typename T>
+	friend class ComponentManager;
+
 	DEFINE_RTTI_SUB_TYPE(RenderComponent)
+
 	public:
 		uint32 getLayer() const;
 		void setLayer(const uint32 layer);
@@ -34,7 +38,7 @@ namespace arena
 
 		virtual ~RenderComponent() = default;
 	protected:
-		RenderComponent(Entity* const owner);
+		RenderComponent() = default;
 	private:
 		uint32		m_layer		{ layers::Background };
 		uint32		m_color		{ color::White		 };

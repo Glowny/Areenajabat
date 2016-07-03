@@ -15,7 +15,12 @@ namespace arena
 	class Component
 	{
 	friend class Entity;
+
+	template<typename T>
+	friend class ComponentManager;
+	
 	DEFINE_RTTI_SUPER_TYPE(Component)
+	
 	public:
 		Entity* owner();
 
@@ -24,7 +29,7 @@ namespace arena
 
 		virtual ~Component();
 	protected:
-		Component(Entity* owner);
+		Component();
 
 		virtual void onDestroy();
 	private:

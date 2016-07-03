@@ -11,51 +11,51 @@
 
 namespace arena
 {
-	void EntityBuilder::begin()
-	{
-		m_entity = Entity::create();
-	}
+	//void EntityBuilder::begin()
+	//{
+	//	m_entity = Entity::create();
+	//}
 
-	Transform* const EntityBuilder::addTransformComponent()
-	{
-		assert(m_entity != nullptr);
+	//Transform* const EntityBuilder::addTransformComponent()
+	//{
+	//	assert(m_entity != nullptr);
 
-		Transform* const transform = TransformManager::instance().create();
+	//	Transform* const transform = TransformManager::instance().create();
 
-		m_entity->add(transform);
+	//	m_entity->add(transform);
 
-		return transform;
-	}
-	SpriteRenderer* const EntityBuilder::addSpriteRenderer()
-	{
-		assert(m_entity != nullptr);
+	//	return transform;
+	//}
+	//SpriteRenderer* const EntityBuilder::addSpriteRenderer()
+	//{
+	//	assert(m_entity != nullptr);
 
-		SpriteRenderer* const renderer = SpriteManager::instance().create();
+	//	SpriteRenderer* const renderer = SpriteManager::instance().create();
 
-		m_entity->add(renderer);
+	//	m_entity->add(renderer);
 
-		return renderer;
-	}
+	//	return renderer;
+	//}
 
-	void EntityBuilder::addTag(const String& tag)
-	{
-		assert(m_entity != nullptr);
+	//void EntityBuilder::addTag(const String& tag)
+	//{
+	//	assert(m_entity != nullptr);
 
-		m_entity->setTags(m_entity->getTags() + "|" + tag);
-	}
-	void EntityBuilder::setTags(const String& tags)
-	{
-		assert(m_entity != nullptr);
+	//	m_entity->setTags(m_entity->getTags() + "|" + tag);
+	//}
+	//void EntityBuilder::setTags(const String& tags)
+	//{
+	//	assert(m_entity != nullptr);
 
-		m_entity->setTags(tags);
-	}
+	//	m_entity->setTags(tags);
+	//}
 
-	Entity* EntityBuilder::getResults()
-	{
-		Entity* results = m_entity;
-		
-		m_entity = nullptr;
+	//Entity* EntityBuilder::getResults()
+	//{
+	//	Entity* results = m_entity;
+	//	
+	//	m_entity = nullptr;
 
-		return results;
-	}
+	//	return results;
+	//}
 }

@@ -46,7 +46,7 @@ namespace arena
 		ent1 = Entity::create("ent1");
 		ent2 = Entity::create("ent2");
 		
-		SpriteRenderer* ent1rend = SpriteManager::instance().create(ent1);
+		SpriteRenderer* ent1rend = SpriteManager::instance().create();
 		ent1rend->setTexture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "perkele.png"));
 		ent1->add(ent1rend);
 		SpriteManager::instance().registerComponent(ent1rend);

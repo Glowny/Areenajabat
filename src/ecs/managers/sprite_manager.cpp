@@ -21,8 +21,7 @@ namespace arena
 		}
 	};
 
-	SpriteManager::SpriteManager() : ComponentManager(),
-									 m_allocator(PagesCount, PageSize)
+	SpriteManager::SpriteManager() : ComponentManager()
 	{
 	}
 
@@ -69,20 +68,6 @@ namespace arena
 
 			itCur++;
 		}
-	}
-
-	SpriteRenderer* SpriteManager::create(Entity* const owner)
-	{
-		SpriteRenderer* const renderer = m_allocator.allocate();
-
-		// Should always return a valid pointer.
-		DYNAMIC_NEW(renderer, SpriteRenderer, (owner));
-
-		return renderer;
-	}
-	bool SpriteManager::release(SpriteRenderer* const component)
-	{
-		return m_allocator.deallocate(component);
 	}
 
 	void SpriteManager::onRegister(Component* const) 
