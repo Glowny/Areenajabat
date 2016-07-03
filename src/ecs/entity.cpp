@@ -90,10 +90,14 @@ namespace arena
 
 	void Entity::add(Component* const component) 
 	{
+		component->m_owner = this;
+
 		m_components.push_back(component);
 	}
 	void Entity::remove(Component* const component)
 	{
+		component->m_owner = nullptr;
+
 		m_components.erase(std::find(m_components.begin(), m_components.end(), component));
 	}
 

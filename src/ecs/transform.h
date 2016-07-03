@@ -9,6 +9,7 @@ namespace arena
 {
 	class Transform final : public Component
 	{
+	friend class TransformManager;
 	DEFINE_RTTI_SUB_TYPE(Transform)
 	public:
 		glm::vec2 m_position { 0.0f, 0.0f };

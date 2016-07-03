@@ -1,5 +1,7 @@
 #pragma once
 
+#include "..\..\mem\pool_allocator.h"
+#include "..\..\mem\memory.h"
 #include "..\..\forward_declare.h"
 
 #include <cassert>
@@ -7,6 +9,7 @@
 #include <vector>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameTime)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Component)
 
 namespace arena
@@ -20,6 +23,28 @@ namespace arena
 	class ComponentManager
 	{
 	public:
+		T* create(Entity* const owner)
+		{
+			T* component = m_allocator.allocate();
+
+			DYNAMIC_NEW(component, T, (owner));
+
+			return component;
+		}
+		bool release(T* const component)
+		{
+			if (component == nullptr) return;
+
+			if (!component->destroyed())
+			{
+				component->destroy();
+
+				unregisterComponent(component);
+			}
+
+			m_allocator.deallocate(component);
+		}
+
 		void registerComponent(T* const component)
 		{
 			assert(component != nullptr);
@@ -78,6 +103,8 @@ namespace arena
 		{
 		}
 	private:
+		PoolAllocator<T> m_allocator;
+		
 		std::vector<T*> m_components;
 	};
 }

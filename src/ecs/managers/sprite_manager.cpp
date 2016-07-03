@@ -21,13 +21,6 @@ namespace arena
 		}
 	};
 
-	SpriteManager& SpriteManager::instance()
-	{
-		static SpriteManager spriteManager;
-
-		return spriteManager;
-	}
-
 	SpriteManager::SpriteManager() : ComponentManager(),
 									 m_allocator(PagesCount, PageSize)
 	{
