@@ -97,25 +97,32 @@ namespace arena
 		m_components.erase(std::find(m_components.begin(), m_components.end(), component));
 	}
 
-	bool Entity::contains(const RTTIData& componentType) const
+	bool Entity::contains(const Type& type) const
 	{
+		for (Component* const component : m_components) if (component->getType() == type) return true;
+		
 		return false;
 	}
-	uint32 Entity::count(const RTTIData& componentType) const
+	uint32 Entity::count(const Type& type) const
 	{
-		return 0;
+		uint32 count = 0;
+
+		for (Component* const component : m_components) if (component->getType() == type) count++;
+		
+		return count;
 	}
 
-	Component* const Entity::first(const RTTIData& componentType) const
+	Component* const Entity::first(const Type& type) const
 	{
+		for (Component* const component : m_components) if (component->getType() == type) return component;
+
 		return nullptr;
-	}
-	void Entity::ofType(const RTTIData& componentType, std::vector<Component*>& outResults) const
-	{
 	}
 
 	Component* const Entity::find(Predicate<Component*> predicate)
 	{
+		for (Component* const component : m_components) if (predicate(component)) return component;
+		
 		return nullptr;
 	}
 
