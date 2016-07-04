@@ -206,6 +206,7 @@ project "spriterengine"
 		"/wd4244", --return': conversion from '__int64' to 'int', possible loss of data
 		"/wd4267",  --'return': conversion from 'size_t' to 'int', possible loss of data
 		"/wd4800", --'int': forcing value to bool 'true' or 'false' (performance warning)
+		"/wd4018", --warning C4018: '<': signed/unsigned mismatch
 	}
 
 	configuration {}
