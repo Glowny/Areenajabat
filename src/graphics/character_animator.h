@@ -45,6 +45,10 @@ namespace arena
 
         void setPosition(const glm::vec2& position);
 
+        glm::vec2& getPosition();
+
+        const glm::vec2& getPosition() const;
+
         void setFlipX(bool flip);
 
         void setWeaponAnimation(WeaponAnimationType::Enum type);

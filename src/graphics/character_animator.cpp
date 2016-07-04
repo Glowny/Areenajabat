@@ -125,6 +125,16 @@ namespace arena
         }
     }
 
+    const glm::vec2& CharacterAnimator::getPosition() const
+    {
+        return m_position;
+    }
+
+    glm::vec2& CharacterAnimator::getPosition()
+    {
+        return m_position;
+    }
+
     void CharacterAnimator::render()
     {
         SpriteEffects::Enum effects = m_flipX ? SpriteEffects::FlipHorizontally : SpriteEffects::None;

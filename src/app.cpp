@@ -218,24 +218,11 @@ namespace arena
 #endif
     static CharacterAnimator s_anim;
 
-    //static Character* s_char;
-	/*
-		Static members.
-	*/
-
     static void cmdExit(const void*);
-    static void moveLeft(const void*);
-    static void moveRight(const void*);
-    static void moveDown(const void*);
-    static void moveUp(const void*);
 
 	static const InputBinding		s_bindings[] =
 	{
 		{ arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
-        { arena::Key::KeyW, arena::Modifier::None, 0, moveUp, "move up" },
-        { arena::Key::KeyA, arena::Modifier::None, 0, moveLeft, "move up" },
-        { arena::Key::KeyS, arena::Modifier::None, 0, moveDown, "move up" },
-        { arena::Key::KeyD, arena::Modifier::None, 0, moveRight, "move up" },
 		INPUT_BINDING_END
 	};
 
@@ -244,10 +231,6 @@ namespace arena
 	static bool			s_exit = false;
 	static uint32_t		s_reset = BGFX_RESET_NONE;
 
-	/*
-		Static and non-member functions.	
-	*/
-    
 	static void cmdExit(const void*)
     {
         s_exit = true;
@@ -403,8 +386,8 @@ namespace arena
             );
 
         m_resources = new ResourceManager("assets/");
+        
         animationSystemInit();
-
 
         s_anim.setStaticContent(
             resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
@@ -415,18 +398,15 @@ namespace arena
 
         s_anim.setWeaponAnimation(WeaponAnimationType::Gladius);
         s_anim.setPosition(glm::vec2(-100, -100));
+        s_anim.setFlipX(true);
 
         m_spriteBatch = new SpriteBatch;
-        
-        //s_char = new Character;
-
+       
 		SandboxSecene* scene = new  SandboxSecene();
 		
 		SceneManager::instance().push(scene);
 		
 		scene->activate();
-
-        //s_char->setPosition(glm::vec2(1280.f, 0.f));
     }
 
 	bool App::update()
@@ -447,10 +427,9 @@ namespace arena
 
         bgfx::touch(0);
         
-        //m_camera.m_position = s_char->m_position;
+        m_camera.m_position = s_anim.getPosition();
         m_camera.m_zoom = 1.f;
 		m_camera.calculate();
-
 
 		float ortho[16];
 		bx::mtxOrtho(ortho, 0.0f, float(m_width), float(m_height), 0.0f, 0.0f, 1000.0f);
@@ -467,8 +446,6 @@ namespace arena
 			s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
 		bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
 
-        
-        //s_char->update(lastDeltaTime);
         s_anim.update(lastDeltaTime);
 
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
@@ -514,21 +491,4 @@ namespace arena
 	{
 		return m_camera;
 	}
-
-    static void moveLeft(const void*)
-    {
-        //s_char->setPosition(s_char->m_position + glm::vec2(-0.1f, 0.f));
-    }
-    static void moveRight(const void*)
-    {
-        //s_char->setPosition(s_char->m_position + glm::vec2(0.1f, 0.f));
-    }
-    static void moveDown(const void*)
-    {
-        //s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, 0.1f));
-    }
-    static void moveUp(const void*)
-    {
-        //s_char->setPosition(s_char->m_position + glm::vec2(-0.0f, -0.1f));
-    }
 }
