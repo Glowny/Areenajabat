@@ -27,6 +27,7 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime&)
 	{
+        printf("update\n");
 	}
 	void SandboxSecene::onInitialize()
 	{
