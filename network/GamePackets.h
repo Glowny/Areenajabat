@@ -50,6 +50,8 @@ unsigned char* createSetupPacket(size_t &packetSize, unsigned playerAmount, unsi
 unsigned char* createPlatformPacket(size_t &packetSize, std::vector<Platform> &platformVector, unsigned char* preData = NULL);
 unsigned char* createBulletInputPacket(size_t &packetSize, std::vector<BulletInputData> &bulletVector, unsigned char* preData = NULL);
 unsigned char* createBulletOutputPacket(size_t &packetSize, std::vector<BulletOutputData> &bulletVector, unsigned char* preData = NULL);
+unsigned char* createHitPacket(size_t &packetSize, glm::vec2 hitPosition, unsigned char* preData= NULL);
+unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec2> &bulletPositions, unsigned char* preData = NULL);
 
 void openMovePacket(unsigned char* data, glm::vec2 &moveDir);
 void openUpdatePacket(unsigned char* data, std::vector<GladiatorData> &gladiatorVector);
@@ -57,3 +59,5 @@ void openSetupPacket(unsigned char* data, unsigned &playerAmount, unsigned &play
 void openPlatformPacket(unsigned char* data, std::vector<Platform> &platformVector);
 void openBulletInputPacket(unsigned char* data, std::vector<BulletInputData> &bulletVector);
 void openBulletOutputPacket(unsigned char* data, std::vector<BulletOutputData> &bulletVector);
+void openHitPacket(unsigned char* data, glm::vec2 &hitPosition);
+void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletPositions);

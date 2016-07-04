@@ -27,6 +27,13 @@ void Physics::update()
 			case B_Platform:
 			{
 				printf("PLATFORM HIT O HUMANITY\n");
+				glm::vec2 position;
+				position.x = m_bulletVector[i]->m_body->GetPosition().x;
+				position.y = m_bulletVector[i]->m_body->GetPosition().y;
+				BulletHit hit;
+				hit.hitType = B_Platform;
+				hit.position = position;
+				hitVector.push_back(hit);
 			}
 			break;
 			case B_Gladiator:
@@ -37,12 +44,23 @@ void Physics::update()
 			default:
 				break;
 			}
-			m_bulletVector[i]->m_contact == false;
+
+
 		}
-		//glm::vec2 position;
-		//position.x = m_bulletVector[0]->m_body->GetPosition().x;
-		//position.y = m_bulletVector[0]->m_body->GetPosition().y;
+		
 		//printf("%f, %f\n", position.x, position.y);
+	}
+	if(m_bulletVector.size() != 0)
+	{ 
+		for (int i = m_bulletVector.size()-1; i >= 0; i--)
+		{
+			if (m_bulletVector[i]->m_contact == true)
+			{
+				m_bulletVector[i]->m_body->GetWorld()->DestroyBody(m_bulletVector[i]->m_body);
+				delete(m_bulletVector[i]);
+				m_bulletVector.erase(m_bulletVector.begin() + i);
+			}
+		}
 	}
 };
 
@@ -53,9 +71,13 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 	{
 		points[i].Set(platform[i].x, platform[i].y);
 	}
-
+	p_userData* userData = new p_userData;
 	p_Platform* temp_platform = new p_Platform;
-	temp_platform->m_bodyType = B_Platform;
+	userData->m_bodyType = B_Platform;
+	userData->m_object = temp_platform;
+	
+	
+
 	unsigned index = m_platformVector.size();
 	m_platformVector.push_back(temp_platform);
 	m_platformVector[index]->m_shape.CreateChain(points, platform.size());
@@ -66,14 +88,15 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 	m_platformVector[index]->m_fixtureDef.density = 1.0f;
 	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
 	m_platformVector[index]->m_body->CreateFixture(&m_platformVector[index]->m_fixtureDef);
-	m_platformVector[index]->m_body->SetUserData(m_platformVector[index]);
+	temp_platform->m_userData = userData;
+	temp_platform->m_body->SetUserData(userData);
 }
 
 // returns id.
 unsigned Physics::addGladiator(glm::vec2 position)
 {
 	p_Gladiator glad;
-	glad.m_bodyType = B_Gladiator;
+
 	glad.m_id = m_gladiatorVector.size();
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
@@ -95,9 +118,15 @@ unsigned Physics::addGladiator(glm::vec2 position)
 	glad.m_body->SetMassData(&data);
 
 	glad.m_body->CreateFixture(&fixtureDef);
-	glad.m_body->SetUserData(&glad);
-
 	m_gladiatorVector.push_back(glad);
+	
+	p_userData* userData = new p_userData;
+	m_gladiatorVector[m_gladiatorVector.size() - 1].m_userData = userData;
+	userData->m_object = &m_gladiatorVector[m_gladiatorVector.size() - 1];
+	m_gladiatorVector[m_gladiatorVector.size() - 1].m_body->SetUserData(userData);
+	
+	userData->m_bodyType = B_Gladiator;
+
 	return glad.m_id;
 };
 
@@ -128,8 +157,6 @@ void Physics::removeGladiator(unsigned id)
 };
 void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 {
-	
-
 	b2Vec2 pos(position.x, position.y), vel(velocity.x, velocity.y);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
@@ -153,11 +180,14 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 	body->SetBullet(true);
 
 	p_Bullet* bullet = new p_Bullet;
-	bullet->m_bodyType = B_Bullet;
+	p_userData* userData = new p_userData;
+	userData->m_bodyType = B_Bullet;
+	userData->m_object = bullet;
+	bullet->m_userData = userData;
 	bullet->m_body = body;
 	bullet->m_contact = false;
 	bullet->m_contactBody = B_NONE;
-	body->SetUserData(&bullet);
+	body->SetUserData(userData);
 	bullet->m_body->ApplyForce(vel, b2Vec2(2.5,2.5), true);
 	m_bulletVector.push_back(bullet);
 

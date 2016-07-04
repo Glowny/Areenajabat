@@ -110,11 +110,38 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 			m_network.broadcastPacket(data, size, true);
 			m_bulletOutputVector.clear();
 		}
+
+		if (m_physics.hitVector.size() != 0)
+		{
+			for (unsigned i = 0; i < m_physics.hitVector.size(); i++)
+			{
+				size_t size;
+				unsigned char *data = createHitPacket(size, m_physics.hitVector[i].position);
+				m_network.broadcastPacket(data, size, true);
+			}
+			m_physics.hitVector.clear();
+		}
+
 		if(updateNetwork > 0.1)
 		{
-			size_t size;
-			unsigned char *data = createUpdatePacket(size, m_gladiatorVector, m_updateMemory);
-			m_network.broadcastPacket(data, size, false);
+			unsigned char *data = createUpdatePacket(m_updateSize, m_gladiatorVector, m_updateMemory);
+			m_network.broadcastPacket(data, m_updateSize, false);
+			
+			if (m_physics.m_bulletVector.size() != 0)
+			{ 
+				std::vector<glm::vec2> updateBulletPositions;
+				for(unsigned i = 0; i< m_physics.m_bulletVector.size(); i++)
+				{ 
+					b2Vec2 position =  m_physics.m_bulletVector[i]->m_body->GetPosition();
+					updateBulletPositions.push_back(glm::vec2(position.x, position.y));
+				}
+				size_t bulletUpdateSize;
+				unsigned char *data2 = createBulletUpdatePacket(bulletUpdateSize, updateBulletPositions);
+				m_network.broadcastPacket(data2, bulletUpdateSize, true);
+				printf("%f,%f\n", updateBulletPositions[0].x, updateBulletPositions[0].y);
+
+				
+			}
 			updateNetwork = 0;
 		}
 	}
@@ -171,6 +198,7 @@ void Server::createOutputBullets(std::vector<BulletInputData> &bulletInputVector
 			{
 				bullet.position.x = m_gladiatorVector[playerId].position.x+50;
 				bullet.position.y = m_gladiatorVector[playerId].position.y;
+				printf("%f, %f\n", m_gladiatorVector[playerId].position.x, m_gladiatorVector[playerId].position.y);
 				bullet.rotation = bulletInputVector[i].rotation;
 				glm::vec2 force = radToVec(bulletInputVector[i].rotation);
 				force *= 100;

@@ -6,6 +6,7 @@ void Client::start(char* address, unsigned port)
 	m_network.setMessageQueue(&m_messageQueueIn);
 	m_network.connectServer(address, port);
 
+	m_timerClock.restart();
 	m_networkClock.restart();
 	m_physicsClock.restart();
 
@@ -32,12 +33,15 @@ void Client::start(char* address, unsigned port)
 
 	while (true)
 	{
+
 		getInput();
 		m_network.checkEvent();
 		handleMessages();
 		updatePhysics();
+		updateGameplay();
 		sendData();
 		draw();
+		m_timerClock.restart();
 	}
 
 }
@@ -55,6 +59,7 @@ void Client::handleMessage(unsigned char* data)
 
 	switch (messageId)
 	{
+		
 	case Update:
 		openUpdatePacket(data, m_gladiatorVector);
 		break;
@@ -94,6 +99,28 @@ void Client::handleMessage(unsigned char* data)
 			m_liveBulletVector.push_back(bullet);
 		}
 	}
+	case Hit:
+	{
+		BulletHit hit;
+		hit.lifeTime = 4;
+		openHitPacket(data, hit.position);
+		m_bulletHitVector.push_back(hit);
+	}
+	case BulletUpdate:
+	{
+		m_liveBulletVector.clear();
+		std::vector<glm::vec2> bulletPositions;
+		openBulletUpdatePacket(data, bulletPositions);
+		
+		for(unsigned i = 0; i < bulletPositions.size(); i++)
+		{ 
+			LiveBullet bullet;
+			bullet.position.x = bulletPositions[i].x;
+			bullet.position.y = bulletPositions[i].y;
+			printf("Bullet position: %f, %f \n", bullet.position.x, bullet.position.y);
+			m_liveBulletVector.push_back(bullet);
+		}
+	}
 	default:
 		break;
 	}
@@ -122,8 +149,16 @@ void Client::draw()
 		for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
 		{
 			m_liveBulletVector[i].m_rectangle->setPosition(m_liveBulletVector[i].position.x, m_liveBulletVector[i].position.y);
+			m_bulletRectangle.setFillColor(sf::Color::Yellow);
 			m_window->draw(*m_liveBulletVector[i].m_rectangle);
 
+		}
+		// draw hits
+		for (unsigned i = 0; i < m_bulletHitVector.size(); i++)
+		{
+			m_bulletRectangle.setPosition(m_bulletHitVector[i].position.x, m_bulletHitVector[i].position.y);
+			m_bulletRectangle.setFillColor(sf::Color::Red);
+			m_window->draw(m_bulletRectangle);
 		}
 	}
 	m_window->display();
@@ -216,11 +251,26 @@ void Client::updatePhysics()
 			m_gladiatorVector[i].position.x += m_gladiatorVector[i].velocity.y * 0.00024;
 			m_gladiatorVector[i].position.y += m_gladiatorVector[i].velocity.x * 0.00024;
 		}
-		for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
-		{
-			m_liveBulletVector[i].position += glm::vec2(m_liveBulletVector[i].velocity.x *0.01, m_liveBulletVector[i].velocity.y *0.01);
-		}
+		//for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
+		//{
+		//	m_liveBulletVector[i].position += glm::vec2(m_liveBulletVector[i].velocity.x *0.01, m_liveBulletVector[i].velocity.y *0.01);
+		//}
 		m_physicsClock.restart();
 	}
 }
+
+void Client::updateGameplay()
+{
+	for(unsigned i = 0; i < m_bulletHitVector.size(); i++)
+	{ 
+		float time = m_timerClock.getElapsedTime().asSeconds();
+		m_bulletHitVector[i].currentTime += time;
+		if (m_bulletHitVector[i].lifeTime < m_bulletHitVector[i].currentTime)
+		{
+			m_bulletHitVector.erase(m_bulletHitVector.begin()+i);
+			i += -1;
+		}
+	}
+}
+
 #endif
