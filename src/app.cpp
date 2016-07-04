@@ -243,9 +243,7 @@ namespace arena
 		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
         bgfx::touch(0);
-        
-        m_camera.m_position = s_anim.getPosition();
-        m_camera.m_zoom = 1.f;
+
 		m_camera.calculate();
 
 		float ortho[16];
@@ -255,21 +253,19 @@ namespace arena
 
 		bgfx::touch(0);
 		bgfx::dbgTextClear();
-		bgfx::dbgTextPrintf(0, 1, 0x4f, "Perkeleen perkele");
-		bgfx::dbgTextPrintf(0, 2, 0x6f, "Mouse x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
-		bgfx::dbgTextPrintf(0, 3, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
-			s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up",
-			s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up",
-			s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
-		bgfx::dbgTextPrintf(0, 4, 0x9f, "Delta time %.10f", lastDeltaTime);
-
-        s_anim.update(lastDeltaTime);
-
+		
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
         transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
+		
+        bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", lastDeltaTime);
+        bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
+            s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up",
+            s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up",
+            s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
+        bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
+        bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
-        bgfx::dbgTextPrintf(0, 5, 0x9f, "Delta time x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
-
+        s_anim.update(lastDeltaTime);
         s_anim.render();
 
 		m_spriteBatch->submit(0);
