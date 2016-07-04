@@ -16,7 +16,7 @@ namespace arena
 	{
 	SET_FRIENDS
 
-	DEFINE_RTTI_SUB_TYPE(RenderComponent)
+	DEFINE_RTTI_SUB_TYPE(RenderComponent);
 
 	public:
 		uint32 getLayer() const;

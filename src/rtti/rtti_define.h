@@ -30,18 +30,18 @@ namespace arena
 }
 
 /*
-	Use this macro at the beginning of an
-	class declaration to create new RTTI type.
+    Use this macro at the beginning of an
+    class declaration to create new RTTI type.
 */
 
 #define DEFINE_RTTI_SUB_TYPE(__typename__ ) public: \
 												static Type s_type##__typename__; \
+                                                Type getType() override { return s_type##__typename__; }
 
-#define DEFINE_RTTI_SUPER_TYPE(__typename__)   DEFINE_RTTI_SUB_TYPE(__typename__)   \
-											   private: \
-												   Type m_type = s_type##__typename__; \
+#define DEFINE_RTTI_SUPER_TYPE(__typename__)   public:                          \
+                                               static Type s_type##__typename__; \
 											   public: \
-												   Type getType() { return m_type; } \
+												   virtual Type getType() { return s_type##__typename__; } \
 											   
 
 #define REGISTER_RTTI_SUB_TYPE(__typename__) Type __typename__::s_type##__typename__ = Type(#__typename__, sizeof(__typename__)); 

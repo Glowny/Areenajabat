@@ -1,6 +1,7 @@
 #include "animator_manager.h"
 #include "../transform.h"
 #include "../entity.h"
+#include "../../debug.h"
 
 namespace arena
 {
@@ -17,10 +18,13 @@ namespace arena
         for (; it != last; ++it)
         {
             Entity* owner = (*it)->owner();
-            Component* const tx = /*(Transform* const)*/owner->first(TYPEOF(Transform)); (void)tx;
+            Transform* const tx = (Transform* const)owner->first(TYPEOF(Transform));
+
+            ARENA_ASSERT(tx != nullptr, "Transform can not be null");
+
             CharacterAnimator& animator = (*it)->m_animator;
 
-            //animator.setPosition(tx->m_position);
+            animator.setPosition(tx->m_position);
             animator.update(gameTime.m_delta);
             animator.render();
         }
