@@ -9,25 +9,19 @@
 #include "res/resource_manager.h"
 #include <bx/fpumath.h>
 #include "io/io.h"
-#include "utils/bgfx_utils.h"
-#include <glm/gtc/matrix_transform.hpp>
 #include "graphics/spritebatch.h"
-#include "res/shader_resource.h"
 #include "res/texture_resource.h"
 #include <bx/timer.h>
-#include "graphics/sprite_animation.h"
 #include "render.h"
 #include "res/spriter_resource.h"
-#include "res/spriter_animation_player.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "utils/math.h"
 #include "camera.h"
 #include "graphics/composite_sprite.h"
 #include "scenes/scene_manager.h"
 #include "graphics\layers.h"
 #include "scenes/sandbox_scene.h"
-#include "graphics/animation_system.h"
 #include "graphics/character_animator.h"
+#include "utils/math.h"
 
 namespace arena
 {
