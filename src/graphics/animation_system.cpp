@@ -3,6 +3,7 @@
 #include "../res/texture_resource.h"
 #include "../app.h"
 #include "../res/resource_manager.h"
+#include "../res/spriter_animation_player.h"
 
 namespace arena
 {
@@ -89,6 +90,28 @@ namespace arena
         bool m_flipX;
     };
 
+    struct GladiusReloadAnimation
+    {
+        GladiusReloadAnimation() : 
+            m_offset(12, 45),
+            m_animation(nullptr)
+        {
+
+        }
+
+        void update(float dt)
+        {
+            (void)dt;
+        }
+
+        void create()
+        {
+
+        }
+
+        glm::vec2 m_offset;
+        SpriterAnimationPlayer m_animation;
+    };
 
 #define DEFINE_ANIMATION(name) { new name##RightArm, nullptr, nullptr }
 
