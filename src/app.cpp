@@ -24,6 +24,7 @@
 #include "camera.h"
 #include "graphics/composite_sprite.h"
 #include "scenes/scene_manager.h"
+#include "graphics\layers.h"
 #include "scenes/sandbox_scene.h"
 #include "graphics/animation_system.h"
 #include "graphics/character_animator.h"
@@ -243,6 +244,8 @@ namespace arena
 		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
         bgfx::touch(0);
+		//s_char->m_position;
+		m_camera.calculate();
 
 		m_camera.calculate();
 
@@ -268,11 +271,12 @@ namespace arena
         s_anim.update(lastDeltaTime);
         s_anim.render();
 
-		m_spriteBatch->submit(0);
-
 		// Update systems.
 		SceneManager::instance().update(gameTime);
 		SpriteManager::instance().update(gameTime);
+
+		//for (uint32 layer : layers::Layers) m_spriteBatch->submit(layer);
+		m_spriteBatch->submit(0);
 
 		bgfx::frame();
 

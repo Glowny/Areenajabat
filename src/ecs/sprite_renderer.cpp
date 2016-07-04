@@ -9,10 +9,6 @@ namespace arena
 {
 	REGISTER_RTTI_SUB_TYPE(SpriteRenderer)
 
-	SpriteRenderer::SpriteRenderer(Entity* const owner) : RenderComponent(owner)
-	{
-	}
-
 	glm::vec2& SpriteRenderer::getPosition()
 	{
 		return m_sprite.m_position;

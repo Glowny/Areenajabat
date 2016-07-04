@@ -19,8 +19,7 @@ namespace arena
 		const uint32		m_size;
 
 		Type(const char* const tname, const uint32 size);
-		Type();
-
+		
 		~Type() = default;
 
 		bool operator ==(const Type& lhs) const;
@@ -43,7 +42,6 @@ namespace arena
 												   Type m_type = s_type##__typename__; \
 											   public: \
 												   Type getType() { return m_type; } \
-											   private: \
 											   
 
 #define REGISTER_RTTI_SUB_TYPE(__typename__) Type __typename__::s_type##__typename__ = Type(#__typename__, sizeof(__typename__)); 

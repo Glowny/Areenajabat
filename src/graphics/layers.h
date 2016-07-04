@@ -12,7 +12,7 @@ namespace arena
 		const uint32 Effects	= 8;
 		const uint32 HUD		= 16;
 
-		const uint32 Layers		= Background | Middle | Foreground | Effects | HUD;
+		const uint32 Layers[]	= { Background, Middle, Foreground, Effects, HUD };
 
 		bool isValidLayerID(const uint32 layerID);
 	}

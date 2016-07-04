@@ -8,12 +8,9 @@ namespace arena
 {
 	INITIALIZE_RTTI_SUPER_TYPE(Component)
 
-	Component::Component(Entity* owner) : m_owner(owner),
-										  m_destroyed(false)
+	Component::Component() : m_owner(nullptr),
+						     m_destroyed(false)
 	{
-		assert(owner != nullptr);
-
-		//RTTI_CTOR(Component);
 	}
 
 	Entity* Component::owner() 

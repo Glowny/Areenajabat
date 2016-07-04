@@ -58,8 +58,6 @@ namespace arena
 			Char* handle = reinterpret_cast<Char*>(element);
 
 			m_releasedHandles.push(handle);
-
-			DYNAMIC_DTOR(element, T);
 		}
 
 		bool isInAddressSpace(const T* const element) const 

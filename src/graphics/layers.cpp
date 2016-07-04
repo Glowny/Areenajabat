@@ -6,7 +6,9 @@ namespace arena
 	{
 		bool isValidLayerID(const uint32 layerID) 
 		{
-			return (layerID & Layers) == 1;
+			static const uint32 AllLayers = Background | Middle | Foreground | Effects | HUD;
+
+			return (layerID & AllLayers) == 1;
 		}
 	}
 }

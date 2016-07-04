@@ -1,5 +1,7 @@
 #include "sprite_manager.h"
 
+#include "..\transform.h"
+#include "..\..\rtti\rtti_define.h"
 #include "..\..\graphics\spritebatch.h"
 #include "..\..\game_time.h"
 #include "..\component.h"
@@ -21,21 +23,13 @@ namespace arena
 		}
 	};
 
-	SpriteManager& SpriteManager::instance()
-	{
-		static SpriteManager spriteManager;
-
-		return spriteManager;
-	}
-
-	SpriteManager::SpriteManager() : ComponentManager(),
-									 m_allocator(PagesCount, PageSize)
+	SpriteManager::SpriteManager() : ComponentManager()
 	{
 	}
 
 	void SpriteManager::invalidate()
 	{
-		//std::sort(begin(), end(), Comparer());
+		std::sort(begin(), end(), Comparer());
 	}
 
 	void SpriteManager::onUpdate(const GameTime&)
@@ -45,22 +39,33 @@ namespace arena
 
 		SpriteBatch* spriteBatch = App::instance().spriteBatch();
 		
-		auto itCur			= begin();
-		const auto itEnd	= end();
+		auto it			= begin();
+		const auto last	= end();
 
-		//uint32 lastLayer = (*itCur)->getLayer();
+		//uint32 lastLayer = (*itCur)->getLayer()
 
-		while (itCur != itEnd) {
-			SpriteRenderer* renderer = *itCur;
+		// TODO: draw to layers.
+
+		while (it != last) 
+		{
+			SpriteRenderer* renderer = *it;
 
 			if (renderer->isAnchored())
 			{
-				//Entity* const owner = renderer->owner();
+				Entity* const owner = renderer->owner();
 
-				//if (owner->be)
+				Component* const component = owner->first(TYPEOF(Transform));
 
-				//glm::vec2& position = renderer->getPosition();
-				//glm::vec2& offset = renderer->getOffset();
+				if (component != nullptr)
+				{
+					Transform* const transform = static_cast<Transform* const>(component);
+
+					glm::vec2 offset = renderer->getOffset();
+					glm::vec2 ownerPosition = transform->m_position;
+
+					glm::vec2& position = renderer->getPosition();
+					position = ownerPosition + offset;
+				}
 			}
 
 			spriteBatch->draw(
@@ -74,22 +79,8 @@ namespace arena
 				renderer->getRotation(),
 				0.0f);
 
-			itCur++;
+			it++;
 		}
-	}
-
-	SpriteRenderer* SpriteManager::create(Entity* const owner)
-	{
-		SpriteRenderer* const renderer = m_allocator.allocate();
-
-		// Should always return a valid pointer.
-		DYNAMIC_NEW(renderer, SpriteRenderer, (owner));
-
-		return renderer;
-	}
-	bool SpriteManager::release(SpriteRenderer* const component)
-	{
-		return m_allocator.deallocate(component);
 	}
 
 	void SpriteManager::onRegister(Component* const) 

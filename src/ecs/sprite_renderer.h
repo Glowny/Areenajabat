@@ -3,6 +3,7 @@
 #include "..\forward_declare.h"
 #include "..\graphics\sprite.h"
 #include "render_component.h"
+#include "..\graphics\sprite_effects.h"
 
 #include "..\rect.h"
 
@@ -20,7 +21,7 @@ namespace arena
 		glm::vec2		 m_size;
 		Rectf			 m_src;
 		float32			 m_rotation		{ 0.0f };
-		uint8			 m_effects		{ NULL };
+		uint8			 m_effects		{ SpriteEffects::None };
 
 		SpriteData()		 = default;
 		~SpriteData()		 = default;
@@ -28,8 +29,10 @@ namespace arena
 
 	class SpriteRenderer final : public RenderComponent
 	{
-	friend class SpriteManager;
+	SET_FRIENDS
+
 	DEFINE_RTTI_SUB_TYPE(SpriteRenderer)
+	
 	public:	
 		glm::vec2& getPosition();
 		glm::vec2& getOrigin();
@@ -50,7 +53,7 @@ namespace arena
 
 		~SpriteRenderer() = default;
 	protected:
-		SpriteRenderer(Entity* const owner);
+		SpriteRenderer() = default;
 	private:
 		SpriteData m_sprite;
 	};
