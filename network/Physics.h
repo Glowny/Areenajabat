@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <vector>
 #include <glm\glm.hpp>
-
+#include <typeinfo>
 // TODO: platform has extra stuff that could be removed.
 
 enum bodyType
@@ -17,6 +17,7 @@ enum bodyType
 
 struct p_Platform
 {
+	bodyType m_bodyType;
 	b2ChainShape m_shape;
 	b2BodyDef m_bodydef;
 	b2Body* m_body;
@@ -26,12 +27,14 @@ struct p_Platform
 
 struct p_Gladiator
 {
+	bodyType m_bodyType;
 	unsigned m_id;
 	b2Body* m_body;
 };
 
 struct p_Bullet
 {
+	bodyType m_bodyType;
 	bool m_contact;
 	bodyType m_contactBody;
 	b2Body* m_body;
@@ -45,31 +48,14 @@ class ContactListener : public b2ContactListener
 {
 	void BeginContact(b2Contact* contact)
 	{
-		void* bodyUserData = contact->GetFixtureA()->GetBody()->GetUserData();
-		bodyType type = *((bodyType*)bodyUserData);
-		if (type == B_Platform)
-		{ 
-			
-			void* bodyUserData2 = contact->GetFixtureB()->GetBody()->GetUserData();
-			
-			bodyType type2 = *((bodyType*)bodyUserData2);
-			if (type2 == B_Bullet)
-			{
-				p_Bullet* bullet = static_cast<p_Bullet*>(bodyUserData2);
-				bullet->startContact(B_Platform);
-			}
-			
-		}
+		void* bodyUserData1 = contact->GetFixtureA()->GetBody()->GetUserData();
+		void* bodyUserData2 = contact->GetFixtureB()->GetBody()->GetUserData();
+	
 	}
 };
 class Physics
 {
-	bodyType types[3]
-	{
-		B_Platform,
-		B_Gladiator,
-		B_Bullet
-	};
+
 	// add movement functions
 	// add functions for getting position and velocity data
 public:

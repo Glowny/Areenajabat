@@ -136,6 +136,21 @@ void Client::getInput()
 	m_window->pollEvent(event);
 	if (event.type == sf::Event::Closed)
 		m_window->close();
+	if (event.type == sf::Event::KeyPressed)
+	{
+		if (event.key.code == sf::Keyboard::T)
+		{
+
+			BulletInputData bullet;
+			bullet.bulletType = UMP45;	bullet.rotation = 0;
+			if (noMoreBullets == false)
+			{
+				m_bulletVector.push_back(bullet);
+				noMoreBullets = true;
+			}
+		}
+	}
+
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		m_movedir.x = -3.0f;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
@@ -160,17 +175,6 @@ void Client::getInput()
 		m_window->close();
 	
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::T))
-	{
-		BulletInputData bullet;
-		bullet.bulletType = UMP45;	bullet.rotation = 0;
-		if (noMoreBullets == false)
-		{ 
-			printf("BULLETS: %d\n", m_bulletVector.size());
-			m_bulletVector.push_back(bullet);
-			noMoreBullets = true;
-		}
-	}
 }
 void Client::sendData()
 {

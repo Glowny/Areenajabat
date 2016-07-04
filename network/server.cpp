@@ -169,7 +169,7 @@ void Server::createOutputBullets(std::vector<BulletInputData> &bulletInputVector
 		{
 			case UMP45:
 			{
-				bullet.position.x = m_gladiatorVector[playerId].position.x;
+				bullet.position.x = m_gladiatorVector[playerId].position.x+50;
 				bullet.position.y = m_gladiatorVector[playerId].position.y;
 				bullet.rotation = bulletInputVector[i].rotation;
 				glm::vec2 force = radToVec(bulletInputVector[i].rotation);
