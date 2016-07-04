@@ -28,8 +28,6 @@ namespace arena
 
     static MouseState s_mouseState;
 
-    static CharacterAnimator s_anim;
-
     static void cmdExit(const void*);
 
 	static const InputBinding		s_bindings[] =
@@ -201,17 +199,6 @@ namespace arena
         
         animationSystemInit();
 
-        s_anim.setStaticContent(
-            resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
-            resources()->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
-            resources()->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
-            resources()->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
-            );
-
-        s_anim.setWeaponAnimation(WeaponAnimationType::Gladius);
-        s_anim.setPosition(glm::vec2(-100, -100));
-        s_anim.setFlipX(true);
-
         m_spriteBatch = new SpriteBatch;
        
 		SandboxSecene* scene = new  SandboxSecene();
@@ -238,19 +225,11 @@ namespace arena
 		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
         bgfx::touch(0);
-		//s_char->m_position;
-		m_camera.calculate();
-
-		m_camera.calculate();
-
-		float ortho[16];
-		bx::mtxOrtho(ortho, 0.0f, float(m_width), float(m_height), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, glm::value_ptr(m_camera.m_matrix), ortho);
-		bgfx::setViewRect(0, 0, 0, uint16_t(m_width), uint16_t(m_height));
-
-		bgfx::touch(0);
-		bgfx::dbgTextClear();
 		
+		
+        // Update systems.
+        SceneManager::instance().update(gameTime);
+
         glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
         transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
 		
@@ -262,15 +241,8 @@ namespace arena
         bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
         bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
-        s_anim.update(lastDeltaTime);
-        s_anim.render();
-
-		// Update systems.
-		SceneManager::instance().update(gameTime);
-		SpriteManager::instance().update(gameTime);
-
 		//for (uint32 layer : layers::Layers) m_spriteBatch->submit(layer);
-		m_spriteBatch->submit(0);
+		
 
 		bgfx::frame();
 

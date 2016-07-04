@@ -2,6 +2,7 @@
 #include <bx/bx.h>
 #include "../utils/math.h"
 #include <algorithm>
+#include "../debug.h"
 
 namespace arena
 {
@@ -33,6 +34,7 @@ namespace arena
 
     void CharacterAnimator::setPosition(const glm::vec2& position)
     {
+        ARENA_ASSERT(m_legs.m_animation.m_entity != nullptr, "Leg animation hasnt been set");
         m_position = position;
         m_legs.m_animation.setPosition(m_legs.m_relativeOffset + position);
     }
@@ -72,7 +74,7 @@ namespace arena
     {
         double inMillis = dt * 1000.0;
         m_legs.m_animation.setTimeElapsed(inMillis);
-
+        
         glm::vec2 offset(
             0.f,
             calculateTorsoOffsetY(uint32_t(m_legs.m_animation.getCurrentTime()))
@@ -83,7 +85,8 @@ namespace arena
 
     void CharacterAnimator::setWeaponAnimation(WeaponAnimationType::Enum type)
     {
-        assert(type != WeaponAnimationType::Count);
+        ARENA_ASSERT(type != WeaponAnimationType::Count, "Invalid type for weapon animation %d", type);
+
         if (m_weaponAnimType != type)
         {
             // TODO RESET 
@@ -106,7 +109,7 @@ namespace arena
     {
         if (flip != m_flipX)
         {
-            assert(m_weaponAnimType != WeaponAnimationType::Count);
+            ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
 
             m_flipX = flip;
 

@@ -6,8 +6,9 @@
 #include "..\res\texture_resource.h"
 #include "managers\transform_manager.h"
 #include "managers\sprite_manager.h"
-
+#include "managers/animator_manager.h"
 #include <cassert>
+#include "../debug.h"
 
 namespace arena
 {
@@ -18,7 +19,7 @@ namespace arena
 
 	Transform* const EntityBuilder::addTransformComponent()
 	{
-		assert(m_entity != nullptr);
+		ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");
 
 		Transform* const transform = TransformManager::instance().create();
 
@@ -30,7 +31,7 @@ namespace arena
 	}
 	SpriteRenderer* const EntityBuilder::addSpriteRenderer()
 	{
-		assert(m_entity != nullptr);
+        ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");
 
 		SpriteRenderer* const renderer = SpriteManager::instance().create();
 
@@ -41,15 +42,27 @@ namespace arena
 		return renderer;
 	}
 
+    Animator* const EntityBuilder::addCharacterAnimator()
+    {
+        AnimatorManager& instance = AnimatorManager::instance();
+        Animator* const anim = instance.create();
+
+        m_entity->add(anim);
+
+        instance.registerComponent(anim);
+
+        return anim;
+    }
+
 	void EntityBuilder::addTag(const String& tag)
 	{
-		assert(m_entity != nullptr);
+        ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");
 
 		m_entity->setTags(m_entity->getTags() + "|" + tag);
 	}
 	void EntityBuilder::setTags(const String& tags)
 	{
-		assert(m_entity != nullptr);
+        ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");
 
 		m_entity->setTags(tags);
 	}
