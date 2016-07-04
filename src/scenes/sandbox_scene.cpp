@@ -1,3 +1,7 @@
+#define ARENA_CLIENT
+#include "network-common/GamePackets.h"
+#include "NetworkClient.h"
+
 #include "sandbox_scene.h"
 #include "..\res\resource_manager.h"
 #include "..\app.h"
@@ -28,8 +32,35 @@
 #include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
 
+#include <bx/thread.h>
+#include <queue>
+
+
 namespace arena
 {
+    bx::Mutex receiveMutex;
+    bx::Mutex sendMutex;
+
+    std::queue<Message> sendQueue;
+    std::queue<unsigned char*> messageQueue;
+    unsigned playerID;
+    bx::Thread networkThred;
+    static bool s_exit = false;
+    static int32_t networkProc(void*)
+    {
+        Network net;
+        net.setMessageQueue(&messageQueue);
+        net.setSendQueue(&sendQueue);
+        net.connectServer("localhost", 8888);
+        net.setMutex(&receiveMutex, &sendMutex);
+        while (!s_exit)
+        {
+            net.checkEvent();
+        }
+        return EXIT_SUCCESS;
+    }
+
+
 	static Entity* entity;
     static Animator* s_animator;
 
@@ -56,6 +87,35 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
+        while(messageQueue.size() != 0)
+        { 
+            unsigned char* message = getFrontMessage();
+            MessageIdentifier id = getMessageID(message);
+            switch (id)
+            {
+                case Start:
+                {
+                    unsigned playerAmount;
+                    openSetupPacket(message, playerAmount, playerID);
+                }
+                case Update:
+                {
+                
+                }
+                case PlatformData:
+                {
+
+                }
+       
+                case CreateBullet:
+                {
+
+                }
+                default:
+                    break;
+            }
+        }
+
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();
@@ -94,6 +154,8 @@ namespace arena
 
 	void SandboxSecene::onInitialize()
 	{
+        networkThred.init(networkProc);
+
 		EntityBuilder builder;
 
 		builder.begin();
@@ -129,5 +191,31 @@ namespace arena
 	void SandboxSecene::onDestroy()
 	{
         inputRemoveBindings("player");
+        s_exit = true;
+        networkThred.shutdown();
 	}
+
+    unsigned char* SandboxSecene::getFrontMessage()
+    {
+        // IF causes issues, keep locked till message is deleted.
+        receiveMutex.lock();
+        unsigned char* message = messageQueue.front();
+        receiveMutex.unlock();
+        return message;
+    }
+
+    void SandboxSecene::deleteFrontMessage()
+    {
+        receiveMutex.lock();
+        messageQueue.pop();
+        receiveMutex.unlock();
+    }
+
+    void SandboxSecene::setBackMessage(Message message)
+    {
+        sendMutex.lock();
+        sendQueue.push(message);
+        sendMutex.unlock();
+    }
+
 }

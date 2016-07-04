@@ -74,7 +74,8 @@ project ("arena")
 		path.join(BX_DIR, "include"),
 		path.join(BGFX_DIR, "include"),
 		path.join(BGFX_DIR, "3rdparty"),
-		path.join(ARENA_THIRD_DIR)
+		path.join(ARENA_THIRD_DIR),
+		ARENA_DIR
 	}
 
 	links {
@@ -82,7 +83,8 @@ project ("arena")
 		"SDL2",
 		"Box2D",
 		"spriterengine",
-		"enet"
+		"enet",
+		"network-common"
 	}
 
 	files {
@@ -91,7 +93,10 @@ project ("arena")
 	}
 
 	configuration { "vs*"}
-		links { "ws2_32" } --winsock
+		links { 
+			"ws2_32", --winsock
+			"winmm",
+		}
 
 	configuration { "vs*" and "x32"}
 	postbuildcommands {
@@ -233,3 +238,17 @@ project "enet"
 		defines { "_WINSOCK_DEPRECATED_NO_WARNINGS" }
 
 	configuration {}
+
+project "network-common"
+	kind "StaticLib"
+	language "C++"
+
+	files {
+		path.join(ARENA_DIR, "network-common", "**.cpp"),
+		path.join(ARENA_DIR, "network-common", "**.h")
+	}
+
+	includedirs {
+		ARENA_THIRD_DIR
+	}
+
