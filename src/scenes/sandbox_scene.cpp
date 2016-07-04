@@ -56,8 +56,10 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
+        auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();
+        camera.m_position = tx->m_position;
         camera.calculate();
         // set views
         float ortho[16];
@@ -75,6 +77,9 @@ namespace arena
         glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
         transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
 
+        glm::vec2 dir(mouseLoc - tx->m_position);
+        float a = glm::atan(dir.y, dir.x);
+
         bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
         bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
             mouse.m_buttons[MouseButton::Left] ? "down" : "up",
@@ -82,6 +87,7 @@ namespace arena
             mouse.m_buttons[MouseButton::Right] ? "down" : "up");
         bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
         bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+        bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
 
         App::instance().spriteBatch()->submit(0);
 	}
@@ -99,8 +105,8 @@ namespace arena
 		renderer->anchor();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position.x = 50.f;
-		transform->m_position.y = 0.0f;
+		transform->m_position.x = 500.f;
+		transform->m_position.y = 500.0f;
 
 
         s_animator = builder.addCharacterAnimator();
