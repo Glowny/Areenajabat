@@ -24,10 +24,31 @@
 #include <bx/fpumath.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "../graphics/spritebatch.h"
+#include "../input/event.h"
+#include "../utils/math.h"
+#include <glm/gtc/matrix_inverse.hpp>
 
 namespace arena
 {
 	static Entity* entity;
+    static Animator* s_animator;
+
+    static void left(const void*)
+    {
+        s_animator->m_animator.setFlipX(false);
+    }
+
+    static void right(const void*)
+    {
+        s_animator->m_animator.setFlipX(true);
+    }
+
+    static const InputBinding s_bindings[] =
+    {
+        { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
+        { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
+        INPUT_BINDING_END
+    };
 
 	SandboxSecene::SandboxSecene() : Scene("sandbox")
 	{
@@ -38,7 +59,7 @@ namespace arena
 
         Camera& camera = App::instance().camera();
         camera.calculate();
-        // set
+        // set views
         float ortho[16];
         bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
         bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
@@ -49,6 +70,18 @@ namespace arena
         SpriteManager::instance().update(gameTime);
         AnimatorManager::instance().update(gameTime);
         
+        const MouseState& mouse = Mouse::getState();
+
+        glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+        transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+
+        bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
+        bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
+            mouse.m_buttons[MouseButton::Left] ? "down" : "up",
+            mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
+            mouse.m_buttons[MouseButton::Right] ? "down" : "up");
+        bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
+        bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 
         App::instance().spriteBatch()->submit(0);
 	}
@@ -66,12 +99,12 @@ namespace arena
 		renderer->anchor();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position.x = 0.0f;
+		transform->m_position.x = 50.f;
 		transform->m_position.y = 0.0f;
 
 
-        Animator* const animator = builder.addCharacterAnimator();
-        CharacterAnimator& anim = animator->m_animator;
+        s_animator = builder.addCharacterAnimator();
+        CharacterAnimator& anim = s_animator->m_animator;
         anim.setStaticContent(
             resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
             resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
@@ -79,13 +112,16 @@ namespace arena
             resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
         );
         anim.setWeaponAnimation(WeaponAnimationType::Gladius);
-        anim.setPosition(glm::vec2(0, 0));
+        //anim.setPosition(glm::vec2(0, 0));
 
 		entity = builder.getResults();
 	
 		registerEntity(entity);
+
+        inputAddBindings("player", s_bindings);
 	}
 	void SandboxSecene::onDestroy()
 	{
+        inputRemoveBindings("player");
 	}
 }

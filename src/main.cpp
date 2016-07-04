@@ -461,6 +461,8 @@ namespace arena
 
         bgfx::shutdown();
 
+        inputShutdown();
+
         return 0;
     }
 }

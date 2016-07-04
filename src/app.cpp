@@ -28,23 +28,15 @@ namespace arena
 
     static MouseState s_mouseState;
 
-    static void cmdExit(const void*);
-
-	static const InputBinding		s_bindings[] =
-	{
-		{ arena::Key::KeyQ, arena::Modifier::LeftCtrl, 0, cmdExit, "exit" },
-		INPUT_BINDING_END
-	};
+    const MouseState& Mouse::getState()
+    {
+        return s_mouseState;
+    }
 
 	static double		s_timeSinceStart = 0;
 	static int64_t		s_last_time = 0;
 	static bool			s_exit = false;
 	static uint32_t		s_reset = BGFX_RESET_NONE;
-
-	static void cmdExit(const void*)
-    {
-        s_exit = true;
-    }
 
 	static bool processEvents(int32_t& width, int32_t& height)
 	{
@@ -69,6 +61,7 @@ namespace arena
 				}
 				break;
 				case Event::Exit:
+                    s_exit = true;
 					return true;
 				case Event::Mouse:
 				{
@@ -181,8 +174,6 @@ namespace arena
         bx::pwd(workingdir, 512);
         printf("CWD: %s\n", workingdir);
 #endif
-        inputAddBindings("bindings", s_bindings);
-        
 
         bgfx::reset(width, height, s_reset);
         bgfx::setDebug(BGFX_DEBUG_TEXT);
@@ -224,25 +215,11 @@ namespace arena
 		s_timeSinceStart += lastDeltaTime;
 		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
+        // clear screen if there is no other draw calls
         bgfx::touch(0);
-		
-		
+				
         // Update systems.
         SceneManager::instance().update(gameTime);
-
-        glm::vec2 mouseLoc(s_mouseState.m_mx, s_mouseState.m_my);
-        transform(mouseLoc, glm::inverse(m_camera.m_matrix), &mouseLoc);
-		
-        bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", lastDeltaTime);
-        bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
-            s_mouseState.m_buttons[MouseButton::Left] ? "down" : "up",
-            s_mouseState.m_buttons[MouseButton::Middle] ? "down" : "up",
-            s_mouseState.m_buttons[MouseButton::Right] ? "down" : "up");
-        bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", s_mouseState.m_mx, s_mouseState.m_my, s_mouseState.m_mz);
-        bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
-
-		//for (uint32 layer : layers::Layers) m_spriteBatch->submit(layer);
-		
 
 		bgfx::frame();
 
@@ -250,9 +227,8 @@ namespace arena
 	}
 
 	void App::shutdown()
-	{
-		inputRemoveBindings("bindings");
-        inputShutdown();
+	{   
+        SceneManager::instance().pop()->destroy();
 
         animationSystemShutdown();
 

@@ -43,6 +43,11 @@ namespace arena
 		Camera				m_camera;
     };
 
+    struct Mouse
+    {
+        static const struct MouseState& getState();
+    };
+
     const Event* poll();
 
     void release(const Event* event);
