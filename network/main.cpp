@@ -18,8 +18,10 @@ int main()
 	Client client;
 	client.start("localhost", 8888);
 #else
+
 	Server server;
 	server.start(0, 8888, 1);
+		
 #endif
 }
 

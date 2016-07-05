@@ -6,7 +6,7 @@
 
 Server::Server()
 {
-	tempPlatformCreation();
+	
 }
 
 Server::~Server()
@@ -16,6 +16,7 @@ Server::~Server()
 
 void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 {
+	tempPlatformCreation();
 	m_messageQueue = new std::queue<Message>;
 	m_network.startServer(m_messageQueue, address, port, playerAmount);
 	
@@ -64,7 +65,8 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 
 	float timeStep = 1.0f/60.0f;
 
-	while (true)
+	bool run = true;
+	while (run)
 	{
 		int64_t currentTime = bx::getHPCounter();
 		const int64_t time = currentTime - s_last_time;
@@ -83,7 +85,7 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 			{
 				if (m_playerInputVector[i].moveDir.x != 0 || m_playerInputVector[i].moveDir.y != 0)
 				{ 
-					m_physics.moveGladiator(glm::vec2(m_playerInputVector[i].moveDir.x*300000, m_playerInputVector[i].moveDir.y*300000), i);
+					m_physics.moveGladiator(glm::vec2(m_playerInputVector[i].moveDir.x, m_playerInputVector[i].moveDir.y), i);
 					m_playerInputVector[i].moveDir.x = 0.0;
 					m_playerInputVector[i].moveDir.y = 0.0;
 				}
@@ -116,7 +118,10 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 			for (unsigned i = 0; i < m_physics.hitVector.size(); i++)
 			{
 				size_t size;
-				unsigned char *data = createHitPacket(size, m_physics.hitVector[i].position);
+				glm::vec2 position;
+				position.x = m_physics.hitVector[i].position.x*100;
+				position.y = m_physics.hitVector[i].position.y*100;
+				unsigned char *data = createHitPacket(size, position);
 				m_network.broadcastPacket(data, size, true);
 			}
 			m_physics.hitVector.clear();
@@ -133,7 +138,7 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 				for(unsigned i = 0; i< m_physics.m_bulletVector.size(); i++)
 				{ 
 					b2Vec2 position =  m_physics.m_bulletVector[i]->m_body->GetPosition();
-					updateBulletPositions.push_back(glm::vec2(position.x, position.y));
+					updateBulletPositions.push_back(glm::vec2(position.x*100, position.y*100));
 				}
 				size_t bulletUpdateSize;
 				unsigned char *data2 = createBulletUpdatePacket(bulletUpdateSize, updateBulletPositions);
@@ -197,16 +202,15 @@ void Server::createOutputBullets(std::vector<BulletInputData> &bulletInputVector
 			case UMP45:
 			{
 				glm::vec2 vectorAngle = radToVec(bulletInputVector[i].rotation);
-				bullet.position.x = m_gladiatorVector[playerId].position.x  + vectorAngle.x * 50;
-				bullet.position.y = m_gladiatorVector[playerId].position.y - 32 + vectorAngle.y * 50;
+				bullet.position.x = m_gladiatorVector[playerId].position.x  + vectorAngle.x * 70;
+				bullet.position.y = m_gladiatorVector[playerId].position.y - 32 + vectorAngle.y * 70;
 				printf("%f, %f\n", m_gladiatorVector[playerId].position.x, m_gladiatorVector[playerId].position.y);
 				bullet.rotation = bulletInputVector[i].rotation;
 				
-				vectorAngle.x *= 50000;
-				vectorAngle.y *= 50000;
-				m_physics.addBullet(bullet.position, vectorAngle);
-				bullet.velocity.x = vectorAngle.x;
-				bullet.velocity.y = vectorAngle.y;
+				bullet.velocity.x = vectorAngle.x*10;
+				bullet.velocity.y = vectorAngle.y*10;
+
+				m_physics.addBullet(bullet.position, bullet.velocity);
 			}
 			case Shotgun:
 			{

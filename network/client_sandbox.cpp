@@ -14,10 +14,11 @@ void Client::start(char* address, unsigned port)
 	m_view.reset(sf::FloatRect(0, 0, 1100, 1000));
 	m_view.setCenter(sf::Vector2f(550, 500));
 	m_window->setView(m_view);
-	m_rectangle.setSize(sf::Vector2f( 32.0f, 96.0f));
+	m_rectangle.setSize(sf::Vector2f(0.4f*100.0f, 1.8f*100.0f));
+	m_rectangle.setOrigin(sf::Vector2f(20.0f, 70.0f));
 	m_rectangle.setFillColor(sf::Color::Green);
 	m_rectangle.setPosition(200, 50);
-	m_rectangle.setOrigin(16,48);
+	
 	m_bulletRectangle.setSize(sf::Vector2f(5, 5));
 	m_bulletRectangle.setFillColor(sf::Color::White);
 
@@ -179,7 +180,6 @@ void Client::getInput()
 	{
 		if (event.key.code == sf::Keyboard::T)
 		{
-
 			BulletInputData bullet;
 			bullet.bulletType = UMP45;	bullet.rotation = aimAngle;
 			printf("Aim angle: %f\n", aimAngle);

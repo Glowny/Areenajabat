@@ -19,6 +19,7 @@ public:
 	Server();
 	~Server();
 	void start(unsigned address, unsigned port, unsigned playerAmount);
+	bool* stop;
 
 private:
 	// Networking game related.
@@ -52,6 +53,7 @@ private:
 	std::vector<PlayerInput> m_playerInputVector;
 	std::vector<Platform> m_platformVector;
 	void tempPlatformCreation();
+	bool* m_run;
 };
 
 #endif

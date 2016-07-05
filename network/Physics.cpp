@@ -69,7 +69,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 	b2Vec2* points = new b2Vec2[platform.size()];
 	for (unsigned i = 0; i < platform.size(); i++)
 	{
-		points[i].Set(platform[i].x, platform[i].y);
+		points[i].Set(platform[i].x/100, platform[i].y/100);
 	}
 	p_userData* userData = new p_userData;
 	p_Platform* temp_platform = new p_Platform;
@@ -100,21 +100,21 @@ unsigned Physics::addGladiator(glm::vec2 position)
 	glad.m_id = m_gladiatorVector.size();
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
-	bodydef.position.Set(position.x, position.y);
+	bodydef.position.Set(position.x/100, position.y/100);
 	bodydef.fixedRotation = true;
 	glad.m_body = m_b2DWorld->CreateBody(&bodydef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(16.0f, 48.0f);
+	dynamicBox.SetAsBox(0.2f, 0.9f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 1.0f;
+	fixtureDef.density = 2.0f;
 	fixtureDef.friction = 0.3f;
 
 	b2MassData data;
-	data.mass = 1;
-	data.center = b2Vec2(8, 24);
+	data.mass = 7;
+	data.center = b2Vec2(0.2f, 0.45f);
 
 	glad.m_body->SetMassData(&data);
 
@@ -133,23 +133,23 @@ unsigned Physics::addGladiator(glm::vec2 position)
 
 void Physics::moveGladiator(glm::vec2 direction, unsigned id)
 {
-	m_gladiatorVector[id].m_body->ApplyForce(b2Vec2(direction.x, direction.y),
+	m_gladiatorVector[id].m_body->ApplyForce(b2Vec2(direction.x, direction.y*5),
 		m_gladiatorVector[id].m_body->GetWorldCenter(), 1);
 }
 glm::vec2 Physics::getGladiatorPosition(unsigned id)
 {
 	b2Vec2 pos = m_gladiatorVector[id].m_body->GetPosition();
 	glm::vec2 position;
-	position.x = pos.x;
-	position.y = pos.y;
+	position.x = pos.x*100;
+	position.y = pos.y*100;
 	return position;
 }
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
 	b2Vec2 vel = m_gladiatorVector[id].m_body->GetLinearVelocity();
 	glm::vec2 velocity;
-	velocity.x = vel.x;
-	velocity.y = vel.y;
+	velocity.x = vel.x*100;
+	velocity.y = vel.y*100;
 	return velocity;
 }
 void Physics::removeGladiator(unsigned id)
@@ -158,7 +158,7 @@ void Physics::removeGladiator(unsigned id)
 };
 void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 {
-	b2Vec2 pos(position.x, position.y), vel(velocity.x, velocity.y);
+	b2Vec2 pos(position.x/100, position.y/100), vel(velocity.x/100, velocity.y/100);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
@@ -166,16 +166,16 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(2.0f, 2.0f);
+	dynamicBox.SetAsBox(0.02f, 0.02f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 5.0f;
+	fixtureDef.density = 2.0f;
 	fixtureDef.friction = 0.01f;
 
 	b2MassData data;
-	data.mass = 0.005f;
-	data.center = b2Vec2(1, 1);
+	data.mass = 0.001f;
+	data.center = b2Vec2(0.01f, 0.01f);
 
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);

@@ -47,6 +47,7 @@ void Network::checkEvent()
 		break;
 	}
 	case ENET_EVENT_TYPE_DISCONNECT:
+		
 		printf("%s disconnected.\n", EEvent.peer->data);
 		EEvent.peer->data = NULL;
 	default:
