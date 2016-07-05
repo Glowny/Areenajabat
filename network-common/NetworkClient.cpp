@@ -58,7 +58,11 @@ void Network::checkSendQueue()
         Message message = m_sendQueue->front();
         sendPacket(message.data, message.size, message.reliable);
         m_sendQueue->pop();
+        if (m_sendQueue->size() == 0)
+            sendMessages();
     }
+   
+    
     m_sMutex->unlock();
 }
 void Network::sendPacket(unsigned char* data, size_t size, bool reliable)

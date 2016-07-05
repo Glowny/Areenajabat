@@ -17,11 +17,5 @@ namespace arena
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
 		virtual void onDestroy() final override;
-        
-
-   
-        unsigned char* getFrontMessage();
-        void deleteFrontMessage();
-        void setBackMessage(Message message);
 	};
 }
