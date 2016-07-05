@@ -41,6 +41,8 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 		glad.rotation = 0;
 		glad.position.x = 100.0f * i;
 		glad.position.y = 50.0f;
+		glad.hitPoints = 100;
+		glad.alive = true;
 		m_gladiatorVector.push_back(glad);
 	}
 	
@@ -117,12 +119,41 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 		{
 			for (unsigned i = 0; i < m_physics.hitVector.size(); i++)
 			{
-				size_t size;
-				glm::vec2 position;
-				position.x = m_physics.hitVector[i].position.x*100;
-				position.y = m_physics.hitVector[i].position.y*100;
-				unsigned char *data = createHitPacket(size, position);
-				m_network.broadcastPacket(data, size, true);
+				switch(m_physics.hitVector[i].hitType)
+				{ 
+					case B_Platform:
+					{
+						size_t size;
+						glm::vec2 position;
+						position.x = m_physics.hitVector[i].position.x*100;
+						position.y = m_physics.hitVector[i].position.y*100;
+						unsigned char *data = createHitPacket(size, position);
+						m_network.broadcastPacket(data, size, true);
+						break;
+					}
+					case B_Gladiator:
+					{
+						size_t size;
+						glm::vec2 position;
+						unsigned playerId = m_physics.hitVector[i].playerId;
+						position.x = m_physics.hitVector[i].position.x * 100;
+						position.y = m_physics.hitVector[i].position.y * 100;
+						unsigned char *data = createHitPacket(size, position);
+						m_network.broadcastPacket(data, size, true);
+						data = createPlayerDamagePacket(size, playerId, 10);
+						m_gladiatorVector[playerId].hitPoints -= 10;
+						m_network.broadcastPacket(data, size, true);
+						// unsigned, change to signed or do some magic tricts
+						if (m_gladiatorVector[playerId].hitPoints == 0)
+						{
+							data = createPlayerKillPacket(size, playerId);
+							m_network.broadcastPacket(data, size, true);
+							m_gladiatorVector[playerId].alive = false;
+						}
+					}
+					default:
+						break;
+				}
 			}
 			m_physics.hitVector.clear();
 		}
@@ -226,8 +257,18 @@ void Server::createOutputBullets(std::vector<BulletInputData> &bulletInputVector
 void Server::tempPlatformCreation()
 {
 
-	Platform platform0;
+	Platform platforma;
 	glm::vec2 vec;
+	vec = glm::vec2(0, 600);
+	platforma.points.push_back(vec);
+	vec = glm::vec2(500, 600);
+	platforma.points.push_back(vec);
+
+	m_physics.createPlatform(platforma.points);
+	m_platformVector.push_back(platforma);
+
+
+	Platform platform0;
 	vec = glm::vec2(372, 421);
 	platform0.points.push_back(vec);
 	vec = glm::vec2(372, 494);

@@ -38,6 +38,15 @@ void Physics::update()
 			break;
 			case B_Gladiator:
 			{
+				glm::vec2 position;
+				position.x = m_bulletVector[i]->m_body->GetPosition().x;
+				position.y = m_bulletVector[i]->m_body->GetPosition().y;
+				BulletHit hit;
+				unsigned id = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object)->m_id;
+				hit.hitType = B_Gladiator;
+				hit.position = position;
+				hit.playerId = id;
+				hitVector.push_back(hit);
 				printf("GLADIATOR HIT O HUM ANIT\n");
 			}
 			break;

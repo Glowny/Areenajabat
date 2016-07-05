@@ -23,6 +23,7 @@ class Network
 			return m_clientVector.size();
 		}
 		void checkEvent();
+		// Todo: add flush for packet sending.
 		void sendPacket(unsigned char* data, size_t size, 
 			unsigned clientIndex, bool reliable = true);
 		void broadcastPacket(unsigned char* data, size_t size,

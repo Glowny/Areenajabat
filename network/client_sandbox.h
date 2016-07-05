@@ -80,6 +80,9 @@ private:
 	std::vector<std::vector<sf::Vertex>> m_vertexes;
 	sf::RectangleShape m_rectangle;
 	sf::RectangleShape m_bulletRectangle;
+	sf::Font font;
+	sf::Text hpText;
+
 };
 
 #endif

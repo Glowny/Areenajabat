@@ -162,6 +162,55 @@ unsigned char* createHitPacket(size_t &packetSize, glm::vec2 hitPosition, unsign
 	
 	return preData;
 }
+unsigned char* createPlayerDamagePacket(size_t &packetSize, unsigned playerIndex, unsigned damageAmount, unsigned char* preData)
+{
+	if (preData == NULL)
+	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(unsigned) * 2;
+		preData = (unsigned char*)malloc(packetSize);
+	}
+	unsigned char* dataPointer = preData;
+
+	serializeSingle(dataPointer, PlayerDamage);
+
+	serializeSingle(dataPointer, playerIndex);
+	serializeSingle(dataPointer, damageAmount);
+
+	return preData;
+}
+// Could kill and respawn packet be combined?
+unsigned char* createPlayerKillPacket(size_t &packetSize, unsigned playerIndex, unsigned char* preData)
+{
+	if (preData == NULL)
+	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(unsigned);
+		preData = (unsigned char*)malloc(packetSize);
+	}
+	unsigned char* dataPointer = preData;
+
+	serializeSingle(dataPointer, PlayerKill);
+
+	serializeSingle(dataPointer, playerIndex);
+
+	return preData;
+}
+
+unsigned char* createPlayerRespawnPacket(size_t &packetSize, unsigned playerIndex, unsigned char* preData)
+{
+	if (preData == NULL)
+	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(unsigned);
+		preData = (unsigned char*)malloc(packetSize);
+	}
+	unsigned char* dataPointer = preData;
+
+	serializeSingle(dataPointer, PlayerRespawn);
+
+	serializeSingle(dataPointer, playerIndex);
+
+	return preData;
+}
+
 // Server --> Client, temporary, for debugging
 unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec2> &bulletPositions, unsigned char* preData)
 {
@@ -289,6 +338,22 @@ void openHitPacket(unsigned char* data, glm::vec2 &hitPosition)
 	deSerializeSingle(dataPointer, hitPosition.x);
 	deSerializeSingle(dataPointer, hitPosition.y);
 }
+void openPlayerDamagePacket(unsigned char* data, unsigned &playerIndex, unsigned &damageAmount)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	deSerializeSingle(dataPointer, playerIndex);
+	deSerializeSingle(dataPointer, damageAmount);
+}
+void openPlayerKillPacket(unsigned char* data, unsigned &playerIndex)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	deSerializeSingle(dataPointer, playerIndex);
+}
+void openPlayerRespawnPacket(unsigned char* data, unsigned &playerIndex)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	deSerializeSingle(dataPointer, playerIndex);
+}
 
 void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletPositions)
 {
@@ -306,3 +371,5 @@ void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletP
 	}
 
 }
+
+

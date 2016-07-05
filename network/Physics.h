@@ -19,7 +19,7 @@ struct BulletHit
 {
 	bodyType hitType;
 	glm::vec2 position;
-
+	unsigned playerId;
 };
 
 struct p_userData
@@ -49,11 +49,12 @@ struct p_Bullet
 {
 	bool m_contact;
 	bodyType m_contactBody;
+	p_userData* m_contactUserData;
 	b2Body* m_body;
 	p_userData* m_userData;
-	void startContact(bodyType contact) 
+	void startContact(bodyType contact, p_userData* contactUserData)
 	{ 
-		m_contact = true; m_contactBody = contact; 
+		m_contact = true; m_contactBody = contact, m_contactUserData = contactUserData; 
 	};
 
 };
@@ -67,12 +68,12 @@ class ContactListener : public b2ContactListener
 		p_userData* userData1 = static_cast<p_userData*>(bodyUserData1);
 		p_userData* userData2 = static_cast<p_userData*>(bodyUserData2);
 
-		if (userData1->m_bodyType == B_Platform)
+		if (userData1->m_bodyType == B_Platform || B_Gladiator)
 		{
 			if (userData2->m_bodyType == B_Bullet)
 			{
 				p_Bullet* bullet =  static_cast<p_Bullet*>(userData2->m_object);
-				bullet->startContact(B_Platform);
+				bullet->startContact(userData1->m_bodyType, userData1);
 			}
 		}
 

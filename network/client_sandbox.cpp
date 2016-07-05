@@ -3,6 +3,10 @@
 
 void Client::start(char* address, unsigned port)
 {
+	font.loadFromFile("asd.ttf");
+	hpText.setFont(font);
+	hpText.setColor(sf::Color::Red);
+	hpText.setCharacterSize(40.0f);
 	m_network.setMessageQueue(&m_messageQueueIn);
 	m_network.connectServer(address, port);
 
@@ -72,7 +76,10 @@ void Client::handleMessage(unsigned char* data)
 		openSetupPacket(data, playerAmount, m_myId);
 		for (unsigned i = 0; i < playerAmount; i++)
 		{
-			m_gladiatorVector.push_back(GladiatorData());
+			GladiatorData data;
+			data.alive = true;
+			data.hitPoints = 100;
+			m_gladiatorVector.push_back(data);
 		}
 		break;
 	}
@@ -126,6 +133,29 @@ void Client::handleMessage(unsigned char* data)
 		}
 		break;
 	}
+	case PlayerDamage:
+	{
+		unsigned damagedPlayer, damageAmount;
+		openPlayerDamagePacket(data, damagedPlayer, damageAmount);
+		m_gladiatorVector[damagedPlayer].hitPoints -= 10;
+		break;
+	}
+	case PlayerKill:
+	{
+		unsigned killedPlayer;
+		openPlayerKillPacket(data, killedPlayer);
+		m_gladiatorVector[killedPlayer].alive = false;
+		break;
+	}
+	case PlayerRespawn:
+	{
+		unsigned respawnPlayer;
+		openPlayerRespawnPacket(data, respawnPlayer);
+		m_gladiatorVector[respawnPlayer].alive = true;
+		m_gladiatorVector[respawnPlayer].hitPoints = 100;
+		break;
+	}
+
 	default:
 		break;
 	}
@@ -149,22 +179,28 @@ void Client::draw()
 		// draw player
 		m_rectangle.setPosition(m_gladiatorVector[i].position.x, m_gladiatorVector[i].position.y);
 		m_window->draw(m_rectangle);
-		// draw bullets
-
-		for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
+		if (m_gladiatorVector[i].alive == true)
 		{
-			m_bulletRectangle.setPosition(m_liveBulletVector[i].position.x, m_liveBulletVector[i].position.y);
-			m_bulletRectangle.setFillColor(sf::Color::Yellow);
-			m_window->draw(m_bulletRectangle);
+			hpText.setString(std::to_string(m_gladiatorVector[i].hitPoints));
+			hpText.setPosition(m_rectangle.getPosition());
+		}
+		else
+			hpText.setString("DEAD");
+		m_window->draw(hpText);
+	}
+	for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
+	{
+		m_bulletRectangle.setPosition(m_liveBulletVector[i].position.x, m_liveBulletVector[i].position.y);
+		m_bulletRectangle.setFillColor(sf::Color::Yellow);
+		m_window->draw(m_bulletRectangle);
 
-		}
-		// draw hits
-		for (unsigned i = 0; i < m_bulletHitVector.size(); i++)
-		{
-			m_bulletRectangle.setPosition(m_bulletHitVector[i].position.x, m_bulletHitVector[i].position.y);
-			m_bulletRectangle.setFillColor(sf::Color::Red);
-			m_window->draw(m_bulletRectangle);
-		}
+	}
+	// draw hits
+	for (unsigned i = 0; i < m_bulletHitVector.size(); i++)
+	{
+		m_bulletRectangle.setPosition(m_bulletHitVector[i].position.x, m_bulletHitVector[i].position.y);
+		m_bulletRectangle.setFillColor(sf::Color::Red);
+		m_window->draw(m_bulletRectangle);
 	}
 	m_window->display();
 

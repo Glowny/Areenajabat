@@ -9,6 +9,9 @@ enum MessageIdentifier
 	CreateBullet,
 	Hit,
 	BulletUpdate,
+	PlayerDamage,
+	PlayerKill,
+	PlayerRespawn,
 };
 
 enum BulletType

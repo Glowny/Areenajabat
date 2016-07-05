@@ -4,11 +4,14 @@
 #include <vector>
 #include "Enumerations.h"
 
+// Move extra stuff away from here.
 struct GladiatorData
 {
 	glm::vec2 position;
 	glm::vec2 velocity;
 	float rotation;
+	unsigned hitPoints;
+	bool alive;
 };
 
 struct Platform
@@ -51,6 +54,9 @@ unsigned char* createPlatformPacket(size_t &packetSize, std::vector<Platform> &p
 unsigned char* createBulletInputPacket(size_t &packetSize, std::vector<BulletInputData> &bulletVector, unsigned char* preData = NULL);
 unsigned char* createBulletOutputPacket(size_t &packetSize, std::vector<BulletOutputData> &bulletVector, unsigned char* preData = NULL);
 unsigned char* createHitPacket(size_t &packetSize, glm::vec2 hitPosition, unsigned char* preData= NULL);
+unsigned char* createPlayerDamagePacket(size_t &packetSize, unsigned playerIndex, unsigned damageAmount, unsigned char* preData = NULL);
+unsigned char* createPlayerKillPacket(size_t &packetSize, unsigned playerIndex, unsigned char* preData = NULL);
+unsigned char* createPlayerRespawnPacket(size_t &packetSize, unsigned playerIndex, unsigned char* preData = NULL);
 unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec2> &bulletPositions, unsigned char* preData = NULL);
 
 void openMovePacket(unsigned char* data, glm::vec2 &moveDir);
@@ -60,4 +66,7 @@ void openPlatformPacket(unsigned char* data, std::vector<Platform> &platformVect
 void openBulletInputPacket(unsigned char* data, std::vector<BulletInputData> &bulletVector);
 void openBulletOutputPacket(unsigned char* data, std::vector<BulletOutputData> &bulletVector);
 void openHitPacket(unsigned char* data, glm::vec2 &hitPosition);
+void openPlayerDamagePacket(unsigned char* data, unsigned &playerIndex, unsigned& damageAmount);
+void openPlayerKillPacket(unsigned char* data, unsigned &playerIndex);
+void openPlayerRespawnPacket(unsigned char* data, unsigned &playerIndex);
 void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletPositions);
