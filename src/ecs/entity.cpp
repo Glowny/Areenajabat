@@ -121,7 +121,13 @@ namespace arena
 
 	Component* const Entity::first(const Type& type) const
 	{
-		for (Component* const component : m_components) if (component->getType() == type) return component;
+        for (Component* const component : m_components)
+        {
+            if (component->getType() == type) 
+            {
+                return component;
+            }
+        }
 
 		return nullptr;
 	}

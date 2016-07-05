@@ -3,6 +3,7 @@
 namespace SpriterEngine { class EntityInstance; }
 
 #include <glm/glm.hpp>
+#include <string>
 
 namespace arena
 {
@@ -24,8 +25,13 @@ namespace arena
         void render();
 
         void setCurrentAnimation(const std::string& anim);
+        std::string SpriterAnimationPlayer::getCurrentAnimationName();
         void setCurrentAnimation(int anim);
-    private:
+
+        double getCurrentTime() const;
+
+        bool isFinished() const;
+    public:
         SpriterEngine::EntityInstance* m_entity;
     };
 }

@@ -452,12 +452,12 @@ namespace arena
 
         while (!app.update());
 
-		app.shutdown();
-
         SDL_Event event;
         SDL_QuitEvent& qev = event.quit;
         qev.type = SDL_QUIT;
         SDL_PushEvent(&event);
+
+        app.shutdown();
 
         bgfx::shutdown();
 

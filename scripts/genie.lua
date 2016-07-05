@@ -81,7 +81,8 @@ project ("arena")
 		"bgfx",
 		"SDL2",
 		"Box2D",
-		"spriterengine"
+		"spriterengine",
+		"enet"
 	}
 
 	files {
@@ -89,14 +90,15 @@ project ("arena")
 		ARENA_DIR .. "src/**.h"
 	}
 
+	configuration { "vs*"}
+		links { "ws2_32" } --winsock
+
 	configuration { "vs*" and "x32"}
-	links { "enet" }
 	postbuildcommands {
 		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win32_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
 	}
 
 	configuration { "vs*" and "x64"}
-	links { "enet64" }
 	postbuildcommands {
 		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win64_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
 	}
@@ -131,7 +133,7 @@ project "server"
 	
 	configuration { "vs*" and "x64"}
 	links { 
-		"enet64",
+		"enet",
 		"ws2_32",
 		"winmm",
 		"sfml-window-s-d",
@@ -204,5 +206,30 @@ project "spriterengine"
 		"/wd4244", --return': conversion from '__int64' to 'int', possible loss of data
 		"/wd4267",  --'return': conversion from 'size_t' to 'int', possible loss of data
 		"/wd4800", --'int': forcing value to bool 'true' or 'false' (performance warning)
-
+		"/wd4018", --warning C4018: '<': signed/unsigned mismatch
 	}
+
+	configuration {}
+
+project "enet"
+	kind "StaticLib"
+	language "C"
+
+	files { 
+		path.join(ARENA_THIRD_DIR, "enet", "*.c")
+	}
+
+	includedirs { ARENA_THIRD_DIR }
+
+	configuration { "debug" }
+		defines { "DEBUG"}
+		flags { "Symbols" }
+
+	configuration { "Release" }
+		defines { "NDEBUG"}
+		flags { "Optimize" }
+
+	configuration { "vs*" }
+		defines { "_WINSOCK_DEPRECATED_NO_WARNINGS" }
+
+	configuration {}
