@@ -7,7 +7,8 @@ enum MessageIdentifier
 	ClientMove,
 	ClientShoot,
 	CreateBullet,
-
+	Hit,
+	BulletUpdate,
 };
 
 enum BulletType

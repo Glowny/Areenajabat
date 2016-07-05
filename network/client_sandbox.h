@@ -15,6 +15,13 @@ struct LiveBullet
 	
 };
 
+struct BulletHit
+{
+	glm::vec2 position;
+	float lifeTime;
+	float currentTime;
+};
+
 class Client
 {
 public:
@@ -37,6 +44,9 @@ private:
 	// Update fake physics
 	void updatePhysics();
 
+	// Gameplay stuff
+	void updateGameplay();
+
 	// Data send from server
 	
 	// platforms send by server
@@ -47,12 +57,13 @@ private:
 
 	// Data send to server
 	glm::vec2 m_movedir;
-
+	float aimAngle;
 	// Messages server send.
 	
 	// game objects
 	std::vector<GladiatorData> m_gladiatorVector;
 	std::vector<LiveBullet> m_liveBulletVector;
+	std::vector<BulletHit> m_bulletHitVector;
 	// Network low level	
 	Network m_network;
 
@@ -64,6 +75,7 @@ private:
 	sf::View m_view;
 	sf::Clock m_networkClock;
 	sf::Clock m_physicsClock;
+	sf::Clock m_timerClock;
 	// Vertex data about platforms used for drawing by SFML
 	std::vector<std::vector<sf::Vertex>> m_vertexes;
 	sf::RectangleShape m_rectangle;

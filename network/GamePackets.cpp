@@ -9,10 +9,11 @@ MessageIdentifier getMessageID(unsigned char* data)
 // Client -> Server
 unsigned char* createMovePacket(size_t &packetSize, glm::vec2 moveDirection, unsigned char* preData)
 {
-	packetSize = sizeof(MessageIdentifier) + sizeof(float) * 2;
 	if (preData == NULL)
+	{ 
+		packetSize = sizeof(MessageIdentifier) + sizeof(float) * 2;
 		preData = (unsigned char*)malloc(packetSize);
-	
+	}
 	unsigned char* dataPointer = preData;
 
 	serializeSingle(dataPointer, ClientMove);
@@ -25,10 +26,11 @@ unsigned char* createMovePacket(size_t &packetSize, glm::vec2 moveDirection, uns
 unsigned char* createUpdatePacket(size_t &packetSize, std::vector<GladiatorData> &gladiatorVector, unsigned char* preData)
 {
 
-	packetSize = sizeof(MessageIdentifier) + sizeof(float) * 5 * gladiatorVector.size();
 	if (preData == NULL)
+	{ 
+		packetSize = sizeof(MessageIdentifier) + sizeof(float) * 5 * gladiatorVector.size();
 		preData = (unsigned char*)malloc(packetSize);
-	
+	}
 	unsigned char* dataPointer = preData;
 
 	serializeSingle(dataPointer, Update);
@@ -48,10 +50,11 @@ unsigned char* createUpdatePacket(size_t &packetSize, std::vector<GladiatorData>
 // Server -> Client
 unsigned char* createSetupPacket(size_t &packetSize, unsigned playerAmount, unsigned playerId, unsigned char* preData)
 {
-	packetSize = sizeof(MessageIdentifier) + sizeof(unsigned) * 2;
 	if (preData == NULL)
+	{ 
+		packetSize = sizeof(MessageIdentifier) + sizeof(unsigned) * 2;
 		preData = (unsigned char*)malloc(packetSize);
-
+	}
 	unsigned char* dataPointer = preData;
 
 	serializeSingle(dataPointer, Start);
@@ -66,14 +69,15 @@ unsigned char* createSetupPacket(size_t &packetSize, unsigned playerAmount, unsi
 unsigned char* createPlatformPacket(size_t &packetSize, std::vector<Platform> &platformVector, unsigned char* preData)
 {	
 	// space for messageIdentifier and size of platformVector
-	packetSize = sizeof(MessageIdentifier) + sizeof(size_t);
-	for (unsigned i = 0; i < platformVector.size(); i++)
-	{
-		// space for the points of a platform and amount of points.
-		packetSize += sizeof(float) * 2 * platformVector[i].points.size() + sizeof(size_t);
-	}
+	
 	if (preData == NULL)
 	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(size_t);
+		for (unsigned i = 0; i < platformVector.size(); i++)
+		{
+			// space for the points of a platform and amount of points.
+			packetSize += sizeof(float) * 2 * platformVector[i].points.size() + sizeof(size_t);
+		}
 		preData = (unsigned char*)malloc(packetSize);
 	}
 	unsigned char* dataPointer = preData;
@@ -98,9 +102,9 @@ unsigned char* createPlatformPacket(size_t &packetSize, std::vector<Platform> &p
 // Client -> Server
 unsigned char* createBulletInputPacket(size_t &packetSize, std::vector<BulletInputData> &bulletVector, unsigned char* preData)
 {
-	packetSize = sizeof(MessageIdentifier) +sizeof(size_t)+ (sizeof(float) + sizeof(unsigned) + sizeof(BulletType)) * bulletVector.size();
 	if (preData == NULL)
 	{
+		packetSize = sizeof(MessageIdentifier) +sizeof(size_t)+ (sizeof(float) + sizeof(unsigned) + sizeof(BulletType)) * bulletVector.size();
 		preData = (unsigned char*)malloc(packetSize);
 	}
 	unsigned char* dataPointer = preData;
@@ -118,10 +122,10 @@ unsigned char* createBulletInputPacket(size_t &packetSize, std::vector<BulletInp
 // Server -> Client
 unsigned char* createBulletOutputPacket(size_t &packetSize, std::vector<BulletOutputData> &bulletVector, unsigned char* preData)
 {
-	packetSize = sizeof(MessageIdentifier) +sizeof(size_t)+ (sizeof(BulletType) + sizeof(float) * 5)* bulletVector.size();
 
 	if (preData == NULL)
 	{
+		packetSize = sizeof(MessageIdentifier) +sizeof(size_t)+ (sizeof(BulletType) + sizeof(float) * 5)* bulletVector.size();
 		preData = (unsigned char*)malloc(packetSize);
 	}
 	unsigned char* dataPointer = preData;
@@ -137,6 +141,45 @@ unsigned char* createBulletOutputPacket(size_t &packetSize, std::vector<BulletOu
 		serializeSingle(dataPointer, bulletVector[i].position.y);
 		serializeSingle(dataPointer, bulletVector[i].velocity.x);
 		serializeSingle(dataPointer, bulletVector[i].velocity.y);
+	}
+	return preData;
+}
+
+// Server -> Client
+unsigned char* createHitPacket(size_t &packetSize, glm::vec2 hitPosition, unsigned char* preData)
+{
+	if (preData == NULL)
+	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(float) * 2;
+		preData = (unsigned char*)malloc(packetSize);
+	}
+	unsigned char* dataPointer = preData;
+
+	serializeSingle(dataPointer, Hit);
+
+	serializeSingle(dataPointer, hitPosition.x);
+	serializeSingle(dataPointer, hitPosition.y);
+	
+	return preData;
+}
+// Server --> Client, temporary, for debugging
+unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec2> &bulletPositions, unsigned char* preData)
+{
+	if (preData == NULL)
+	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(size_t) + sizeof(float) * 2 * bulletPositions.size();
+		preData = (unsigned char*)malloc(packetSize);
+	}
+
+	unsigned char* dataPointer = preData;
+
+	serializeSingle(dataPointer, BulletUpdate);
+	serializeSingle(dataPointer, bulletPositions.size());
+
+	for (unsigned i = 0; i < bulletPositions.size(); i++)
+	{
+		serializeSingle(dataPointer, bulletPositions[i].x);
+		serializeSingle(dataPointer, bulletPositions[i].y);
 	}
 	return preData;
 }
@@ -203,6 +246,7 @@ void openPlatformPacket(unsigned char* data, std::vector<Platform> &platformVect
 	}
 	
 }
+
 // Server
 void openBulletInputPacket(unsigned char* data, std::vector<BulletInputData> &bulletVector)
 {
@@ -236,4 +280,29 @@ void openBulletOutputPacket(unsigned char* data, std::vector<BulletOutputData> &
 		deSerializeSingle(dataPointer, bulletVector[i].velocity.x);
 		deSerializeSingle(dataPointer, bulletVector[i].velocity.y);
 	}
+}
+
+// Client
+void openHitPacket(unsigned char* data, glm::vec2 &hitPosition)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	deSerializeSingle(dataPointer, hitPosition.x);
+	deSerializeSingle(dataPointer, hitPosition.y);
+}
+
+void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletPositions)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	size_t size;
+	deSerializeSingle(dataPointer, size);
+	for (unsigned i = 0; i < size; i++)
+	{
+		glm::vec2 bullet;
+		bulletPositions.push_back(bullet);
+		
+		deSerializeSingle(dataPointer, bulletPositions[i].x);
+		deSerializeSingle(dataPointer, bulletPositions[i].y);
+		
+	}
+
 }
