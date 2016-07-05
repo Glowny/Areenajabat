@@ -124,25 +124,10 @@ project "server"
 		path.join(ARENA_DIR, "network", "*.h"),
 	}
 	
-	configuration { "vs*" and "x32"}
 	links { 
 		"enet",
 		"ws2_32",
 		"winmm",
-	}
-	
-	configuration { "vs*" and "x64"}
-	links { 
-		"enet",
-		"ws2_32",
-		"winmm",
-		"sfml-window-s-d",
-		"sfml-graphics-s-d",
-		"sfml-system-s-d",
-		"opengl32",
-		"gdi32",
-		"freetype",
-		"jpeg",
 		"Box2D"
 	}
 	
@@ -177,7 +162,7 @@ project "client_sandbox"
 
 	configuration { "vs*" and "x64"}
 	links { 
-		"enet64",
+		"enet",
 		"ws2_32",
 		"winmm",
 		"sfml-window-s-d",
