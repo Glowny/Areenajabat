@@ -14,12 +14,14 @@ void Client::start(char* address, unsigned port)
 	m_view.reset(sf::FloatRect(0, 0, 1100, 1000));
 	m_view.setCenter(sf::Vector2f(550, 500));
 	m_window->setView(m_view);
-	m_rectangle.setSize(sf::Vector2f(32, 32));
+	m_rectangle.setSize(sf::Vector2f( 32.0f, 96.0f));
 	m_rectangle.setFillColor(sf::Color::Green);
 	m_rectangle.setPosition(200, 50);
-
-	m_bulletRectangle.setSize(sf::Vector2f(20, 20));
+	m_rectangle.setOrigin(16,48);
+	m_bulletRectangle.setSize(sf::Vector2f(5, 5));
 	m_bulletRectangle.setFillColor(sf::Color::White);
+
+	aimAngle = 0.03f;
 
 	noMoreBullets = false;
 
@@ -98,6 +100,7 @@ void Client::handleMessage(unsigned char* data)
 			bullet.m_rectangle = &m_bulletRectangle;
 			m_liveBulletVector.push_back(bullet);
 		}
+		break;
 	}
 	case Hit:
 	{
@@ -105,6 +108,7 @@ void Client::handleMessage(unsigned char* data)
 		hit.lifeTime = 4;
 		openHitPacket(data, hit.position);
 		m_bulletHitVector.push_back(hit);
+		break;
 	}
 	case BulletUpdate:
 	{
@@ -117,9 +121,9 @@ void Client::handleMessage(unsigned char* data)
 			LiveBullet bullet;
 			bullet.position.x = bulletPositions[i].x;
 			bullet.position.y = bulletPositions[i].y;
-			printf("Bullet position: %f, %f \n", bullet.position.x, bullet.position.y);
 			m_liveBulletVector.push_back(bullet);
 		}
+		break;
 	}
 	default:
 		break;
@@ -148,9 +152,9 @@ void Client::draw()
 
 		for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
 		{
-			m_liveBulletVector[i].m_rectangle->setPosition(m_liveBulletVector[i].position.x, m_liveBulletVector[i].position.y);
+			m_bulletRectangle.setPosition(m_liveBulletVector[i].position.x, m_liveBulletVector[i].position.y);
 			m_bulletRectangle.setFillColor(sf::Color::Yellow);
-			m_window->draw(*m_liveBulletVector[i].m_rectangle);
+			m_window->draw(m_bulletRectangle);
 
 		}
 		// draw hits
@@ -177,7 +181,8 @@ void Client::getInput()
 		{
 
 			BulletInputData bullet;
-			bullet.bulletType = UMP45;	bullet.rotation = 0;
+			bullet.bulletType = UMP45;	bullet.rotation = aimAngle;
+			printf("Aim angle: %f\n", aimAngle);
 			if (noMoreBullets == false)
 			{
 				m_bulletVector.push_back(bullet);
@@ -204,6 +209,19 @@ void Client::getInput()
 		m_view.move(0, -0.1);
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 		m_view.move(0, 0.1);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+	{
+		aimAngle += 0.0007f;
+		if (aimAngle > 6.28f)
+			aimAngle = 0.03f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+	{
+		aimAngle -= 0.0007f;
+		if (aimAngle < 0.0f)
+			aimAngle = 6.26f;
+	}
 
 
 	if (event.type == sf::Event::Closed)

@@ -57,7 +57,7 @@ private:
 
 	// Data send to server
 	glm::vec2 m_movedir;
-
+	float aimAngle;
 	// Messages server send.
 	
 	// game objects

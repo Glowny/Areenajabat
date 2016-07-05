@@ -196,15 +196,17 @@ void Server::createOutputBullets(std::vector<BulletInputData> &bulletInputVector
 		{
 			case UMP45:
 			{
-				bullet.position.x = m_gladiatorVector[playerId].position.x+50;
-				bullet.position.y = m_gladiatorVector[playerId].position.y;
+				glm::vec2 vectorAngle = radToVec(bulletInputVector[i].rotation);
+				bullet.position.x = m_gladiatorVector[playerId].position.x  + vectorAngle.x * 50;
+				bullet.position.y = m_gladiatorVector[playerId].position.y - 32 + vectorAngle.y * 50;
 				printf("%f, %f\n", m_gladiatorVector[playerId].position.x, m_gladiatorVector[playerId].position.y);
 				bullet.rotation = bulletInputVector[i].rotation;
-				glm::vec2 force = radToVec(bulletInputVector[i].rotation);
-				force *= 100;
-				m_physics.addBullet(bullet.position, force);
-				bullet.velocity.x = force.x;
-				bullet.velocity.y = force.y;
+				
+				vectorAngle.x *= 50000;
+				vectorAngle.y *= 50000;
+				m_physics.addBullet(bullet.position, vectorAngle);
+				bullet.velocity.x = vectorAngle.x;
+				bullet.velocity.y = vectorAngle.y;
 			}
 			case Shotgun:
 			{

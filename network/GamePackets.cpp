@@ -175,6 +175,7 @@ unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec
 
 	serializeSingle(dataPointer, BulletUpdate);
 	serializeSingle(dataPointer, bulletPositions.size());
+
 	for (unsigned i = 0; i < bulletPositions.size(); i++)
 	{
 		serializeSingle(dataPointer, bulletPositions[i].x);

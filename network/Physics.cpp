@@ -101,10 +101,11 @@ unsigned Physics::addGladiator(glm::vec2 position)
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
 	bodydef.position.Set(position.x, position.y);
+	bodydef.fixedRotation = true;
 	glad.m_body = m_b2DWorld->CreateBody(&bodydef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(32.0f, 32.0f);
+	dynamicBox.SetAsBox(16.0f, 48.0f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
@@ -113,7 +114,7 @@ unsigned Physics::addGladiator(glm::vec2 position)
 
 	b2MassData data;
 	data.mass = 1;
-	data.center = b2Vec2(16, 64);
+	data.center = b2Vec2(8, 24);
 
 	glad.m_body->SetMassData(&data);
 
@@ -161,23 +162,23 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
+	bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(5.0f, 5.0f);
+	dynamicBox.SetAsBox(2.0f, 2.0f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 1.0f;
-	fixtureDef.friction = 0.3f;
+	fixtureDef.density = 5.0f;
+	fixtureDef.friction = 0.01f;
 
 	b2MassData data;
-	data.mass = 0.05;
-	data.center = b2Vec2(2.5, 2.5);
+	data.mass = 0.005f;
+	data.center = b2Vec2(1, 1);
 
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
-	body->SetBullet(true);
 
 	p_Bullet* bullet = new p_Bullet;
 	p_userData* userData = new p_userData;
@@ -188,9 +189,8 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity)
 	bullet->m_contact = false;
 	bullet->m_contactBody = B_NONE;
 	body->SetUserData(userData);
-	bullet->m_body->ApplyForce(vel, b2Vec2(2.5,2.5), true);
+	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1,1), true);
 	m_bulletVector.push_back(bullet);
-
 };
 void Physics::removeBullet()
 {
