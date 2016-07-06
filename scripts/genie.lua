@@ -235,6 +235,7 @@ project "network-common"
 	}
 
 	includedirs {
-		ARENA_THIRD_DIR
+		ARENA_THIRD_DIR,
+		path.join(BX_DIR , "include")
 	}
 
