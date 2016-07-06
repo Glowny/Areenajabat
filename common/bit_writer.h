@@ -19,10 +19,26 @@ namespace arena
         // assumes the writer is aligned to byte boundary
         void writeBytes(const uint8_t* data, uint32_t bytes);
 
+        // flushes the current buffer to data pointer and starts a new one
+        void flushBits();
+
         // returns how many bits we need to align to write to byte boundary
         uint32_t getAlignBits() const;
 
-        void flushBits();
+        // returns the total count of bits written
+        uint32_t getBitsWritten() const;
+
+        // returns how many bits we can still write
+        uint32_t getBitsAvailable() const;
+
+        // returns the amount of bytes written
+        uint32_t getBytesWritten() const;
+
+        // returns the total amount of bytes 
+        uint32_t getTotalBytes() const;
+
+        // returns the pointer to data
+        const uint8_t* getData() const;
     private:
         // the buffer
         uint32_t* m_data;

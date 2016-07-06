@@ -176,4 +176,29 @@ namespace arena
             ++m_wordIndex;
         }
     }
+
+    uint32_t BitWriter::getBitsWritten() const
+    {
+        return m_bitsWritten;
+    }
+
+    uint32_t BitWriter::getBitsAvailable() const
+    {
+        return m_numBits - m_bitsWritten;
+    }
+
+    uint32_t BitWriter::getBytesWritten() const
+    {
+        return (m_bitsWritten + 7) / 8;
+    }
+
+    uint32_t BitWriter::getTotalBytes() const
+    {
+        return m_numWords * 4;
+    }
+
+    const uint8_t* BitWriter::getData() const
+    {
+        return (uint8_t*)m_data;
+    }
 }
