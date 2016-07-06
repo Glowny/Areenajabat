@@ -59,4 +59,121 @@ namespace arena
 
         m_bitsWritten += bits;
     }
+
+    void BitWriter::writeAlign()
+    {
+        const int remainderBits = m_bitsWritten % 8;
+        if (remainderBits != 0)
+        {
+            uint32_t zero = 0;
+            writeBits(zero, 8 - remainderBits);
+            ARENA_ASSERT((m_bitsWritten % 8) == 0, "Write not aligned");
+        }
+    }
+
+    uint32_t BitWriter::getAlignBits() const
+    {
+        // let m_bitsWritten = 65
+        // m_bitsWritten % 8 = 1
+        // (8 - 1) = 7
+        // 7 % 8 = 7
+
+        // let m_bitsWritten = 64
+        // m_bitsWritten % 8 = 
+        // 8 - 0 = 8
+        // 8 % 8 = 0, aligned
+        return (8 - (m_bitsWritten % 8) % 8);
+    }
+
+    void BitWriter::writeBytes(const uint8_t* data, uint32_t bytes)
+    {
+        ARENA_ASSERT(getAlignBits() == 0, "Writer must be aligned");
+        ARENA_ASSERT(m_bitsWritten + (bytes * 8) <= m_numBits, 
+            "Out of bounds, trying to write %d bits, %d of %d",
+            bytes * 8, m_bitsWritten, m_numBits);
+        ARENA_ASSERT(0
+            || (m_bitsWritten % 32) == 0
+            || (m_bitsWritten % 32) == 8
+            || (m_bitsWritten % 32) == 16
+            || (m_bitsWritten % 32) == 24
+        , "Writer not aligned");
+
+        /*
+        Okay, lets say we have wrote 1 byte (8 bits), there are still 
+        room left for 3 bytes (24 bits), so this is going to evaluate as 3
+        */
+        uint32_t headbytes = (4 - (m_bitsWritten % 32) / 8) % 4;
+
+        // if there is still more room in buffer than we are going to write
+        // we can exit early
+        if (headbytes > bytes)
+        {
+            headbytes = bytes;
+        }
+        // flush the first bytes to current buffer
+        for (uint32_t i = 0; i < headbytes; ++i)
+        {
+            writeBits(data[i], 8);
+        }
+
+        // early exit
+        if (headbytes == bytes) return;
+
+        // if we are here, we have filled the remaining buffer,
+        // so ask for new 4 byte buffer
+        flushBits();
+
+        // it should be aligned correctly because it's just switched
+        ARENA_ASSERT(getAlignBits() == 0, "Writer not aligned");
+
+        // now lets say we have wrote 3 bytes of 4
+        // so 4-3
+        uint32_t numWords = (bytes - headbytes) / 4;
+
+        if (numWords > 0)
+        {
+            ARENA_ASSERT((m_bitsWritten % 32) == 0, "Writer not aligned");
+            // flushBits changeds the wordIndex so we are writing to aligned buffer
+            memcpy(&m_data[m_wordIndex], data + headbytes, numWords * 4);
+            m_bitsWritten += numWords * 32;
+            m_wordIndex += numWords;
+            // reset the buffer
+            m_scratch = 0;
+        }
+
+        // writer should be aligned at this point
+        ARENA_ASSERT(getAlignBits() == 0, "Writer not aligned");
+
+        // if we filled our buffer with 3 bytes, this is going to give us the
+        // last byte to write
+        uint32_t tailStart = headbytes + numWords * 4;
+        uint32_t tailBytes = bytes - tailStart;
+
+        // it can't be over 4
+        ARENA_ASSERT(tailBytes >= 0 && tailBytes < 4, "Bytes are fucked up");
+
+        for (uint32_t i = 0; i < tailBytes; ++i)
+        {
+            writeBits(data[tailStart + i], 8);
+        }
+        // it must be aligned if we started with aligned buffer
+        ARENA_ASSERT(getAlignBits() == 0, "Writer not aligned");
+
+        ARENA_ASSERT(headbytes + numWords * 4 + tailBytes == bytes,
+            "Write truncated: wrote %d bytes out of %d",
+            headbytes + numWords * 4 + tailBytes,
+            bytes);
+    }
+
+    void BitWriter::flushBits()
+    {
+        if (m_scratchBits != 0)
+        {
+            ARENA_ASSERT(m_wordIndex < m_numWords, "Out of space");
+            m_data[m_wordIndex] = hostToNetwork(uint32_t(m_scratch & 0xffffffff));
+            m_scratch >>= 32;
+            m_scratchBits -= 32;
+            ++m_wordIndex;
+        }
+    }
 }

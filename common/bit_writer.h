@@ -12,7 +12,17 @@ namespace arena
         // Data must be preallocated, bytes must me multiple of four
         BitWriter(void* data, uint32_t bytes);
 
+        // write amount of bits from value
         void writeBits(uint32_t value, uint32_t bits);
+        // aligns the writer to byte, writes zero as padding
+        void writeAlign();
+        // assumes the writer is aligned to byte boundary
+        void writeBytes(const uint8_t* data, uint32_t bytes);
+
+        // returns how many bits we need to align to write to byte boundary
+        uint32_t getAlignBits() const;
+
+        void flushBits();
     private:
         // the buffer
         uint32_t* m_data;
