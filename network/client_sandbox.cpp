@@ -16,10 +16,11 @@ void Client::start(char* address, unsigned port)
 
 	m_window = new sf::RenderWindow (sf::VideoMode(1100,1000), "Networktest");
 	m_view.reset(sf::FloatRect(0, 0, 1100, 1000));
+	m_view.zoom(1.5);
 	m_view.setCenter(sf::Vector2f(550, 500));
 	m_window->setView(m_view);
-	m_rectangle.setSize(sf::Vector2f(0.4f*100.0f, 1.8f*100.0f));
-	m_rectangle.setOrigin(sf::Vector2f(20.0f, 70.0f));
+	m_rectangle.setSize(sf::Vector2f(0.4f*100.0f, 1.2f*100.0f));
+	m_rectangle.setOrigin(sf::Vector2f(20.0f, 60.0f));
 	m_rectangle.setFillColor(sf::Color::Green);
 	m_rectangle.setPosition(200, 50);
 	
@@ -112,6 +113,7 @@ void Client::handleMessage(unsigned char* data)
 	}
 	case Hit:
 	{
+		m_liveBulletVector.clear();
 		BulletHit hit;
 		hit.lifeTime = 4;
 		openHitPacket(data, hit.position);
@@ -122,13 +124,16 @@ void Client::handleMessage(unsigned char* data)
 	{
 		m_liveBulletVector.clear();
 		std::vector<glm::vec2> bulletPositions;
-		openBulletUpdatePacket(data, bulletPositions);
+		std::vector<glm::vec2> bulletVelocities;
+		openBulletUpdatePacket(data, bulletPositions, bulletVelocities);
 		
 		for(unsigned i = 0; i < bulletPositions.size(); i++)
 		{ 
 			LiveBullet bullet;
 			bullet.position.x = bulletPositions[i].x;
 			bullet.position.y = bulletPositions[i].y;
+			bullet.velocity.x = bulletVelocities[i].x;
+			bullet.velocity.y = bulletVelocities[i].y;
 			m_liveBulletVector.push_back(bullet);
 		}
 		break;
@@ -163,21 +168,39 @@ void Client::handleMessage(unsigned char* data)
 	free(data);
 }
 
+sf::Color playerColors[10]
+{
+	sf::Color::Color(0,	0,	255,255),
+	sf::Color::Color(0,	255,255,255),
+	sf::Color::Color(0,	255,0,255),
+	sf::Color::Color(255,0,	255,255),
+	sf::Color::Color(255,0,	0,255),
+	sf::Color::Color(255,255,0,255),
+	sf::Color::Color(122,255,122,255),
+	sf::Color::Color(0,122,255,255),
+	sf::Color::Color(112,255,0,255),
+	sf::Color::Color(0,112,0,255),
+};
+
 void Client::draw()
 {
+	sf::Vector2f playerPosition;
+	playerPosition.x = m_gladiatorVector[m_myId].position.x;
+	playerPosition.y = m_gladiatorVector[m_myId].position.y;
+	m_view.setCenter(playerPosition);
 	m_window->setView(m_view);
 	m_window->clear();
+	// draw platforms
+	for (unsigned i = 0; i < m_vertexes.size(); i++)
+	{
+		m_window->draw(&m_vertexes[i][0], m_vertexes[i].size(), sf::LinesStrip);
+	}
+
 	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
-		// draw platforms
-		for (unsigned i = 0; i < m_vertexes.size(); i++)
-		{
-			
-			m_window->draw(&m_vertexes[i][0], m_vertexes[i].size(), sf::LinesStrip);
-
-		}
 		// draw player
 		m_rectangle.setPosition(m_gladiatorVector[i].position.x, m_gladiatorVector[i].position.y);
+		m_rectangle.setFillColor(playerColors[i]);
 		m_window->draw(m_rectangle);
 		if (m_gladiatorVector[i].alive == true)
 		{
@@ -185,7 +208,10 @@ void Client::draw()
 			hpText.setPosition(m_rectangle.getPosition());
 		}
 		else
+		{ 
 			hpText.setString("DEAD");
+			hpText.setPosition(m_rectangle.getPosition());
+		}
 		m_window->draw(hpText);
 	}
 	for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
@@ -193,8 +219,8 @@ void Client::draw()
 		m_bulletRectangle.setPosition(m_liveBulletVector[i].position.x, m_liveBulletVector[i].position.y);
 		m_bulletRectangle.setFillColor(sf::Color::Yellow);
 		m_window->draw(m_bulletRectangle);
-
 	}
+	
 	// draw hits
 	for (unsigned i = 0; i < m_bulletHitVector.size(); i++)
 	{
@@ -225,27 +251,20 @@ void Client::getInput()
 				noMoreBullets = true;
 			}
 		}
+		if (event.key.code == sf::Keyboard::W)
+		{
+			m_movedir.y = -1.0f;
+		}
+		if (event.key.code == sf::Keyboard::A)
+		{
+			m_movedir.x = -1.0f;
+		}
+		if (event.key.code == sf::Keyboard::D)
+		{
+			m_movedir.x = 1.0f;
+		}
 	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-		m_movedir.x = -3.0f;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		m_movedir.x = 3.0f;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-		m_movedir.y = -10.0f;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-		m_movedir.y = 10.0f;
-
-	// Camera
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-		m_view.move(-0.1, 0);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-		m_view.move(0.1, 0);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-		m_view.move(0, -0.1);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-		m_view.move(0, 0.1);
-
+		
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 	{
 		aimAngle += 0.0007f;
@@ -307,9 +326,11 @@ void Client::updatePhysics()
 		}
 		//for (unsigned i = 0; i < m_liveBulletVector.size(); i++)
 		//{
-		//	m_liveBulletVector[i].position += glm::vec2(m_liveBulletVector[i].velocity.x *0.01, m_liveBulletVector[i].velocity.y *0.01);
+		//	m_liveBulletVector[i].position.x = m_liveBulletVector[i].position.x + m_liveBulletVector[i].velocity.x * 0.00024;
+		//	m_liveBulletVector[i].position.y = m_liveBulletVector[i].position.y + m_liveBulletVector[i].velocity.y * 0.00024;
 		//}
-		m_physicsClock.restart();
+
+	m_physicsClock.restart();
 	}
 }
 

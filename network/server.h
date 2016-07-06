@@ -6,9 +6,11 @@
 #include "Physics.h"
 #include "GamePackets.h"
 
+
 struct PlayerInput
 {
 	glm::vec2 moveDir;
+	float jumpTimer;
 	// add more when needed;
 };
 
@@ -52,7 +54,8 @@ private:
 	std::queue<Message>* m_messageQueue;
 	std::vector<PlayerInput> m_playerInputVector;
 	std::vector<Platform> m_platformVector;
-	void tempPlatformCreation();
+
+	void loadPlatformsFromFile(char* filename);
 	bool* m_run;
 };
 

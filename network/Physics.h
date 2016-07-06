@@ -19,7 +19,8 @@ struct BulletHit
 {
 	bodyType hitType;
 	glm::vec2 position;
-	unsigned playerId;
+	unsigned shooterPlayerId;
+	unsigned targetPlayerId;
 };
 
 struct p_userData
@@ -47,6 +48,7 @@ struct p_Gladiator
 
 struct p_Bullet
 {
+	unsigned m_shooterID;
 	bool m_contact;
 	bodyType m_contactBody;
 	p_userData* m_contactUserData;
@@ -68,12 +70,14 @@ class ContactListener : public b2ContactListener
 		p_userData* userData1 = static_cast<p_userData*>(bodyUserData1);
 		p_userData* userData2 = static_cast<p_userData*>(bodyUserData2);
 
-		if (userData1->m_bodyType == B_Platform || B_Gladiator)
+		if (userData1->m_bodyType == B_Platform || userData1->m_bodyType == B_Gladiator)
 		{
 			if (userData2->m_bodyType == B_Bullet)
 			{
 				p_Bullet* bullet =  static_cast<p_Bullet*>(userData2->m_object);
 				bullet->startContact(userData1->m_bodyType, userData1);
+				p_Gladiator* glad =static_cast<p_Gladiator*>(userData1->m_object);
+				printf("ads");
 			}
 		}
 
@@ -90,12 +94,14 @@ public:
 
 	void update();
 	void createPlatform(std::vector<glm::vec2> platform);
-	unsigned addGladiator(glm::vec2 position);
-	void moveGladiator(glm::vec2 direction, unsigned id);
+	unsigned addGladiator(glm::vec2 position, unsigned id);
+	void AppleForceToGladiator(glm::vec2 direction, unsigned id);
+	void ApplyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
+	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
-	void addBullet(glm::vec2 position, glm::vec2 velocity);
+	void addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooterID);
 	void removeBullet();
 	ContactListener m_ContactListener;
 	std::vector<BulletHit> hitVector;

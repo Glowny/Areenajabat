@@ -20,7 +20,7 @@ int main()
 #else
 
 	Server server;
-	server.start(0, 8888, 1);
+	server.start(0, 8888, 2);
 		
 #endif
 }

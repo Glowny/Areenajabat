@@ -212,11 +212,11 @@ unsigned char* createPlayerRespawnPacket(size_t &packetSize, unsigned playerInde
 }
 
 // Server --> Client, temporary, for debugging
-unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec2> &bulletPositions, unsigned char* preData)
+unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec2> &bulletPositions, std::vector<glm::vec2> &bulletVelocities, unsigned char* preData)
 {
 	if (preData == NULL)
 	{
-		packetSize = sizeof(MessageIdentifier) + sizeof(size_t) + sizeof(float) * 2 * bulletPositions.size();
+		packetSize = sizeof(MessageIdentifier) + sizeof(size_t) + sizeof(float) * 4 * bulletPositions.size();
 		preData = (unsigned char*)malloc(packetSize);
 	}
 
@@ -229,6 +229,8 @@ unsigned char* createBulletUpdatePacket(size_t &packetSize, std::vector<glm::vec
 	{
 		serializeSingle(dataPointer, bulletPositions[i].x);
 		serializeSingle(dataPointer, bulletPositions[i].y);
+		serializeSingle(dataPointer, bulletVelocities[i].x);
+		serializeSingle(dataPointer, bulletVelocities[i].y);
 	}
 	return preData;
 }
@@ -355,7 +357,7 @@ void openPlayerRespawnPacket(unsigned char* data, unsigned &playerIndex)
 	deSerializeSingle(dataPointer, playerIndex);
 }
 
-void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletPositions)
+void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletPositions, std::vector<glm::vec2> &bulletVelocities)
 {
 	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
 	size_t size;
@@ -364,10 +366,12 @@ void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletP
 	{
 		glm::vec2 bullet;
 		bulletPositions.push_back(bullet);
-		
+		bulletVelocities.push_back(bullet);
 		deSerializeSingle(dataPointer, bulletPositions[i].x);
 		deSerializeSingle(dataPointer, bulletPositions[i].y);
 		
+		deSerializeSingle(dataPointer, bulletVelocities[i].x);
+		deSerializeSingle(dataPointer, bulletVelocities[i].y);
 	}
 
 }
