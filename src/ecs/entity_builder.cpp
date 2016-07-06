@@ -8,7 +8,7 @@
 #include "managers\sprite_manager.h"
 #include "managers/animator_manager.h"
 #include <cassert>
-#include "../debug.h"
+#include <common/debug.h>
 
 namespace arena
 {

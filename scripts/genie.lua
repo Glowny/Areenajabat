@@ -84,7 +84,7 @@ project ("arena")
 		"Box2D",
 		"spriterengine",
 		"enet",
-		"network-common"
+		"common"
 	}
 
 	files {
@@ -130,7 +130,7 @@ project "server"
 	}
 	
 	links { 
-		"network-common",
+		"common",
 		"enet",
 		"ws2_32",
 		"winmm",
@@ -225,13 +225,13 @@ project "enet"
 
 	configuration {}
 
-project "network-common"
+project "common"
 	kind "StaticLib"
 	language "C++"
 
 	files {
-		path.join(ARENA_DIR, "network-common", "**.cpp"),
-		path.join(ARENA_DIR, "network-common", "**.h")
+		path.join(ARENA_DIR, "common", "**.cpp"),
+		path.join(ARENA_DIR, "common", "**.h")
 	}
 
 	includedirs {
