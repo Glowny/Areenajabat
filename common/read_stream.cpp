@@ -32,24 +32,51 @@ namespace arena
     bool ReadStream::serializeBits(uint32_t & value, uint32_t bits)
     {
         ARENA_ASSERT(bits <= 32, "bits needs to be less than 32");
-        (void)value;
-        return false;
+        
+        if (m_reader.wouldOverflow(bits))
+        {
+            BX_ERROR_SET((&m_error), ARENA_ERROR_STREAM_OVERFLOW, "Stream would overflow");
+            return false;
+        }
+
+        value = m_reader.readBits(bits);
+        m_bitsRead += bits;
+
+        return true;
     }
 
     bool ReadStream::serializeBytes(uint8_t * data, uint32_t bytes)
     {
-        (void)data;
-        (void)bytes;
         if (!serializeAlign())
         {
             return false;
         }
-        return false;
+
+        if (m_reader.wouldOverflow(bytes * 8))
+        {
+            BX_ERROR_SET((&m_error), ARENA_ERROR_STREAM_OVERFLOW, "Stream would overflow");
+            return false;
+        }
+        m_reader.readBytes(data, bytes);
+        m_bitsRead += bytes * 8;
+        return true;
     }
 
     bool ReadStream::serializeAlign()
     {
-        return false;
+        const uint32_t align = m_reader.getAlignBits();
+        if (m_reader.wouldOverflow(align))
+        {
+            BX_ERROR_SET((&m_error), ARENA_ERROR_STREAM_OVERFLOW, "Stream would overflow");
+            return false;
+        }
+
+        if (!m_reader.readAlign())
+        {
+            return false;
+        }
+        m_bitsRead += align;
+        return true;
     }
 
     uint32_t ReadStream::getBitsProcessed() const
