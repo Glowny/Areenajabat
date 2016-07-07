@@ -18,15 +18,15 @@ class Network
 		void startServer(std::queue<Message>* messageQueue, unsigned address,
 			unsigned port, unsigned clientAmount);
 		
-		size_t getConnectedPlayerAmount()
+		uint32_t getConnectedPlayerAmount()
 		{
 			return m_clientVector.size();
 		}
 		void checkEvent();
 		// Todo: add flush for packet sending.
-		void sendPacket(unsigned char* data, size_t size, 
+		void sendPacket(unsigned char* data, uint32_t size, 
 			unsigned clientIndex, bool reliable = true);
-		void broadcastPacket(unsigned char* data, size_t size,
+		void broadcastPacket(unsigned char* data, uint32_t size,
 			bool reliable = true);
 		void disconnectClient(unsigned clientIndex);
 	

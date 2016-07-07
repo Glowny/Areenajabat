@@ -120,8 +120,8 @@ unsigned Physics::addGladiator(glm::vec2 position, unsigned id)
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 2.0f;
-	fixtureDef.friction = 0.1f;
+	fixtureDef.density = 2.5f;
+	fixtureDef.friction = 0.8f;
 	glad->m_body->CreateFixture(&fixtureDef);
 
 	b2MassData data;

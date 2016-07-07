@@ -64,6 +64,8 @@ private:
 	std::vector<GladiatorData> m_gladiatorVector;
 	std::vector<LiveBullet> m_liveBulletVector;
 	std::vector<BulletHit> m_bulletHitVector;
+	ScoreBoard m_scoreBoard;
+	bool drawScoreBoard;
 	// Network low level	
 	Network m_network;
 
@@ -82,6 +84,9 @@ private:
 	sf::RectangleShape m_bulletRectangle;
 	sf::Font font;
 	sf::Text hpText;
+	sf::Text m_scoreBoardText;
+	std::string formatScoreBoardText(ScoreBoard &scoreBoard);
+
 
 };
 

@@ -56,7 +56,7 @@ void Network::checkEvent()
 
 }
 
-void Network::sendPacket(unsigned char* data, size_t size, 
+void Network::sendPacket(unsigned char* data, uint32_t size, 
 	unsigned clientIndex, bool reliable)
 {
 	_ENetPacketFlag flag;
@@ -74,7 +74,7 @@ void Network::sendPacket(unsigned char* data, size_t size,
 	enet_host_flush(m_server);
 }
 
-void Network::broadcastPacket(unsigned char* data, size_t size, bool reliable)
+void Network::broadcastPacket(unsigned char* data, uint32_t size, bool reliable)
 {
 	_ENetPacketFlag flag;
 	if (reliable)

@@ -48,7 +48,7 @@ void Network::checkEvent()
 
 }
 
-void Network::sendPacket(unsigned char* data, size_t size, bool reliable)
+void Network::sendPacket(unsigned char* data, uint32_t size, bool reliable)
 {
 	_ENetPacketFlag flag;
 	if (reliable)

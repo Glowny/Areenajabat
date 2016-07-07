@@ -25,7 +25,7 @@ public:
 
 private:
 	// Networking game related.
-	size_t m_updateSize;  //update packet size wont change during gameloop. 
+	uint32_t m_updateSize;  //update packet size wont change during gameloop. 
 	unsigned char* m_updateMemory; // memory set for update packet.
 
 	void handleClientMessages();
@@ -41,14 +41,20 @@ private:
 	// Game entities.
 	Physics m_physics;
 
-	void bulletHit(glm::vec2 position)
-	{
-		size_t packetSize;
-		unsigned char* data;
-		data = createHitPacket(packetSize, position);
-		m_network.broadcastPacket(data, packetSize);
-	}
+	// Game Initiazation stuff
+	void createPlayerInputs(unsigned playerAmount);
+	void createGladiators(unsigned playerAmount);
+	void sendSetupPackets(unsigned playerAmount);
 
+	// Game loop stuff
+	void gladiatorMovement();
+	void sendBulletCreationEvents();
+	void sendBulletHitEvents();
+	void sendGameUpdateMessages();
+	//  TODO: Make different respawn system later
+	void respawnDeadPlayers();
+
+	ScoreBoard m_scoreBoard;
 	std::vector<GladiatorData> m_gladiatorVector;
 	std::vector<BulletOutputData> m_bulletOutputVector;
 	std::queue<Message>* m_messageQueue;

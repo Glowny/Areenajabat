@@ -1,5 +1,6 @@
 #pragma once
 #include "Enumerations.h"
+#include <stdint.h>
 
 template <typename T>
 void serializeSingle(unsigned char*& dataPointer, T single)

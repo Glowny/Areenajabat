@@ -12,6 +12,7 @@ enum MessageIdentifier
 	PlayerDamage,
 	PlayerKill,
 	PlayerRespawn,
+	ScoreBoardUpdate,
 };
 
 enum BulletType

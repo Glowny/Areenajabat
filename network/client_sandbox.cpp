@@ -3,17 +3,23 @@
 
 void Client::start(char* address, unsigned port)
 {
+	
 	font.loadFromFile("asd.ttf");
 	hpText.setFont(font);
 	hpText.setColor(sf::Color::Red);
 	hpText.setCharacterSize(40.0f);
+	drawScoreBoard = false;
+	m_scoreBoardText.setFont(font);
+	m_scoreBoardText.setCharacterSize(40.0f);
+	m_scoreBoardText.setColor(sf::Color::Red);
+
 	m_network.setMessageQueue(&m_messageQueueIn);
 	m_network.connectServer(address, port);
 
 	m_timerClock.restart();
 	m_networkClock.restart();
 	m_physicsClock.restart();
-
+	m_scoreBoard.flagHolder = 666;
 	m_window = new sf::RenderWindow (sf::VideoMode(1100,1000), "Networktest");
 	m_view.reset(sf::FloatRect(0, 0, 1100, 1000));
 	m_view.zoom(1.5);
@@ -81,6 +87,11 @@ void Client::handleMessage(unsigned char* data)
 			data.alive = true;
 			data.hitPoints = 100;
 			m_gladiatorVector.push_back(data);
+
+			// create scoreboard stats for each player
+			PlayerScore playerScore{ 0, 6 };
+			m_scoreBoard.PlayerScoreVector.push_back(playerScore);
+			m_scoreBoardText.setString(formatScoreBoardText(m_scoreBoard));
 		}
 		break;
 	}
@@ -160,6 +171,11 @@ void Client::handleMessage(unsigned char* data)
 		m_gladiatorVector[respawnPlayer].hitPoints = 100;
 		break;
 	}
+	case ScoreBoardUpdate:
+	{
+		openScoreboardUpdatePacket(data, m_scoreBoard);
+		m_scoreBoardText.setString(formatScoreBoardText(m_scoreBoard));
+	}
 
 	default:
 		break;
@@ -190,6 +206,7 @@ void Client::draw()
 	m_view.setCenter(playerPosition);
 	m_window->setView(m_view);
 	m_window->clear();
+
 	// draw platforms
 	for (unsigned i = 0; i < m_vertexes.size(); i++)
 	{
@@ -228,6 +245,19 @@ void Client::draw()
 		m_bulletRectangle.setFillColor(sf::Color::Red);
 		m_window->draw(m_bulletRectangle);
 	}
+
+	if (drawScoreBoard)
+	{
+		sf::RectangleShape shape;
+		shape.setFillColor(sf::Color::Green);
+		
+		shape.setPosition(sf::Vector2f(m_window->mapPixelToCoords( sf::Vector2i(200, 200))));
+		shape.setSize(sf::Vector2f(900, 1000));
+		m_window->draw(shape);
+		m_scoreBoardText.setPosition(sf::Vector2f(m_window->mapPixelToCoords(sf::Vector2i(200, 200))));
+		m_window->draw(m_scoreBoardText);
+	}
+
 	m_window->display();
 
 }
@@ -255,10 +285,10 @@ void Client::getInput()
 		{
 			m_movedir.y = -1.0f;
 		}
-		//if (event.key.code == sf::Keyboard::A)
-		//{
-		//	
-		//}
+		if (event.key.code == sf::Keyboard::Tab)
+		{
+			drawScoreBoard = !drawScoreBoard;
+		}
 		//if (event.key.code == sf::Keyboard::D)
 		//{
 		//	
@@ -300,7 +330,7 @@ void Client::sendData()
 		if (m_movedir.x != 0 ||
 			m_movedir.y != 0)
 		{ 
-			size_t movePacketSize;
+			uint32_t movePacketSize;
 			unsigned char* moveData = createMovePacket(movePacketSize, m_movedir);
 			m_network.sendPacket(moveData, movePacketSize);
 			m_movedir.x = 0;
@@ -309,7 +339,7 @@ void Client::sendData()
 		// Send all bullets created during loop.
 		if (m_bulletVector.size() != 0)
 		{
-			size_t bulletPacketSize;
+			uint32_t bulletPacketSize;
 			unsigned char* bulletData = createBulletInputPacket(bulletPacketSize, m_bulletVector);
 			m_network.sendPacket(bulletData, bulletPacketSize);
 			m_bulletVector.clear();
@@ -354,6 +384,30 @@ void Client::updateGameplay()
 			i += -1;
 		}
 	}
+}
+
+std::string Client::formatScoreBoardText(ScoreBoard &scoreBoard)
+{
+	std::string string;
+	string = "Scoreboard:\n ID: \t Score: \t Tickets: \t Flag:\n \t";
+	
+	for (unsigned i = 0; i < scoreBoard.PlayerScoreVector.size(); i++)
+	{
+		PlayerScore score = scoreBoard.PlayerScoreVector[i];
+		string += std::to_string(i); 
+		string += "\t\t\t";
+		string += std::to_string(score.score);
+		string += "\t\t\t";
+		string += std::to_string(score.tickets);
+		
+		if (i == scoreBoard.flagHolder)
+		{
+			string += "\t\t";
+			string += "X";
+		}
+		string += ("\n\t  ");
+	}
+	return string;
 }
 
 #endif
