@@ -7,4 +7,9 @@ namespace arena
 
     // clear network services
     void networkShutdown();
+
+    class NetworkInterface
+    {
+
+    };
 }

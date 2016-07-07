@@ -1,3 +1,4 @@
+#include "../net/network_client.h"
 #include "sandbox_scene.h"
 #include "..\res\resource_manager.h"
 #include "..\app.h"
@@ -28,12 +29,11 @@
 #include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
 
-#include <bx/thread.h>
-#include <queue>
-
 
 namespace arena
 {
+    static NetworkClient s_client;
+
 	static Entity* entity;
     static Animator* s_animator;
 
@@ -46,11 +46,17 @@ namespace arena
     {
         s_animator->m_animator.setFlipX(true);
     }
+    
+    static void connect(const void*)
+    {
+        s_client.connect("localhost", uint16_t(13337), 0);
+    }
 
     static const InputBinding s_bindings[] =
     {
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
+        { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         INPUT_BINDING_END
     };
 

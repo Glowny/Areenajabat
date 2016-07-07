@@ -23,6 +23,7 @@
 #include "graphics/character_animator.h"
 #include "utils/math.h"
 #include <common/network_interface.h>
+#include <common/debug.h>
 
 namespace arena
 {
@@ -160,7 +161,8 @@ namespace arena
 
     void App::init(int32_t width, int32_t height)
     {
-        networkInitialize();
+        bool result = networkInitialize(); (void)result;
+        ARENA_ASSERT(result == true, "Failed to initialize network");
 
 		m_width = width;
 		m_height = height;
