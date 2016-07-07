@@ -96,13 +96,13 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 				{ 
 					if (m_playerInputVector[i].moveDir.x != 0)
 					{
-						m_physics.AppleForceToGladiator(glm::vec2(m_playerInputVector[i].moveDir.x*10, - 2.5f), i);
+						m_physics.AppleForceToGladiator(glm::vec2(m_playerInputVector[i].moveDir.x*500, - 100.5f), i);
 						m_playerInputVector[i].moveDir.x = 0.0;
 						
 					}
 					if (m_playerInputVector[i].moveDir.y != 0 && m_playerInputVector[i].jumpTimer > 1)
 					{
-						m_physics.ApplyImpulseToGladiator(glm::vec2(0, m_playerInputVector[i].moveDir.y*8), i);
+						m_physics.ApplyImpulseToGladiator(glm::vec2(0, m_playerInputVector[i].moveDir.y*400), i);
 						m_playerInputVector[i].moveDir.y = 0.0;
 						m_playerInputVector[i].jumpTimer = 0;
 					}

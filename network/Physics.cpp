@@ -47,7 +47,7 @@ void Physics::update()
 				hit.hitType = B_Gladiator;
 				hit.position = position;
 				hit.targetPlayerId = targetID;
-				hit.shooterPlayerId = static_cast<p_Bullet*>(m_bulletVector[i]->m_userData->m_object)->m_shooterID;
+				hit.shooterPlayerId = static_cast<p_Bullet*>(m_bulletVector[i]->m_myUserData->m_object)->m_shooterID;
 				hitVector.push_back(hit);
 				printf("GLADIATOR HIT O HUM ANIT\n");
 			}
@@ -106,14 +106,14 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 // returns id.
 unsigned Physics::addGladiator(glm::vec2 position, unsigned id)
 {
-	p_Gladiator glad;
+	p_Gladiator* glad = new p_Gladiator;
 
-	glad.m_id = id;
+	glad->m_id = id;
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
 	bodydef.position.Set(position.x/100, position.y/100);
 	bodydef.fixedRotation = true;
-	glad.m_body = m_b2DWorld->CreateBody(&bodydef);
+	glad->m_body = m_b2DWorld->CreateBody(&bodydef);
 
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.2f, 0.6f);
@@ -122,36 +122,34 @@ unsigned Physics::addGladiator(glm::vec2 position, unsigned id)
 	fixtureDef.shape = &dynamicBox;
 	fixtureDef.density = 2.0f;
 	fixtureDef.friction = 0.1f;
+	glad->m_body->CreateFixture(&fixtureDef);
 
 	b2MassData data;
-	data.mass = 7;
+	data.mass = 70;
 	data.center = b2Vec2(0.2f, 0.45f);
-
-	glad.m_body->SetMassData(&data);
-
-	glad.m_body->CreateFixture(&fixtureDef);
-	m_gladiatorVector.push_back(glad);
+	glad->m_body->SetMassData(&data);
 	
 	p_userData* userData = new p_userData;
-	m_gladiatorVector[m_gladiatorVector.size() - 1].m_userData = userData;
-	userData->m_object = &m_gladiatorVector[m_gladiatorVector.size() - 1];
-	m_gladiatorVector[m_gladiatorVector.size() - 1].m_body->SetUserData(userData);
-	
 	userData->m_bodyType = B_Gladiator;
+	userData->m_object = glad;
+	
+	glad->m_userData = userData;
+	glad->m_body->SetUserData(userData);
 
-	return glad.m_id;
+	m_gladiatorVector.push_back(glad);
+	return glad->m_id;
 };
 
 void Physics::AppleForceToGladiator(glm::vec2 direction, unsigned id)
 {
-	m_gladiatorVector[id].m_body->ApplyForce(b2Vec2(direction.x, direction.y),
-		m_gladiatorVector[id].m_body->GetWorldCenter(), 1);
+	m_gladiatorVector[id]->m_body->ApplyForce(b2Vec2(direction.x, direction.y),
+		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
 }
 
 void Physics::ApplyImpulseToGladiator(glm::vec2 direction, unsigned id)
 {
-	m_gladiatorVector[id].m_body->ApplyLinearImpulse(b2Vec2(direction.x, direction.y ),
-		m_gladiatorVector[id].m_body->GetWorldCenter(), 1);
+	m_gladiatorVector[id]->m_body->ApplyLinearImpulse(b2Vec2(direction.x, direction.y ),
+		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
 }
 
 void Physics::setGladiatorPosition(unsigned id, glm::vec2 position)
@@ -159,11 +157,11 @@ void Physics::setGladiatorPosition(unsigned id, glm::vec2 position)
 	b2Vec2 pos;
 	pos.x = position.x / 100;
 	pos.y = position.y / 100;
-	m_gladiatorVector[id].m_body->SetTransform(pos, m_gladiatorVector[id].m_body->GetAngle());
+	m_gladiatorVector[id]->m_body->SetTransform(pos, m_gladiatorVector[id]->m_body->GetAngle());
 }
 glm::vec2 Physics::getGladiatorPosition(unsigned id)
 {
-	b2Vec2 pos = m_gladiatorVector[id].m_body->GetPosition();
+	b2Vec2 pos = m_gladiatorVector[id]->m_body->GetPosition();
 	glm::vec2 position;
 	position.x = pos.x*100;
 	position.y = pos.y*100;
@@ -171,7 +169,7 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 }
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
-	b2Vec2 vel = m_gladiatorVector[id].m_body->GetLinearVelocity();
+	b2Vec2 vel = m_gladiatorVector[id]->m_body->GetLinearVelocity();
 	glm::vec2 velocity;
 	velocity.x = vel.x*100;
 	velocity.y = vel.y*100;
@@ -209,7 +207,7 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooter
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Bullet;
 	userData->m_object = bullet;
-	bullet->m_userData = userData;
+	bullet->m_myUserData = userData;
 	bullet->m_body = body;
 	bullet->m_contact = false;
 	bullet->m_contactBody = B_NONE;

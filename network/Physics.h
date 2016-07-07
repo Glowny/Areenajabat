@@ -53,7 +53,7 @@ struct p_Bullet
 	bodyType m_contactBody;
 	p_userData* m_contactUserData;
 	b2Body* m_body;
-	p_userData* m_userData;
+	p_userData* m_myUserData;
 	void startContact(bodyType contact, p_userData* contactUserData)
 	{ 
 		m_contact = true; m_contactBody = contact, m_contactUserData = contactUserData; 
@@ -64,20 +64,20 @@ class ContactListener : public b2ContactListener
 {
 	void BeginContact(b2Contact* contact)
 	{
-		void* bodyUserData1 = contact->GetFixtureA()->GetBody()->GetUserData();
-		void* bodyUserData2 = contact->GetFixtureB()->GetBody()->GetUserData();
+		void* targetBodyUserData = contact->GetFixtureA()->GetBody()->GetUserData();
+		void* bulletBodyUserData = contact->GetFixtureB()->GetBody()->GetUserData();
 
-		p_userData* userData1 = static_cast<p_userData*>(bodyUserData1);
-		p_userData* userData2 = static_cast<p_userData*>(bodyUserData2);
+		p_userData* targetUserData = static_cast<p_userData*>(targetBodyUserData);
+		p_userData* bulletUserData = static_cast<p_userData*>(bulletBodyUserData);
 
-		if (userData1->m_bodyType == B_Platform || userData1->m_bodyType == B_Gladiator)
+		if (targetUserData->m_bodyType == B_Platform || targetUserData->m_bodyType == B_Gladiator)
 		{
-			if (userData2->m_bodyType == B_Bullet)
+			if (bulletUserData->m_bodyType == B_Bullet)
 			{
-				p_Bullet* bullet =  static_cast<p_Bullet*>(userData2->m_object);
-				bullet->startContact(userData1->m_bodyType, userData1);
-				p_Gladiator* glad =static_cast<p_Gladiator*>(userData1->m_object);
-				printf("ads");
+				p_Bullet* bullet =  static_cast<p_Bullet*>(bulletUserData->m_object);
+				bullet->startContact(targetUserData->m_bodyType, targetUserData);
+				p_Gladiator* glad =static_cast<p_Gladiator*>(targetUserData->m_object);
+				printf("Gladiator id: %d", &glad->m_id);
 			}
 		}
 
@@ -109,7 +109,7 @@ public:
 private:
 	b2World* m_b2DWorld;
 	//TODO: Better way to communicate with server.
-	std::vector<p_Gladiator> m_gladiatorVector;
+	std::vector<p_Gladiator*> m_gladiatorVector;
 	std::vector<p_Platform*> m_platformVector;
 };
 #endif

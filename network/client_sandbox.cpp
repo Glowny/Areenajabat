@@ -255,16 +255,24 @@ void Client::getInput()
 		{
 			m_movedir.y = -1.0f;
 		}
-		if (event.key.code == sf::Keyboard::A)
-		{
-			m_movedir.x = -1.0f;
-		}
-		if (event.key.code == sf::Keyboard::D)
-		{
-			m_movedir.x = 1.0f;
-		}
+		//if (event.key.code == sf::Keyboard::A)
+		//{
+		//	
+		//}
+		//if (event.key.code == sf::Keyboard::D)
+		//{
+		//	
+		//}
 	}
-		
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+	{
+		m_movedir.x = -1.0f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+	{
+		m_movedir.x = 1.0f;
+	}
+
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 	{
 		aimAngle += 0.0007f;
