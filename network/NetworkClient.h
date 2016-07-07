@@ -13,7 +13,7 @@ class Network
 		
 		void connectServer(char* address, unsigned port);
 		void checkEvent();
-		void sendPacket(unsigned char* data, size_t size, bool reliable = true);
+		void sendPacket(unsigned char* data, uint32_t size, bool reliable = true);
 		void sendMessages();
 
 		void disconnect();

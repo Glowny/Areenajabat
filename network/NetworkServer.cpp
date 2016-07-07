@@ -1,4 +1,5 @@
 #include "NetworkServer.h"
+#include <common/Enumerations.h>
 #if defined(ARENA_SERVER)
 Network::Network() {}
 
@@ -14,6 +15,7 @@ void Network::startServer(std::queue<Message>* messageQueue, unsigned address,
 	m_messageQueue = messageQueue;
 	initializeENet();
 	m_server = createENetServer(address, port, clientAmount);
+	idGiver = 0;
 
 }
 void Network::checkEvent() 
@@ -25,12 +27,16 @@ void Network::checkEvent()
 	switch (EEvent.type)
 	{
 	case ENET_EVENT_TYPE_CONNECT:
-		printf("A new client connected from %x:%u.\n",
+	{		printf("A new client connected from %x:%u.\n",
 			EEvent.peer->address.host,
 			EEvent.peer->address.port);
-		EEvent.peer->data = (void*)m_clientVector.size();
-		m_clientVector.push_back(EEvent.peer);
+		// dunno maybe does not need this
+		int* id = new int(idGiver);
+		EEvent.peer->data = (void*)id;
+		idGiver++;
+		m_clientVector.push_back(Client{777, EEvent.peer });
 		break;
+	}
 
 	case ENET_EVENT_TYPE_RECEIVE:
 	{
@@ -40,23 +46,57 @@ void Network::checkEvent()
 		Message message;
 		message.data = (unsigned char*)malloc(EEvent.packet->dataLength);
 		memcpy(message.data, EEvent.packet->data, EEvent.packet->dataLength);
-		message.clientID = (unsigned)EEvent.peer->data;
+		
+		// Make better some day
+		for (unsigned i = 0; i < m_clientVector.size(); i++)
+		{
+			if (m_clientVector[i].peer == EEvent.peer)
+			{
+				message.playerID = m_clientVector[i].playerID;
+				break;
+			}
+		};
 		m_messageQueue->push(message);
 
 		enet_packet_destroy(EEvent.packet);
 		break;
 	}
 	case ENET_EVENT_TYPE_DISCONNECT:
-		printf("%s disconnected.\n", EEvent.peer->data);
+	{
+		unsigned index;
+		for (unsigned i = 0; i < m_clientVector.size(); i++)
+		{
+			if (EEvent.peer == m_clientVector[i].peer)
+			{
+				index = i;
+			}
+		}
+
+		printf("client id: %d, clientVector index: %d player id: %d disconnected. playerAmount: %d\n Deleting player\n", (unsigned)EEvent.peer->data, index, m_clientVector[index].playerID, m_clientVector.size());
+
+		free(EEvent.peer->data);
 		EEvent.peer->data = NULL;
+
+		Message message;
+		message.data = (unsigned char*)malloc(sizeof(MessageIdentifier));
+		
+		MessageIdentifier messageid = Restart;
+		memcpy(message.data, &messageid, sizeof(messageid));
+		message.playerID = 666;
+		m_messageQueue->push(message);
+
+		enet_peer_reset(EEvent.peer);
+		m_clientVector.erase(m_clientVector.begin() + index);
+		printf("index %d disconnected. PlayerAmount: %d\n", index, m_clientVector.size());
+	}
 	default:
 		break;
 	}
 
 }
 
-void Network::sendPacket(unsigned char* data, size_t size, 
-	unsigned clientIndex, bool reliable)
+void Network::sendPacket(unsigned char* data, uint32_t size, 
+	unsigned playerIndex, bool reliable)
 {
 	_ENetPacketFlag flag;
 	if (reliable)
@@ -67,13 +107,20 @@ void Network::sendPacket(unsigned char* data, size_t size,
 	ENetPacket *ePacket = enet_packet_create(data,
 		size,
 		flag);
-	enet_peer_send(m_clientVector[clientIndex], 0, ePacket);
-	
-	// When all packets are ready to send 
-	enet_host_flush(m_server);
+
+
+	for (unsigned i = 0; i < m_clientVector.size(); i++)
+	{
+		if (m_clientVector[i].playerID == playerIndex)
+		{
+			enet_peer_send(m_clientVector[i].peer, 0, ePacket);
+			enet_host_flush(m_server);
+			break;
+		}
+	}
 }
 
-void Network::broadcastPacket(unsigned char* data, size_t size, bool reliable)
+void Network::broadcastPacket(unsigned char* data, uint32_t size, bool reliable)
 {
 	_ENetPacketFlag flag;
 	if (reliable)
@@ -87,9 +134,20 @@ void Network::broadcastPacket(unsigned char* data, size_t size, bool reliable)
 	enet_host_flush(m_server);
 }
 
-void Network::disconnectClient(unsigned clientIndex)
+// Player id != clienindx
+void Network::disconnectClient(unsigned playerIndex)
 {
-	enet_peer_disconnect(m_clientVector[clientIndex], 0);
+	unsigned clientIndex;
+	for (unsigned i = 0; i < m_clientVector.size(); i++)
+	{
+		
+		if (playerIndex == m_clientVector[i].playerID)
+		{ 
+			clientIndex = m_clientVector[i].playerID;
+			break;
+		}
+	}
+	enet_peer_disconnect(m_clientVector[clientIndex].peer, 0);
 	// Makes server stuck.
 	ENetEvent EEvent;
 	while (enet_host_service(m_server, &EEvent, 3000) > 0)
@@ -111,7 +169,7 @@ void Network::disconnectClient(unsigned clientIndex)
 	enet_peer_reset(EEvent.peer);
 }
 
-void Network:: initializeENet()
+void Network::initializeENet()
 {
 	if (enet_initialize() != 0)
 	{
@@ -145,4 +203,13 @@ ENetHost* Network::createENetServer(unsigned address, unsigned port,
 	}
 	return eServer;
 }
+
+void Network::setPlayerIds(std::vector<unsigned int> idVector)
+{
+	for (unsigned i = 0; i < m_clientVector.size(); i++)
+	{
+		m_clientVector[i].playerID = idVector[i];
+	}
+}
+
 #endif

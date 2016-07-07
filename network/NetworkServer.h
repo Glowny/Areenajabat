@@ -5,9 +5,16 @@
 #include <enet\enet.h>
 struct Message
 {
-	unsigned clientID;
+	unsigned playerID;
 	unsigned char* data;
 };
+
+struct Client
+{
+	unsigned playerID;
+	ENetPeer* peer;
+};
+
 // Help: http://enet.bespin.org/Tutorial.html#Connecting
 class Network
 {
@@ -18,23 +25,25 @@ class Network
 		void startServer(std::queue<Message>* messageQueue, unsigned address,
 			unsigned port, unsigned clientAmount);
 		
-		size_t getConnectedPlayerAmount()
+		uint32_t getConnectedPlayerAmount()
 		{
 			return m_clientVector.size();
 		}
 		void checkEvent();
-		void sendPacket(unsigned char* data, size_t size, 
+		// Todo: add flush for packet sending.
+		void sendPacket(unsigned char* data, uint32_t size, 
 			unsigned clientIndex, bool reliable = true);
-		void broadcastPacket(unsigned char* data, size_t size,
+		void broadcastPacket(unsigned char* data, uint32_t size,
 			bool reliable = true);
 		void disconnectClient(unsigned clientIndex);
-	
+		void setPlayerIds(std::vector<unsigned int> idVector);
 	private:
 		void initializeENet();
 		ENetHost* createENetServer(unsigned address, unsigned port,
 			unsigned clientAmount);
 		ENetHost* m_server;
 		std::queue<Message>* m_messageQueue;
-		std::vector<ENetPeer*> m_clientVector;
+		std::vector<Client> m_clientVector;
+		unsigned idGiver;
 };
 #endif
