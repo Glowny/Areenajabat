@@ -62,6 +62,11 @@ namespace arena
         return true;
     }
 
+    bool BitReader::wouldOverflow(uint32_t bits) const
+    {
+        return m_bitsRead + bits > m_numBits;
+    }
+
     void BitReader::readBytes(uint8_t* data, uint32_t bytes)
     {
         ARENA_ASSERT(getAlignBits() == 0, "Reader not aligned to byte boundary");

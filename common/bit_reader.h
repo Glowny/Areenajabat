@@ -32,6 +32,8 @@ namespace arena
         uint32_t getTotalBits() const;
 
         uint32_t getTotalBytes() const;
+
+        bool wouldOverflow(uint32_t bits) const;
     private:
         const uint32_t* m_data;
         uint64_t m_scratch;
