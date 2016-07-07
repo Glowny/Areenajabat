@@ -2,9 +2,6 @@
 #include <bx/error.h>
 #include "bit_writer.h"
 
-BX_ERROR_RESULT(ARENA_ERROR_STREAM_OVERFLOW, BX_MAKEFOURCC('N', 'E', 'T', 0));
-BX_ERROR_RESULT(ARENA_ERROR_STREAM_ABORTED, BX_MAKEFOURCC('N', 'E', 'T', 1));
-
 namespace arena
 {
     class WriteStream

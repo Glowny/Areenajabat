@@ -2,6 +2,7 @@
 #include "read_stream.h"
 #include "debug.h"
 #include "uint32.h"
+#include "error.h"
 
 namespace arena
 {
@@ -18,7 +19,7 @@ namespace arena
 
         if (m_reader.wouldOverflow(bits))
         {
-            //m_error =
+            BX_ERROR_SET((&m_error), ARENA_ERROR_STREAM_OVERFLOW, "Stream would overflow");
             return false;
         }
 
