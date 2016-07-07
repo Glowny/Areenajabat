@@ -4,12 +4,15 @@
 
 namespace arena
 {
+
+    const double ConnectionRequestSendRate = 0.1;
+
     NetworkClient::NetworkClient() : 
         m_state(ClientState::Disconnected), 
         m_lastPacketReceivedTime(0), 
         m_lastPacketSendTime(0)
     {
-
+        reset();
     }
 
     void NetworkClient::connect(const char* address, uint16_t port, double timeStamp)
@@ -32,14 +35,54 @@ namespace arena
             // do something to notify server
             // sendDisconnectPacket()
         }
-
-        m_state = ClientState::Disconnected;
-        m_lastPacketReceivedTime = -9999.0;
-        m_lastPacketSendTime = -9999.0;
+        reset();
     }
 
     bool NetworkClient::isConnected() const
     {
         return m_state == ClientState::Connected;
     }
+
+    bool NetworkClient::isConnecting() const
+    {
+        return m_state == ClientState::SendingConnectionRequest;
+    }
+
+    void NetworkClient::sendPackets(double timestamp)
+    {
+        switch (m_state)
+        {
+            // let this be the first one, so minimium amount of branching
+        case arena::ClientState::Connected:
+            // for pings
+            break;
+        case arena::ClientState::SendingConnectionRequest:
+        {
+            // have we met the send rate requirement?
+            if (m_lastPacketSendTime + ConnectionRequestSendRate > timestamp)
+            {
+                return;
+            }
+#if _DEBUG
+            char buffer[256];
+            enet_address_get_host(&m_serverAddress, buffer, sizeof(buffer));
+            printf("Client sending connection request to server: %s\n", buffer);
+#endif
+        }
+            break;
+
+        case ClientState::SendingAuthResponse:
+            break;
+        default:
+            break;
+        }
+    }
+
+    void NetworkClient::reset()
+    {
+        m_state = ClientState::Disconnected;
+        m_lastPacketReceivedTime = -9999.0;
+        m_lastPacketSendTime = -9999.0;
+    }
+
 }

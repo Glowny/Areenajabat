@@ -66,7 +66,7 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
-             
+        s_client.sendPackets(gameTime.m_total);
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();

@@ -11,7 +11,9 @@ namespace arena
         {
             Disconnected,
             Connected,
-            SendingConnectionRequest
+            SendingAuthResponse,
+            SendingConnectionRequest,
+            Count,
         };
     };
 
@@ -20,13 +22,19 @@ namespace arena
     public:
         NetworkClient();
 
-        void connect(const char* address, uint16_t port, double timeStamp);
+        void connect(const char* address, uint16_t port, double timestamp);
 
         void disconnect();
 
         bool isConnected() const;
 
+        bool isConnecting() const;
+
+        void sendPackets(double timestamp);
     private:
+
+        void reset();
+
         ClientState::Enum m_state;
 
         ENetAddress m_serverAddress;

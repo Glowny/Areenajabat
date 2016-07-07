@@ -27,4 +27,15 @@ namespace arena
 
         s_initialized = false;
     }
+
+    NetworkInterface::NetworkInterface()
+    {
+        
+    }
+
+    void* NetworkInterface::receivePacket(ENetAddress& from)
+    {
+        return nullptr;
+    }
+
 }

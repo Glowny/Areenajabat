@@ -1,3 +1,4 @@
+#include <common/network_interface.h>
 #include "game_time.h"
 #include "ecs\managers\sprite_manager.h"
 #include "app.h"
@@ -22,7 +23,6 @@
 #include "scenes/sandbox_scene.h"
 #include "graphics/character_animator.h"
 #include "utils/math.h"
-#include <common/network_interface.h>
 #include <common/debug.h>
 
 namespace arena
