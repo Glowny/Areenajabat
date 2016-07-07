@@ -30,7 +30,7 @@ private:
 
 	void handleClientMessages();
 	void handleMessage(Message &message);
-
+	void sendPlatformPackets();
 	// Gameplay
 	// Pushes back bullets on m_bulletVector.
 	void createOutputBullets(std::vector<BulletInputData> &bulletInputVector, unsigned playerId);
@@ -61,8 +61,9 @@ private:
 	std::vector<PlayerInput> m_playerInputVector;
 	std::vector<Platform> m_platformVector;
 
+	unsigned m_playerAmount;
 	void loadPlatformsFromFile(char* filename);
-	bool* m_run;
+	bool m_run;
 };
 
 #endif

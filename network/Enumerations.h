@@ -1,6 +1,7 @@
 #pragma once
 enum MessageIdentifier
 {
+	Restart,
 	Start,
 	PlatformData,
 	Update,
@@ -13,6 +14,7 @@ enum MessageIdentifier
 	PlayerKill,
 	PlayerRespawn,
 	ScoreBoardUpdate,
+	PlayerAmount,
 };
 
 enum BulletType

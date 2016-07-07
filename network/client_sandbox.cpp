@@ -3,7 +3,8 @@
 
 void Client::start(char* address, unsigned port)
 {
-	
+	sendPlayerAmount = 2;
+	updatePlayerAmount = false;
 	font.loadFromFile("asd.ttf");
 	hpText.setFont(font);
 	hpText.setColor(sf::Color::Red);
@@ -79,8 +80,11 @@ void Client::handleMessage(unsigned char* data)
 		break;
 	case Start:
 	{
+		m_gladiatorVector.clear();
+		m_scoreBoard.PlayerScoreVector.clear();
 		unsigned playerAmount;
 		openSetupPacket(data, playerAmount, m_myId);
+		printf("My id is: %d\n", m_myId);
 		for (unsigned i = 0; i < playerAmount; i++)
 		{
 			GladiatorData data;
@@ -111,7 +115,7 @@ void Client::handleMessage(unsigned char* data)
 	case CreateBullet:
 	{
 		std::vector<BulletOutputData> outputBulletVector;
-		openBulletOutputPacket(data, outputBulletVector);
+		openBulletCreationPacket(data, outputBulletVector);
 		for (unsigned i = 0; i < outputBulletVector.size(); i++)
 		{
 			LiveBullet bullet;
@@ -176,6 +180,7 @@ void Client::handleMessage(unsigned char* data)
 		openScoreboardUpdatePacket(data, m_scoreBoard);
 		m_scoreBoardText.setString(formatScoreBoardText(m_scoreBoard));
 	}
+	
 
 	default:
 		break;
@@ -267,7 +272,11 @@ void Client::getInput()
 	sf::Event event;
 	m_window->pollEvent(event);
 	if (event.type == sf::Event::Closed)
+	{ 
 		m_window->close();
+		m_network.disconnect();
+		exit(1);
+	}
 	if (event.type == sf::Event::KeyPressed)
 	{
 		if (event.key.code == sf::Keyboard::T)
@@ -289,10 +298,18 @@ void Client::getInput()
 		{
 			drawScoreBoard = !drawScoreBoard;
 		}
-		//if (event.key.code == sf::Keyboard::D)
-		//{
-		//	
-		//}
+		if (event.key.code == sf::Keyboard::Num8)
+		{
+			sendPlayerAmount--;
+			printf("Sending server request to set playeramount to:\n %d \n", sendPlayerAmount);
+			updatePlayerAmount = true;
+		}
+		if (event.key.code == sf::Keyboard::Num9)
+		{
+			sendPlayerAmount++;
+			printf("Sending server request to set playeramount to:\n %d \n", sendPlayerAmount);
+			updatePlayerAmount = true;
+		}
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
@@ -305,13 +322,13 @@ void Client::getInput()
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 	{
-		aimAngle += 0.0007f;
+		aimAngle += 0.001f;
 		if (aimAngle > 6.28f)
 			aimAngle = 0.03f;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
 	{
-		aimAngle -= 0.0007f;
+		aimAngle -= 0.001f;
 		if (aimAngle < 0.0f)
 			aimAngle = 6.26f;
 	}
@@ -340,11 +357,20 @@ void Client::sendData()
 		if (m_bulletVector.size() != 0)
 		{
 			uint32_t bulletPacketSize;
-			unsigned char* bulletData = createBulletInputPacket(bulletPacketSize, m_bulletVector);
+			unsigned char* bulletData = createBulletRequestPacket(bulletPacketSize, m_bulletVector);
 			m_network.sendPacket(bulletData, bulletPacketSize);
 			m_bulletVector.clear();
 			noMoreBullets = false;
 		}
+
+		if (updatePlayerAmount)
+		{
+			uint32_t updatePlayerAmountSize;
+			unsigned char* amountData = createSendPlayerAmountPacket(updatePlayerAmountSize, sendPlayerAmount);
+			m_network.sendPacket(amountData, updatePlayerAmountSize);
+			updatePlayerAmount = false;
+		}
+
 		// Send created packets.
 		m_network.sendMessages();
 	

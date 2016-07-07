@@ -12,6 +12,7 @@ struct GladiatorData
 	float rotation;
 	unsigned hitPoints;
 	bool alive;
+	unsigned id;
 };
 
 struct Platform
@@ -60,30 +61,36 @@ struct ScoreBoard
 MessageIdentifier getMessageID(unsigned char* data);
 
 // Returns beginning of data and saves size of packet on packetSize. If space for data is allocated and size know, set the data on preData.
-unsigned char* createMovePacket				(uint32_t &packetSize, glm::vec2 moveDirection,						unsigned char* preData = NULL);
-unsigned char* createUpdatePacket			(uint32_t &packetSize, std::vector<GladiatorData> &gladiatorVector,	unsigned char* preData = NULL);
+unsigned char* createUpdatePacket			(uint32_t &packetSize, std::vector<GladiatorData> &gladiatorVector,		unsigned char* preData = NULL);
 unsigned char* createSetupPacket			(uint32_t &packetSize, unsigned playerAmount, unsigned playerId,		unsigned char* preData = NULL);
 unsigned char* createPlatformPacket			(uint32_t &packetSize, std::vector<Platform> &platformVector,			unsigned char* preData = NULL);
-unsigned char* createBulletInputPacket		(uint32_t &packetSize, std::vector<BulletInputData> &bulletVector,	unsigned char* preData = NULL);
-unsigned char* createBulletOutputPacket		(uint32_t &packetSize, std::vector<BulletOutputData> &bulletVector,	unsigned char* preData = NULL);
+unsigned char* createBulletCreationPacket	(uint32_t &packetSize, std::vector<BulletOutputData> &bulletVector,		unsigned char* preData = NULL);
 unsigned char* createHitPacket				(uint32_t &packetSize, glm::vec2 hitPosition,							unsigned char* preData= NULL);
-unsigned char* createPlayerDamagePacket		(uint32_t &packetSize, unsigned playerIndex, unsigned damageAmount,	unsigned char* preData = NULL);
+unsigned char* createPlayerDamagePacket		(uint32_t &packetSize, unsigned playerIndex, unsigned damageAmount,		unsigned char* preData = NULL);
 unsigned char* createPlayerKillPacket		(uint32_t &packetSize, unsigned playerIndex,							unsigned char* preData = NULL);
 unsigned char* createPlayerRespawnPacket	(uint32_t &packetSize, unsigned playerIndex,							unsigned char* preData = NULL);
 unsigned char* createBulletUpdatePacket		(uint32_t &packetSize, std::vector<glm::vec2> &bulletPositions, 
-											std::vector<glm::vec2> &bulletVelocities,							unsigned char* preData = NULL);
-unsigned char* createScoreboardUpdatePacket	(uint32_t &packetSize, ScoreBoard &scoreBoard,						unsigned char* preData = NULL);
+											std::vector<glm::vec2> &bulletVelocities,								unsigned char* preData = NULL);
+unsigned char* createScoreboardUpdatePacket	(uint32_t &packetSize, ScoreBoard &scoreBoard,							unsigned char* preData = NULL);
+
+unsigned char* createMovePacket				(uint32_t &packetSize, glm::vec2 moveDirection,							unsigned char* preData = NULL);
+unsigned char* createBulletRequestPacket	(uint32_t &packetSize, std::vector<BulletInputData> &bulletVector,		unsigned char* preData = NULL);
+unsigned char* createSendPlayerAmountPacket		(uint32_t &packetSize, unsigned playerAmount,							unsigned char* preData = NULL);
 
 // Sets data from the packet on parameters.
 void openMovePacket				(unsigned char* data, glm::vec2 &moveDir);
+void openBulletRequestPacket	(unsigned char* data, std::vector<BulletInputData> &bulletVector);
+
+
 void openUpdatePacket			(unsigned char* data, std::vector<GladiatorData> &gladiatorVector);
 void openSetupPacket			(unsigned char* data, unsigned &playerAmount, unsigned &playerId);
 void openPlatformPacket			(unsigned char* data, std::vector<Platform> &platformVector);
-void openBulletInputPacket		(unsigned char* data, std::vector<BulletInputData> &bulletVector);
-void openBulletOutputPacket		(unsigned char* data, std::vector<BulletOutputData> &bulletVector);
+void openBulletCreationPacket	(unsigned char* data, std::vector<BulletOutputData> &bulletVector);
 void openHitPacket				(unsigned char* data, glm::vec2 &hitPosition);
 void openPlayerDamagePacket		(unsigned char* data, unsigned &playerIndex, unsigned& damageAmount);
 void openPlayerKillPacket		(unsigned char* data, unsigned &playerIndex);
 void openPlayerRespawnPacket	(unsigned char* data, unsigned &playerIndex);
-void openBulletUpdatePacket		(unsigned char* data, std::vector<glm::vec2> &bulletPositions, std::vector<glm::vec2> &bulletVelocities);
+void openBulletUpdatePacket		(unsigned char* data, std::vector<glm::vec2> &bulletPositions, 
+								std::vector<glm::vec2> &bulletVelocities);
 void openScoreboardUpdatePacket	(unsigned char* data, ScoreBoard &scoreBoard);
+void openPlayerAmountPacket	(unsigned char* data, unsigned &playerAmount);

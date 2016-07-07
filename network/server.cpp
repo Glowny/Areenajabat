@@ -32,7 +32,8 @@ void Server::createGladiators(unsigned playerAmount)
 	for (unsigned i = 0; i < playerAmount; i++)
 	{
 		GladiatorData glad;
-		m_physics.addGladiator(glm::vec2(i*100.0f, 50.0f), i);
+		unsigned id = m_physics.addGladiator(glm::vec2(i*100.0f, 50.0f));
+		glad.id = id;
 		glad.rotation = 0;
 		glad.position.x = 100.0f * i;
 		glad.position.y = 50.0f;
@@ -52,34 +53,51 @@ void Server::sendSetupPackets(unsigned playerAmount)
 		uint32_t size;
 		unsigned char* data = createSetupPacket(size, playerAmount, i);
 		m_network.sendPacket(data, size, i);
-
-		// Could be broadcasted.
-		uint32_t size2;
-		unsigned char* data2 = createPlatformPacket(size2, m_platformVector);
-		m_network.sendPacket(data2, size2, i);
 	}
+}
+
+void Server::sendPlatformPackets()
+{
+	uint32_t size2;
+	unsigned char* data2 = createPlatformPacket(size2, m_platformVector);
+	m_network.broadcastPacket(data2, size2);
 }
 
 void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 {
+	m_playerAmount = playerAmount;
 	loadPlatformsFromFile("coordinatesRawData.dat");
 	m_messageQueue = new std::queue<Message>;
-	m_network.startServer(m_messageQueue, address, port, playerAmount);
+	m_network.startServer(m_messageQueue, address, port, 10);
 	
 	// wait for players..
-	while (m_network.getConnectedPlayerAmount() < playerAmount)
+	
+while (true)
+{ 
+	while (m_network.getConnectedPlayerAmount() < m_playerAmount)
+	{ 
 		m_network.checkEvent();
-
+		// Might be dangerous if client client send bad messages, add checks.
+		handleClientMessages();
+	}
+	sendPlatformPackets(); //TOOD: send only if needed
+	std::vector<unsigned> idVector;
+	
 	printf("GAME STARTING!\n");
 
-	createPlayerInputs(playerAmount);
-	createGladiators(playerAmount);
+	createPlayerInputs(m_playerAmount);
+	createGladiators(m_playerAmount);
+	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	{
+		idVector.push_back(i);
+	}
+	m_network.setPlayerIds(idVector);
 	
 	// Allocate memory for update messages that are send on every game loop.
 	m_updateSize = sizeof(MessageIdentifier) + sizeof(float) * 5 * m_gladiatorVector.size();
 	m_updateMemory = (unsigned char*)malloc(m_updateSize);
 	
-	sendSetupPackets(playerAmount);
+	sendSetupPackets(m_playerAmount);
 
 	// Time stuff
 	int64_t s_last_time = bx::getHPCounter();
@@ -89,9 +107,9 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 	float updateScore = 0;
 
 	float timeStep = 1.0f/60.0f;
+	m_run = true;
 
-	bool run = true;
-	while (run)
+	while (m_run)
 	{
 		// More time stuff
 		int64_t currentTime = bx::getHPCounter();
@@ -146,10 +164,23 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 		}
 		if (updateScore > 1)
 		{
-
+			uint32_t size;
+			unsigned char* data = createScoreboardUpdatePacket(size, m_scoreBoard);
+			m_network.broadcastPacket(data, size, false);
+			updateScore = 0;
 		}
 
 	}
+	printf("Server restarting... \n");
+	m_gladiatorVector.clear();
+	m_playerInputVector.clear();
+	m_physics.reset();
+	m_scoreBoard.flagHolder = 666;
+	m_scoreBoard.PlayerScoreVector.clear();
+	
+	printf("Restart complete, waiting for players.. \n");
+}
+
 }
 
 void Server::sendGameUpdateMessages()
@@ -247,7 +278,7 @@ void Server::sendBulletCreationEvents()
 	if (m_bulletOutputVector.size() != 0)
 	{
 		uint32_t size;
-		unsigned char *data = createBulletOutputPacket(size, m_bulletOutputVector);
+		unsigned char *data = createBulletCreationPacket(size, m_bulletOutputVector);
 		m_network.broadcastPacket(data, size, true);
 		m_bulletOutputVector.clear();
 	}
@@ -291,7 +322,7 @@ void Server::handleClientMessages()
 void Server::handleMessage(Message &message)
 {
 	//TODO: Check that messages are legit
-	unsigned playerId = message.clientID;
+	unsigned playerId = message.playerID;
 	MessageIdentifier packetID = getMessageID(message.data);
 
 	switch (packetID)
@@ -303,10 +334,22 @@ void Server::handleMessage(Message &message)
 	{
 		// These are bullet creation events.
 		std::vector<BulletInputData> bulletInputVector;
-		openBulletInputPacket(message.data, bulletInputVector);
+		openBulletRequestPacket(message.data, bulletInputVector);
 		createOutputBullets(bulletInputVector, playerId);
-	}
 		break;
+	}
+	case Restart:
+		m_run = false;
+		break;
+	case PlayerAmount:
+	{
+		if (!m_run)
+		{
+			openPlayerAmountPacket(message.data, m_playerAmount);
+		}
+		break;
+	}
+
 	default:
 		break;
 	}
@@ -372,14 +415,14 @@ void Server::loadPlatformsFromFile(char* filename)
 		printf("FILE NOT FOUND %s", filename);
 	uint32_t sizes;
 	file.read(reinterpret_cast<char*>(&sizes), sizeof(uint32_t));
-	printf("size: %d\n", sizes);
+
 	std::vector<platformObject> objects;
 	for (unsigned i = 0; i < sizes; i++)
 	{
 		platformObject object;
 		file.read(reinterpret_cast<char*>(&object.size), sizeof(uint32_t));
 		file.read(reinterpret_cast<char*>(&object.type), sizeof(unsigned int));
-		printf("object type: %d object size: %d\n", object.type, object.size);
+
 
 		for (unsigned i = 0; i < object.size; i++)
 		{

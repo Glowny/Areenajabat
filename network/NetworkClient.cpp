@@ -73,7 +73,6 @@ void Network::sendMessages()
 
 void Network::disconnect()
 {
-	enet_host_destroy(m_client);
 	enet_peer_disconnect(m_peer, 0);
 	// Makes server stuck.
 	ENetEvent EEvent;
@@ -87,6 +86,7 @@ void Network::disconnect()
 		}
 		case ENET_EVENT_TYPE_DISCONNECT:
 			puts("Disconnection succeeded.");
+			enet_host_destroy(m_client);
 			return;
 		default:
 			break;

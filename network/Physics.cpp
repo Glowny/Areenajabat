@@ -26,7 +26,6 @@ void Physics::update()
 			{
 			case B_Platform:
 			{
-				printf("PLATFORM HIT O HUMANITY\n");
 				glm::vec2 position;
 				position.x = m_bulletVector[i]->m_body->GetPosition().x;
 				position.y = m_bulletVector[i]->m_body->GetPosition().y;
@@ -49,7 +48,7 @@ void Physics::update()
 				hit.targetPlayerId = targetID;
 				hit.shooterPlayerId = static_cast<p_Bullet*>(m_bulletVector[i]->m_myUserData->m_object)->m_shooterID;
 				hitVector.push_back(hit);
-				printf("GLADIATOR HIT O HUM ANIT\n");
+
 			}
 			break;
 			default:
@@ -68,6 +67,7 @@ void Physics::update()
 			if (m_bulletVector[i]->m_contact == true)
 			{
 				m_bulletVector[i]->m_body->GetWorld()->DestroyBody(m_bulletVector[i]->m_body);
+				delete(m_bulletVector[i]->m_myUserData);
 				delete(m_bulletVector[i]);
 				m_bulletVector.erase(m_bulletVector.begin() + i);
 			}
@@ -104,11 +104,11 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 }
 
 // returns id.
-unsigned Physics::addGladiator(glm::vec2 position, unsigned id)
+unsigned Physics::addGladiator(glm::vec2 position)
 {
 	p_Gladiator* glad = new p_Gladiator;
 
-	glad->m_id = id;
+
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
 	bodydef.position.Set(position.x/100, position.y/100);
@@ -136,7 +136,9 @@ unsigned Physics::addGladiator(glm::vec2 position, unsigned id)
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
 
+	glad->m_id = m_gladiatorVector.size();
 	m_gladiatorVector.push_back(glad);
+	
 	return glad->m_id;
 };
 
@@ -220,4 +222,22 @@ void Physics::removeBullet()
 {
 
 };
+
+void Physics::reset()
+{
+	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	{
+		m_gladiatorVector[i]->m_body->GetWorld()->DestroyBody(m_gladiatorVector[i]->m_body);
+		free(m_gladiatorVector[i]->m_userData);
+	}
+	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	{
+		m_bulletVector[i]->m_body->GetWorld()->DestroyBody(m_bulletVector[i]->m_body);
+		delete(m_bulletVector[i]->m_myUserData);
+		delete(m_bulletVector[i]);
+
+	}
+	m_gladiatorVector.clear();
+	m_bulletVector.clear();
+}
 #endif

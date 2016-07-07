@@ -102,7 +102,7 @@ unsigned char* createBulletUpdatePacket(uint32_t &packetSize, std::vector<glm::v
 	}
 	return preData;
 }
-unsigned char* createBulletOutputPacket(uint32_t &packetSize, std::vector<BulletOutputData> &bulletVector, unsigned char* preData)
+unsigned char* createBulletCreationPacket(uint32_t &packetSize, std::vector<BulletOutputData> &bulletVector, unsigned char* preData)
 {
 	// Sends data about bullet creation events.
 	if (preData == NULL)
@@ -229,7 +229,7 @@ unsigned char* createMovePacket(uint32_t &packetSize, glm::vec2 moveDirection, u
 	
 	return preData;
 }
-unsigned char* createBulletInputPacket(uint32_t &packetSize, std::vector<BulletInputData> &bulletVector, unsigned char* preData)
+unsigned char* createBulletRequestPacket(uint32_t &packetSize, std::vector<BulletInputData> &bulletVector, unsigned char* preData)
 {
 	// Player wants to create a bullet.
 	if (preData == NULL)
@@ -248,7 +248,18 @@ unsigned char* createBulletInputPacket(uint32_t &packetSize, std::vector<BulletI
 	}
 	return preData;
 }
-
+unsigned char* createSendPlayerAmountPacket(uint32_t &packetSize, unsigned playerAmount, unsigned char* preData)
+{
+	if (preData == NULL)
+	{
+		packetSize = sizeof(MessageIdentifier) + sizeof(unsigned);
+		preData = (unsigned char*)malloc(packetSize);
+	}
+	unsigned char* dataPointer = preData;
+	serializeSingle(dataPointer, PlayerAmount);
+	serializeSingle(dataPointer, playerAmount);
+	return preData;
+}
 // Server side packet opens.
 void openMovePacket(unsigned char* data, glm::vec2 &moveDir)
 {
@@ -257,7 +268,7 @@ void openMovePacket(unsigned char* data, glm::vec2 &moveDir)
 	deSerializeSingle(dataPointer, moveDir.y);
 
 }
-void openBulletInputPacket(unsigned char* data, std::vector<BulletInputData> &bulletVector)
+void openBulletRequestPacket(unsigned char* data, std::vector<BulletInputData> &bulletVector)
 {
 	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
 	uint32_t bulletAmount;
@@ -339,7 +350,7 @@ void openBulletUpdatePacket(unsigned char* data, std::vector<glm::vec2> &bulletP
 	}
 
 }
-void openBulletOutputPacket(unsigned char* data, std::vector<BulletOutputData> &bulletVector)
+void openBulletCreationPacket(unsigned char* data, std::vector<BulletOutputData> &bulletVector)
 {
 	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
 	uint32_t bulletAmount;
@@ -389,4 +400,9 @@ void openScoreboardUpdatePacket(unsigned char* data, ScoreBoard &scoreBoard)
 		deSerializeSingle(dataPointer, scoreBoard.PlayerScoreVector[i].score);
 		deSerializeSingle(dataPointer, scoreBoard.PlayerScoreVector[i].tickets);
 	}
+}
+void openPlayerAmountPacket(unsigned char* data, unsigned &playerAmount)
+{
+	unsigned char* dataPointer = data + sizeof(MessageIdentifier);
+	deSerializeSingle(dataPointer, playerAmount);
 }

@@ -87,6 +87,8 @@ private:
 	sf::Text m_scoreBoardText;
 	std::string formatScoreBoardText(ScoreBoard &scoreBoard);
 
+	unsigned sendPlayerAmount;
+	bool updatePlayerAmount;
 
 };
 

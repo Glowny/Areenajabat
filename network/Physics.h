@@ -76,8 +76,6 @@ class ContactListener : public b2ContactListener
 			{
 				p_Bullet* bullet =  static_cast<p_Bullet*>(bulletUserData->m_object);
 				bullet->startContact(targetUserData->m_bodyType, targetUserData);
-				p_Gladiator* glad =static_cast<p_Gladiator*>(targetUserData->m_object);
-				printf("Gladiator id: %d", &glad->m_id);
 			}
 		}
 
@@ -92,9 +90,10 @@ public:
 	Physics();
 	~Physics();
 
+	void reset();
 	void update();
 	void createPlatform(std::vector<glm::vec2> platform);
-	unsigned addGladiator(glm::vec2 position, unsigned id);
+	unsigned addGladiator(glm::vec2 position);
 	void AppleForceToGladiator(glm::vec2 direction, unsigned id);
 	void ApplyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
