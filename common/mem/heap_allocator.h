@@ -17,8 +17,15 @@ namespace arena
 
 		inline HeapBlock* const allocate(const uint32 bytes);
 		inline bool deallocate(const HeapBlock* const block);
+		
+		inline uint32 pages() const;
 
-		uint32 pages() const;
+		inline uint32 bytes() const;
+		inline uint32 freeBytes() const;
+
+		inline uint32 totalBlocks() const;
+		inline uint32 occupiedBlocks() const;
+		inline uint32 releasedBlocks() const;
 
 		inline ~HeapAllocator();
 	private:
@@ -27,3 +34,5 @@ namespace arena
 		const uint32 m_pageSize;
 	};
 }
+
+#include "heap_allocator.inl"
