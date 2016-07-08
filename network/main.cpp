@@ -11,21 +11,30 @@
 #	include "server.h"
 #endif
 
-int main() 
-{
+#define SERVER_SANDBOX
 
-	
+int main(int argc, char *argv[])
+{
 #if defined(ARENA_CLIENT)
 		
 	Client client;
 
 	client.start("172.31.16.42", 8888);
 
+#elif defined(SERVER_SANDBOX)
+		Server server;
+		server.start("..\\..\\..\\ini\\sandbox.ini");
 #else
-
-	Server server;
-	server.start(0, 8888, 3);
-		
+	if (argc == 0)
+	{
+		Server server;
+		server.start(0, 8888, 3);
+	}
+	else 
+	{
+		Server server;
+		server.start(argv[0]);
+	}
 #endif
 }
 
