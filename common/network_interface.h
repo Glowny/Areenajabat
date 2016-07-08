@@ -5,6 +5,8 @@
 
 namespace arena
 {
+    struct Packet;
+
     // start network services
     bool networkInitialize();
 
@@ -14,16 +16,22 @@ namespace arena
     struct PacketEntry
     {
         ENetAddress m_address;
-        void* m_packet;
+        Packet* m_packet;
     };
 
     class NetworkInterface
     {
     public:
-        NetworkInterface();
+        NetworkInterface(uint16_t port);
 
-        void* receivePacket(ENetAddress& from);
+        ~NetworkInterface();
+
+        Packet* receivePacket(ENetAddress& from);
+
+        void sendPacket(const ENetAddress& to, Packet* packet);
     private:
+        ENetHost* m_socket;
+
         std::queue<PacketEntry> m_sendQueue;
         std::queue<PacketEntry> m_receiveQueue;
     };

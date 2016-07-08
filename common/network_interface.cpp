@@ -1,6 +1,7 @@
 #include "network_interface.h"
 #include <enet\enet.h>
 #include "debug.h"
+#include "packet.h"
 
 namespace arena
 {
@@ -28,14 +29,49 @@ namespace arena
         s_initialized = false;
     }
 
-    NetworkInterface::NetworkInterface()
+    NetworkInterface::NetworkInterface(uint16_t port)
+        : m_socket(nullptr)
     {
-        
+        ENetAddress address;
+        address.host = ENET_HOST_ANY;
+        address.port = port;
+        // bound the port even to client
+        m_socket = enet_host_create(&address, 1, 2, 0, 0);
+
+        ARENA_ASSERT(m_socket != nullptr, "Failed to create socket");
     }
 
-    void* NetworkInterface::receivePacket(ENetAddress& from)
+    NetworkInterface::~NetworkInterface()
     {
-        return nullptr;
+        enet_host_destroy(m_socket);
+    }
+
+    Packet* NetworkInterface::receivePacket(ENetAddress& from)
+    {
+        if (m_receiveQueue.size() == 0)
+        {
+            return nullptr;
+        }
+
+        const PacketEntry& entry = m_receiveQueue.front();
+        from = entry.m_address;
+
+        ARENA_ASSERT(entry.m_packet != nullptr, "Packet is nullptr");
+
+        m_receiveQueue.pop();
+
+        return entry.m_packet;
+    }
+
+    void NetworkInterface::sendPacket(const ENetAddress& to, Packet* packet)
+    {
+        ARENA_ASSERT(packet != nullptr, "Packet can not be nullptr");
+
+        PacketEntry entry;
+        entry.m_address = to;
+        entry.m_packet = packet;
+
+        m_sendQueue.push(entry);
     }
 
 }

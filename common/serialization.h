@@ -142,7 +142,7 @@ namespace arena
 #define serialize_bytes(stream, data, bytes)                                                            \
     do                                                                                                  \
     {                                                                                                   \
-        if (!arena::detail::serializeBytes(stream, data, bytes)                                         \
+        if (!arena::detail::serializeBytes(stream, data, bytes))                                        \
         {                                                                                               \
             return false;                                                                               \
         }                                                                                               \

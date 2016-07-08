@@ -43,5 +43,8 @@ namespace arena
 
         // time we last received a packet
         double m_lastPacketReceivedTime;
+
+        // client salt for challenge auth
+        uint64_t m_clientSalt;
     };
 }

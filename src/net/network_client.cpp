@@ -1,6 +1,8 @@
 #include <enet/enet.h>
 #include "network_client.h"
 #include <stdio.h>
+#include <common/packet.h>
+#include <common/salt.h>
 
 namespace arena
 {
@@ -24,7 +26,7 @@ namespace arena
         m_state = ClientState::SendingConnectionRequest;
         m_lastPacketSendTime = timeStamp - 1.0;
         m_lastPacketReceivedTime = timeStamp;
-        // TODO timer
+        m_clientSalt = genSalt();
     }
 
     void NetworkClient::disconnect()
@@ -68,6 +70,15 @@ namespace arena
             enet_address_get_host(&m_serverAddress, buffer, sizeof(buffer));
             printf("Client sending connection request to server: %s\n", buffer);
 #endif
+            // TODO allocator
+            ConnectionRequestPacket* packet = new ConnectionRequestPacket();
+            packet->m_clientSalt = m_clientSalt;
+
+            ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
+
+            
+
+            m_lastPacketSendTime = timestamp;
         }
             break;
 
