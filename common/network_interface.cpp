@@ -88,12 +88,23 @@ namespace arena
             uint8_t packetbuffer[512];
             WriteStream stream(packetbuffer, sizeof(packetbuffer));
 
+            uint32_t prefixBytes = 1;
+            for (uint32_t i = 0; i < prefixBytes; ++i)
+            {
+                uint8_t zero = 0;
+                stream.serializeBits(zero, 8);
+            }
+
+            uint32_t crc32 = 0;
+
+            stream.serializeBits(crc32, 32);
+
             Packet* packet = entry.m_packet;
 
             int packetType = packet->getType();
 
             // TODO fixxx
-            stream.serializeInteger(packetType, 0, PacketTypes::Count);
+            stream.serializeInteger(packetType, 0, PacketTypes::Count - 1);
 
             if (!packet->serializeWrite(stream))
             {

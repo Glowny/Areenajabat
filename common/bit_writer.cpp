@@ -82,12 +82,12 @@ namespace arena
         // m_bitsWritten % 8 = 
         // 8 - 0 = 8
         // 8 % 8 = 0, aligned
-        return (8 - (m_bitsWritten % 8) % 8);
+        return (8 - (m_bitsWritten % 8) ) % 8;
     }
 
     void BitWriter::writeBytes(const uint8_t* data, uint32_t bytes)
     {
-        ARENA_ASSERT(getAlignBits() == 0, "Writer must be aligned");
+        ARENA_ASSERT(getAlignBits() == 0, "Writer must be aligned, (align bits = %d)", getAlignBits());
         ARENA_ASSERT(m_bitsWritten + (bytes * 8) <= m_numBits, 
             "Out of bounds, trying to write %d bits, %d of %d",
             bytes * 8, m_bitsWritten, m_numBits);
