@@ -6,8 +6,6 @@ Network::Network() {}
 Network::~Network()
 {
 	enet_host_destroy(m_server);
-	enet_deinitialize();
-
 }
 void Network::startServer(std::queue<Message>* messageQueue, unsigned address,
 	unsigned port, unsigned clientAmount)
