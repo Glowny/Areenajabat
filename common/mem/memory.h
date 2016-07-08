@@ -24,4 +24,4 @@ const uint32 Mem1024K	= Mem512K * 2;
 
 #define DYNAMIC_DTOR(ptr, type)			ptr->~type()
 
-#define ADDRESSOF(ptr) reinterpret_cast<UintPtr>(ptr)
+#define ADDRESSOF(ptr)					reinterpret_cast<UintPtr>(ptr)

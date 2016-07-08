@@ -1,8 +1,11 @@
 #pragma once
 
+#include "..\forward_declare.h"
 #include "..\types.h"
 
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, HeapBlock)
 
+#include <vector>
 
 namespace arena
 {
@@ -11,7 +14,12 @@ namespace arena
 	public:
 		HeapPage(const uint32 size);
 
-		inline bool isInAddressSpace();
+		inline HeapBlock& allocate(const uint32 bytes);
+		inline void deallocate(const HeapBlock& block);
+
+		inline bool isInAddressSpace(const HeapBlock& block) const;
+
+		inline bool canAllocate() const;
 
 		~HeapPage();
 	private:
