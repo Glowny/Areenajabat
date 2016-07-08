@@ -1,5 +1,5 @@
 #include "NetworkServer.h"
-#include "Enumerations.h"
+#include <common/Enumerations.h>
 #if defined(ARENA_SERVER)
 Network::Network() {}
 

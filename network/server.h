@@ -4,7 +4,7 @@
 #include <vector>
 #include "NetworkServer.h"
 #include "Physics.h"
-#include "GamePackets.h"
+#include <common/GamePackets.h>
 
 
 struct PlayerInput

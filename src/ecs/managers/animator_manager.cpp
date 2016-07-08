@@ -1,7 +1,7 @@
 #include "animator_manager.h"
 #include "../transform.h"
 #include "../entity.h"
-#include "../../debug.h"
+#include <common/debug.h>
 
 namespace arena
 {

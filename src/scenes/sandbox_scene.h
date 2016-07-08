@@ -1,9 +1,12 @@
 #pragma once
 
 #include "scene.h"
+#include <queue>
 
+struct Message;
 namespace arena
 {
+    
 	class SandboxSecene final : public Scene 
 	{
 	public:

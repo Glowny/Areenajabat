@@ -1,3 +1,4 @@
+#include <common/network_interface.h>
 #include "game_time.h"
 #include "ecs\managers\sprite_manager.h"
 #include "app.h"
@@ -22,6 +23,7 @@
 #include "scenes/sandbox_scene.h"
 #include "graphics/character_animator.h"
 #include "utils/math.h"
+#include <common/debug.h>
 
 namespace arena
 {
@@ -159,6 +161,9 @@ namespace arena
 
     void App::init(int32_t width, int32_t height)
     {
+        bool result = networkInitialize(); (void)result;
+        ARENA_ASSERT(result == true, "Failed to initialize network");
+
 		m_width = width;
 		m_height = height;
 		m_camera = Camera(float32(width), float32(height));
@@ -228,6 +233,8 @@ namespace arena
 
 	void App::shutdown()
 	{   
+        networkShutdown();
+
         SceneManager::instance().pop()->destroy();
 
         animationSystemShutdown();
