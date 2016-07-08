@@ -10,8 +10,7 @@ Network::~Network()
 void Network::startServer(std::queue<Message>* messageQueue, unsigned address,
 	unsigned port, unsigned clientAmount)
 {
-	m_messageQueue = messageQueue;
-	m_server = createENetServer(address, port, clientAmount);
+    m_messageQueue = messageQueue;
 	idGiver = 0;
 
 }
@@ -164,32 +163,6 @@ void Network::disconnectClient(unsigned playerIndex)
 			break;
 		}
 	enet_peer_reset(EEvent.peer);
-}
-
-ENetHost* Network::createENetServer(unsigned address, unsigned port,
-	unsigned clientAmount)
-{
-	ENetAddress eAddress;
-	ENetHost* eServer;
-
-	if (address == 0)
-		eAddress.host = ENET_HOST_ANY;
-	else
-		eAddress.host = address;
-	eAddress.port = port;
-
-	eServer = enet_host_create(&eAddress /* the address to bind the server host to */,
-		clientAmount      /* allow up to playerAmount clients and/or outgoing connections */,
-		2      /* allow up to 2 channels to be used, 0 and 1 */,
-		0      /* assume any amount of incoming bandwidth */,
-		0      /* assume any amount of outgoing bandwidth */);
-
-	if (eServer == NULL)
-	{
-		fprintf(stderr, "An error occured while trying to create ENet server host \n");
-		abort();
-	}
-	return eServer;
 }
 
 void Network::setPlayerIds(std::vector<unsigned int> idVector)

@@ -73,17 +73,24 @@ void Server::sendPlatformPackets()
 	m_network.broadcastPacket(data2, size2);
 }
 
-void Server::start(unsigned address, unsigned port, unsigned playerAmount)
+void Server::start(uint16_t port, unsigned playerAmount)
 {
+    using namespace arena;
+
 	m_playerAmount = playerAmount;
 	loadPlatformsFromFile("coordinatesRawData.dat");
 	m_messageQueue = new std::queue<Message>;
-	m_network.startServer(m_messageQueue, address, port, 10);
+	m_network.startServer(m_messageQueue, 0, port, 10);
 	
 	// wait for players..
 	
 	while (true)
 	{ 
+        /*ENetPeer* peer;
+        Packet* packet = m_networkInterface->receivePacket(peer);
+
+        if (packet == nullptr) continue;*/
+
 		while (m_network.getConnectedPlayerAmount() < m_playerAmount)
 		{ 
 			m_network.checkEvent();
@@ -198,13 +205,14 @@ void Server::start(const String& iniPath)
 	const String ServerSection		= "server";
 	const String GamemodeSection	= "gamemode";
 
-	const uint32 address		= uint32(Ini.geti(ServerSection, "address", 0));
+    // todo this isnt needed
+	//const uint32 address		= uint32(Ini.geti(ServerSection, "address", 0));
 	const uint32 port			= uint32(Ini.geti(ServerSection, "port", 8888));
 	const uint32 maxPlayers		= uint32(Ini.geti(GamemodeSection, "max_players", 4));
 	
     m_networkInterface = new arena::NetworkInterface(uint16_t(port));
 
-	start(address, port, maxPlayers);
+	start(port, maxPlayers);
 }
 
 void Server::sendGameUpdateMessages()

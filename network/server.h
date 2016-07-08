@@ -25,7 +25,7 @@ public:
     Server();
 	~Server();
 	void start(const String& iniPath);
-    void start(unsigned address, unsigned port, unsigned playerAmount);
+    void start(uint16_t port, unsigned playerAmount);
 private:
     arena::NetworkInterface* m_networkInterface;
 
