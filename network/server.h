@@ -5,6 +5,7 @@
 #include "NetworkServer.h"
 #include "Physics.h"
 #include <common/GamePackets.h>
+#include <common/network_interface.h>
 
 
 struct PlayerInput
@@ -18,12 +19,25 @@ struct PlayerInput
 class Server
 {
 public:
-	Server();
+    static const uint32_t MaxClients = 32;
+
+	Server(uint16_t port);
 	~Server();
 	void start(unsigned address, unsigned port, unsigned playerAmount);
 	bool* stop;
 
 private:
+    arena::NetworkInterface m_networkInterface;
+
+    ENetPeer m_clientPeers[MaxClients];
+
+    bool m_clientConnected[MaxClients];
+    uint64_t m_clientSalt[MaxClients];
+
+    uint64_t m_serverSalt;
+
+    uint32_t m_clientsConnected;
+
 	// Networking game related.
 	uint32_t m_updateSize;  //update packet size wont change during gameloop. 
 	unsigned char* m_updateMemory; // memory set for update packet.

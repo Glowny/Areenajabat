@@ -4,9 +4,17 @@
 #include <assert.h>
 #include <bx/timer.h>
 #include <stdint.h>
-Server::Server()
+#include <common/salt.h>
+
+Server::Server(uint16_t port) : 
+    m_networkInterface(port),
+    m_clientsConnected(0)
 {
-	
+    memset(m_clientPeers, 0, sizeof(m_clientPeers));
+    memset(m_clientConnected, 0, sizeof(m_clientConnected));
+    memset(m_clientSalt, 0, sizeof(m_clientConnected));
+
+    m_serverSalt = arena::genSalt();
 }
 
 Server::~Server()

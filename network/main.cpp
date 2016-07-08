@@ -22,10 +22,12 @@ int main()
 	client.start("172.31.16.42", 8888);
 
 #else
+    arena::networkInitialize();
 
-	Server server;
+	Server server(8888);
 	server.start(0, 8888, 3);
-		
+	
+    arena::networkShutdown();
 #endif
 }
 
