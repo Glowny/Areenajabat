@@ -27,7 +27,7 @@ public:
 	void start(const String& iniPath);
     void start(unsigned address, unsigned port, unsigned playerAmount);
 private:
-    arena::NetworkInterface m_networkInterface;
+    arena::NetworkInterface* m_networkInterface;
 
     ENetPeer m_clientPeers[MaxClients];
 

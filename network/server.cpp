@@ -9,7 +9,7 @@
 
 Server::Server() : 
     m_clientsConnected(0),
-    m_networkInterface(8888)
+    m_networkInterface(nullptr)
 {
     memset(m_clientPeers, 0, sizeof(m_clientPeers));
     memset(m_clientConnected, 0, sizeof(m_clientConnected));
@@ -20,7 +20,8 @@ Server::Server() :
 
 Server::~Server()
 {
-
+    delete m_networkInterface;
+    m_networkInterface = NULL;
 }
 
 void Server::createPlayerInputs(unsigned playerAmount)
@@ -201,6 +202,8 @@ void Server::start(const String& iniPath)
 	const uint32 port			= uint32(Ini.geti(ServerSection, "port", 8888));
 	const uint32 maxPlayers		= uint32(Ini.geti(GamemodeSection, "max_players", 4));
 	
+    m_networkInterface = new arena::NetworkInterface(uint16_t(port));
+
 	start(address, port, maxPlayers);
 }
 
