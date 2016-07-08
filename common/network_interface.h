@@ -28,6 +28,8 @@ namespace arena
 
         Packet* receivePacket(ENetPeer*& from);
 
+        void readPackets();
+
         void sendPacket(ENetPeer* to, Packet* packet);
 
         // clear the send queue

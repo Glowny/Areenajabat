@@ -75,21 +75,26 @@ void Server::sendPlatformPackets()
 
 void Server::start(uint16_t port, unsigned playerAmount)
 {
+    (void)port;
+
     using namespace arena;
 
 	m_playerAmount = playerAmount;
 	loadPlatformsFromFile("coordinatesRawData.dat");
 	m_messageQueue = new std::queue<Message>;
-	m_network.startServer(m_messageQueue, 0, port, 10);
+	//m_network.startServer(m_messageQueue, 0, port, 10);
 	
 	// wait for players..
 	
 	while (true)
 	{ 
-        /*ENetPeer* peer;
+        // this call will fill receive queue
+        m_networkInterface->readPackets();
+
+        ENetPeer* peer;
         Packet* packet = m_networkInterface->receivePacket(peer);
 
-        if (packet == nullptr) continue;*/
+        if (packet == nullptr) continue;
 
 		while (m_network.getConnectedPlayerAmount() < m_playerAmount)
 		{ 

@@ -37,7 +37,7 @@ namespace arena
         address.host = ENET_HOST_ANY;
         address.port = port;
         // bound the port even to client
-        m_socket = enet_host_create(&address, 1, 2, 0, 0);
+        m_socket = enet_host_create(&address, 32, 2, 0, 0);
 
         ARENA_ASSERT(m_socket != nullptr, "Failed to create socket");
     }
@@ -62,6 +62,51 @@ namespace arena
         m_receiveQueue.pop();
 
         return entry.m_packet;
+    }
+
+    void NetworkInterface::readPackets()
+    {
+        // todo hax
+        const uint32_t MaxPacketSize = 512;
+        uint8_t packetBuffer[MaxPacketSize];
+        (void)packetBuffer;
+
+        while (true)
+        {
+            ENetPeer* peer; (void)peer;
+            ENetEvent event;
+            while (enet_host_service(m_socket, &event, 0) > 0)
+            {
+                if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
+
+                uint32_t packetBytes = uint32_t(event.packet->dataLength);
+                ReadStream stream(event.packet->data, packetBytes);
+                
+                uint32_t prefixBytes = 1;
+                for (uint32_t i = 0; i < prefixBytes; ++i)
+                {
+                    uint32_t dummy = 0;
+                    stream.serializeBits(dummy, 8);
+                }
+
+                uint32_t crc32 = 0;
+
+                stream.serializeBits(crc32, 32);
+                
+                int32_t packetType = 0;
+                if (!stream.serializeInteger(packetType, 0, PacketTypes::Count - 1))
+                {
+                    ARENA_ASSERT(0, "invalid packet");
+                }
+
+                printf("%d got packet\n", packetType);
+
+                enet_packet_destroy(event.packet);
+
+                
+            }
+            break;
+        }
     }
 
     void NetworkInterface::sendPacket(ENetPeer* to, Packet* packet)
@@ -119,7 +164,10 @@ namespace arena
             
             enet_peer_send(entry.m_peer, 0, out);
 
-            enet_packet_destroy(out);
+            // todo debug
+            enet_host_flush(m_socket);
+
+            //enet_packet_destroy(out);
 
             delete packet;
         }

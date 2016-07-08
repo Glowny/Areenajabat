@@ -52,7 +52,7 @@ namespace arena
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
 
-        s_client->connect("localhost", uint16_t(13337), 0);
+        s_client->connect("localhost", uint16_t(8888), 0);
     }
 
     static const InputBinding s_bindings[] =
@@ -109,7 +109,7 @@ namespace arena
 
 	void SandboxSecene::onInitialize()
 	{
-        s_client = new NetworkClient(uint16_t(8888));
+        s_client = new NetworkClient(uint16_t(13337));
 		EntityBuilder builder;
 
 		builder.begin();
