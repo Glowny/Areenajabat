@@ -17,10 +17,6 @@ namespace arena
 		inline HeapBlock* const allocate(const uint32 bytes);
 		inline void deallocate(const HeapBlock* const block);
 
-		inline bool isInAddressSpace(const HeapBlock& block) const;
-
-		inline bool canAllocate() const;
-
 		inline ~HeapPage();
 	
 		HeapPage(HeapPage& other) = delete;
