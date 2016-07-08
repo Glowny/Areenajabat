@@ -5,6 +5,7 @@
 */
 
 #include "inttypes.h"
+
 #include <string>
 
 // Guess there is no need for any assertions as we 
@@ -14,23 +15,23 @@
 	Pointer types.
 */
 
-using IntPtr = intptr_t;
-using UintPtr = uintptr_t;
-using VoidPtr = void*;
+using IntPtr	= intptr_t;
+using UintPtr	= uintptr_t;
+using VoidPtr	= void*;
 
 /*
 	Char/string types.
 */
 
-using Char = char;
+using Char		= char;
 using CharArray = char*;
-using String = std::string;
+using String	= std::string;
 
 /*
 	Signed types.
 */
 
-using int8 = int8_t;
+using int8	= int8_t;
 using int16 = int16_t;
 using int32 = int32_t;
 using int64 = int64_t;
@@ -39,14 +40,14 @@ using int64 = int64_t;
 	Unsigned types.
 */
 
-using uint8 = uint8_t;
-using uint16 = uint16_t;
-using uint32 = uint32_t;
-using uint64 = uint64_t;
+using uint8		= uint8_t;
+using uint16	= uint16_t;
+using uint32	= uint32_t;
+using uint64	= uint64_t;
 
 /*
 	Floating point types.
 */
 
-using float32 = float;
-using float64 = double;
+using float32	= float;
+using float64	= double;
