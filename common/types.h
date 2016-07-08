@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+	TODO: remove from arena.
+*/
+
 #include "inttypes.h"
 #include <string>
 
@@ -7,7 +11,7 @@
 // are only targeting Linux and Windows platforms.
 
 /*
-Pointer types.
+	Pointer types.
 */
 
 using IntPtr = intptr_t;
@@ -15,7 +19,7 @@ using UintPtr = uintptr_t;
 using VoidPtr = void*;
 
 /*
-Char/string types.
+	Char/string types.
 */
 
 using Char = char;
@@ -23,7 +27,7 @@ using CharArray = char*;
 using String = std::string;
 
 /*
-Signed types.
+	Signed types.
 */
 
 using int8 = int8_t;
@@ -32,7 +36,7 @@ using int32 = int32_t;
 using int64 = int64_t;
 
 /*
-Unsigned types.
+	Unsigned types.
 */
 
 using uint8 = uint8_t;
@@ -41,7 +45,7 @@ using uint32 = uint32_t;
 using uint64 = uint64_t;
 
 /*
-Floating point types.
+	Floating point types.
 */
 
 using float32 = float;
