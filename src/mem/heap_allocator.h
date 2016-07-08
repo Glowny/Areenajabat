@@ -13,12 +13,21 @@ namespace arena
 	class HeapAllocator final 
 	{
 	public:
-		HeapAllocator(const uint32 initialPagesCount, const uint32 pageSize);
+		inline HeapAllocator(const uint32 initialPagesCount, const uint32 pageSize);
 		
-		Char* allocate(const uint32 bytes);
-		bool deallocate(Char* handle, const uint32 bytes);
+		inline Char* allocate(const uint32 bytes);
+		inline bool deallocate(Char* handle, const uint32 bytes);
 
-		~HeapAllocator();
+		inline uint32 pages() const;
+
+		inline uint32 bytes() const;
+		inline uint32 freeBytes() const;
+
+		inline uint32 totalBlocks() const;
+		inline uint32 occupiedBlocks() const;
+		inline uint32 releasedBlocks() const;
+
+		inline ~HeapAllocator();
 	private:
 		std::vector<HeapPage*>		m_pages;
 
