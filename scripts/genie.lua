@@ -136,7 +136,8 @@ project "server"
 		"enet",
 		"ws2_32",
 		"winmm",
-		"Box2D"
+		"Box2D",
+		"minini"
 	}
 	
 	configuration {}
@@ -241,6 +242,18 @@ project "Box2D"
 	includedirs { 
 		path.join(ARENA_THIRD_DIR) 
 	}	
+
+project "minini"
+	kind "StaticLib"
+	language "C"
+	files {
+		path.join(ARENA_THIRD_DIR, "minini", "**.h"),
+		path.join(ARENA_THIRD_DIR, "minini", "**.c"),
+	}
+	vpaths { [""] = "minini" }
+	includedirs {
+		path.join(ARENA_THIRD_DIR)
+	}
 
 
 group("tools")
