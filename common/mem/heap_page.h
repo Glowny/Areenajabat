@@ -12,23 +12,34 @@ namespace arena
 	class HeapPage final
 	{
 	public:
-		HeapPage(const uint32 size);
+		inline HeapPage(const uint32 size);
 
-		inline HeapBlock& allocate(const uint32 bytes);
-		inline void deallocate(const HeapBlock& block);
+		inline HeapBlock* const allocate(const uint32 bytes);
+		inline void deallocate(const HeapBlock* const block);
 
 		inline bool isInAddressSpace(const HeapBlock& block) const;
 
 		inline bool canAllocate() const;
 
-		~HeapPage();
+		inline ~HeapPage();
+	
+		HeapPage(HeapPage& other) = delete;
+		HeapPage(HeapPage&& other) = delete;
+
+		HeapPage& operator =(HeapPage& other) = delete;
+		HeapPage& operator =(HeapPage&& other) = delete;
 	private:
-		UintPtr			m_lowAddress;	// Low and high address of the
-		UintPtr			m_highAddress;	// m_memory.
+		std::vector<HeapBlock> m_released;		// Released blocks that can be used for allocations.
+		std::vector<HeapBlock> m_blocks;		// Blocks that are being used.
+		
+		const UintPtr		   m_lowAddress;	// Low and high address of the
+		const UintPtr		   m_highAddress;	// m_memory.
 
-		const uint32	m_size;			// Size of the page in bytes.
-		uint32			m_hp;			// Heap pointer.
+		const uint32		   m_size;			// Size of the page in bytes.
+		uint32				   m_hp;			// Heap pointer.
 
-		Char*			m_memory;		// Storage.
+		Char*				   m_memory;		// Storage.
 	};
 }
+
+#include "heap_page.h"
