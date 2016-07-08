@@ -7,6 +7,45 @@ Physics::Physics()
 
 	m_b2DWorld = new b2World(b2Vec2(0,9.81));
 	m_b2DWorld->SetContactListener(&m_ContactListener);
+
+
+
+	b2Filter filter;
+	// Platform collide filter 
+	filter.categoryBits = c_Platform;
+	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet;
+	filter.groupIndex =0 ;
+	b2Filters[ci_Platform] = filter;
+
+	// Light platform collide filter 
+	filter.categoryBits = c_LightPlatform;
+	filter.maskBits =  c_Gladiator;
+	filter.groupIndex =0 ;
+	b2Filters[ci_LightPlatform] = filter;
+
+	// ladder
+	filter.categoryBits = c_Ladder;
+	filter.maskBits = c_Platform;
+	filter.groupIndex = 0;
+	b2Filters[c_Ladder] = filter;
+
+	// Gladiator collide filter 
+	filter.categoryBits = c_Gladiator;
+	filter.maskBits = c_Platform | c_LightPlatform | c_Bullet;
+	filter.groupIndex = 0;
+	b2Filters[ci_Gladiator] = filter;
+
+	//Gladiator no collide filter
+	filter.categoryBits = c_GladiatorNoCollide;
+	filter.maskBits =   c_Platform | c_Bullet;
+	filter.groupIndex =0 ;
+	b2Filters[ci_GladiatorNoCollide] = filter;
+
+	// Bullet filter. DONE
+	filter.categoryBits = c_Bullet;
+	filter.maskBits = c_Platform | c_GladiatorNoCollide | c_Gladiator;
+	filter.groupIndex = 0;
+	b2Filters[ci_Bullet] = filter;
 };
 Physics::~Physics() {};
 
@@ -22,29 +61,24 @@ void Physics::update()
 	{
 		if (m_bulletVector[i]->m_contact == true)
 		{
-			switch (m_bulletVector[i]->m_contactBody)
+			switch (m_bulletVector[i]->m_contactUserData->m_bodyType)
 			{
 			case B_Platform:
 			{
-				glm::vec2 position;
-				position.x = m_bulletVector[i]->m_body->GetPosition().x;
-				position.y = m_bulletVector[i]->m_body->GetPosition().y;
 				BulletHit hit;
 				hit.hitType = B_Platform;
-				hit.position = position;
+				hit.position = m_bulletVector[i]->hitPosition;
 				hitVector.push_back(hit);
 			}
 			break;
 			case B_Gladiator:
 			{
-				glm::vec2 position;
-				position.x = m_bulletVector[i]->m_body->GetPosition().x;
-				position.y = m_bulletVector[i]->m_body->GetPosition().y;
+
 				BulletHit hit;
 				p_Gladiator* glad = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object);
 				unsigned targetID = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object)->m_id;
 				hit.hitType = B_Gladiator;
-				hit.position = position;
+				hit.position = m_bulletVector[i]->hitPosition;
 				hit.targetPlayerId = targetID;
 				hit.shooterPlayerId = static_cast<p_Bullet*>(m_bulletVector[i]->m_myUserData->m_object)->m_shooterID;
 				hitVector.push_back(hit);
@@ -75,8 +109,11 @@ void Physics::update()
 	}
 };
 
-void Physics::createPlatform(std::vector<glm::vec2> platform)
+void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 {
+	//TEMP LADDER BREAK THINGS
+	if (type == 2)
+		return;
 	b2Vec2* points = new b2Vec2[platform.size()];
 	for (unsigned i = 0; i < platform.size(); i++)
 	{
@@ -98,6 +135,20 @@ void Physics::createPlatform(std::vector<glm::vec2> platform)
 	m_platformVector[index]->m_fixtureDef.shape = &m_platformVector[index]->m_shape;
 	m_platformVector[index]->m_fixtureDef.density = 1.0f;
 	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
+	switch(type)
+	{ 
+		case 0:
+			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Platform];
+			break;
+		case 1:
+			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_LightPlatform];
+			break;
+		case 2:
+			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Ladder];
+			break;
+	}	
+	
+
 	m_platformVector[index]->m_body->CreateFixture(&m_platformVector[index]->m_fixtureDef);
 	temp_platform->m_userData = userData;
 	temp_platform->m_body->SetUserData(userData);
@@ -122,6 +173,8 @@ unsigned Physics::addGladiator(glm::vec2 position)
 	fixtureDef.shape = &dynamicBox;
 	fixtureDef.density = 2.5f;
 	fixtureDef.friction = 0.8f;
+	fixtureDef.filter = b2Filters[ci_Gladiator];
+
 	glad->m_body->CreateFixture(&fixtureDef);
 
 	b2MassData data;
@@ -141,6 +194,17 @@ unsigned Physics::addGladiator(glm::vec2 position)
 	
 	return glad->m_id;
 };
+
+void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide)
+{
+	b2Filter filter;
+	if (collide)
+		filter = b2Filters[ci_Gladiator];
+	else
+		filter = b2Filters[ci_GladiatorNoCollide];
+
+	m_gladiatorVector[gladiatorID]->m_body->GetFixtureList()->SetFilterData(filter);
+}
 
 void Physics::AppleForceToGladiator(glm::vec2 direction, unsigned id)
 {
@@ -197,6 +261,7 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooter
 	fixtureDef.shape = &dynamicBox;
 	fixtureDef.density = 2.0f;
 	fixtureDef.friction = 0.01f;
+	fixtureDef.filter = b2Filters[ci_Bullet];
 
 	b2MassData data;
 	data.mass = 0.001f;

@@ -19,12 +19,12 @@ int main()
 		
 	Client client;
 
-	client.start("172.31.16.42", 8888);
+	client.start("localhost", 8888);
 
 #else
 
 	Server server;
-	server.start(0, 8888, 3);
+	server.start(0, 8888, 1);
 		
 #endif
 }

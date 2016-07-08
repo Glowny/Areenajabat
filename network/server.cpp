@@ -32,7 +32,7 @@ void Server::createGladiators(unsigned playerAmount)
 	for (unsigned i = 0; i < playerAmount; i++)
 	{
 		GladiatorData glad;
-		unsigned id = m_physics.addGladiator(glm::vec2(i*100.0f, 50.0f));
+		unsigned id = m_physics.addGladiator(glm::vec2(i*100.0f+100.0f, 50.0f));
 		glad.id = id;
 		glad.rotation = 0;
 		glad.position.x = 100.0f * i;
@@ -127,6 +127,13 @@ while (true)
 		for (unsigned i = 0; i < m_playerInputVector.size(); i++)
 		{
 			m_playerInputVector[i].jumpTimer += lastDeltaTime;
+			m_playerInputVector[i].passLightPlatformTimer += lastDeltaTime;
+			if (m_playerInputVector[i].passLightPlatformTimer > 2.0f)
+			{
+				m_physics.setGladiatorCollideLightPlatforms(i, true);
+				m_playerInputVector[i].passLightPlatformTimer = 0;
+			}
+			
 		}
 
 		if (updatePhysics > timeStep)
@@ -291,17 +298,30 @@ void Server::gladiatorMovement()
 		if (m_gladiatorVector[i].alive == true)
 		{
 
-			if (m_playerInputVector[i].moveDir.y != 0 && m_playerInputVector[i].jumpTimer > 1)
+			if (m_playerInputVector[i].moveDir.y != 0)
 			{
-				m_physics.ApplyImpulseToGladiator(glm::vec2(m_playerInputVector[i].moveDir.x *100, m_playerInputVector[i].moveDir.y * 400), i);
+				if (m_playerInputVector[i].jumpTimer > 1 && m_playerInputVector[i].moveDir.y == -2)
+				{ 
+					m_physics.ApplyImpulseToGladiator(glm::vec2(m_playerInputVector[i].moveDir.x *100, m_playerInputVector[i].moveDir.y * 200), i);
+					m_playerInputVector[i].jumpTimer = 0;
+				}
+				if (m_playerInputVector[i].moveDir.y == -1 || m_playerInputVector[i].moveDir.y == 1)
+				{
+					m_physics.setGladiatorCollideLightPlatforms(i, false);
+					m_playerInputVector[i].passLightPlatformTimer = 0;
+				}
 				m_playerInputVector[i].moveDir.y = 0.0;
-				m_playerInputVector[i].jumpTimer = 0;
 			}
 			if (m_playerInputVector[i].moveDir.x != 0)
 			{
 				float xVelocity = m_physics.getGladiatorVelocity(i).x;
 				if (xVelocity < 250 && xVelocity > -250)
-					m_physics.AppleForceToGladiator(glm::vec2(m_playerInputVector[i].moveDir.x * 1500, 0), i);
+				{
+					int yVel = 0;
+					if (m_physics.getGladiatorVelocity(i).y >-100)
+						yVel = -500;
+					m_physics.AppleForceToGladiator(glm::vec2(m_playerInputVector[i].moveDir.x * 1500, yVel), i);
+				}
 				m_playerInputVector[i].moveDir.x = 0.0;
 
 			}
@@ -375,14 +395,16 @@ void Server::createOutputBullets(std::vector<BulletInputData> &bulletInputVector
 				case UMP45:
 				{
 					glm::vec2 vectorAngle = radToVec(bulletInputVector[i].rotation);
-					bullet.position.x = m_gladiatorVector[playerId].position.x  + vectorAngle.x * 70;
-					bullet.position.y = m_gladiatorVector[playerId].position.y - 32 + vectorAngle.y * 70;
+					bullet.position.x = m_gladiatorVector[playerId].position.x  + vectorAngle.x * 80;
+					bullet.position.y = m_gladiatorVector[playerId].position.y - 32 + vectorAngle.y * 80;
 					bullet.rotation = bulletInputVector[i].rotation;
 					
 					bullet.velocity.x = vectorAngle.x*10;
 					bullet.velocity.y = vectorAngle.y*10;
 
 					m_physics.addBullet(bullet.position, bullet.velocity, bullet.playerId);
+					m_physics.addBullet(glm::vec2(bullet.position.x + vectorAngle.x * 10, bullet.position.y + vectorAngle.y * 10), bullet.velocity, bullet.playerId);
+					m_physics.addBullet(glm::vec2(bullet.position.x + vectorAngle.x * 15, bullet.position.y + vectorAngle.y * 15), bullet.velocity, bullet.playerId);
 				}
 				case Shotgun:
 				{
@@ -421,8 +443,7 @@ void Server::loadPlatformsFromFile(char* filename)
 	{
 		platformObject object;
 		file.read(reinterpret_cast<char*>(&object.size), sizeof(uint32_t));
-		file.read(reinterpret_cast<char*>(&object.type), sizeof(unsigned int));
-
+		file.read(reinterpret_cast<char*>(&object.type), sizeof(uint32_t));
 
 		for (unsigned i = 0; i < object.size; i++)
 		{
@@ -443,11 +464,12 @@ void Server::loadPlatformsFromFile(char* filename)
 	for (unsigned i = 0; i < objects.size(); i++)
 	{
 		Platform platform;
+		platform.type = objects[i].type;
 		for(unsigned j = 0; j < objects[i].points.size(); j++)
 		{ 
 			platform.points.push_back(objects[i].points[j]);
 		}
-		m_physics.createPlatform(platform.points);
+		m_physics.createPlatform(platform.points, objects[i].type);
 		m_platformVector.push_back(platform);
 	}
 

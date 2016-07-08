@@ -12,7 +12,7 @@ struct LiveBullet
 	glm::vec2 position;
 	glm::vec2 velocity;
 	sf::RectangleShape* m_rectangle;
-	
+
 };
 
 struct BulletHit
@@ -78,10 +78,13 @@ private:
 	sf::Clock m_networkClock;
 	sf::Clock m_physicsClock;
 	sf::Clock m_timerClock;
+	
 	// Vertex data about platforms used for drawing by SFML
 	std::vector<std::vector<sf::Vertex>> m_vertexes;
 	sf::RectangleShape m_rectangle;
 	sf::RectangleShape m_bulletRectangle;
+	sf::Sprite backgroundSprite;
+	sf::Texture* texture;
 	sf::Font font;
 	sf::Text hpText;
 	sf::Text m_scoreBoardText;
