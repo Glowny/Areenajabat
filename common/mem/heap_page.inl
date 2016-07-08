@@ -9,7 +9,8 @@ namespace arena
 	HeapPage::HeapPage(const uint32 size) : m_memory(new char[size]),
 											m_lowAddress(ADDRESSOF(&m_memory[0])),
 											m_highAddress(ADDRESSOF(&m_memory[size - 1])),
-											m_size(size)
+											m_size(size),
+										    m_bytes(0)
 	{
 	}
 
@@ -24,6 +25,7 @@ namespace arena
 
 			// Create new block, return it.
 			m_blocks.push_back(HeapBlock(bytes, handle));
+			m_bytes += bytes;
 			
 			return &m_blocks.back();
 		}
@@ -42,6 +44,8 @@ namespace arena
 					// Add as new block.
 					m_blocks.push_back(block);
 
+					m_bytes += bytes;
+
 					// Return.
 					return &m_blocks.back();
 				}
@@ -50,14 +54,42 @@ namespace arena
 
 		return nullptr;
 	}
-	void HeapPage::deallocate(const HeapBlock* const block)
+	bool HeapPage::deallocate(const HeapBlock* const block)
 	{
 		if (block->m_address >= m_lowAddress && block->m_address <= m_highAddress)
 		{
 			m_released.push_back(*block);
 
 			m_blocks.erase(std::find(m_blocks.begin(), m_blocks.end(), *block), m_blocks.end());
+			
+			m_bytes -= block->m_size;
+
+			return true;
 		}
+
+		return false;
+	}
+
+	uint32 HeapPage::bytes() const
+	{
+		return m_bytes;
+	}
+	uint32 HeapPage::freeBytes() const
+	{
+		return m_size - m_bytes;
+	}
+
+	uint32 HeapPage::totalBlocks() const
+	{
+		return m_released.size() + m_blocks.size();
+	}
+	uint32 HeapPage::occupiedBlocks() const
+	{
+		return m_blocks.size();
+	}
+	uint32 HeapPage::releasedBlocks() const
+	{
+		return m_released.size();
 	}
 
 	HeapPage::~HeapPage()
