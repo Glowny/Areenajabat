@@ -5,23 +5,33 @@
 
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 
-namespace arena
-{
-	class SlaveServer final
-	{
-	public:
-		SlaveServer(const uint32 address, const uint32 port);
+/*
+	Wraps the server instances that the master manages.
+	One machine can run multiple instances of game
+	server.
+*/
 
-		void initialize();
+// TODO: start working with slave after the planning session 
+//		 that happens at the evening of 8.7.2016
 
-		bool start();
-		bool stop();
 
-		~SlaveServer();
-	private:
-		Server* const m_instance;
-
-		const uint32 m_address;
-		const uint32 m_port;
-	};
-}
+//namespace arena
+//{
+//	class SlaveServer final
+//	{
+//	public:
+//		SlaveServer(const uint32 address, const uint32 port);
+//
+//		void initialize();
+//
+//		bool start();
+//		bool stop();
+//
+//		~SlaveServer();
+//	private:
+//		Server* const m_instance;
+//
+//		const uint32 m_address;
+//		const uint32 m_port;
+//	};
+//}
