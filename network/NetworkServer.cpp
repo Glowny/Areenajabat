@@ -13,7 +13,6 @@ void Network::startServer(std::queue<Message>* messageQueue, unsigned address,
 	unsigned port, unsigned clientAmount)
 {
 	m_messageQueue = messageQueue;
-	initializeENet();
 	m_server = createENetServer(address, port, clientAmount);
 	idGiver = 0;
 
@@ -167,15 +166,6 @@ void Network::disconnectClient(unsigned playerIndex)
 			break;
 		}
 	enet_peer_reset(EEvent.peer);
-}
-
-void Network::initializeENet()
-{
-	if (enet_initialize() != 0)
-	{
-		fprintf(stderr, "An error occured while intializing ENET. \n");
-		abort();
-	}
 }
 
 ENetHost* Network::createENetServer(unsigned address, unsigned port,

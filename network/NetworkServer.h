@@ -38,7 +38,6 @@ class Network
 		void disconnectClient(unsigned clientIndex);
 		void setPlayerIds(std::vector<unsigned int> idVector);
 	private:
-		void initializeENet();
 		ENetHost* createENetServer(unsigned address, unsigned port,
 			unsigned clientAmount);
 		ENetHost* m_server;
