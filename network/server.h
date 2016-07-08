@@ -6,6 +6,7 @@
 #include "Physics.h"
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
+#include <common/types.h>
 
 
 struct PlayerInput
@@ -21,11 +22,10 @@ class Server
 public:
     static const uint32_t MaxClients = 32;
 
-	Server(uint16_t port);
+    Server();
 	~Server();
-	void start(unsigned address, unsigned port, unsigned playerAmount);
-	bool* stop;
-
+	void start(const String& iniPath);
+    void start(unsigned address, unsigned port, unsigned playerAmount);
 private:
     arena::NetworkInterface m_networkInterface;
 

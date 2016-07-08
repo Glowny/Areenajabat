@@ -34,6 +34,9 @@ namespace arena
 
 	class Entity final 
 	{
+	friend class PoolAllocator<Entity>;
+	friend class EntityAllocator;
+	
 	public:
 		/*
 			Static members.
@@ -44,10 +47,6 @@ namespace arena
 		/*
 			Instance members.
 		*/
-
-		// TODO: hide these?
-		Entity(const String& tags);
-		Entity();
 
 		void destroy();
 		bool destroyed();
@@ -79,6 +78,9 @@ namespace arena
 		// TODO: overwrite new and delete operators?
 		bool operator ==(Entity* lhs);
 	private:
+		Entity(const String& tags);
+		Entity();
+
 		/*
 			Static members.
 		*/
