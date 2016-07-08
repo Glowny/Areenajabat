@@ -32,7 +32,7 @@
 
 namespace arena
 {
-    static NetworkClient s_client;
+    static NetworkClient* s_client;
 
 	static Entity* entity;
     static Animator* s_animator;
@@ -49,7 +49,7 @@ namespace arena
     
     static void connect(const void*)
     {
-        s_client.connect("localhost", uint16_t(13337), 0);
+        s_client->connect("localhost", uint16_t(13337), 0);
     }
 
     static const InputBinding s_bindings[] =
@@ -66,7 +66,7 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
-        s_client.sendPackets(gameTime.m_total);
+        s_client->sendPackets(gameTime.m_total);
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();
@@ -105,6 +105,7 @@ namespace arena
 
 	void SandboxSecene::onInitialize()
 	{
+        s_client = new NetworkClient(uint16_t(8888));
 		EntityBuilder builder;
 
 		builder.begin();

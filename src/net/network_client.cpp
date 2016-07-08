@@ -9,10 +9,11 @@ namespace arena
 
     const double ConnectionRequestSendRate = 0.1;
 
-    NetworkClient::NetworkClient() : 
+    NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
         m_lastPacketReceivedTime(0), 
-        m_lastPacketSendTime(0)
+        m_lastPacketSendTime(0),
+        m_networkInterface(clientPort)
     {
         reset();
     }
@@ -76,8 +77,7 @@ namespace arena
 
             ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
 
-            
-
+            m_networkInterface.sendPacket(m_serverAddress, packet);
             m_lastPacketSendTime = timestamp;
         }
             break;

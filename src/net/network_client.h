@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <enet/enet.h>
+#include <common/network_interface.h>
 
 namespace arena
 {
@@ -20,7 +21,7 @@ namespace arena
     class NetworkClient
     {
     public:
-        NetworkClient();
+        NetworkClient(uint16_t clientPort);
 
         void connect(const char* address, uint16_t port, double timestamp);
 
@@ -34,6 +35,8 @@ namespace arena
     private:
 
         void reset();
+
+        NetworkInterface m_networkInterface;
 
         ClientState::Enum m_state;
 
