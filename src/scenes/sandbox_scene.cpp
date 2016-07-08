@@ -1,3 +1,4 @@
+#include "../net/network_client.h"
 #include "sandbox_scene.h"
 #include "..\res\resource_manager.h"
 #include "..\app.h"
@@ -28,8 +29,11 @@
 #include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
 
+
 namespace arena
 {
+    static NetworkClient* s_client;
+
 	static Entity* entity;
     static Animator* s_animator;
 
@@ -42,11 +46,17 @@ namespace arena
     {
         s_animator->m_animator.setFlipX(true);
     }
+    
+    static void connect(const void*)
+    {
+        s_client->connect("localhost", uint16_t(13337), 0);
+    }
 
     static const InputBinding s_bindings[] =
     {
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
+        { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         INPUT_BINDING_END
     };
 
@@ -56,6 +66,7 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
+        s_client->sendPackets(gameTime.m_total);
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();
@@ -94,6 +105,7 @@ namespace arena
 
 	void SandboxSecene::onInitialize()
 	{
+        s_client = new NetworkClient(uint16_t(8888));
 		EntityBuilder builder;
 
 		builder.begin();

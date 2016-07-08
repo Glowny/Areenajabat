@@ -52,20 +52,6 @@ dofile("toolchain.lua")
 dofile(BGFX_DIR .. "scripts/bgfx.lua")
 toolchain(ARENA_BUILD_DIR, ARENA_THIRD_DIR)
 --os.is("windows") and { "BGFX_CONFIG_RENDERER_DIRECT3D9=1" } or {
-bgfxProject("", "StaticLib", os.is("windows") and { "BGFX_CONFIG_RENDERER_DIRECT3D11=1" } or { "BGFX_CONFIG_RENDERER_OPENGL=44" })
-dofile(ARENA_DIR .. "scripts/shaderc.lua")
-dofile(ARENA_DIR .. "scripts/texturec.lua")
-
-project "Box2D"
-	kind "StaticLib"
-	files { 
-		path.join(ARENA_THIRD_DIR, "Box2D", "**.h"),
-		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
-	}
-	vpaths { [""] = "Box2D" }
-	includedirs { 
-		path.join(ARENA_THIRD_DIR) 
-	}	
 	
 project ("arena")
 	kind ("ConsoleApp")
@@ -74,7 +60,8 @@ project ("arena")
 		path.join(BX_DIR, "include"),
 		path.join(BGFX_DIR, "include"),
 		path.join(BGFX_DIR, "3rdparty"),
-		path.join(ARENA_THIRD_DIR)
+		path.join(ARENA_THIRD_DIR),
+		ARENA_DIR
 	}
 
 	links {
@@ -82,7 +69,8 @@ project ("arena")
 		"SDL2",
 		"Box2D",
 		"spriterengine",
-		"enet"
+		"enet",
+		"common"
 	}
 
 	files {
@@ -91,7 +79,10 @@ project ("arena")
 	}
 
 	configuration { "vs*"}
-		links { "ws2_32" } --winsock
+		links { 
+			"ws2_32", --winsock
+			"winmm",
+		}
 
 	configuration { "vs*" and "x32"}
 	postbuildcommands {
@@ -104,6 +95,21 @@ project ("arena")
 	}
 
 	configuration {}
+
+project "common"
+	kind "StaticLib"
+	language "C++"
+
+	files {
+		path.join(ARENA_DIR, "common", "**.cpp"),
+		path.join(ARENA_DIR, "common", "**.h")
+	}
+
+	includedirs {
+		ARENA_THIRD_DIR,
+		path.join(BX_DIR , "include")
+	}
+
 	
 project "server"
 	kind "ConsoleApp"
@@ -116,7 +122,8 @@ project "server"
 	
 	includedirs { 
 		ARENA_THIRD_DIR,
-		path.join(BX_DIR, "include/")
+		path.join(BX_DIR, "include/"),
+		path.join(ARENA_DIR)
 	}
 	
 	files {
@@ -125,10 +132,12 @@ project "server"
 	}
 	
 	links { 
+		"common",
 		"enet",
 		"ws2_32",
 		"winmm",
-		"Box2D"
+		"Box2D",
+		"minini"
 	}
 	
 	configuration {}
@@ -177,6 +186,10 @@ project "client_sandbox"
 	
 	configuration {}
 
+group("libs")
+
+bgfxProject("", "StaticLib", os.is("windows") and { "BGFX_CONFIG_RENDERER_DIRECT3D11=1" } or { "BGFX_CONFIG_RENDERER_OPENGL=44" })
+
 project "spriterengine"
 	kind "StaticLib"
 
@@ -218,3 +231,31 @@ project "enet"
 		defines { "_WINSOCK_DEPRECATED_NO_WARNINGS" }
 
 	configuration {}
+
+project "Box2D"
+	kind "StaticLib"
+	files { 
+		path.join(ARENA_THIRD_DIR, "Box2D", "**.h"),
+		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
+	}
+	vpaths { [""] = "Box2D" }
+	includedirs { 
+		path.join(ARENA_THIRD_DIR) 
+	}	
+
+project "minini"
+	kind "StaticLib"
+	language "C"
+	files {
+		path.join(ARENA_THIRD_DIR, "minini", "**.h"),
+		path.join(ARENA_THIRD_DIR, "minini", "**.c"),
+	}
+	vpaths { [""] = "minini" }
+	includedirs {
+		path.join(ARENA_THIRD_DIR)
+	}
+
+
+group("tools")
+dofile(ARENA_DIR .. "scripts/shaderc.lua")
+dofile(ARENA_DIR .. "scripts/texturec.lua")

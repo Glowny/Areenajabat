@@ -2,7 +2,7 @@
 #include <bx/bx.h>
 #include "../utils/math.h"
 #include <algorithm>
-#include "../debug.h"
+#include <common/debug.h>
 
 namespace arena
 {
