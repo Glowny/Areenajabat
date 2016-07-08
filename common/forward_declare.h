@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+	TODO: remove from arena. Duplicated file.
+*/
+
 #define FORWARD_DECLARE_TYPE_STRUCT			struct
 #define FORWARD_DECLARE_TYPE_CLASS			class
 #define FORWARD_DECLARE_TYPE_ENUM_CLASS		enum class

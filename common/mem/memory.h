@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-	TODO: remove from arena.
+	TODO: remove from arena. Duplicated file.
 */
 
 #include "..\types.h"
