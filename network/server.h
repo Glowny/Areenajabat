@@ -5,6 +5,7 @@
 #include "NetworkServer.h"
 #include "Physics.h"
 #include <common/GamePackets.h>
+#include "common\types.h"
 
 
 struct PlayerInput
@@ -19,10 +20,13 @@ class Server
 {
 public:
 	Server();
-	~Server();
+	
 	void start(unsigned address, unsigned port, unsigned playerAmount);
+	void start(const String& iniPath);
+
 	bool* stop;
 
+	~Server();
 private:
 	// Networking game related.
 	uint32_t m_updateSize;  //update packet size wont change during gameloop. 
