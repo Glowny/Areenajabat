@@ -32,11 +32,19 @@ namespace arena
         bool isConnecting() const;
 
         void sendPackets(double timestamp);
+
+        void writePackets();
+
+        void readPackets();
+
+        void receivePackets();
     private:
 
         void reset();
 
         NetworkInterface m_networkInterface;
+
+        ENetPeer* m_peer;
 
         ClientState::Enum m_state;
 

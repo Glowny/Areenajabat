@@ -49,6 +49,9 @@ namespace arena
     
     static void connect(const void*)
     {
+        if (s_client->isConnected()) return;
+        if (s_client->isConnecting()) return;
+
         s_client->connect("localhost", uint16_t(13337), 0);
     }
 
@@ -67,6 +70,7 @@ namespace arena
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
         s_client->sendPackets(gameTime.m_total);
+        s_client->writePackets();
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();

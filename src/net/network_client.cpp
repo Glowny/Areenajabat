@@ -23,6 +23,7 @@ namespace arena
         disconnect();
         m_serverAddress.port = port;
         enet_address_set_host(&m_serverAddress, address);
+        m_peer = enet_host_connect(m_networkInterface.m_socket, &m_serverAddress, 2, 0);
 
         m_state = ClientState::SendingConnectionRequest;
         m_lastPacketSendTime = timeStamp - 1.0;
@@ -34,6 +35,7 @@ namespace arena
     {
         if (m_state != ClientState::Disconnected)
         {
+            enet_peer_disconnect(m_peer, 0);
             printf("Client side disconnect\n");
             // do something to notify server
             // sendDisconnectPacket()
@@ -77,7 +79,7 @@ namespace arena
 
             ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
 
-            m_networkInterface.sendPacket(m_serverAddress, packet);
+            m_networkInterface.sendPacket(m_peer, packet);
             m_lastPacketSendTime = timestamp;
         }
             break;
@@ -87,6 +89,19 @@ namespace arena
         default:
             break;
         }
+    }
+
+    void NetworkClient::writePackets()
+    {
+        m_networkInterface.writePackets();
+    }
+
+    void NetworkClient::readPackets()
+    {
+    }
+
+    void NetworkClient::receivePackets()
+    {
     }
 
     void NetworkClient::reset()

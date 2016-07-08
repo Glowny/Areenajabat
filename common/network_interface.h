@@ -15,7 +15,7 @@ namespace arena
 
     struct PacketEntry
     {
-        ENetAddress m_address;
+        ENetPeer* m_peer;
         Packet* m_packet;
     };
 
@@ -26,11 +26,17 @@ namespace arena
 
         ~NetworkInterface();
 
-        Packet* receivePacket(ENetAddress& from);
+        Packet* receivePacket(ENetPeer*& from);
 
-        void sendPacket(const ENetAddress& to, Packet* packet);
-    private:
+        void sendPacket(ENetPeer* to, Packet* packet);
+
+        // clear the send queue
+        void writePackets();
+
+        // TODO figure out how to to this properly
         ENetHost* m_socket;
+    private:
+        
 
         std::queue<PacketEntry> m_sendQueue;
         std::queue<PacketEntry> m_receiveQueue;

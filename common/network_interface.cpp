@@ -2,6 +2,7 @@
 #include <enet\enet.h>
 #include "debug.h"
 #include "packet.h"
+#include "write_stream.h"
 
 namespace arena
 {
@@ -46,7 +47,7 @@ namespace arena
         enet_host_destroy(m_socket);
     }
 
-    Packet* NetworkInterface::receivePacket(ENetAddress& from)
+    Packet* NetworkInterface::receivePacket(ENetPeer*& from)
     {
         if (m_receiveQueue.size() == 0)
         {
@@ -54,7 +55,7 @@ namespace arena
         }
 
         const PacketEntry& entry = m_receiveQueue.front();
-        from = entry.m_address;
+        from = entry.m_peer;
 
         ARENA_ASSERT(entry.m_packet != nullptr, "Packet is nullptr");
 
@@ -63,15 +64,54 @@ namespace arena
         return entry.m_packet;
     }
 
-    void NetworkInterface::sendPacket(const ENetAddress& to, Packet* packet)
+    void NetworkInterface::sendPacket(ENetPeer* to, Packet* packet)
     {
         ARENA_ASSERT(packet != nullptr, "Packet can not be nullptr");
 
         PacketEntry entry;
-        entry.m_address = to;
+        entry.m_peer = to;
         entry.m_packet = packet;
 
         m_sendQueue.push(entry);
+    }
+
+    void NetworkInterface::writePackets()
+    {
+        while (!m_sendQueue.empty())
+        {
+            PacketEntry& entry = m_sendQueue.front();
+
+            ARENA_ASSERT(entry.m_packet != nullptr, "Packet is nullptr");
+
+            m_sendQueue.pop();
+
+            uint8_t packetbuffer[512];
+            WriteStream stream(packetbuffer, sizeof(packetbuffer));
+
+            Packet* packet = entry.m_packet;
+
+            int packetType = packet->getType();
+
+            // TODO fixxx
+            stream.serializeInteger(packetType, 0, PacketTypes::Count);
+
+            if (!packet->serializeWrite(stream))
+            {
+                ARENA_ASSERT(0, "shit hit the fan");
+            }
+
+            stream.flush();
+
+            uint32_t packetLength = stream.getBytesProcessed();
+
+            ENetPacket* out = enet_packet_create(packetbuffer, packetLength, ENET_PACKET_FLAG_NO_ALLOCATE);
+            
+            enet_peer_send(entry.m_peer, 0, out);
+
+            enet_packet_destroy(out);
+
+            delete packet;
+        }
     }
 
 }
