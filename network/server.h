@@ -17,6 +17,7 @@ struct PlayerInput
 
 namespace arena
 {
+    struct ConnectionRequestPacket;
 
     class Server
     {
@@ -39,6 +40,10 @@ namespace arena
 
         uint32_t m_clientsConnected;
 
+
+        void receivePackets(double timestamp);
+
+        void processConnectionRequest(ConnectionRequestPacket* packet, ENetPeer* from, double timestamp);
 #if 0
         // Networking game related.
         uint32_t m_updateSize;  //update packet size wont change during gameloop. 

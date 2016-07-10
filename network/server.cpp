@@ -7,6 +7,8 @@
 #include <common/salt.h>
 #include <minini/minIni.h>
 #include <fstream>
+#include "common/packet.h"
+#include <stdio.h>
 
 namespace arena
 {
@@ -76,6 +78,40 @@ namespace arena
         m_network.broadcastPacket(data2, size2);
     }
 #endif
+    void Server::receivePackets(double timestamp)
+    {
+        while (true)
+        {
+            ENetPeer* peer;
+            Packet* packet = m_networkInterface->receivePacket(peer);
+
+            if (packet == nullptr)
+            {
+                break;
+            }
+
+            switch (packet->getType())
+            {
+            case PacketTypes::ConnectionRequest:
+                processConnectionRequest((ConnectionRequestPacket*)packet, peer, timestamp);
+                break;
+            default:
+                fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
+                break;
+            }
+
+            delete packet;
+        }
+    }
+
+    void Server::processConnectionRequest(ConnectionRequestPacket* packet, ENetPeer* from, double timestamp)
+    {
+        BX_UNUSED(packet, timestamp);
+        char buffer[256];
+        enet_address_get_host(&from->address, buffer, sizeof(buffer));
+        printf("GOt connection request packet from: %s\n", buffer);
+        printf("Client salt: %" PRIu64 "\n", packet->m_clientSalt);
+    }
 
     void Server::start(uint16_t port, unsigned playerAmount)
     {
@@ -93,10 +129,11 @@ namespace arena
             // this call will fill receive queue
             m_networkInterface->readPackets();
 
-            ENetPeer* peer;
-            Packet* packet = m_networkInterface->receivePacket(peer);
+            receivePackets(0.0);
+            
+            
 
-            if (packet == nullptr) continue;
+            
 #if 0
             while (m_network.getConnectedPlayerAmount() < m_playerAmount)
             {

@@ -114,12 +114,6 @@ namespace arena
             m_receiveQueue.push(entry);
 
             enet_packet_destroy(event.packet);
-
-#if _DEBUG
-            char buffer[256];
-            enet_address_get_host_ip(&event.peer->address, buffer, sizeof(buffer));
-            printf("Got packet of type %d from %s\n", packetType, buffer);
-#endif
         }
     }
 
