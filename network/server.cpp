@@ -95,7 +95,7 @@ void Server::start(uint16_t port, unsigned playerAmount)
         Packet* packet = m_networkInterface->receivePacket(peer);
 
         if (packet == nullptr) continue;
-
+#if 0
 		while (m_network.getConnectedPlayerAmount() < m_playerAmount)
 		{ 
 			m_network.checkEvent();
@@ -201,6 +201,7 @@ void Server::start(uint16_t port, unsigned playerAmount)
 		m_scoreBoard.PlayerScoreVector.clear();
 	
 		printf("Restart complete, waiting for players.. \n");
+#endif
 	}
 }
 

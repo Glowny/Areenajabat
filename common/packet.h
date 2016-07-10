@@ -31,6 +31,8 @@ namespace arena
 
     inline Packet::~Packet() {}
 
+    Packet* createPacket(int32_t type);
+
     struct ConnectionRequestPacket : public Packet
     {
         uint64_t m_clientSalt;

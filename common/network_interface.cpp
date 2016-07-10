@@ -104,11 +104,30 @@ namespace arena
                     ARENA_ASSERT(0, "invalid packet");
                 }
 
-                printf("%d got packet\n", packetType);
+                Packet* packet = createPacket(packetType);
+
+                ARENA_ASSERT(packet != nullptr, "Packet is nullptr");
+
+                if (!packet->serializeRead(stream))
+                {
+                    fprintf(stderr, "Failed to serialize packet of type %d", packetType);
+                    enet_packet_destroy(event.packet);
+                    continue;
+                }
+
+                PacketEntry entry;
+                entry.m_packet = packet;
+                entry.m_peer = event.peer;
+
+                m_receiveQueue.push(entry);
 
                 enet_packet_destroy(event.packet);
 
-                
+#if _DEBUG
+                char buffer[256];
+                enet_address_get_host_ip(&event.peer->address, buffer, sizeof(buffer));
+                printf("Got packet of type %d from %s\n", packetType, buffer);
+#endif
             }
             break;
         }
