@@ -70,7 +70,7 @@ namespace arena
             }
 #if _DEBUG
             char buffer[256];
-            enet_address_get_host(&m_serverAddress, buffer, sizeof(buffer));
+            enet_address_get_host_ip(&m_serverAddress, buffer, sizeof(buffer));
             printf("Client sending connection request to server: %s\n", buffer);
 #endif
             // TODO allocator

@@ -2,7 +2,6 @@
 #if defined(ARENA_SERVER)
 #include <queue>
 #include <vector>
-#include "NetworkServer.h"
 #include "Physics.h"
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
@@ -16,68 +15,72 @@ struct PlayerInput
 	// add more when needed;
 };
 
-
-class Server
+namespace arena
 {
-public:
-    static const uint32_t MaxClients = 32;
 
-    Server();
-	~Server();
-	void start(const String& iniPath);
-    void start(uint16_t port, unsigned playerAmount);
-private:
-    arena::NetworkInterface* m_networkInterface;
+    class Server
+    {
+    public:
+        static const uint32_t MaxClients = 32;
 
-    ENetPeer m_clientPeers[MaxClients];
+        Server();
+        ~Server();
+        void start(const String& iniPath);
+        void start(uint16_t port, unsigned playerAmount);
+    private:
+        arena::NetworkInterface* m_networkInterface;
 
-    bool m_clientConnected[MaxClients];
-    uint64_t m_clientSalt[MaxClients];
+        ENetPeer m_clientPeers[MaxClients];
 
-    uint64_t m_serverSalt;
+        bool m_clientConnected[MaxClients];
+        uint64_t m_clientSalt[MaxClients];
 
-    uint32_t m_clientsConnected;
+        uint64_t m_serverSalt;
 
-	// Networking game related.
-	uint32_t m_updateSize;  //update packet size wont change during gameloop. 
-	unsigned char* m_updateMemory; // memory set for update packet.
+        uint32_t m_clientsConnected;
 
-	void handleClientMessages();
-	void handleMessage(Message &message);
-	void sendPlatformPackets();
-	// Gameplay
-	// Pushes back bullets on m_bulletVector.
-	void createOutputBullets(std::vector<BulletInputData> &bulletInputVector, unsigned playerId);
+#if 0
+        // Networking game related.
+        uint32_t m_updateSize;  //update packet size wont change during gameloop. 
+        unsigned char* m_updateMemory; // memory set for update packet.
 
-	// Networking low level.
-	Network m_network;
+        void handleClientMessages();
+        void handleMessage(Message &message);
+        void sendPlatformPackets();
+        // Gameplay
+        // Pushes back bullets on m_bulletVector.
+        void createOutputBullets(std::vector<BulletInputData> &bulletInputVector, unsigned playerId);
 
-	// Game entities.
-	Physics m_physics;
+        // Networking low level.
+        Network m_network;
 
-	// Game Initiazation stuff
-	void createPlayerInputs(unsigned playerAmount);
-	void createGladiators(unsigned playerAmount);
-	void sendSetupPackets(unsigned playerAmount);
+        // Game entities.
+        Physics m_physics;
 
-	// Game loop stuff
-	void gladiatorMovement();
-	void sendBulletCreationEvents();
-	void sendBulletHitEvents();
-	void sendGameUpdateMessages();
-	//  TODO: Make different respawn system later
-	void respawnDeadPlayers();
+        // Game Initiazation stuff
+        void createPlayerInputs(unsigned playerAmount);
+        void createGladiators(unsigned playerAmount);
+        void sendSetupPackets(unsigned playerAmount);
 
-	ScoreBoard m_scoreBoard;
-	std::vector<GladiatorData> m_gladiatorVector;
-	std::vector<BulletOutputData> m_bulletOutputVector;
-	std::queue<Message>* m_messageQueue;
-	std::vector<PlayerInput> m_playerInputVector;
-	std::vector<Platform> m_platformVector;
+        // Game loop stuff
+        void gladiatorMovement();
+        void sendBulletCreationEvents();
+        void sendBulletHitEvents();
+        void sendGameUpdateMessages();
+        //  TODO: Make different respawn system later
+        void respawnDeadPlayers();
 
-	unsigned m_playerAmount;
-	void loadPlatformsFromFile(char* filename);
-	bool m_run;
-};
+        ScoreBoard m_scoreBoard;
+        std::vector<GladiatorData> m_gladiatorVector;
+        std::vector<BulletOutputData> m_bulletOutputVector;
+        std::queue<Message>* m_messageQueue;
+        std::vector<PlayerInput> m_playerInputVector;
+        std::vector<Platform> m_platformVector;
 
+        unsigned m_playerAmount;
+        void loadPlatformsFromFile(char* filename);
+        bool m_run;
+#endif
+    };
+}
 #endif

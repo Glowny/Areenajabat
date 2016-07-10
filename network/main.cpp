@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	client.start("172.31.16.42", 8888);
 
 #elif defined(SERVER_SANDBOX)
-		Server server;
+		arena::Server server;
 		server.start("..\\..\\..\\ini\\sandbox.ini");
 #else
 <<<<<<< HEAD
