@@ -71,6 +71,8 @@ namespace arena
 	{
         s_client->sendPackets(gameTime.m_total);
         s_client->writePackets();
+        s_client->readPackets();
+        s_client->receivePackets();
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();

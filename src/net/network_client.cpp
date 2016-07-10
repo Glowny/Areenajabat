@@ -25,18 +25,6 @@ namespace arena
         enet_address_set_host(&m_serverAddress, address);
         m_peer = enet_host_connect(m_networkInterface.m_socket, &m_serverAddress, 2, 0);
 
-        ENetEvent event;
-        if (enet_host_service(m_networkInterface.m_socket, &event, 5000) > 0 &&
-            event.type == ENET_EVENT_TYPE_CONNECT)
-        {
-            printf("Connection to %s,: %u succeeded", address, &port);
-        }
-        else
-        {
-            enet_peer_reset(m_peer);
-            printf("Connection to %s,: %u failed", address, &port);
-        }
-
         m_state = ClientState::SendingConnectionRequest;
         m_lastPacketSendTime = timeStamp - 1.0;
         m_lastPacketReceivedTime = timeStamp;
@@ -110,10 +98,12 @@ namespace arena
 
     void NetworkClient::readPackets()
     {
+        m_networkInterface.readPackets();
     }
 
     void NetworkClient::receivePackets()
     {
+        
     }
 
     void NetworkClient::reset()
