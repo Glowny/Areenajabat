@@ -237,6 +237,8 @@ namespace arena
 
             receivePackets(totalTime);
             
+            m_networkInterface->writePackets();
+            
             
 
             
