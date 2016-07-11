@@ -27,7 +27,7 @@ namespace arena
     namespace detail
     {
         template <typename Stream>
-        bool serializeFloat(Stream& stream, float& value)
+        inline bool serializeFloat(Stream& stream, float& value)
         {
             uint32_t intvalue;
             if (Stream::IsWriting)
@@ -45,7 +45,7 @@ namespace arena
         }
 
         template <typename Stream>
-        bool serializeUint64(Stream& stream, uint64_t& value)
+		inline bool serializeUint64(Stream& stream, uint64_t& value)
         {
             uint32_t hi, lo;
             if (Stream::IsWriting)
@@ -64,7 +64,7 @@ namespace arena
         }
 
         template <typename Stream>
-        bool serializeBytes(Stream& stream, uint8_t* data, uint32_t bytes)
+		inline bool serializeBytes(Stream& stream, uint8_t* data, uint32_t bytes)
         {
             return stream.serializeBytes(data, bytes);
         }
@@ -119,7 +119,7 @@ namespace arena
 #define serialize_float(stream, value)                                                                  \
     do                                                                                                  \
     {                                                                                                   \
-        if (!arena::detail::serializeFloat(stream, value))                                              \
+        if (!detail::serializeFloat(stream, value))                                              \
         {                                                                                               \
             return false;                                                                               \
         }                                                                                               \
@@ -133,7 +133,7 @@ namespace arena
 #define serialize_uint64(stream, value)                                                                 \
     do                                                                                                  \
     {                                                                                                   \
-        if (!arena::detail::serializeUint64(stream, value))                                             \
+        if (!detail::serializeUint64(stream, value))                                             \
         {                                                                                               \
             return false;                                                                               \
         }                                                                                               \
@@ -142,7 +142,7 @@ namespace arena
 #define serialize_bytes(stream, data, bytes)                                                            \
     do                                                                                                  \
     {                                                                                                   \
-        if (!arena::detail::serializeBytes(stream, data, bytes))                                        \
+        if (!detail::serializeBytes(stream, data, bytes))                                        \
         {                                                                                               \
             return false;                                                                               \
         }                                                                                               \

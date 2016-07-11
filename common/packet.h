@@ -17,7 +17,31 @@ namespace arena
             KeepAlive,
             Disconnect,
 
-            Count
+            Count,
+
+			// Game packets.
+			// Server --> Client.
+			GameSetup,
+			GameUpdate,
+			GamePlatform,
+			GameSpawnBullets,
+			GameBulletHit,
+			GameDamagePlayer,
+			GameKillPlayer,
+			GameRespawnPlayer,
+			GameUpdateScoreBoard,
+
+			// Client --> Server.
+			GameMovement,
+			GameShoot,
+
+			// Game debug
+			// Server --> Client.
+			GameBulletCurrentPosition,
+
+			// Client --> Server.
+			GameSetPlayerAmount,
+
         };
     };
 
@@ -67,4 +91,7 @@ namespace arena
             return serialize(stream);
         }
     };
+
+
+
 }
