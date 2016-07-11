@@ -1,4 +1,3 @@
-#pragma once
 #include <enet/enet.h>
 
 
@@ -20,10 +19,10 @@ int main(int argc, char *argv[])
 		
 	Client client;
 
-	client.start("localhost", 8888);
+	client.start("172.31.16.42", 8888);
 
 #elif defined(SERVER_SANDBOX)
-		Server server;
+		arena::Server server;
 		server.start("..\\..\\..\\ini\\sandbox.ini");
 #else
 <<<<<<< HEAD
@@ -43,4 +42,3 @@ int main(int argc, char *argv[])
 #endif
     arena::networkShutdown();
 }
-

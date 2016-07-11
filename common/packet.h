@@ -31,15 +31,16 @@ namespace arena
 
     inline Packet::~Packet() {}
 
+    Packet* createPacket(int32_t type);
+
     struct ConnectionRequestPacket : public Packet
     {
         uint64_t m_clientSalt;
-        uint8_t m_data[256];
 
         ConnectionRequestPacket()
             : m_clientSalt(0)
         {
-            memset(m_data, 0, sizeof(m_data));
+            
         }
 
         virtual ~ConnectionRequestPacket() {}
@@ -48,11 +49,6 @@ namespace arena
         bool serialize(Stream& stream)
         {
             serialize_uint64(stream, m_clientSalt);
-            if (Stream::IsReading && stream.getBitsRemaining() < 256 * 8)
-            {
-                return false;
-            }
-            serialize_bytes(stream, m_data, sizeof(m_data));
             return true;
         }
 

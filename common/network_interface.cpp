@@ -66,46 +66,54 @@ namespace arena
 
     void NetworkInterface::readPackets()
     {
-        // todo hax
-        const uint32_t MaxPacketSize = 512;
-        uint8_t packetBuffer[MaxPacketSize];
-        (void)packetBuffer;
-
-        while (true)
+        ENetEvent event;
+        while (enet_host_service(m_socket, &event, 0) > 0)
         {
-            ENetPeer* peer; (void)peer;
-            ENetEvent event;
-            while (enet_host_service(m_socket, &event, 0) > 0)
+#if _DEBUG
+            if (event.type == ENET_EVENT_TYPE_CONNECT) printf("ENET: connected\n");
+            else if (event.type == ENET_EVENT_TYPE_DISCONNECT) printf("ENET: diconnected\n");
+#endif
+            if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
+
+            uint32_t packetBytes = uint32_t(event.packet->dataLength);
+            ReadStream stream(event.packet->data, packetBytes);
+
+            /*
+            uint32_t prefixBytes = 1;
+            for (uint32_t i = 0; i < prefixBytes; ++i)
             {
-                if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
+                uint32_t dummy = 0;
+                stream.serializeBits(dummy, 8);
+            }*/
 
-                uint32_t packetBytes = uint32_t(event.packet->dataLength);
-                ReadStream stream(event.packet->data, packetBytes);
-                
-                uint32_t prefixBytes = 1;
-                for (uint32_t i = 0; i < prefixBytes; ++i)
-                {
-                    uint32_t dummy = 0;
-                    stream.serializeBits(dummy, 8);
-                }
+            uint32_t crc32 = 0;
 
-                uint32_t crc32 = 0;
+            stream.serializeBits(crc32, 32);
 
-                stream.serializeBits(crc32, 32);
-                
-                int32_t packetType = 0;
-                if (!stream.serializeInteger(packetType, 0, PacketTypes::Count - 1))
-                {
-                    ARENA_ASSERT(0, "invalid packet");
-                }
-
-                printf("%d got packet\n", packetType);
-
-                enet_packet_destroy(event.packet);
-
-                
+            int32_t packetType = 0;
+            if (!stream.serializeInteger(packetType, 0, PacketTypes::Count - 1))
+            {
+                ARENA_ASSERT(0, "invalid packet");
             }
-            break;
+
+            Packet* packet = createPacket(packetType);
+
+            ARENA_ASSERT(packet != nullptr, "Packet is nullptr");
+
+            if (!packet->serializeRead(stream))
+            {
+                fprintf(stderr, "Failed to serialize packet of type %d", packetType);
+                enet_packet_destroy(event.packet);
+                continue;
+            }
+
+            PacketEntry entry;
+            entry.m_packet = packet;
+            entry.m_peer = event.peer;
+
+            m_receiveQueue.push(entry);
+
+            enet_packet_destroy(event.packet);
         }
     }
 
@@ -133,12 +141,12 @@ namespace arena
             uint8_t packetbuffer[512];
             WriteStream stream(packetbuffer, sizeof(packetbuffer));
 
-            uint32_t prefixBytes = 1;
+            /*uint32_t prefixBytes = 1;
             for (uint32_t i = 0; i < prefixBytes; ++i)
             {
                 uint8_t zero = 0;
                 stream.serializeBits(zero, 8);
-            }
+            }*/
 
             uint32_t crc32 = 0;
 
@@ -148,7 +156,6 @@ namespace arena
 
             int packetType = packet->getType();
 
-            // TODO fixxx
             stream.serializeInteger(packetType, 0, PacketTypes::Count - 1);
 
             if (!packet->serializeWrite(stream))
@@ -164,7 +171,6 @@ namespace arena
             
             enet_peer_send(entry.m_peer, 0, out);
 
-            // todo debug
             enet_host_flush(m_socket);
 
             //enet_packet_destroy(out);
