@@ -10,9 +10,9 @@ namespace arena
         case PacketTypes::ConnectionRequest:
             return new ConnectionRequestPacket;
         case PacketTypes::ConnectionDenied:
-            return nullptr;
+            return new ConnectionDeniedPacket;
         case PacketTypes::ConnectionChallenge:
-            return nullptr;
+            return new ConnectionChallengePacket;
         case PacketTypes::ConnectionResponse:
             return nullptr;
         case PacketTypes::KeepAlive:
