@@ -3,6 +3,9 @@
 
 void Client::start(char* address, unsigned port)
 {
+	texture = new sf::Texture;
+	texture->loadFromFile("Map.png");
+	backgroundSprite.setTexture(*texture);
 	sendPlayerAmount = 2;
 	updatePlayerAmount = false;
 	font.loadFromFile("asd.ttf");
@@ -17,9 +20,9 @@ void Client::start(char* address, unsigned port)
 	m_network.setMessageQueue(&m_messageQueueIn);
 	m_network.connectServer(address, port);
 
-	m_timerClock.restart();
-	m_networkClock.restart();
-	m_physicsClock.restart();
+	m_timerClock = sf::Clock();
+	m_networkClock = sf::Clock();
+	m_physicsClock = sf::Clock();
 	m_scoreBoard.flagHolder = 666;
 	m_window = new sf::RenderWindow (sf::VideoMode(1100,1000), "Networktest");
 	m_view.reset(sf::FloatRect(0, 0, 1100, 1000));
@@ -107,6 +110,18 @@ void Client::handleMessage(unsigned char* data)
 			for (unsigned j = 0; j < m_points[i].points.size(); j++)
 			{
 				sf::Vertex vertex(sf::Vector2f(m_points[i].points[j].x, m_points[i].points[j].y));
+				switch (m_points[i].type)
+				{
+				case 0:
+					vertex.color = sf::Color::Blue;
+					break;
+				case 1:
+					vertex.color = sf::Color::Red;
+					break;
+				case 2:
+					vertex.color = sf::Color::Green;
+					break;
+				}
 				drawablePlatform.push_back(vertex);
 			}
 			m_vertexes.push_back(drawablePlatform);
@@ -131,6 +146,7 @@ void Client::handleMessage(unsigned char* data)
 		m_liveBulletVector.clear();
 		BulletHit hit;
 		hit.lifeTime = 4;
+		hit.currentTime = 0;
 		openHitPacket(data, hit.position);
 		m_bulletHitVector.push_back(hit);
 		break;
@@ -211,7 +227,7 @@ void Client::draw()
 	m_view.setCenter(playerPosition);
 	m_window->setView(m_view);
 	m_window->clear();
-
+	m_window->draw(backgroundSprite);
 	// draw platforms
 	for (unsigned i = 0; i < m_vertexes.size(); i++)
 	{
@@ -293,6 +309,14 @@ void Client::getInput()
 		if (event.key.code == sf::Keyboard::W)
 		{
 			m_movedir.y = -1.0f;
+		}
+		if (event.key.code == sf::Keyboard::S)
+		{
+			m_movedir.y = 1.0f;
+		}
+		if (event.key.code == sf::Keyboard::Space)
+		{
+			m_movedir.y = -2.0f;
 		}
 		if (event.key.code == sf::Keyboard::Tab)
 		{
@@ -400,6 +424,7 @@ void Client::updatePhysics()
 
 void Client::updateGameplay()
 {
+	// Clean up bullets.
 	for(unsigned i = 0; i < m_bulletHitVector.size(); i++)
 	{ 
 		float time = m_timerClock.getElapsedTime().asSeconds();

@@ -17,6 +17,7 @@ struct GladiatorData
 
 struct Platform
 {
+	uint32_t type;
 	std::vector<glm::vec2> points;
 };
 

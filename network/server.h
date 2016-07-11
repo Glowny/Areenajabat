@@ -13,6 +13,7 @@ struct PlayerInput
 {
 	glm::vec2 moveDir;
 	float jumpTimer;
+	float passLightPlatformTimer;
 	// add more when needed;
 };
 

@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 		
 	Client client;
 
-	client.start("172.31.16.42", 8888);
+	client.start("localhost", 8888);
 
 #elif defined(SERVER_SANDBOX)
 		Server server;

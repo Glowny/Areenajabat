@@ -34,7 +34,7 @@ unsigned char* createPlatformPacket(uint32_t &packetSize, std::vector<Platform> 
 		for (unsigned i = 0; i < platformVector.size(); i++)
 		{
 			// space for the points of a platform and amount of points.
-			packetSize += sizeof(float) * 2 * platformVector[i].points.size() + sizeof(uint32_t);
+			packetSize += sizeof(float) * 2 * platformVector[i].points.size() + sizeof(uint32_t) * 2;
 		}
 		preData = (unsigned char*)malloc(packetSize);
 	}
@@ -46,6 +46,7 @@ unsigned char* createPlatformPacket(uint32_t &packetSize, std::vector<Platform> 
 	for (unsigned platformIndex = 0; platformIndex < platformVector.size(); platformIndex++)
 	{
 		// Serialize amount of points in a platform
+		serializeSingle(dataPointer, platformVector[platformIndex].type);
 		serializeSingle(dataPointer, uint32_t(platformVector[platformIndex].points.size()));
 		for (unsigned pointIndex = 0; pointIndex < platformVector[platformIndex].points.size(); pointIndex++)
 		{ 
@@ -301,9 +302,11 @@ void openPlatformPacket(unsigned char* data, std::vector<Platform> &platformVect
 
 	for (unsigned platformIndex = 0; platformIndex < platformAmount; platformIndex++)
 	{
+		Platform platform;
+
+		deSerializeSingle(dataPointer, platform.type);
 		// Get amount of points in platform
 		deSerializeSingle(dataPointer, pointAmount);
-		Platform platform;
 		glm::vec2 point;
 
 		for (unsigned pointIndex = 0; pointIndex < pointAmount; pointIndex++)

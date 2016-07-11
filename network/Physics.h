@@ -7,6 +7,27 @@
 #include <typeinfo>
 // TODO: platform has extra stuff that could be removed.
 
+enum entityCategory
+{
+	c_Platform =				0x0001,
+	c_LightPlatform=			0x0002,
+	c_Ladder =					0x0004,
+	c_GladiatorNoCollide=		0x0008,
+	c_Gladiator=				0x0010,
+	c_Bullet=					0x0020,
+
+};
+enum entityIndexes
+{
+	ci_Platform = 0,
+	ci_LightPlatform = 1,
+	ci_Ladder = 2,
+	ci_GladiatorNoCollide = 3,
+	ci_Gladiator = 4,
+	ci_Bullet = 5,
+
+};
+
 enum bodyType
 {
 	B_Platform,
@@ -54,9 +75,12 @@ struct p_Bullet
 	p_userData* m_contactUserData;
 	b2Body* m_body;
 	p_userData* m_myUserData;
-	void startContact(bodyType contact, p_userData* contactUserData)
+	glm::vec2 hitPosition;
+	void startContact(p_userData* contactUserData)
 	{ 
-		m_contact = true; m_contactBody = contact, m_contactUserData = contactUserData; 
+		m_contact = true; m_contactUserData = contactUserData; 
+		hitPosition.x = m_body->GetPosition().x;
+		hitPosition.y = m_body->GetPosition().y;
 	};
 
 };
@@ -75,24 +99,28 @@ class ContactListener : public b2ContactListener
 			if (bulletUserData->m_bodyType == B_Bullet)
 			{
 				p_Bullet* bullet =  static_cast<p_Bullet*>(bulletUserData->m_object);
-				bullet->startContact(targetUserData->m_bodyType, targetUserData);
+				bullet->startContact( targetUserData);
 			}
 		}
 
 	}
 };
+
+
 class Physics
 {
 
 	// add movement functions
 	// add functions for getting position and velocity data
 public:
+	b2Filter b2Filters[6];
 	Physics();
 	~Physics();
 
 	void reset();
 	void update();
-	void createPlatform(std::vector<glm::vec2> platform);
+	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
+	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	unsigned addGladiator(glm::vec2 position);
 	void AppleForceToGladiator(glm::vec2 direction, unsigned id);
 	void ApplyImpulseToGladiator(glm::vec2 direction, unsigned id);
