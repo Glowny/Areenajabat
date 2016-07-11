@@ -12,6 +12,8 @@
 
 namespace arena
 {
+    static const double ChallengeTimeOut = 10.0;
+    static const double ChallengeSendRate = 0.1;
     Server::Server() :
         m_clientsConnected(0),
         m_networkInterface(nullptr)
@@ -108,9 +110,102 @@ namespace arena
     {
         BX_UNUSED(packet, timestamp);
         char buffer[256];
-        enet_address_get_host(&from->address, buffer, sizeof(buffer));
+        enet_address_get_host_ip(&from->address, buffer, sizeof(buffer));
         printf("GOt connection request packet from: %s\n", buffer);
-        printf("Client salt: %" PRIu64 "\n", packet->m_clientSalt);
+
+        if (m_clientsConnected == MaxClients)
+        {
+            printf("Server is full\n");
+            // TODO allocator
+            ConnectionDeniedPacket* denied = (ConnectionDeniedPacket*)createPacket(PacketTypes::ConnectionDenied);
+            denied->m_clientSalt = packet->m_clientSalt;
+            denied->m_reason = ConnectionDeniedPacket::ConnectionDeniedReason::ServerIsFull;
+            m_networkInterface->sendPacket(from, denied);
+        }
+
+        else if (isConnected(packet->m_clientSalt, from))
+        {
+            printf("Client (%" PRIu64 ") is already connected!\n", packet->m_clientSalt);
+
+            ConnectionDeniedPacket* denied = (ConnectionDeniedPacket*)createPacket(PacketTypes::ConnectionDenied);
+            denied->m_clientSalt = packet->m_clientSalt;
+            denied->m_reason = ConnectionDeniedPacket::ConnectionDeniedReason::AlreadyConnected;
+
+            m_networkInterface->sendPacket(from, denied);
+        }
+
+        ServerChallengeEntry* entry = findOrInsertChallenge(from, packet->m_clientSalt, timestamp);
+        
+        if (entry == nullptr)
+        {
+            return;
+        }
+
+        ARENA_ASSERT(entry->m_peer->address.host == from->address.host, "Host mismatch");
+        ARENA_ASSERT(entry->m_clientSalt == packet->m_clientSalt, "Client salt mismatch");
+
+        if (entry->m_lastSendTime + ChallengeSendRate < timestamp)
+        {
+            printf("Sending connection challenge to %s (challenge salt = %" PRIx64 ")\n", buffer, entry->m_challengeSalt);
+            ConnectionChallengePacket* packet = (ConnectionChallengePacket*)createPacket(PacketTypes::ConnectionChallenge);
+            packet->m_clientSalt = entry->m_clientSalt;
+            packet->m_challengeSalt = entry->m_challengeSalt;
+            
+            m_networkInterface->sendPacket(from, packet);
+
+            entry->m_lastSendTime = timestamp;
+        }
+    }
+
+    ServerChallengeEntry* Server::findOrInsertChallenge(ENetPeer* from, uint64_t clientSalt, double timestamp)
+    {
+        const uint64_t key = calculateChallengeHash(from, clientSalt, m_serverSalt);
+
+        uint32_t index = key % ChallengeHashSize;
+
+        printf("Client salt    = %" PRIx64 "\n", clientSalt);
+        printf("Challenge hash = %" PRIx64 "\n", key);
+        printf("Challenge idx  = %" PRIu32 "\n", index);
+
+        if (!m_challengeHash.m_exists[index] || (m_challengeHash.m_exists[index] && m_challengeHash.m_entries[index].m_createdTime + ChallengeTimeOut < timestamp))
+        {
+            printf("found empty entry in challenge hash (idx = %" PRIu32 ")\n", index);
+            ServerChallengeEntry* entry = &m_challengeHash.m_entries[index];
+            entry->m_clientSalt = clientSalt;
+            entry->m_challengeSalt = genSalt();
+            // force send
+            entry->m_createdTime = timestamp;
+            entry->m_lastSendTime = timestamp - (2.0 * ChallengeSendRate); // hmm
+            entry->m_peer = from;
+
+            m_challengeHash.m_exists[index] = 1;
+
+            return entry;
+        }
+
+        if (m_challengeHash.m_exists[index]
+            && m_challengeHash.m_entries[index].m_clientSalt == clientSalt
+            && m_challengeHash.m_entries[index].m_peer->address.host == from->address.host)
+        {
+            printf("found existing challenge hash (idx = %" PRIu32 ")\n", index);
+            return &m_challengeHash.m_entries[index];
+        }
+        return nullptr;
+    }
+
+    bool Server::isConnected(uint64_t clientSalt, ENetPeer* peer)
+    {
+        ARENA_ASSERT(peer != nullptr, "Peer can not be nullptr");
+        ARENA_ASSERT(clientSalt != 0, "Invalid client salt");
+
+        for (uint32_t i = 0; i < MaxClients; ++i)
+        {
+            if (!m_clientConnected[i]) continue;
+
+            if (m_clientSalt[i] == clientSalt && m_clientPeers[i].address.host == peer->address.host)
+                return true;
+        }
+        return false;
     }
 
     void Server::start(uint16_t port, unsigned playerAmount)
@@ -124,12 +219,25 @@ namespace arena
 
         // wait for players..
 
+        int64_t lastTime = bx::getHPCounter();
+        double totalTime = 0.0;
         while (true)
         {
+            // More time stuff
+            int64_t currentTime = bx::getHPCounter();
+            const int64_t time = currentTime - lastTime;
+            lastTime = currentTime;
+            const double frequency = (double)bx::getHPFrequency();
+            // seconds
+            float lastDeltaTime = float(time * (1.0f / frequency));
+            totalTime += lastDeltaTime;
+
             // this call will fill receive queue
             m_networkInterface->readPackets();
 
-            receivePackets(0.0);
+            receivePackets(totalTime);
+            
+            m_networkInterface->writePackets();
             
             
 

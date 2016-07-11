@@ -37,7 +37,7 @@ namespace arena
 
         void readPackets();
 
-        void receivePackets();
+        void receivePackets(double timestamp);
     private:
 
         void reset();
@@ -57,5 +57,8 @@ namespace arena
 
         // client salt for challenge auth
         uint64_t m_clientSalt;
+
+        // got from server after auth
+        uint64_t m_challengeSalt;
     };
 }

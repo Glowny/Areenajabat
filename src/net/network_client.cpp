@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <common/packet.h>
 #include <common/salt.h>
-
+#include <inttypes.h>
 namespace arena
 {
 
@@ -101,14 +101,51 @@ namespace arena
         m_networkInterface.readPackets();
     }
 
-    void NetworkClient::receivePackets()
+    void NetworkClient::receivePackets(double timestamp)
     {
-        
+        while (true)
+        {
+            ENetPeer* peer;
+            Packet* packet = m_networkInterface.receivePacket(peer);
+
+            if (packet == nullptr)
+            {
+                break;
+            }
+
+            switch (packet->getType())
+            {
+            case PacketTypes::ConnectionChallenge:
+            {
+                ConnectionChallengePacket* cast = (ConnectionChallengePacket*)packet;
+                if (m_state != ClientState::SendingConnectionRequest) return;
+                if (cast->m_clientSalt != m_clientSalt) return;
+                if (peer->address.host != m_serverAddress.host) return;
+
+                char buf[256];
+                enet_address_get_host_ip(&peer->address, buf, sizeof(buf));
+                printf("received connection challenge from server: %s (salt (%" PRIx64 ")\n", buf, cast->m_challengeSalt);
+
+                m_challengeSalt = cast->m_challengeSalt;
+
+                m_lastPacketReceivedTime = timestamp;
+
+                m_state = ClientState::SendingAuthResponse;
+            }
+                break;
+            default:
+                fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
+                break;
+            }
+
+            delete packet;
+        }
     }
 
     void NetworkClient::reset()
     {
         m_state = ClientState::Disconnected;
+        m_challengeSalt = 0;
         m_lastPacketReceivedTime = -9999.0;
         m_lastPacketSendTime = -9999.0;
     }

@@ -92,6 +92,88 @@ namespace arena
         }
     };
 
+    struct ConnectionDeniedPacket : public Packet
+    {
+        struct ConnectionDeniedReason
+        {
+            enum Enum
+            {
+                ServerIsFull,
+                AlreadyConnected,
 
+                Count
+            };
+        };
 
+        uint64_t m_clientSalt;
+        ConnectionDeniedReason::Enum m_reason;
+
+        ConnectionDeniedPacket()
+            : m_clientSalt(0)
+        {
+
+        }
+
+        virtual ~ConnectionDeniedPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::ConnectionDenied;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct ConnectionChallengePacket : public Packet
+    {
+        uint64_t m_clientSalt;
+        uint64_t m_challengeSalt;
+
+        ConnectionChallengePacket() :
+            m_clientSalt(0),
+            m_challengeSalt(0)
+        {
+
+        }
+
+        virtual ~ConnectionChallengePacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::ConnectionChallenge;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
 }
