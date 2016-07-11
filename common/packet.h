@@ -67,4 +67,51 @@ namespace arena
             return serialize(stream);
         }
     };
+
+    struct ConnectionDeniedPacket : public Packet
+    {
+        struct ConnectionDeniedReason
+        {
+            enum Enum
+            {
+                ServerIsFull,
+                AlreadyConnected,
+
+                Count
+            };
+        };
+
+        uint64_t m_clientSalt;
+        ConnectionDeniedReason::Enum m_reason;
+
+        ConnectionDeniedPacket()
+            : m_clientSalt(0)
+        {
+
+        }
+
+        virtual ~ConnectionDeniedPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::ConnectionDenied;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
 }
