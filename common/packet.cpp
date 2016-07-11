@@ -14,9 +14,9 @@ namespace arena
         case PacketTypes::ConnectionChallenge:
             return new ConnectionChallengePacket;
         case PacketTypes::ConnectionResponse:
-            return nullptr;
+            return new ConnectionResponsePacket;
         case PacketTypes::KeepAlive:
-            return nullptr;
+            return new ConnectionKeepAlivePacket;
         case PacketTypes::Disconnect:
             return nullptr;
         default:

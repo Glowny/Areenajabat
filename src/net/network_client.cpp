@@ -8,6 +8,7 @@ namespace arena
 {
 
     const double ConnectionRequestSendRate = 0.1;
+    const double ConnectionResponseSendRate = 0.1;
 
     NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
@@ -74,7 +75,7 @@ namespace arena
             printf("Client sending connection request to server: %s\n", buffer);
 #endif
             // TODO allocator
-            ConnectionRequestPacket* packet = new ConnectionRequestPacket();
+            ConnectionRequestPacket* packet = (ConnectionRequestPacket*)createPacket(PacketTypes::ConnectionRequest);
             packet->m_clientSalt = m_clientSalt;
 
             ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
@@ -85,6 +86,20 @@ namespace arena
             break;
 
         case ClientState::SendingAuthResponse:
+        {
+            if (m_lastPacketSendTime + ConnectionResponseSendRate > timestamp) return;
+
+            printf("Sending auth response to server\n");
+
+            ConnectionResponsePacket* packet = (ConnectionResponsePacket*)createPacket(PacketTypes::ConnectionResponse);
+            packet->m_clientSalt = m_clientSalt;
+            packet->m_challengeSalt = m_challengeSalt;
+
+            ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
+
+            m_networkInterface.sendPacket(m_peer, packet);
+            m_lastPacketSendTime = timestamp;
+        }
             break;
         default:
             break;
@@ -115,6 +130,25 @@ namespace arena
 
             switch (packet->getType())
             {
+            case PacketTypes::KeepAlive:
+            {
+                // conneciton succeeded
+                ConnectionKeepAlivePacket* cast = (ConnectionKeepAlivePacket*)packet;
+
+                if (cast->m_clientSalt != m_clientSalt) break;
+                if (cast->m_challengeSalt != m_challengeSalt) break;
+                if (peer->address.host != m_serverAddress.host) break;
+
+                // we are connected now
+                if (m_state == ClientState::SendingAuthResponse)
+                {
+                    char buf[256];
+                    enet_address_get_host_ip(&m_serverAddress, buf, sizeof(buf));
+                    printf("client is now connected to server %s\n", buf);
+                    m_state = ClientState::Connected;
+                }
+            }
+            break;
             case PacketTypes::ConnectionChallenge:
             {
                 ConnectionChallengePacket* cast = (ConnectionChallengePacket*)packet;
@@ -134,7 +168,7 @@ namespace arena
             }
                 break;
             default:
-                fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
+                fprintf(stderr, "Got invalid packet of type %d (not implemented?)\n", packet->getType());
                 break;
             }
 

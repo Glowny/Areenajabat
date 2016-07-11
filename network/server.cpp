@@ -14,6 +14,8 @@ namespace arena
 {
     static const double ChallengeTimeOut = 10.0;
     static const double ChallengeSendRate = 0.1;
+    static const double ConnectionConfirmSendRate = 0.1;
+
     Server::Server() :
         m_clientsConnected(0),
         m_networkInterface(nullptr)
@@ -21,6 +23,7 @@ namespace arena
         memset(m_clientPeers, 0, sizeof(m_clientPeers));
         memset(m_clientConnected, 0, sizeof(m_clientConnected));
         memset(m_clientSalt, 0, sizeof(m_clientConnected));
+        memset(m_challengeSalt, 0, sizeof(m_challengeSalt));
 
         m_serverSalt = arena::genSalt();
     }
@@ -97,6 +100,57 @@ namespace arena
             case PacketTypes::ConnectionRequest:
                 processConnectionRequest((ConnectionRequestPacket*)packet, peer, timestamp);
                 break;
+            case PacketTypes::ConnectionResponse:
+            {
+                ConnectionResponsePacket* cast = (ConnectionResponsePacket*)packet;
+
+                uint32_t idx = findExistingClientIndex(peer, cast->m_clientSalt, cast->m_challengeSalt);
+
+                // if it exists
+                if (idx != UINT32_MAX)
+                {
+                    ARENA_ASSERT(idx < MaxClients, "Invalid client id (%" PRIu32 ") max (%" PRIu32 ")", idx, MaxClients);
+
+                    if (m_clientData[idx].m_lastPacketSendTime + ConnectionConfirmSendRate < timestamp)
+                    {
+                        ConnectionKeepAlivePacket* ping = (ConnectionKeepAlivePacket*)createPacket(PacketTypes::KeepAlive);
+                        ping->m_clientSalt = cast->m_clientSalt;
+                        ping->m_challengeSalt = cast->m_challengeSalt;
+                        sendPacketToConnectedClient(idx, ping, timestamp);
+                    }
+                }
+                else
+                {
+                    char buf[256];
+                    enet_address_get_host_ip(&peer->address, buf, sizeof(buf));
+                    printf("processing connection response from client %s (salt %" PRIx64 ") (challenge %" PRIx64 ")\n", buf, cast->m_clientSalt, cast->m_challengeSalt);
+
+                    ServerChallengeEntry* entry = findChallenge(peer, cast->m_clientSalt);
+                    
+                    if (entry == nullptr) break;
+
+                    ARENA_ASSERT(entry->m_clientSalt == cast->m_clientSalt, "Client salt mismatch");
+
+                    if (entry->m_challengeSalt != cast->m_challengeSalt)
+                    {
+                        printf("conneciton challenge mismatch expected %" PRIx64 ", got %" PRIx64 "\n", entry->m_challengeSalt, cast->m_challengeSalt);
+                        break;
+                    }
+
+                    if (m_clientsConnected == MaxClients)
+                    {
+                        // TODO send denied
+                        ARENA_ASSERT(0, "serverf is full");
+                    }
+
+                    const uint32_t clientIndex = findFreeClientIndex();
+
+                    ARENA_ASSERT(clientIndex != UINT32_MAX, "Invalid client index");
+
+                    connectClient(clientIndex, peer, cast->m_clientSalt, cast->m_challengeSalt, timestamp);
+                }
+            }
+                break;
             default:
                 fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
                 break;
@@ -104,6 +158,73 @@ namespace arena
 
             delete packet;
         }
+    }
+
+    void Server::connectClient(uint32_t clientIndex, ENetPeer* peer, uint64_t clientSalt, uint64_t challengeSalt, double connectTime)
+    {
+        ARENA_ASSERT(m_clientsConnected < MaxClients - 1, "Server is full");
+        ARENA_ASSERT(!m_clientConnected[clientIndex], "Client state is already set to connected");
+
+        ++m_clientsConnected;
+
+        m_clientConnected[clientIndex] = true;
+
+        m_clientData[clientIndex].m_peer = peer;
+        m_clientData[clientIndex].m_challengeSalt = challengeSalt;
+        m_clientData[clientIndex].m_clientSalt = clientSalt;
+        m_clientData[clientIndex].m_connectTime = connectTime;
+        m_clientData[clientIndex].m_lastPacketReceiveTime = connectTime;
+        m_clientData[clientIndex].m_lastPacketSendTime = connectTime;
+        
+        m_challengeSalt[clientIndex] = challengeSalt;
+        m_clientPeers[clientIndex] = peer;
+        m_clientSalt[clientIndex] = clientSalt;
+
+        char buffer[256];
+        enet_address_get_host_ip(&peer->address, buffer, sizeof(buffer));
+        printf("client %d connected (client address = %s, client salt = %" PRIx64 ", challenge salt = %" PRIx64 ")\n", clientIndex, buffer, clientSalt, challengeSalt);
+
+        ConnectionKeepAlivePacket* ping = (ConnectionKeepAlivePacket*)createPacket(PacketTypes::KeepAlive);
+        ping->m_clientSalt = m_clientSalt[clientIndex];
+        ping->m_challengeSalt = m_challengeSalt[clientIndex];
+
+        sendPacketToConnectedClient(clientIndex, ping, connectTime);
+    }
+
+    void Server::sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp)
+    {
+        ARENA_ASSERT(clientIndex < MaxClients, "Invalid client index");
+        ARENA_ASSERT(m_clientConnected[clientIndex], "Client isn't connected");
+        ARENA_ASSERT(packet != nullptr, "Packet can not be NULL");
+        ARENA_ASSERT(m_clientPeers[clientIndex] != nullptr, "Peer can not be NULL");
+        m_networkInterface->sendPacket(m_clientPeers[clientIndex], packet);
+        m_clientData[clientIndex].m_lastPacketSendTime = timestamp;
+    }
+
+    uint32_t Server::findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const
+    {
+        enet_uint32 address = host->address.host;
+        for (uint32_t i = 0; i < MaxClients; ++i)
+        {
+            if (m_clientConnected[i] &&
+                m_clientPeers[i]->address.host == address
+                && m_clientSalt[i] == clientSalt
+                && m_challengeSalt[i] == challengeSalt)
+            {
+                return i;
+            }
+        }
+        return UINT32_MAX;
+    }
+
+    uint32_t Server::findFreeClientIndex()
+    {
+        for (uint32_t i = 0; i < MaxClients; ++i)
+        {
+            if (!m_clientConnected[i]) return i;
+        }
+
+        return UINT32_MAX;
     }
 
     void Server::processConnectionRequest(ConnectionRequestPacket* packet, ENetPeer* from, double timestamp)
@@ -193,6 +314,27 @@ namespace arena
         return nullptr;
     }
 
+    ServerChallengeEntry* Server::findChallenge(ENetPeer* from, uint64_t clientSalt)
+    {
+        const uint64_t key = calculateChallengeHash(from, clientSalt, m_serverSalt);
+
+        uint32_t index = key % ChallengeHashSize;
+
+        printf("Client salt    = %" PRIx64 "\n", clientSalt);
+        printf("Challenge hash = %" PRIx64 "\n", key);
+        printf("Challenge idx  = %" PRIu32 "\n", index);
+
+        if (m_challengeHash.m_exists[index]
+            && m_challengeHash.m_entries[index].m_clientSalt == clientSalt
+            && m_challengeHash.m_entries[index].m_peer->address.host == from->address.host)
+        {
+            printf("found existing challenge hash (idx = %" PRIu32 ")\n", index);
+            return &m_challengeHash.m_entries[index];
+        }
+        return nullptr;
+    }
+
+
     bool Server::isConnected(uint64_t clientSalt, ENetPeer* peer)
     {
         ARENA_ASSERT(peer != nullptr, "Peer can not be nullptr");
@@ -202,7 +344,7 @@ namespace arena
         {
             if (!m_clientConnected[i]) continue;
 
-            if (m_clientSalt[i] == clientSalt && m_clientPeers[i].address.host == peer->address.host)
+            if (m_clientSalt[i] == clientSalt && m_clientPeers[i]->address.host == peer->address.host)
                 return true;
         }
         return false;
@@ -232,12 +374,14 @@ namespace arena
             float lastDeltaTime = float(time * (1.0f / frequency));
             totalTime += lastDeltaTime;
 
+            m_networkInterface->writePackets();
+            
             // this call will fill receive queue
             m_networkInterface->readPackets();
 
             receivePackets(totalTime);
             
-            m_networkInterface->writePackets();
+            
             
             
 
