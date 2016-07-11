@@ -1,4 +1,4 @@
-#if defined(ARENA_SERVER)
+
 #include "Physics.h"
 
 
@@ -206,13 +206,13 @@ void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool colli
 	m_gladiatorVector[gladiatorID]->m_body->GetFixtureList()->SetFilterData(filter);
 }
 
-void Physics::AppleForceToGladiator(glm::vec2 direction, unsigned id)
+void Physics::applyForceToGladiator(glm::vec2 direction, unsigned id)
 {
 	m_gladiatorVector[id]->m_body->ApplyForce(b2Vec2(direction.x, direction.y),
 		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
 }
 
-void Physics::ApplyImpulseToGladiator(glm::vec2 direction, unsigned id)
+void Physics::applyImpulseToGladiator(glm::vec2 direction, unsigned id)
 {
 	m_gladiatorVector[id]->m_body->ApplyLinearImpulse(b2Vec2(direction.x, direction.y ),
 		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
@@ -305,4 +305,3 @@ void Physics::reset()
 	m_gladiatorVector.clear();
 	m_bulletVector.clear();
 }
-#endif

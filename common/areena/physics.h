@@ -1,5 +1,5 @@
 #pragma once
-#if defined(ARENA_SERVER)
+
 #include <Box2D\Box2D.h>
 #include <stdarg.h>
 #include <vector>
@@ -122,8 +122,8 @@ public:
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	unsigned addGladiator(glm::vec2 position);
-	void AppleForceToGladiator(glm::vec2 direction, unsigned id);
-	void ApplyImpulseToGladiator(glm::vec2 direction, unsigned id);
+	void applyForceToGladiator(glm::vec2 direction, unsigned id);
+	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
@@ -139,4 +139,3 @@ private:
 	std::vector<p_Gladiator*> m_gladiatorVector;
 	std::vector<p_Platform*> m_platformVector;
 };
-#endif

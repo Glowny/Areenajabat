@@ -439,6 +439,7 @@ namespace arena
 
 	struct GameInputPacket : public Packet
 	{
+		unsigned m_id;
 		uint64_t m_clientSalt;
 		uint8_t x;
 		uint8_t y;
@@ -462,7 +463,7 @@ namespace arena
 
 		virtual int32_t getType() const override
 		{
-			return PacketTypes::GameMovement;
+			return PacketTypes::GameInput;
 		}
 
 		bool serializeWrite(WriteStream& stream) override
@@ -478,6 +479,7 @@ namespace arena
 
 	struct GameShootPacket : public Packet
 	{
+		unsigned m_id;
 		uint64_t m_clientSalt;
 		float m_angle; // Less accurate data could be send (data send is between (0-360)).
 
@@ -518,6 +520,7 @@ namespace arena
 		uint64_t m_clientSalt;
 		BulletData m_bulletArray[BULLET_MAX_AMOUNT];
 		uint8_t m_bulletAmount;
+		
 
 		GameBulletCurrentPositionPacket()
 			: m_clientSalt(0)

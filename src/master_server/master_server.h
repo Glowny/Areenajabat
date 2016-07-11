@@ -6,14 +6,15 @@
 #include "common\types.h"
 
 #include <vector>
+#include "../slave_server/slave_server.h"
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SlaveServer)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, NetworkClient)
 
 /*
-	Level 1: master - accept connections, send usr data etc,
-					  handles client redirections to servers
-	Lavel 2: servers - gameplay stuff happens here
+Level 1: master - accept connections, send usr data etc,
+handles client redirections to servers
+Lavel 2: servers - gameplay stuff happens here
 */
 
 
@@ -24,13 +25,13 @@ namespace arena
 	{
 	public:
 		MasterServer(const String& configurationPath);
-		
+
 		void start();
 
 		~MasterServer();
 	private:
 		void addPacketToQueue(unsigned slaveId, Packet* packet);
-		Packet* packet GetPacketFromQueue(unsigned slaveId);
+		Packet* getPacketFromQueue(unsigned slaveId);
 		std::vector<SlaveServer*>	m_slaves;
 		std::vector<NetworkClient*> m_clients;
 
