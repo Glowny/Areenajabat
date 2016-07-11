@@ -15,9 +15,9 @@ namespace arena
         case PacketTypes::ConnectionChallenge:
             return new ConnectionChallengePacket;
         case PacketTypes::ConnectionResponse:
-            return nullptr;
+            return new ConnectionResponsePacket;
         case PacketTypes::KeepAlive:
-            return nullptr;
+            return new ConnectionKeepAlivePacket;
         case PacketTypes::Disconnect:
             return nullptr;
 		case PacketTypes::GameSetup:
@@ -53,5 +53,10 @@ namespace arena
             fprintf(stderr, "Invalid packet type %d", type);
             return nullptr;
         }
+    }
+
+    void destroyPacket(Packet* packet)
+    {
+        delete packet;
     }
 }

@@ -58,6 +58,8 @@ namespace arena
 
     Packet* createPacket(int32_t type);
 
+    void destroyPacket(Packet* packet);
+
     struct ConnectionRequestPacket : public Packet
     {
         uint64_t m_clientSalt;
@@ -165,6 +167,82 @@ namespace arena
         virtual int32_t getType() const override
         {
             return PacketTypes::ConnectionChallenge;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct ConnectionResponsePacket : public Packet
+    {
+        uint64_t m_clientSalt; // the sender id
+        uint64_t m_challengeSalt; // got from server and sent back to server to confirm that auth happened
+
+        ConnectionResponsePacket() :
+            m_clientSalt(0),
+            m_challengeSalt(0)
+        {
+
+        }
+
+        virtual ~ConnectionResponsePacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::ConnectionResponse;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct ConnectionKeepAlivePacket : public Packet
+    {
+        uint64_t m_clientSalt; // the sender id
+        uint64_t m_challengeSalt; // got from server and sent back to server to confirm that auth happened
+
+        ConnectionKeepAlivePacket() :
+            m_clientSalt(0),
+            m_challengeSalt(0)
+        {
+
+        }
+
+        virtual ~ConnectionKeepAlivePacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::KeepAlive;
         }
 
         bool serializeWrite(WriteStream& stream) override

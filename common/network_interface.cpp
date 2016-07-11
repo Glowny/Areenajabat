@@ -175,7 +175,7 @@ namespace arena
 
             //enet_packet_destroy(out);
 
-            delete packet;
+            destroyPacket(packet);
         }
     }
 

@@ -6,7 +6,7 @@
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
-
+#include <common/packet.h>
 
 struct PlayerInput
 {
@@ -17,8 +17,6 @@ struct PlayerInput
 
 namespace arena
 {
-    struct ConnectionRequestPacket;
-
     // do not change
     static const int ChallengeHashSize = 1024;
 
@@ -42,6 +40,21 @@ namespace arena
         }
     };
 
+    struct ClientData
+    {
+        ENetPeer* m_peer;
+        uint64_t m_clientSalt;
+        uint64_t m_challengeSalt;
+        double m_connectTime;
+        double m_lastPacketSendTime;
+        double m_lastPacketReceiveTime;
+
+        ClientData()
+        {
+            memset(this, 0, sizeof(ClientData));
+        }
+    };
+
     class Server
     {
     public:
@@ -52,27 +65,41 @@ namespace arena
         void start(const String& iniPath);
         void start(uint16_t port, unsigned playerAmount);
     private:
+        // returns UINT32_MAX if not found
+        uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
 
         void receivePackets(double timestamp);
 
+        // process funcs
         void processConnectionRequest(ConnectionRequestPacket* packet, ENetPeer* from, double timestamp);
+
+        void processConnectionResponse(ConnectionResponsePacket* packet, ENetPeer* from, double timestamp);
 
         bool isConnected(uint64_t clientSalt, ENetPeer* peer);
 
         ServerChallengeEntry* findOrInsertChallenge(ENetPeer* from, uint64_t clientSalt, double timestamp);
 
+        ServerChallengeEntry* findChallenge(ENetPeer* from, uint64_t clientSalt);
+
+        // return UINT32_MAX if no free indices
+        uint32_t findFreeClientIndex();
+
+        void connectClient(uint32_t clientIndex, ENetPeer* peer, uint64_t clientSalt, uint64_t challengeSalt, double connectTime);
+
+        void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
+    private:
         NetworkInterface* m_networkInterface;
 
-        ENetPeer m_clientPeers[MaxClients];
+        uint64_t m_serverSalt; // server salt
 
-        bool m_clientConnected[MaxClients];
-        uint64_t m_clientSalt[MaxClients];
+        ENetPeer* m_clientPeers[MaxClients]; // peers per client
+        bool m_clientConnected[MaxClients]; // is client connected
+        uint64_t m_clientSalt[MaxClients]; // client salts per client
+        uint64_t m_challengeSalt[MaxClients]; // challenge salts per client
+        ClientData m_clientData[MaxClients]; // client data per client
 
-        uint64_t m_serverSalt;
-
-        uint32_t m_clientsConnected;
-
-        ServerChallengeHash m_challengeHash;
+        uint32_t m_clientsConnected; // number of clients connected
+        ServerChallengeHash m_challengeHash; // challenge hashes
 #if 0
         // Networking game related.
         uint32_t m_updateSize;  //update packet size wont change during gameloop. 

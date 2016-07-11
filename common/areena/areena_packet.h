@@ -119,7 +119,7 @@ namespace arena
 			serialize_uint64(stream, m_clientSalt);
 
 			serialize_int(stream, m_playerAmount, 0, CHARACTER_MAXAMOUNT);
-			for (unsigned i = 0; i < m_playerAmount; ++i)
+			for (int32_t i = 0; i < m_playerAmount; ++i)
 			{
 				serialize_float(stream, m_characterArray[i].m_position.x);
 				serialize_float(stream, m_characterArray[i].m_position.y);
