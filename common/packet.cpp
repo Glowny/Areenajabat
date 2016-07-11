@@ -19,7 +19,7 @@ namespace arena
         case PacketTypes::KeepAlive:
             return new ConnectionKeepAlivePacket;
         case PacketTypes::Disconnect:
-            return nullptr;
+            return new ConnectionDisconnectPacket;
 		case PacketTypes::GameSetup:
 			return new GameSetupPacket;
 		case PacketTypes::GameUpdate:

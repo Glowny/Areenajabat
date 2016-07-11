@@ -146,6 +146,24 @@ namespace arena
         sendPacketToConnectedClient(clientIndex, ping, connectTime);
     }
 
+    void Server::disconnectClient(uint32_t clientIndex, double timestamp)
+    {
+        ARENA_ASSERT(clientIndex < MaxClients, "clientIndex out of bounds");
+        ARENA_ASSERT(m_clientsConnected > 0, "No clients connected");
+        ARENA_ASSERT(m_clientConnected[clientIndex], "Client index %d ins't connected", clientIndex);
+
+        ConnectionDisconnectPacket* packet = (ConnectionDisconnectPacket*)createPacket(PacketTypes::Disconnect);
+        packet->m_clientSalt = m_clientData[clientIndex].m_clientSalt;
+        packet->m_challengeSalt = m_clientData[clientIndex].m_challengeSalt;
+
+        sendPacketToConnectedClient(clientIndex, packet, timestamp);
+        // request disconnection after sending disconnect packet
+        enet_peer_disconnect_later(m_clientData[clientIndex].m_peer, 0);
+
+        resetClient(clientIndex);
+        --m_clientsConnected;
+    }
+
     void Server::sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp)
     {
         ARENA_ASSERT(clientIndex < MaxClients, "Invalid client index");
@@ -397,17 +415,21 @@ namespace arena
             float lastDeltaTime = float(time * (1.0f / frequency));
             totalTime += lastDeltaTime;
 
+            static bool kek = false;
+            if (totalTime > 20)
+            {
+                if (!kek) {
+                    kek = !kek;
+                    disconnectClient(0, totalTime);
+                }
+            }
+
             m_networkInterface->writePackets();
             
             // this call will fill receive queue
             m_networkInterface->readPackets();
 
             receivePackets(totalTime);
-            
-            
-            
-            
-
             
 #if 0
             while (m_network.getConnectedPlayerAmount() < m_playerAmount)

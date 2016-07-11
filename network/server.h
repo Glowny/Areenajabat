@@ -90,6 +90,8 @@ namespace arena
 
         void connectClient(uint32_t clientIndex, ENetPeer* peer, uint64_t clientSalt, uint64_t challengeSalt, double connectTime);
 
+        void disconnectClient(uint32_t clientIndex, double timestamp);
+
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
         NetworkInterface* m_networkInterface;

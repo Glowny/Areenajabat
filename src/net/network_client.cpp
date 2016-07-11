@@ -172,7 +172,7 @@ namespace arena
                 break;
             }
 
-            delete packet;
+            destroyPacket(packet);
         }
     }
 

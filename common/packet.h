@@ -17,8 +17,6 @@ namespace arena
             KeepAlive,
             Disconnect,
 
-            Count,
-
 			// Game packets.
 			// Server --> Client.
 			GameSetup,
@@ -42,6 +40,7 @@ namespace arena
 			// Client --> Server.
 			GameSetPlayerAmount,
 
+            Count
         };
     };
 
@@ -242,6 +241,44 @@ namespace arena
         virtual int32_t getType() const override
         {
             return PacketTypes::KeepAlive;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct ConnectionDisconnectPacket : public Packet
+    {
+        uint64_t m_clientSalt; // the sender id
+        uint64_t m_challengeSalt; // got from server and sent back to server to confirm that auth happened
+
+        ConnectionDisconnectPacket() :
+            m_clientSalt(0),
+            m_challengeSalt(0)
+        {
+
+        }
+
+        virtual ~ConnectionDisconnectPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::Disconnect;
         }
 
         bool serializeWrite(WriteStream& stream) override
