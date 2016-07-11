@@ -75,6 +75,10 @@ namespace arena
 
         void processConnectionResponse(ConnectionResponsePacket* packet, ENetPeer* from, double timestamp);
 
+        void processConnectionKeepAlive(ConnectionKeepAlivePacket* packet, ENetPeer* from, double timestamp);
+
+        void resetClient(uint32_t clientIndex);
+
         bool isConnected(uint64_t clientSalt, ENetPeer* peer);
 
         ServerChallengeEntry* findOrInsertChallenge(ENetPeer* from, uint64_t clientSalt, double timestamp);

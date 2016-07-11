@@ -103,6 +103,9 @@ namespace arena
             case PacketTypes::ConnectionResponse:
                 processConnectionResponse((ConnectionResponsePacket*)packet, peer, timestamp);
                 break;
+            case PacketTypes::KeepAlive:
+                processConnectionKeepAlive((ConnectionKeepAlivePacket*)packet, peer, timestamp);
+                break;
             default:
                 fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
                 break;
@@ -231,7 +234,6 @@ namespace arena
 
     void Server::processConnectionResponse(ConnectionResponsePacket* packet, ENetPeer* from, double timestamp)
     {
-
         uint32_t idx = findExistingClientIndex(from, packet->m_clientSalt, packet->m_challengeSalt);
 
         // if it exists
@@ -277,6 +279,17 @@ namespace arena
 
             connectClient(clientIndex, from, packet->m_clientSalt, packet->m_challengeSalt, timestamp);
         }
+    }
+
+    void Server::processConnectionKeepAlive(ConnectionKeepAlivePacket* packet, ENetPeer* from, double time)
+    {
+        const uint32_t idx = findExistingClientIndex(from, packet->m_clientSalt, packet->m_challengeSalt);
+        // does not exist
+        if (idx == UINT32_MAX) return;
+
+        ARENA_ASSERT(idx < MaxClients, "Client id out of bounds");
+
+        m_clientData[idx].m_lastPacketReceiveTime = time;
     }
 
     ServerChallengeEntry* Server::findOrInsertChallenge(ENetPeer* from, uint64_t clientSalt, double timestamp)
@@ -335,6 +348,15 @@ namespace arena
         return nullptr;
     }
 
+    void Server::resetClient(uint32_t clientIndex)
+    {
+        ARENA_ASSERT(clientIndex < MaxClients, "Client index out of bounds");
+        m_clientConnected[clientIndex] = false;
+        m_clientSalt[clientIndex] = 0;
+        m_challengeSalt[clientIndex] = 0;
+        m_clientPeers[clientIndex] = 0;
+        m_clientData[clientIndex] = ClientData();
+    }
 
     bool Server::isConnected(uint64_t clientSalt, ENetPeer* peer)
     {
