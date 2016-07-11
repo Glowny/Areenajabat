@@ -38,7 +38,7 @@ namespace arena
 			return new GameRespawnPlayerPacket;
 		case PacketTypes::GameUpdateScoreBoard:
 			return new GameUpdateScoreBoardPacket;
-		case PacketTypes::GameMovement:
+		case PacketTypes::GameInput:
 			return new GameInputPacket;
 		case PacketTypes::GameShoot:
 			return new GameShootPacket;

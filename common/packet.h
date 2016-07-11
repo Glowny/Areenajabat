@@ -32,7 +32,7 @@ namespace arena
 			GameUpdateScoreBoard,
 
 			// Client --> Server.
-			GameMovement,
+			GameInput,
 			GameShoot,
 
 			// Game debug
@@ -47,6 +47,7 @@ namespace arena
 
     struct BX_NO_VTABLE Packet
     {
+		
         virtual ~Packet() = 0;
         virtual int32_t getType() const = 0;
         virtual bool serializeWrite(WriteStream& stream) = 0;
@@ -60,7 +61,7 @@ namespace arena
     struct ConnectionRequestPacket : public Packet
     {
         uint64_t m_clientSalt;
-
+		
         ConnectionRequestPacket()
             : m_clientSalt(0)
         {
