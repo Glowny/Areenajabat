@@ -54,4 +54,9 @@ namespace arena
             return nullptr;
         }
     }
+
+    void destroyPacket(Packet* packet)
+    {
+        delete packet;
+    }
 }

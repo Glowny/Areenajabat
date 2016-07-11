@@ -101,62 +101,14 @@ namespace arena
                 processConnectionRequest((ConnectionRequestPacket*)packet, peer, timestamp);
                 break;
             case PacketTypes::ConnectionResponse:
-            {
-                ConnectionResponsePacket* cast = (ConnectionResponsePacket*)packet;
-
-                uint32_t idx = findExistingClientIndex(peer, cast->m_clientSalt, cast->m_challengeSalt);
-
-                // if it exists
-                if (idx != UINT32_MAX)
-                {
-                    ARENA_ASSERT(idx < MaxClients, "Invalid client id (%" PRIu32 ") max (%" PRIu32 ")", idx, MaxClients);
-
-                    if (m_clientData[idx].m_lastPacketSendTime + ConnectionConfirmSendRate < timestamp)
-                    {
-                        ConnectionKeepAlivePacket* ping = (ConnectionKeepAlivePacket*)createPacket(PacketTypes::KeepAlive);
-                        ping->m_clientSalt = cast->m_clientSalt;
-                        ping->m_challengeSalt = cast->m_challengeSalt;
-                        sendPacketToConnectedClient(idx, ping, timestamp);
-                    }
-                }
-                else
-                {
-                    char buf[256];
-                    enet_address_get_host_ip(&peer->address, buf, sizeof(buf));
-                    printf("processing connection response from client %s (salt %" PRIx64 ") (challenge %" PRIx64 ")\n", buf, cast->m_clientSalt, cast->m_challengeSalt);
-
-                    ServerChallengeEntry* entry = findChallenge(peer, cast->m_clientSalt);
-                    
-                    if (entry == nullptr) break;
-
-                    ARENA_ASSERT(entry->m_clientSalt == cast->m_clientSalt, "Client salt mismatch");
-
-                    if (entry->m_challengeSalt != cast->m_challengeSalt)
-                    {
-                        printf("conneciton challenge mismatch expected %" PRIx64 ", got %" PRIx64 "\n", entry->m_challengeSalt, cast->m_challengeSalt);
-                        break;
-                    }
-
-                    if (m_clientsConnected == MaxClients)
-                    {
-                        // TODO send denied
-                        ARENA_ASSERT(0, "serverf is full");
-                    }
-
-                    const uint32_t clientIndex = findFreeClientIndex();
-
-                    ARENA_ASSERT(clientIndex != UINT32_MAX, "Invalid client index");
-
-                    connectClient(clientIndex, peer, cast->m_clientSalt, cast->m_challengeSalt, timestamp);
-                }
-            }
+                processConnectionResponse((ConnectionResponsePacket*)packet, peer, timestamp);
                 break;
             default:
                 fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
                 break;
             }
 
-            delete packet;
+            destroyPacket(packet);
         }
     }
 
@@ -237,7 +189,6 @@ namespace arena
         if (m_clientsConnected == MaxClients)
         {
             printf("Server is full\n");
-            // TODO allocator
             ConnectionDeniedPacket* denied = (ConnectionDeniedPacket*)createPacket(PacketTypes::ConnectionDenied);
             denied->m_clientSalt = packet->m_clientSalt;
             denied->m_reason = ConnectionDeniedPacket::ConnectionDeniedReason::ServerIsFull;
@@ -275,6 +226,56 @@ namespace arena
             m_networkInterface->sendPacket(from, packet);
 
             entry->m_lastSendTime = timestamp;
+        }
+    }
+
+    void Server::processConnectionResponse(ConnectionResponsePacket* packet, ENetPeer* from, double timestamp)
+    {
+
+        uint32_t idx = findExistingClientIndex(from, packet->m_clientSalt, packet->m_challengeSalt);
+
+        // if it exists
+        if (idx != UINT32_MAX)
+        {
+            ARENA_ASSERT(idx < MaxClients, "Invalid client id (%" PRIu32 ") max (%" PRIu32 ")", idx, MaxClients);
+
+            if (m_clientData[idx].m_lastPacketSendTime + ConnectionConfirmSendRate < timestamp)
+            {
+                ConnectionKeepAlivePacket* ping = (ConnectionKeepAlivePacket*)createPacket(PacketTypes::KeepAlive);
+                ping->m_clientSalt = packet->m_clientSalt;
+                ping->m_challengeSalt = packet->m_challengeSalt;
+                sendPacketToConnectedClient(idx, ping, timestamp);
+            }
+        }
+        else
+        {
+            char buf[256];
+            enet_address_get_host_ip(&from->address, buf, sizeof(buf));
+            printf("processing connection response from client %s (salt %" PRIx64 ") (challenge %" PRIx64 ")\n", buf, packet->m_clientSalt, packet->m_challengeSalt);
+
+            ServerChallengeEntry* entry = findChallenge(from, packet->m_clientSalt);
+
+            if (entry == nullptr) return;
+
+            ARENA_ASSERT(entry->m_clientSalt == packet->m_clientSalt, "Client salt mismatch");
+
+            if (entry->m_challengeSalt != packet->m_challengeSalt)
+            {
+                printf("conneciton challenge mismatch expected %" PRIx64 ", got %" PRIx64 "\n", entry->m_challengeSalt, packet->m_challengeSalt);
+                return;
+            }
+
+            if (m_clientsConnected == MaxClients)
+            {
+                // TODO send denied
+                ARENA_ASSERT(0, "serverf is full");
+            }
+
+            const uint32_t clientIndex = findFreeClientIndex();
+
+            ARENA_ASSERT(clientIndex != UINT32_MAX, "Invalid client index");
+
+            connectClient(clientIndex, from, packet->m_clientSalt, packet->m_challengeSalt, timestamp);
         }
     }
 

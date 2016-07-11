@@ -14,6 +14,7 @@
 
 int main(int argc, char *argv[])
 {
+    BX_UNUSED(argc, argv);
     arena::networkInitialize();
 #if defined(ARENA_CLIENT)
 		

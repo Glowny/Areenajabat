@@ -6,7 +6,7 @@
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
-
+#include <common/packet.h>
 
 struct PlayerInput
 {
@@ -17,8 +17,6 @@ struct PlayerInput
 
 namespace arena
 {
-    struct ConnectionRequestPacket;
-
     // do not change
     static const int ChallengeHashSize = 1024;
 
@@ -72,7 +70,10 @@ namespace arena
 
         void receivePackets(double timestamp);
 
+        // process funcs
         void processConnectionRequest(ConnectionRequestPacket* packet, ENetPeer* from, double timestamp);
+
+        void processConnectionResponse(ConnectionResponsePacket* packet, ENetPeer* from, double timestamp);
 
         bool isConnected(uint64_t clientSalt, ENetPeer* peer);
 

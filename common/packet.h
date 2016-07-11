@@ -57,6 +57,8 @@ namespace arena
 
     Packet* createPacket(int32_t type);
 
+    void destroyPacket(Packet* packet);
+
     struct ConnectionRequestPacket : public Packet
     {
         uint64_t m_clientSalt;
