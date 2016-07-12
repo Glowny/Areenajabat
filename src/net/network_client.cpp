@@ -21,7 +21,7 @@ namespace arena
 
     void NetworkClient::connect(const char* address, uint16_t port, double timeStamp)
     {
-        disconnect();
+        disconnect(timeStamp);
         m_serverAddress.port = port;
         enet_address_set_host(&m_serverAddress, address);
         m_peer = enet_host_connect(m_networkInterface.m_socket, &m_serverAddress, 2, 0);
@@ -32,14 +32,18 @@ namespace arena
         m_clientSalt = genSalt();
     }
 
-    void NetworkClient::disconnect()
+    void NetworkClient::disconnect(double timestamp)
     {
-        if (m_state != ClientState::Disconnected)
+        if (m_state == ClientState::Connected)
         {
-            enet_peer_disconnect(m_peer, 0);
             printf("Client side disconnect\n");
-            // do something to notify server
-            // sendDisconnectPacket()
+            
+            ConnectionDisconnectPacket* out = (ConnectionDisconnectPacket*)createPacket(PacketTypes::Disconnect);
+            out->m_clientSalt = m_clientSalt;
+            out->m_challengeSalt = m_challengeSalt;
+            
+            m_networkInterface.sendPacket(m_peer, out);
+            m_lastPacketSendTime = timestamp;
         }
         reset();
     }
@@ -51,7 +55,7 @@ namespace arena
 
     bool NetworkClient::isConnecting() const
     {
-        return m_state == ClientState::SendingConnectionRequest;
+        return m_state == ClientState::SendingConnectionRequest || m_state == ClientState::SendingAuthResponse;
     }
 
     void NetworkClient::sendPackets(double timestamp)
@@ -167,6 +171,21 @@ namespace arena
                 m_state = ClientState::SendingAuthResponse;
             }
                 break;
+            case PacketTypes::Disconnect:
+            {
+                ConnectionDisconnectPacket* cast = (ConnectionDisconnectPacket*)packet;
+                // client side has already disconnected so this is reply from server so we shall close the socket now
+                if (m_state != ClientState::Connected) 
+                {
+                    enet_peer_disconnect(m_peer, 0);
+                }
+                else if (cast->m_clientSalt != m_clientSalt) break;
+                else if (cast->m_challengeSalt != m_challengeSalt) break;
+                else if (peer->address.host != m_serverAddress.host) break;
+
+                disconnect(timestamp);                
+            }
+            break;
             default:
                 fprintf(stderr, "Got invalid packet of type %d (not implemented?)\n", packet->getType());
                 break;
