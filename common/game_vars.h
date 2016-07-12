@@ -3,7 +3,9 @@
 #include "forward_declare.h"
 #include "types.h"
 
-FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Ini)
+#include <map>
+
+FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, minIni)
 
 namespace arena
 {
@@ -11,19 +13,27 @@ namespace arena
 	{
 		enum Enum : uint32
 		{
-			Random,
+			Random = 0,
 			Team
 		};
+
+		static std::map<const char* const, uint32> s_RespawnTypeValues;
 	};
 
 	struct VictoryCondition final
 	{
 		enum Enum : uint32
 		{
-			MostKills,
+			MostKills = 0,
 			TeamRoundWins
 		};
+		
+		static std::map<const char* const, uint32> s_VictoryConditionValues;
 	};
+
+	const uint32 DefaultPort			= 8088;
+	const uint32 DefaultAddress			= 0;
+	const uint32 DefaultRoundDuration	= 3600000;
 
 	const char* const SECTION_SERVER			= "server";
 	const char* const SV_ADDRESS				= "sv_address";
@@ -63,7 +73,7 @@ namespace arena
 		bool				m_sv_friendly_fire;
 		bool				m_sv_headshots_only;
 	
-		GameVars(const Ini& ini);
+		GameVars(const minIni& ini);
 		~GameVars();
 	};
 }
