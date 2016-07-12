@@ -40,6 +40,8 @@ namespace arena
         void receivePackets(double timestamp);
     private:
 
+        void sendPacketToServer(Packet* packet, double timestamp);
+
         void reset();
 
         NetworkInterface m_networkInterface;

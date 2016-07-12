@@ -9,6 +9,7 @@ namespace arena
 
     const double ConnectionRequestSendRate = 0.1;
     const double ConnectionResponseSendRate = 0.1;
+    const double ConnectionKeepAliveSendRate = 1.0;
 
     NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
@@ -64,7 +65,15 @@ namespace arena
         {
             // let this be the first one, so minimium amount of branching
         case arena::ClientState::Connected:
-            // for pings
+        {
+            if (m_lastPacketSendTime + ConnectionKeepAliveSendRate > timestamp)
+            {
+                ConnectionKeepAlivePacket* packet = (ConnectionKeepAlivePacket*)createPacket(PacketTypes::KeepAlive);
+                packet->m_clientSalt = m_clientSalt;
+                packet->m_challengeSalt = m_challengeSalt;
+                sendPacketToServer(packet, timestamp);
+            }
+        }
             break;
         case arena::ClientState::SendingConnectionRequest:
         {
@@ -99,15 +108,19 @@ namespace arena
             packet->m_clientSalt = m_clientSalt;
             packet->m_challengeSalt = m_challengeSalt;
 
-            ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
-
-            m_networkInterface.sendPacket(m_peer, packet);
-            m_lastPacketSendTime = timestamp;
+            sendPacketToServer(packet, timestamp);
         }
             break;
         default:
             break;
         }
+    }
+
+    void NetworkClient::sendPacketToServer(Packet* packet, double timestamp)
+    {
+        ARENA_ASSERT(m_state != ClientState::Disconnected, "Can not send packets when disconnected");
+        m_networkInterface.sendPacket(m_peer, packet);
+        m_lastPacketSendTime = timestamp;
     }
 
     void NetworkClient::writePackets()
