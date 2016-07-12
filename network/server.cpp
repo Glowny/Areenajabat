@@ -421,7 +421,11 @@ namespace arena
                     enet_address_get_host_ip(&m_clientPeers[i]->address, buffer, sizeof(buffer));
                     fprintf(stderr, "Client (idx = %" PRIu32 ") (address = %s) timed out, closing link", i, buffer);
 
+                    // disconnect nullifies this
+                    ENetPeer* clientPeer = m_clientPeers[i];
+
                     disconnectClient(i, totalTime);
+                    enet_peer_disconnect_later(clientPeer, 0);
                 }
             }
         }

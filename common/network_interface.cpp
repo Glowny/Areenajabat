@@ -161,7 +161,7 @@ namespace arena
             
             enet_peer_send(entry.m_peer, 0, out);
 
-            enet_host_flush(m_socket);
+            //enet_host_flush(m_socket);
 
             //enet_packet_destroy(out);
 

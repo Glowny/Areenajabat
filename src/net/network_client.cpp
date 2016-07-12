@@ -120,10 +120,17 @@ namespace arena
         ENetEvent event;
         while (enet_host_service(m_networkInterface.m_socket, &event, 0))
         {
-#if _DEBUG
-            if (event.type == ENET_EVENT_TYPE_CONNECT) printf("ENET: connected\n");
-            else if (event.type == ENET_EVENT_TYPE_DISCONNECT) printf("ENET: diconnected\n");
-#endif
+            if (event.type == ENET_EVENT_TYPE_CONNECT) 
+            {
+                printf("ENET: connected\n");
+            }
+            // if timeout happens
+            else if (event.type == ENET_EVENT_TYPE_DISCONNECT)
+            {
+                printf("ENET: diconnected\n");
+                m_state = ClientState::Disconnected;
+                reset();
+            }
             if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
             
             m_networkInterface.readPacket(event.peer, event.packet);
@@ -188,7 +195,7 @@ namespace arena
                 // client side has already disconnected so this is reply from server so we shall close the socket now
                 if (m_state != ClientState::Connected) 
                 {
-                    enet_peer_disconnect(m_peer, 0);
+                    enet_peer_disconnect_later(m_peer, 0);
                 }
                 else if (cast->m_clientSalt != m_clientSalt) break;
                 else if (cast->m_challengeSalt != m_challengeSalt) break;
