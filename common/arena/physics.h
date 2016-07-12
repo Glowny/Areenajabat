@@ -117,6 +117,7 @@ public:
 	Physics();
 	~Physics();
 
+	float updateTimer;
 	void reset();
 	void update();
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
