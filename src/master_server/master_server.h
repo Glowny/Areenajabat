@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common\forward_declare.h"
-#include "common\areena\areena_packet.h"
+#include "common\arena\arena_packet.h"
 #include "minini\minIni.h"
 #include "common\types.h"
 
