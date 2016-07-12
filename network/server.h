@@ -2,7 +2,7 @@
 #if defined(ARENA_SERVER)
 #include <queue>
 #include <vector>
-
+#include <common/game_vars.h>
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
@@ -77,8 +77,6 @@ namespace arena
 
         void processConnectionKeepAlive(ConnectionKeepAlivePacket* packet, ENetPeer* from, double timestamp);
 
-        void processConnectionDisconnect(ConnectionDisconnectPacket* packet, ENetPeer* from, double timestamp);
-
         void resetClient(uint32_t clientIndex);
 
         bool isConnected(uint64_t clientSalt, ENetPeer* peer);
@@ -96,6 +94,8 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
+		GameVars m_gameVars;
+
 		void updateGameRules(const float64 dt);
 
         NetworkInterface* m_networkInterface;

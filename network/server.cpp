@@ -411,12 +411,6 @@ namespace arena
     {
         (void)port;
         (void)playerAmount;
-        
-        //loadPlatformsFromFile("coordinatesRawData.dat");
-        //m_messageQueue = new std::queue<Message>;
-        //m_network.startServer(m_messageQueue, 0, port, 10);
-
-        // wait for players..
 
         int64_t lastTime = bx::getHPCounter();
         double totalTime = 0.0;
