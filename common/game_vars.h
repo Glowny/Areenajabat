@@ -66,7 +66,10 @@ namespace arena
 		bool				m_sv_friendly_fire;
 		bool				m_sv_headshots_only;
 	
-		GameVars(const minIni& ini);
+		GameVars();
+
+		void read(const minIni& ini);
+
 		~GameVars();
 	};
 }

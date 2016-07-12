@@ -1,5 +1,7 @@
 #include "minini\minIni.h"
 #include "game_vars.h"
+#include "mem\memory.h"
+
 #include <map>
 
 namespace arena
@@ -22,7 +24,12 @@ namespace arena
 		{ "team_round_wins", VictoryCondition::TeamRoundWins }
 	};
 
-	GameVars::GameVars(const minIni& ini)
+	GameVars::GameVars()
+	{
+		ZERO_MEMORY(this, sizeof(GameVars));
+	}
+
+	void GameVars::read(const minIni& ini)
 	{
 		m_sv_address			= ini.geti(SECTION_SERVER, SV_ADDRESS, DefaultAddress);
 		m_sv_port				= ini.geti(SECTION_SERVER, SV_PORT, DefaultPort);

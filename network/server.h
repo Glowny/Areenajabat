@@ -2,7 +2,6 @@
 #if defined(ARENA_SERVER)
 #include <queue>
 #include <vector>
-#include "Physics.h"
 #include <common/game_vars.h>
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
