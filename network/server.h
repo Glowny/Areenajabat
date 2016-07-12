@@ -3,6 +3,7 @@
 #include <queue>
 #include <vector>
 #include "Physics.h"
+#include <common/game_vars.h>
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
@@ -94,6 +95,8 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
+		GameVars m_gameVars;
+
 		void updateGameRules(const float64 dt);
 
         NetworkInterface* m_networkInterface;

@@ -24,6 +24,7 @@ namespace arena
 		m_sv_headshots_only		= ini.getbool(SECTION_SERVER, SV_HEADSHOTS_ONLY, false);
 		m_sv_friendly_fire		= ini.getbool(SECTION_SERVER, SV_FRIENDLY_FIRE, false);
 
+		m_gm_round_freeze_time	= ini.geti(SECTION_GAMEMODE, GM_ROUND_FREEZE_TIME, DefaultRoundFreezeTime);
 		m_gm_max_players		= ini.geti(SECTION_GAMEMODE, GM_MAX_PLAYERS, 4);
 		m_gm_respawn_type		= RespawnType::s_RespawnTypeValues[ini.gets(SECTION_GAMEMODE, GM_RESPAWN_TYPE, "teams")];
 		m_gm_teams				= ini.getbool(SECTION_GAMEMODE, GM_TEAMS, false);
