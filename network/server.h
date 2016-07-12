@@ -80,7 +80,6 @@ namespace arena
         ~Server();
         void start(const String& iniPath);
     private:
-        void start(uint16_t port, unsigned playerAmount);
         // returns UINT32_MAX if not found
         uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
 
@@ -112,7 +111,7 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
-		//GameVars m_gameVars;
+		GameVars m_gameVars;
 
 		GameHost* m_host;
 

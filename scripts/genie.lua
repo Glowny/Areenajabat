@@ -127,8 +127,8 @@ project "server"
 	}
 	
 	files {
-		path.join(ARENA_DIR, "network", "*.cpp"),
-		path.join(ARENA_DIR, "network", "*.h"),
+		path.join(ARENA_DIR, "network", "**.cpp"),
+		path.join(ARENA_DIR, "network", "**.h"),
 	}
 	
 	links { 

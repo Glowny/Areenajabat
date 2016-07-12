@@ -9,6 +9,7 @@
 #include <fstream>
 #include "common/packet.h"
 #include <stdio.h>
+#include "game_host.h"
 
 namespace arena
 {
@@ -362,10 +363,18 @@ namespace arena
         return false;
     }
 
-    void Server::start(uint16_t port, unsigned playerAmount)
+    void Server::start(const String& iniPath)
     {
-        (void)port;
-        (void)playerAmount;
+        const minIni Ini(iniPath);
+
+        // Init vars.
+        m_gameVars.read(Ini);
+
+        // Init host.
+        m_host = new GameHost(m_gameVars);
+        m_host->startSession();
+
+        m_networkInterface = new arena::NetworkInterface(uint16_t(m_gameVars.m_sv_port));
 
         int64_t lastTime = bx::getHPCounter();
         double totalTime = 0.0;
@@ -380,8 +389,9 @@ namespace arena
             float lastDeltaTime = float(time * (1.0f / frequency));
             totalTime += lastDeltaTime;
 
-            // sendPackets
+            updateGameRules(float64(lastDeltaTime));
 
+            // sendPackets
 
             // write data 
             m_networkInterface->writePackets();
@@ -390,7 +400,7 @@ namespace arena
             ENetEvent event;
             while (enet_host_service(m_networkInterface->m_socket, &event, 0) > 0)
             {
-                if (event.type == ENET_EVENT_TYPE_CONNECT) 
+                if (event.type == ENET_EVENT_TYPE_CONNECT)
                 {
                     printf("ENET: connected\n");
                 }
@@ -431,20 +441,12 @@ namespace arena
         }
     }
 
-    void Server::start(const String& iniPath)
+    void Server::updateGameRules(const float64 dt)
     {
-        const minIni Ini(iniPath);
-        const String ServerSection = "server";
-        const String GamemodeSection = "gamemode";
+        if (m_host == nullptr)			return;
+        if (!m_host->isStateValid())	return;
 
-        // todo this isnt needed
-        //const uint32 address		= uint32(Ini.geti(ServerSection, "address", 0));
-        const uint32 port = uint32(Ini.geti(ServerSection, "port", 8888));
-        const uint32 maxPlayers = uint32(Ini.geti(GamemodeSection, "max_players", 4));
-
-        m_networkInterface = new arena::NetworkInterface(uint16_t(port));
-
-        start(port, maxPlayers);
+        m_host->tick(dt);
     }
 }
 #endif
