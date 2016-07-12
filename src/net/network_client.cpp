@@ -117,7 +117,18 @@ namespace arena
 
     void NetworkClient::readPackets()
     {
-        m_networkInterface.readPackets();
+        ENetEvent event;
+        while (enet_host_service(m_networkInterface.m_socket, &event, 0))
+        {
+#if _DEBUG
+            if (event.type == ENET_EVENT_TYPE_CONNECT) printf("ENET: connected\n");
+            else if (event.type == ENET_EVENT_TYPE_DISCONNECT) printf("ENET: diconnected\n");
+#endif
+            if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
+            
+            m_networkInterface.readPacket(event.peer, event.packet);
+        }
+        
     }
 
     void NetworkClient::receivePackets(double timestamp)
@@ -183,7 +194,7 @@ namespace arena
                 else if (cast->m_challengeSalt != m_challengeSalt) break;
                 else if (peer->address.host != m_serverAddress.host) break;
 
-                disconnect(timestamp);                
+                disconnect(timestamp);
             }
             break;
             default:

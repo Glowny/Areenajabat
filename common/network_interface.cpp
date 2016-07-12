@@ -64,57 +64,47 @@ namespace arena
         return entry.m_packet;
     }
 
-    void NetworkInterface::readPackets()
+    void NetworkInterface::readPacket(ENetPeer* from, ENetPacket* enetPacket)
     {
-        ENetEvent event;
-        while (enet_host_service(m_socket, &event, 0) > 0)
+        uint32_t packetBytes = uint32_t(enetPacket->dataLength);
+        ReadStream stream(enetPacket->data, packetBytes);
+
+        /*
+        uint32_t prefixBytes = 1;
+        for (uint32_t i = 0; i < prefixBytes; ++i)
         {
-#if _DEBUG
-            if (event.type == ENET_EVENT_TYPE_CONNECT) printf("ENET: connected\n");
-            else if (event.type == ENET_EVENT_TYPE_DISCONNECT) printf("ENET: diconnected\n");
-#endif
-            if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
+            uint32_t dummy = 0;
+            stream.serializeBits(dummy, 8);
+        }*/
 
-            uint32_t packetBytes = uint32_t(event.packet->dataLength);
-            ReadStream stream(event.packet->data, packetBytes);
+        uint32_t crc32 = 0;
 
-            /*
-            uint32_t prefixBytes = 1;
-            for (uint32_t i = 0; i < prefixBytes; ++i)
-            {
-                uint32_t dummy = 0;
-                stream.serializeBits(dummy, 8);
-            }*/
+        stream.serializeBits(crc32, 32);
 
-            uint32_t crc32 = 0;
-
-            stream.serializeBits(crc32, 32);
-
-            int32_t packetType = 0;
-            if (!stream.serializeInteger(packetType, 0, PacketTypes::Count - 1))
-            {
-                ARENA_ASSERT(0, "invalid packet");
-            }
-
-            Packet* packet = createPacket(packetType);
-
-            ARENA_ASSERT(packet != nullptr, "Packet is nullptr");
-
-            if (!packet->serializeRead(stream))
-            {
-                fprintf(stderr, "Failed to serialize packet of type %d", packetType);
-                enet_packet_destroy(event.packet);
-                continue;
-            }
-
-            PacketEntry entry;
-            entry.m_packet = packet;
-            entry.m_peer = event.peer;
-
-            m_receiveQueue.push(entry);
-
-            enet_packet_destroy(event.packet);
+        int32_t packetType = 0;
+        if (!stream.serializeInteger(packetType, 0, PacketTypes::Count - 1))
+        {
+            ARENA_ASSERT(0, "invalid packet");
         }
+
+        Packet* packet = createPacket(packetType);
+
+        ARENA_ASSERT(packet != nullptr, "Packet is nullptr");
+
+        if (!packet->serializeRead(stream))
+        {
+            fprintf(stderr, "Failed to serialize packet of type %d", packetType);
+            enet_packet_destroy(enetPacket);
+            return;
+        }
+
+        PacketEntry entry;
+        entry.m_packet = packet;
+        entry.m_peer = from;
+
+        m_receiveQueue.push(entry);
+
+        enet_packet_destroy(enetPacket);
     }
 
     void NetworkInterface::sendPacket(ENetPeer* to, Packet* packet)

@@ -28,7 +28,10 @@ namespace arena
 
         Packet* receivePacket(ENetPeer*& from);
 
-        void readPackets();
+        // Call this before receivePacket
+        // Serializes the incoming ENet packet and enqueues it to receivequeue
+        // Frees enet packet
+        void readPacket(ENetPeer* from, ENetPacket* packet);
 
         void sendPacket(ENetPeer* to, Packet* packet);
 

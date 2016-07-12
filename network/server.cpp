@@ -12,6 +12,8 @@
 
 namespace arena
 {
+    
+
     static const double ChallengeTimeOut = 10.0;
     static const double ChallengeSendRate = 0.1;
     static const double ConnectionConfirmSendRate = 0.1;
@@ -376,11 +378,26 @@ namespace arena
             float lastDeltaTime = float(time * (1.0f / frequency));
             totalTime += lastDeltaTime;
 
-            m_networkInterface->writePackets();
-            
-            // this call will fill receive queue
-            m_networkInterface->readPackets();
+            // sendPackets
 
+            // write data 
+            m_networkInterface->writePackets();
+
+            // dispatch writte packets and receive from client
+            ENetEvent event;
+            while (enet_host_service(m_networkInterface->m_socket, &event, 0) > 0)
+            {
+#if _DEBUG
+                if (event.type == ENET_EVENT_TYPE_CONNECT) printf("ENET: connected\n");
+                else if (event.type == ENET_EVENT_TYPE_DISCONNECT) printf("ENET: diconnected\n");
+#endif
+                if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
+
+                // this call will enqueue serialized packet to queue
+                m_networkInterface->readPacket(event.peer, event.packet);
+            }
+
+            // this call will process the received serialized packets queue
             receivePackets(totalTime);
         }
     }
