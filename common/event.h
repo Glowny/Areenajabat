@@ -49,6 +49,11 @@ namespace arena
 			remove(callback);
 		}
 
+		void operator()()
+		{
+			signal();
+		}
+
 		void signal()
 		{
 			for (uint32 i = 0; i < m_subs.size(); i++) m_subs[i]();

@@ -9,6 +9,7 @@
 #include <fstream>
 #include "common/packet.h"
 #include <stdio.h>
+#include "game_host.h"
 
 namespace arena
 {
@@ -18,7 +19,8 @@ namespace arena
 
 	Server::Server() :
 		m_clientsConnected(0),
-		m_networkInterface(nullptr)
+		m_networkInterface(nullptr),
+		m_host(nullptr)
 	{
 		memset(m_clientPeers, 0, sizeof(m_clientPeers));
 		memset(m_clientConnected, 0, sizeof(m_clientConnected));
@@ -411,7 +413,12 @@ namespace arena
 	{
 		const minIni Ini(iniPath);
 
+		// Init vars.
 		m_gameVars.read(Ini);
+
+		// Init host.
+		m_host = new GameHost(m_gameVars);
+		m_host->startSession();
 
 		m_networkInterface = new arena::NetworkInterface(uint16_t(m_gameVars.m_sv_port));
 
@@ -427,6 +434,8 @@ namespace arena
 			// seconds
 			float lastDeltaTime = float(time * (1.0f / frequency));
 			totalTime += lastDeltaTime;
+
+			updateGameRules(float64(lastDeltaTime));
 
 			m_networkInterface->writePackets();
 
@@ -811,6 +820,14 @@ namespace arena
 
 		}
 #endif
+	}
+
+	void Server::updateGameRules(const float64 dt)
+	{
+		if (m_host == nullptr)			return;
+		if (!m_host->isStateValid())	return;
+
+		m_host->tick(dt);
 	}
 }
 #endif

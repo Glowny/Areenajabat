@@ -8,6 +8,10 @@
 #include <common/types.h>
 #include <common/packet.h>
 
+#include <common/forward_declare.h>
+
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
+
 struct PlayerInput
 {
 	glm::vec2 moveDir;
@@ -94,6 +98,8 @@ namespace arena
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
 		GameVars m_gameVars;
+
+		GameHost* m_host;
 
 		void updateGameRules(const float64 dt);
 
