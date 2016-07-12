@@ -18,6 +18,8 @@ namespace arena
     static const double ChallengeSendRate = 0.1;
     static const double ConnectionConfirmSendRate = 0.1;
 
+    static const double PingTimeOut = 10.0;
+
     Server::Server() :
         m_clientsConnected(0),
         m_networkInterface(nullptr)
@@ -380,6 +382,7 @@ namespace arena
 
             // sendPackets
 
+
             // write data 
             m_networkInterface->writePackets();
 
@@ -387,10 +390,16 @@ namespace arena
             ENetEvent event;
             while (enet_host_service(m_networkInterface->m_socket, &event, 0) > 0)
             {
-#if _DEBUG
-                if (event.type == ENET_EVENT_TYPE_CONNECT) printf("ENET: connected\n");
-                else if (event.type == ENET_EVENT_TYPE_DISCONNECT) printf("ENET: diconnected\n");
-#endif
+                if (event.type == ENET_EVENT_TYPE_CONNECT) 
+                {
+                    printf("ENET: connected\n");
+                }
+                else if (event.type == ENET_EVENT_TYPE_DISCONNECT)
+                {
+                    printf("ENET: diconnected\n");
+                    // hmmm we can't close the socket now so we need to implement new system...
+                    // because we dont know the clientSalt nor challenge
+                }
                 if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
 
                 // this call will enqueue serialized packet to queue
@@ -399,6 +408,22 @@ namespace arena
 
             // this call will process the received serialized packets queue
             receivePackets(totalTime);
+
+            // timeout
+
+            for (uint32_t i = 0; i < MaxClients; ++i)
+            {
+                if (!m_clientConnected[i]) continue;
+
+                if (m_clientData[i].m_lastPacketReceiveTime + PingTimeOut < totalTime)
+                {
+                    char buffer[256];
+                    enet_address_get_host_ip(&m_clientPeers[i]->address, buffer, sizeof(buffer));
+                    fprintf(stderr, "Client (idx = %" PRIu32 ") (address = %s) timed out, closing link", i, buffer);
+
+                    disconnectClient(i, totalTime);
+                }
+            }
         }
     }
 
