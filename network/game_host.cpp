@@ -111,10 +111,12 @@ namespace arena
 	void GameHost::sessionTick(const uint64 dt)
 	{
 		// Update session data.
+        BX_UNUSED(dt);
 	}
 	void GameHost::gameTick(const uint64 uidt, const float64 dt)
 	{
 		// Update game data (the world etc).
+        BX_UNUSED(uidt, dt);
 	}
 
 	GameHost::~GameHost()

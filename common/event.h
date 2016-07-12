@@ -1,9 +1,12 @@
 #pragma once
 
 #include <common/types.h>
-#include <cassert>
-#include <functional>
+#include <assert.h>
 #include <vector>
+#include <bx/macros.h>
+BX_PRAGMA_DIAGNOSTIC_PUSH()
+BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4265) // class has virtual functions, but destructor is not virtual	
+#include <functional>
 
 namespace arena
 {
@@ -64,3 +67,5 @@ namespace arena
 		std::vector<std::function<void()>> m_subs;
 	};
 }
+
+BX_PRAGMA_DIAGNOSTIC_POP()
