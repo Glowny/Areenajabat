@@ -7,6 +7,7 @@
 #include <common/network_interface.h>
 #include <common/types.h>
 #include <common/packet.h>
+#include <common/mem/memory.h>
 
 #include <common/forward_declare.h>
 
@@ -57,6 +58,17 @@ namespace arena
         {
             memset(this, 0, sizeof(ClientData));
         }
+
+		bool operator ==(const ClientData* const lhs) const
+		{
+			if (lhs == nullptr) return false;
+
+			return ADDRESSOF(lhs) == ADDRESSOF(this);
+		}
+		bool operator !=(const ClientData* const lhs) const
+		{
+			return !(lhs == this);
+		}
     };
 
     class Server

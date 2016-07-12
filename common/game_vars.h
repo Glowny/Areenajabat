@@ -23,8 +23,8 @@ namespace arena
 
 	const uint32 DefaultPort			= 8088;
 	const uint32 DefaultAddress			= 0;
-	const uint32 DefaultRoundDuration	= 3600000;
-	const uint32 DefaultRoundFreezeTime = 500;
+	const uint32 DefaultRoundDuration	= 900;
+	const uint32 DefaultRoundFreezeTime = 5;
 
 	const char* const SECTION_SERVER			= "server";
 	const char* const SV_ADDRESS				= "sv_address";
@@ -43,6 +43,10 @@ namespace arena
 	const char* const GM_SPAWN_PROTECTION		= "gm_spawn_protection";
 	const char* const GM_VICTORY_CONDITION		= "gm_victory_condition";
 	const char* const GM_ROUND_FREEZE_TIME		= "gm_round_freeze_time";
+	const char* const GM_PLAYERS_REQUIRED		= "gm_players_required";
+	const char* const GM_MID_GAME_RESTART		= "gm_mid_game_restart";
+	const char* const GM_PAUSE					= "gm_pause";
+	const char* const GM_PLAYER_WAIT_TIME		= "gm_player_wait_time";
 
 	struct GameVars final
 	{
@@ -60,7 +64,10 @@ namespace arena
 		uint64				m_gm_round_duration;
 		uint64				m_gm_spawn_protection;
 		uint64				m_gm_round_freeze_time;
+		uint64				m_gm_player_wait_time;
 		
+		bool				m_gm_mid_game_restart;
+		bool				m_gm_pause;
 		bool				m_gm_buy_anywhere;
 		bool				m_gm_teams;
 		bool				m_sv_friendly_fire;

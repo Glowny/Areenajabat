@@ -46,6 +46,9 @@ namespace arena
 		m_gm_buy_anywhere		= ini.getbool(SECTION_GAMEMODE, GM_BUY_ANYWHERE, false);
 		m_gm_spawn_protection	= ini.geti(SECTION_GAMEMODE, GM_SPAWN_PROTECTION, false);
 		m_gm_victory_condition	= Storage::s_VictoryConditionValues[ini.gets(SECTION_GAMEMODE, GM_VICTORY_CONDITION, "most_kills")];
+		m_gm_pause				= ini.getbool(SECTION_GAMEMODE, GM_PAUSE, false);
+		m_gm_mid_game_restart	= ini.getbool(SECTION_GAMEMODE, GM_MID_GAME_RESTART, false);
+		m_gm_player_wait_time	= ini.geti(SECTION_GAMEMODE, GM_PLAYER_WAIT_TIME, 0);
 	}
 	
 	GameVars::~GameVars()
