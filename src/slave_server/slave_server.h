@@ -1,63 +1,69 @@
 #pragma once
 
-#include "common\arena\game_map.h"
-#include "common\arena\physics.h"
-#include "common\arena\weapons.h"
-#include "common\arena\arena_packet.h"
+#include "common/arena/game_map.h"
+#include "common/arena/physics.h"
+#include "common/arena/arena_packet.h"
 #include <queue>
 #include <map>
+#include <bx/timer.h>
 
-#include "common\forward_declare.h"
-#include "common\types.h"
+#include "common/forward_declare.h"
+#include "common/types.h"
 
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
-
-/*
-	Wraps the server instances that the master manages.
-	One machine can run multiple instances of game
-	server.
-*/
-struct PlayerController
-{
-	glm::ivec2 m_movementDirection;
-	float m_jumpDirection;
-};
-
-struct Gladiator
-{
-	Gladiator() { m_alive = true; m_hitpoints = 100; }
-	unsigned m_physicsId;
-	glm::vec2 m_position;
-	glm::vec2 m_velocity;
-	float m_rotation;
-	arena::Weapon m_weapon;
-	int m_hitpoints;
-	bool m_alive;
-};
-
-struct Player
-{
-	// id used by master server to communicate with client.
-	unsigned m_networkId;
-	PlayerController* m_playerController;
-	Gladiator* m_gladiator;
-};
-
-
+#define TIMESTEP 0.016f
 
 namespace arena
 {
+	struct Weapon;
+	/*
+		Wraps the server instances that the master manages.
+		One machine can run multiple instances of game
+		server.
+	*/
+	struct PlayerController
+	{
+		glm::ivec2 m_movementDirection;
+		float m_jumpDirection;
+		bool shootFlag;
+		float aimAngle;
+	};
+
+	struct Gladiator
+	{
+		Gladiator() { m_alive = true; m_hitpoints = 100; }
+		unsigned m_physicsId;
+		glm::vec2 m_position;
+		glm::vec2 m_velocity;
+		float m_rotation;
+		Weapon* m_weapon;
+		int m_hitpoints;
+		bool m_alive;
+	};
+
+	struct Player
+	{
+		// salt is used by master server to communicate with client.
+		uint64_t m_clientSalt;
+		PlayerController* m_playerController;
+		Gladiator* m_gladiator;
+	};
+
+
+
 	class SlaveServer final
 	{
 	public:
 		SlaveServer(const uint32 address, const uint32 port);
 		~SlaveServer();
 
-		void initialize();
+		void addPlayer(uint64_t salt);
 
 		bool startLobby();
 		bool stop();
-		bool startRound();
+		bool startRound(unsigned playerAmount);
+		void updateRound();
+		
 		bool returnToLobby();
 
 
@@ -65,18 +71,28 @@ namespace arena
 		std::queue<Packet*> *m_outPacketQueue;
 	private:
 		Server* const m_instance;
-		
+
 		// Access player data by network id.
-		std::map<unsigned, Player*> playerMap;
+		std::map<unsigned, Player*> m_playerMap;
 
 		// Set map and add gladiators.
-		void initializeRound();
-		
+		void initializeRound(unsigned playerAmount);
+
+		float getDeltaTime();
+
+		void updatePhysics();
+
+		// Apply client imputs
+		void applyPlayerInputs();
+
 		// Update positions
 		void sendCharactersData();
 
-		// Create new bullet
-		void createBullets(float angle, Gladiator* gladiator);
+		// Create new bullets for all the players
+		void createAllBullets();
+
+		// Create new bullets for player
+		void createBullets(Player* player);
 
 		// Network:
 		// Send packet to client(s). Packet can be created anywhere.
@@ -88,6 +104,7 @@ namespace arena
 		// Get oldest packet from client.
 		Packet* getPacketFromQueue();
 
+		int64_t m_last_time;
 		GameMap m_map;
 		Physics m_physics;
 

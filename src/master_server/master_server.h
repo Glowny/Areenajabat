@@ -17,7 +17,7 @@ handles client redirections to servers
 Lavel 2: servers - gameplay stuff happens here
 */
 
-
+// TODO: Way for slaves to send packet to every client they have and to a single client.
 
 namespace arena
 {

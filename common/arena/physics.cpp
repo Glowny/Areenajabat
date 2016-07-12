@@ -4,7 +4,7 @@
 
 Physics::Physics() 
 {
-
+	updateTimer = 0;
 	m_b2DWorld = new b2World(b2Vec2(0.f,9.81f));
 	m_b2DWorld->SetContactListener(&m_ContactListener);
 
