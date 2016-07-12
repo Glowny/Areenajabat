@@ -4,6 +4,7 @@
 	TODO: remove from arena. Duplicated file.
 */
 
+#include <stdio.h>
 #include "..\types.h"
 
 const uint32 Mem1K		= 1024;
@@ -25,3 +26,5 @@ const uint32 Mem1024K	= Mem512K * 2;
 #define DYNAMIC_DTOR(ptr, type)			ptr->~type()
 
 #define ADDRESSOF(ptr)					reinterpret_cast<UintPtr>(ptr)
+
+#define ZERO_MEMORY(ptr, size) memset(ptr, NULL, size)

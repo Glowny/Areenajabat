@@ -25,7 +25,7 @@ namespace arena
 
         void connect(const char* address, uint16_t port, double timestamp);
 
-        void disconnect();
+        void disconnect(double timestamp);
 
         bool isConnected() const;
 

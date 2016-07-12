@@ -32,6 +32,7 @@
 
 namespace arena
 {
+    static double s_stamp = 0.0;
     static NetworkClient* s_client;
 
 	static Entity* entity;
@@ -52,7 +53,14 @@ namespace arena
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
 
-        s_client->connect("localhost", uint16_t(8888), 0);
+        s_client->connect("localhost", uint16_t(8888), s_stamp);
+    }
+
+    static void disconnect(const void*)
+    {
+        if (!s_client->isConnected()) return;
+
+        s_client->disconnect(s_stamp);
     }
 
     static const InputBinding s_bindings[] =
@@ -60,6 +68,7 @@ namespace arena
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
+        { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
         INPUT_BINDING_END
     };
 
@@ -69,6 +78,7 @@ namespace arena
 
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
+        s_stamp = gameTime.m_total;
         s_client->sendPackets(gameTime.m_total);
         s_client->writePackets();
         s_client->readPackets();

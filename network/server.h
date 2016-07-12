@@ -2,11 +2,16 @@
 #if defined(ARENA_SERVER)
 #include <queue>
 #include <vector>
-#include "Physics.h"
+#include <common/game_vars.h>
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
 #include <common/packet.h>
+#include <common/mem/memory.h>
+
+#include <common/forward_declare.h>
+
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
 
 struct PlayerInput
 {
@@ -53,6 +58,17 @@ namespace arena
         {
             memset(this, 0, sizeof(ClientData));
         }
+
+		bool operator ==(const ClientData* const lhs) const
+		{
+			if (lhs == nullptr) return false;
+
+			return ADDRESSOF(lhs) == ADDRESSOF(this);
+		}
+		bool operator !=(const ClientData* const lhs) const
+		{
+			return !(lhs == this);
+		}
     };
 
     class Server
@@ -63,7 +79,6 @@ namespace arena
         Server();
         ~Server();
         void start(const String& iniPath);
-        void start(uint16_t port, unsigned playerAmount);
     private:
         // returns UINT32_MAX if not found
         uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
@@ -94,6 +109,12 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
+		GameVars m_gameVars;
+
+		GameHost* m_host;
+
+		void updateGameRules(const float64 dt);
+
         NetworkInterface* m_networkInterface;
 
         uint64_t m_serverSalt; // server salt
