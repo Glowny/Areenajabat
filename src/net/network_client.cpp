@@ -31,6 +31,8 @@ namespace arena
         m_lastPacketSendTime = timeStamp - 1.0;
         m_lastPacketReceivedTime = timeStamp;
         m_clientSalt = genSalt();
+
+        fprintf(stderr, "Connecting to: %s:%" PRIu16 "\n", address, port);
     }
 
     void NetworkClient::disconnect(double timestamp)

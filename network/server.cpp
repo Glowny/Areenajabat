@@ -269,11 +269,20 @@ namespace arena
 
     void Server::processConnectionDisconnect(ConnectionDisconnectPacket* packet, ENetPeer* from, double timestamp)
     {
+#if _DEBUG
+        char ip[256]; enet_address_get_host_ip(&from->address, ip, sizeof(ip));
+        fprintf(stderr, "Got disconnect request from %s ", ip);
+#endif
+
         const uint32_t idx = findExistingClientIndex(from, packet->m_clientSalt, packet->m_challengeSalt);
 
         if (idx == UINT32_MAX) return;
 
         ARENA_ASSERT(idx < MaxClients, "Client id out of bounds");
+
+#if _DEBUG
+        fprintf(stderr, "disconnecting client %" PRIu32 "\n", idx);
+#endif
 
         disconnectClient(idx, timestamp);
     }
@@ -375,6 +384,8 @@ namespace arena
         m_host->startSession();
 
         m_networkInterface = new arena::NetworkInterface(uint16_t(m_gameVars.m_sv_port));
+
+        fprintf(stderr, "Accepting connections on port %" PRIu16 "\n", uint16_t(m_gameVars.m_sv_port));
 
         int64_t lastTime = bx::getHPCounter();
         double totalTime = 0.0;

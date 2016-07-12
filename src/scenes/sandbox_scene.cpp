@@ -53,7 +53,7 @@ namespace arena
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
 
-        s_client->connect("localhost", uint16_t(8888), s_stamp);
+        s_client->connect("localhost", uint16_t(8088), s_stamp);
     }
 
     static void disconnect(const void*)
