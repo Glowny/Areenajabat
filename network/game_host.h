@@ -8,10 +8,13 @@ namespace arena
 	class GameHost final
 	{
 	public:
-		EventHandler<void()> e_gameStart;
-		EventHandler<void()> e_gameEnd;
-		EventHandler<void()> e_roundEnd;
-		EventHandler<void()> e_roundStart;
+		EventHandler e_gameStart;
+		EventHandler e_gameEnd;
+		EventHandler e_roundEnd;
+		EventHandler e_roundStart;
+		EventHandler e_sessionStart;
+		EventHandler e_sessionEnd;
+		EventHandler asdasdsad;
 
 		GameHost(const GameVars& vars);
 		
