@@ -13,7 +13,6 @@ namespace arena
 	{
 		GladiusBullet,
 		ShotgunBullet,
-
 	};
 
 	struct Bullet
@@ -23,14 +22,14 @@ namespace arena
 		glm::vec2 m_impulse;
 		float m_rotation;
 		float m_creationDelay;
-
 	};
 
 	struct Weapon
 	{
 	public:
 		WeaponType m_type;
-		virtual std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position) { aimAngle; position; std::vector<Bullet> temp; return temp; }
+		virtual std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position) 
+		{ aimAngle; position; std::vector<Bullet> temp; return temp; }
 	protected:
 		glm::vec2 radToVec(float r)
 		{
@@ -43,6 +42,7 @@ namespace arena
 		WeaponGladius() { m_type = Gladius; }
 		std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position)
 		{
+			std::vector<Bullet> bullets;
 			for (unsigned i = 0; i < 4; i++)
 			{
 				glm::vec2 vectorAngle = radToVec(aimAngle);
@@ -53,8 +53,11 @@ namespace arena
 				bullet.m_impulse.x = vectorAngle.x * 10; bullet.m_impulse.y = vectorAngle.y * 10;
 				// Shotgun does not know playerposition, has to be moved +playerposition.x &.y later
 				bullet.m_position.x = position.x + vectorAngle.x * 72; bullet.m_position.y = position.y + vectorAngle.y * 72;
+				bullets.push_back(bullet);
 			}
+			return bullets;
 		}
+	
 	};
 
 	struct WeaponShotgun :public Weapon
@@ -62,6 +65,7 @@ namespace arena
 		WeaponShotgun() { m_type = Shotgun; }
 		std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position)
 		{
+			std::vector<Bullet> bullets;
 			for (unsigned i = 0; i < 6; i++)
 			{
 				glm::vec2 vectorAngle = radToVec(aimAngle);
@@ -73,7 +77,9 @@ namespace arena
 				// Shotgun does not know playerposition, has to be moved +playerposition.x &.y later
 				//  Adjust creation spot according to aim!
 				bullet.m_position.x = position.x + vectorAngle.x * 72; bullet.m_position.y = position.y + vectorAngle.y * 72;
+				bullets.push_back(bullet);
 			}
+			return bullets;
 		}
 	};
 }
