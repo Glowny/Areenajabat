@@ -39,7 +39,6 @@ namespace arena
 	const char* const GM_TEAMS					= "gm_teams";
 	const char* const GM_ROUND_DURATION			= "gm_round_duration";
 	const char* const GM_ROUNDS_COUNT			= "gm_rounds_count";
-	const char* const GM_BUY_ANYWHERE			= "gm_buy_anywhere";
 	const char* const GM_SPAWN_PROTECTION		= "gm_spawn_protection";
 	const char* const GM_VICTORY_CONDITION		= "gm_victory_condition";
 	const char* const GM_ROUND_FREEZE_TIME		= "gm_round_freeze_time";
@@ -68,7 +67,6 @@ namespace arena
 		
 		bool				m_gm_mid_game_restart;
 		bool				m_gm_pause;
-		bool				m_gm_buy_anywhere;
 		bool				m_gm_teams;
 		bool				m_sv_friendly_fire;
 		bool				m_sv_headshots_only;

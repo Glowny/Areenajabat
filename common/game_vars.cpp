@@ -43,7 +43,6 @@ namespace arena
 		m_gm_teams				= ini.getbool(SECTION_GAMEMODE, GM_TEAMS, false);
 		m_gm_round_duration		= ini.geti(SECTION_GAMEMODE, GM_ROUND_DURATION, DefaultRoundDuration);
 		m_gm_rounds_count		= ini.geti(SECTION_GAMEMODE, GM_ROUNDS_COUNT, 30);
-		m_gm_buy_anywhere		= ini.getbool(SECTION_GAMEMODE, GM_BUY_ANYWHERE, false);
 		m_gm_spawn_protection	= ini.geti(SECTION_GAMEMODE, GM_SPAWN_PROTECTION, false);
 		m_gm_victory_condition	= Storage::s_VictoryConditionValues[ini.gets(SECTION_GAMEMODE, GM_VICTORY_CONDITION, "most_kills")];
 		m_gm_pause				= ini.getbool(SECTION_GAMEMODE, GM_PAUSE, false);
