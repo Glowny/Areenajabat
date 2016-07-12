@@ -167,7 +167,7 @@ namespace arena
 
             uint32_t packetLength = stream.getBytesProcessed();
 
-            ENetPacket* out = enet_packet_create(packetbuffer, packetLength, ENET_PACKET_FLAG_NO_ALLOCATE);
+            ENetPacket* out = enet_packet_create(packetbuffer, packetLength, 0);
             
             enet_peer_send(entry.m_peer, 0, out);
 

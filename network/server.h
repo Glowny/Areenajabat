@@ -2,7 +2,7 @@
 #if defined(ARENA_SERVER)
 #include <queue>
 #include <vector>
-#include "Physics.h"
+
 #include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
@@ -76,6 +76,8 @@ namespace arena
         void processConnectionResponse(ConnectionResponsePacket* packet, ENetPeer* from, double timestamp);
 
         void processConnectionKeepAlive(ConnectionKeepAlivePacket* packet, ENetPeer* from, double timestamp);
+
+        void processConnectionDisconnect(ConnectionDisconnectPacket* packet, ENetPeer* from, double timestamp);
 
         void resetClient(uint32_t clientIndex);
 

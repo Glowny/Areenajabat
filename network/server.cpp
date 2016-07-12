@@ -106,6 +106,9 @@ namespace arena
             case PacketTypes::KeepAlive:
                 processConnectionKeepAlive((ConnectionKeepAlivePacket*)packet, peer, timestamp);
                 break;
+            case PacketTypes::Disconnect:
+                processConnectionDisconnect((ConnectionDisconnectPacket*)packet, peer, timestamp);
+                break;
             default:
                 fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
                 break;
@@ -157,8 +160,6 @@ namespace arena
         packet->m_challengeSalt = m_clientData[clientIndex].m_challengeSalt;
 
         sendPacketToConnectedClient(clientIndex, packet, timestamp);
-        // request disconnection after sending disconnect packet
-        enet_peer_disconnect_later(m_clientData[clientIndex].m_peer, 0);
 
         resetClient(clientIndex);
         --m_clientsConnected;
@@ -310,15 +311,28 @@ namespace arena
         m_clientData[idx].m_lastPacketReceiveTime = time;
     }
 
+    void Server::processConnectionDisconnect(ConnectionDisconnectPacket* packet, ENetPeer* from, double timestamp)
+    {
+        const uint32_t idx = findExistingClientIndex(from, packet->m_clientSalt, packet->m_challengeSalt);
+
+        if (idx == UINT32_MAX) return;
+
+        ARENA_ASSERT(idx < MaxClients, "Client id out of bounds");
+
+        disconnectClient(idx, timestamp);
+    }
+
     ServerChallengeEntry* Server::findOrInsertChallenge(ENetPeer* from, uint64_t clientSalt, double timestamp)
     {
         const uint64_t key = calculateChallengeHash(from, clientSalt, m_serverSalt);
 
         uint32_t index = key % ChallengeHashSize;
 
+#if 0
         printf("Client salt    = %" PRIx64 "\n", clientSalt);
         printf("Challenge hash = %" PRIx64 "\n", key);
         printf("Challenge idx  = %" PRIu32 "\n", index);
+#endif
 
         if (!m_challengeHash.m_exists[index] || (m_challengeHash.m_exists[index] && m_challengeHash.m_entries[index].m_createdTime + ChallengeTimeOut < timestamp))
         {
@@ -352,9 +366,11 @@ namespace arena
 
         uint32_t index = key % ChallengeHashSize;
 
+#if 0
         printf("Client salt    = %" PRIx64 "\n", clientSalt);
         printf("Challenge hash = %" PRIx64 "\n", key);
         printf("Challenge idx  = %" PRIu32 "\n", index);
+#endif
 
         if (m_challengeHash.m_exists[index]
             && m_challengeHash.m_entries[index].m_clientSalt == clientSalt
@@ -414,15 +430,6 @@ namespace arena
             // seconds
             float lastDeltaTime = float(time * (1.0f / frequency));
             totalTime += lastDeltaTime;
-
-            static bool kek = false;
-            if (totalTime > 20)
-            {
-                if (!kek) {
-                    kek = !kek;
-                    disconnectClient(0, totalTime);
-                }
-            }
 
             m_networkInterface->writePackets();
             
