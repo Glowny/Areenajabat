@@ -8,27 +8,17 @@
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, minIni)
 
 namespace arena
-{
-	struct RespawnType final
+{	
+	enum class RespawnType : uint32
 	{
-		enum Enum : uint32
-		{
-			Random = 0,
-			Team
-		};
-
-		static std::map<const char* const, uint32> s_RespawnTypeValues;
+		Random = 0,
+		Team
 	};
 
-	struct VictoryCondition final
+	enum class VictoryCondition : uint32
 	{
-		enum Enum : uint32
-		{
-			MostKills = 0,
-			TeamRoundWins
-		};
-		
-		static std::map<const char* const, uint32> s_VictoryConditionValues;
+		MostKills = 0,
+		TeamRoundWins
 	};
 
 	const uint32 DefaultPort			= 8088;
