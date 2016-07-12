@@ -63,7 +63,6 @@ namespace arena
         Server();
         ~Server();
         void start(const String& iniPath);
-        void start(uint16_t port, unsigned playerAmount);
     private:
         // returns UINT32_MAX if not found
         uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;

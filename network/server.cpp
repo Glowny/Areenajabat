@@ -391,171 +391,169 @@ namespace arena
         return false;
     }
 
-    void Server::start(uint16_t port, unsigned playerAmount)
-    {
-        (void)port;
-        (void)playerAmount;
-        
-        //loadPlatformsFromFile("coordinatesRawData.dat");
-        //m_messageQueue = new std::queue<Message>;
-        //m_network.startServer(m_messageQueue, 0, port, 10);
-
-        // wait for players..
-
-        int64_t lastTime = bx::getHPCounter();
-        double totalTime = 0.0;
-        while (true)
-        {
-            // More time stuff
-            int64_t currentTime = bx::getHPCounter();
-            const int64_t time = currentTime - lastTime;
-            lastTime = currentTime;
-            const double frequency = (double)bx::getHPFrequency();
-            // seconds
-            float lastDeltaTime = float(time * (1.0f / frequency));
-            totalTime += lastDeltaTime;
-
-            static bool kek = false;
-            if (totalTime > 20)
-            {
-                if (!kek) {
-                    kek = !kek;
-                    disconnectClient(0, totalTime);
-                }
-            }
-
-            m_networkInterface->writePackets();
-            
-            // this call will fill receive queue
-            m_networkInterface->readPackets();
-
-            receivePackets(totalTime);
-            
-#if 0
-            while (m_network.getConnectedPlayerAmount() < m_playerAmount)
-            {
-                m_network.checkEvent();
-                // Might be dangerous if client client send bad messages, add checks.
-                handleClientMessages();
-            }
-            sendPlatformPackets(); //TOOD: send only if needed
-            std::vector<unsigned> idVector;
-
-            printf("GAME STARTING!\n");
-
-            createPlayerInputs(m_playerAmount);
-            createGladiators(m_playerAmount);
-            for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
-            {
-                idVector.push_back(i);
-            }
-            m_network.setPlayerIds(idVector);
-
-            // Allocate memory for update messages that are send on every game loop.
-            m_updateSize = sizeof(MessageIdentifier) + sizeof(float) * 5 * m_gladiatorVector.size();
-            m_updateMemory = (unsigned char*)malloc(m_updateSize);
-
-            sendSetupPackets(m_playerAmount);
-
-            // Time stuff
-            int64_t s_last_time = bx::getHPCounter();
-            float updatePhysics = 0;
-            float updateNetwork = 0;
-            float respawnPlayer = 0;
-            float updateScore = 0;
-
-            float timeStep = 1.0f / 60.0f;
-            m_run = true;
-
-            while (m_run)
-            {
-                // More time stuff
-                int64_t currentTime = bx::getHPCounter();
-                const int64_t time = currentTime - s_last_time;
-                s_last_time = currentTime;
-                const double frequency = (double)bx::getHPFrequency();
-                // seconds
-                float lastDeltaTime = float(time * (1.0f / frequency));
-                updatePhysics += lastDeltaTime;
-                updateNetwork += lastDeltaTime;
-                respawnPlayer += lastDeltaTime;
-                updateScore += lastDeltaTime;
-                // No more time stuff
-
-                for (unsigned i = 0; i < m_playerInputVector.size(); i++)
-                {
-                    m_playerInputVector[i].jumpTimer += lastDeltaTime;
-                }
-
-                if (updatePhysics > timeStep)
-                {
-                    // Update movement and physics.
-                    gladiatorMovement();
-                    m_physics.update();
-
-                    // Get latest positions and velocities.
-                    for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
-                    {
-                        m_gladiatorVector[i].position = m_physics.getGladiatorPosition(i);
-                        m_gladiatorVector[i].velocity = m_physics.getGladiatorVelocity(i);
-                    }
-
-                    updatePhysics = 0;
-                }
-                m_network.checkEvent();
-
-                handleClientMessages();
-
-                sendBulletCreationEvents();
-                sendBulletHitEvents();
-
-                if (respawnPlayer > 5.0f)
-                {
-                    respawnDeadPlayers();
-                    respawnPlayer = 0;
-                }
-
-                if (updateNetwork > 0.1)
-                {
-                    sendGameUpdateMessages();
-                    updateNetwork = 0;
-                }
-                if (updateScore > 1)
-                {
-                    uint32_t size;
-                    unsigned char* data = createScoreboardUpdatePacket(size, m_scoreBoard);
-                    m_network.broadcastPacket(data, size, false);
-                    updateScore = 0;
-                }
-
-            }
-            printf("Server restarting... \n");
-            m_gladiatorVector.clear();
-            m_playerInputVector.clear();
-            m_physics.reset();
-            m_scoreBoard.flagHolder = 666;
-            m_scoreBoard.PlayerScoreVector.clear();
-
-            printf("Restart complete, waiting for players.. \n");
-#endif
-        }
-    }
-
     void Server::start(const String& iniPath)
     {
         const minIni Ini(iniPath);
-        const String ServerSection = "server";
-        const String GamemodeSection = "gamemode";
+        
+		m_gameVars.read(Ini);
 
-        // todo this isnt needed
-        //const uint32 address		= uint32(Ini.geti(ServerSection, "address", 0));
-        const uint32 port = uint32(Ini.geti(ServerSection, "port", 8888));
-        const uint32 maxPlayers = uint32(Ini.geti(GamemodeSection, "max_players", 4));
+        m_networkInterface = new arena::NetworkInterface(uint16_t(m_gameVars.m_sv_port));
+		
+		// old start
+		//loadPlatformsFromFile("coordinatesRawData.dat");
+		//m_messageQueue = new std::queue<Message>;
+		//m_network.startServer(m_messageQueue, 0, port, 10);
 
-        m_networkInterface = new arena::NetworkInterface(uint16_t(port));
+		// wait for players..
+		int64_t lastTime = bx::getHPCounter();
+		double totalTime = 0.0;
 
-        start(port, maxPlayers);
+		while (true)
+		{
+			// More time stuff
+			int64_t currentTime = bx::getHPCounter();
+			const int64_t time = currentTime - lastTime;
+
+			lastTime = currentTime;
+
+			const double frequency = (double)bx::getHPFrequency();
+
+			// seconds
+			float lastDeltaTime = float(time * (1.0f / frequency));
+			totalTime += lastDeltaTime;
+
+			static bool kek = false;
+
+			if (totalTime > 20)
+			{
+				if (!kek) {
+					kek = !kek;
+					disconnectClient(0, totalTime);
+				}
+			}
+
+			m_networkInterface->writePackets();
+
+			// this call will fill receive queue
+			m_networkInterface->readPackets();
+
+			receivePackets(totalTime);
+
+#if 0
+			while (m_network.getConnectedPlayerAmount() < m_playerAmount)
+			{
+				m_network.checkEvent();
+				// Might be dangerous if client client send bad messages, add checks.
+				handleClientMessages();
+			}
+			sendPlatformPackets(); //TOOD: send only if needed
+			std::vector<unsigned> idVector;
+
+			printf("GAME STARTING!\n");
+
+			createPlayerInputs(m_playerAmount);
+			createGladiators(m_playerAmount);
+			for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+			{
+				idVector.push_back(i);
+			}
+			m_network.setPlayerIds(idVector);
+
+			// Allocate memory for update messages that are send on every game loop.
+			m_updateSize = sizeof(MessageIdentifier) + sizeof(float) * 5 * m_gladiatorVector.size();
+			m_updateMemory = (unsigned char*)malloc(m_updateSize);
+
+			sendSetupPackets(m_playerAmount);
+
+			// Time stuff
+			int64_t s_last_time = bx::getHPCounter();
+			float updatePhysics = 0;
+			float updateNetwork = 0;
+			float respawnPlayer = 0;
+			float updateScore = 0;
+
+			float timeStep = 1.0f / 60.0f;
+			m_run = true;
+
+			while (m_run)
+			{
+				// More time stuff
+				int64_t currentTime = bx::getHPCounter();
+				const int64_t time = currentTime - s_last_time;
+				s_last_time = currentTime;
+				const double frequency = (double)bx::getHPFrequency();
+				// seconds
+				float lastDeltaTime = float(time * (1.0f / frequency));
+				updatePhysics += lastDeltaTime;
+				updateNetwork += lastDeltaTime;
+				respawnPlayer += lastDeltaTime;
+				updateScore += lastDeltaTime;
+				// No more time stuff
+
+				for (unsigned i = 0; i < m_playerInputVector.size(); i++)
+				{
+					m_playerInputVector[i].jumpTimer += lastDeltaTime;
+				}
+
+				if (updatePhysics > timeStep)
+				{
+					// Update movement and physics.
+					gladiatorMovement();
+					m_physics.update();
+
+					// Get latest positions and velocities.
+					for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+					{
+						m_gladiatorVector[i].position = m_physics.getGladiatorPosition(i);
+						m_gladiatorVector[i].velocity = m_physics.getGladiatorVelocity(i);
+					}
+
+					updatePhysics = 0;
+				}
+				m_network.checkEvent();
+
+				handleClientMessages();
+
+				sendBulletCreationEvents();
+				sendBulletHitEvents();
+
+				if (respawnPlayer > 5.0f)
+				{
+					respawnDeadPlayers();
+					respawnPlayer = 0;
+				}
+
+				if (updateNetwork > 0.1)
+				{
+					sendGameUpdateMessages();
+					updateNetwork = 0;
+				}
+				if (updateScore > 1)
+				{
+					uint32_t size;
+					unsigned char* data = createScoreboardUpdatePacket(size, m_scoreBoard);
+					m_network.broadcastPacket(data, size, false);
+					updateScore = 0;
+				}
+
+			}
+			printf("Server restarting... \n");
+			m_gladiatorVector.clear();
+			m_playerInputVector.clear();
+			m_physics.reset();
+			m_scoreBoard.flagHolder = 666;
+			m_scoreBoard.PlayerScoreVector.clear();
+
+			printf("Restart complete, waiting for players.. \n");
+#endif
+		}
     }
+
+	void Server::updateGameRules(const float64 dt)
+	{
+		(void)dt;
+	}
+
 #if 0
     void Server::sendGameUpdateMessages()
     {
