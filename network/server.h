@@ -77,6 +77,8 @@ namespace arena
 
         void processConnectionKeepAlive(ConnectionKeepAlivePacket* packet, ENetPeer* from, double timestamp);
 
+        void processConnectionDisconnect(ConnectionDisconnectPacket* packet, ENetPeer* from, double timestamp);
+
         void resetClient(uint32_t clientIndex);
 
         bool isConnected(uint64_t clientSalt, ENetPeer* peer);
@@ -94,7 +96,7 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
-		GameVars m_gameVars;
+		//GameVars m_gameVars;
 
 		void updateGameRules(const float64 dt);
 
@@ -110,48 +112,6 @@ namespace arena
 
         uint32_t m_clientsConnected; // number of clients connected
         ServerChallengeHash m_challengeHash; // challenge hashes
-#if 0
-        // Networking game related.
-        uint32_t m_updateSize;  //update packet size wont change during gameloop. 
-        unsigned char* m_updateMemory; // memory set for update packet.
-
-        void handleClientMessages();
-        void handleMessage(Message &message);
-        void sendPlatformPackets();
-        // Gameplay
-        // Pushes back bullets on m_bulletVector.
-        void createOutputBullets(std::vector<BulletInputData> &bulletInputVector, unsigned playerId);
-
-        // Networking low level.
-        Network m_network;
-
-        // Game entities.
-        Physics m_physics;
-
-        // Game Initiazation stuff
-        void createPlayerInputs(unsigned playerAmount);
-        void createGladiators(unsigned playerAmount);
-        void sendSetupPackets(unsigned playerAmount);
-
-        // Game loop stuff
-        void gladiatorMovement();
-        void sendBulletCreationEvents();
-        void sendBulletHitEvents();
-        void sendGameUpdateMessages();
-        //  TODO: Make different respawn system later
-        void respawnDeadPlayers();
-
-        ScoreBoard m_scoreBoard;
-        std::vector<GladiatorData> m_gladiatorVector;
-        std::vector<BulletOutputData> m_bulletOutputVector;
-        std::queue<Message>* m_messageQueue;
-        std::vector<PlayerInput> m_playerInputVector;
-        std::vector<Platform> m_platformVector;
-
-        unsigned m_playerAmount;
-        void loadPlatformsFromFile(char* filename);
-        bool m_run;
-#endif
     };
 }
 #endif
