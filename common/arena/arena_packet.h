@@ -14,11 +14,12 @@ namespace arena
 			m_type = 0;
 			m_position = glm::vec2(0,0);
 			m_rotation = 0;
+			m_creationDelay = 0;
 		}
 		uint8_t m_type;
 		glm::vec2 m_position;
 		float m_rotation;
-
+		float m_creationDelay; // TODO: Replace with gametime later.
 	};
 
 #define CHARACTER_MAXAMOUNT 12	
@@ -50,9 +51,9 @@ namespace arena
 	};
 
 #define PLATFORM_POINTS_MAXAMOUNT 50
-	struct Platform
+	struct PlatformData
 	{
-		Platform() 
+		PlatformData()
 		{
 			m_type = 0;
 		}
@@ -150,7 +151,7 @@ namespace arena
 	struct GamePlaformPacket : public Packet
 	{
 		uint64_t m_clientSalt;
-		Platform m_platform;
+		PlatformData m_platform;
 
 		GamePlaformPacket()
 			: m_clientSalt(0)

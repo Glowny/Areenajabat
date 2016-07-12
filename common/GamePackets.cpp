@@ -108,7 +108,7 @@ unsigned char* createBulletCreationPacket(uint32_t &packetSize, std::vector<Bull
 	// Sends data about bullet creation events.
 	if (preData == NULL)
 	{
-		packetSize = sizeof(MessageIdentifier) +sizeof(uint32_t)+ (sizeof(BulletType) + sizeof(float) * 5)* bulletVector.size();
+		packetSize = sizeof(MessageIdentifier) +sizeof(uint32_t)+ (sizeof(OLDBulletType) + sizeof(float) * 5)* bulletVector.size();
 		preData = (unsigned char*)malloc(packetSize);
 	}
 	unsigned char* dataPointer = preData;
@@ -235,7 +235,7 @@ unsigned char* createBulletRequestPacket(uint32_t &packetSize, std::vector<Bulle
 	// Player wants to create a bullet.
 	if (preData == NULL)
 	{
-		packetSize = sizeof(MessageIdentifier) +sizeof(uint32_t)+ (sizeof(float) + sizeof(unsigned) + sizeof(BulletType)) * bulletVector.size();
+		packetSize = sizeof(MessageIdentifier) +sizeof(uint32_t)+ (sizeof(float) + sizeof(unsigned) + sizeof(OLDBulletType)) * bulletVector.size();
 		preData = (unsigned char*)malloc(packetSize);
 	}
 	unsigned char* dataPointer = preData;

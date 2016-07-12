@@ -17,7 +17,7 @@ enum MessageIdentifier
 	PlayerAmount,
 };
 
-enum BulletType
+enum OLDBulletType
 {
 	UMP45,
 	Shotgun

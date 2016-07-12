@@ -1,5 +1,5 @@
 #include "packet.h"
-#include "areena\areena_packet.h"
+#include "arena\arena_packet.h"
 #include <stdio.h>
 
 namespace arena

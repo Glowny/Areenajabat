@@ -96,6 +96,8 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
+		void updateGameRules(const float64 dt);
+
         NetworkInterface* m_networkInterface;
 
         uint64_t m_serverSalt; // server salt
