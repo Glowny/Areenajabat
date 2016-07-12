@@ -1,8 +1,9 @@
 #pragma once
 
-#include "common\areena\physics.h"
-
-#include "common\areena\areena_packet.h"
+#include "common\arena\game_map.h"
+#include "common\arena\physics.h"
+#include "common\arena\weapons.h"
+#include "common\arena\arena_packet.h"
 #include <queue>
 #include <map>
 
@@ -16,6 +17,32 @@ FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 	One machine can run multiple instances of game
 	server.
 */
+struct PlayerController
+{
+	glm::ivec2 m_movementDirection;
+	float m_jumpDirection;
+};
+
+struct Gladiator
+{
+	Gladiator() { m_alive = true; m_hitpoints = 100; }
+	unsigned m_physicsId;
+	glm::vec2 m_position;
+	glm::vec2 m_velocity;
+	float m_rotation;
+	arena::Weapon m_weapon;
+	int m_hitpoints;
+	bool m_alive;
+};
+
+struct Player
+{
+	// id used by master server to communicate with client.
+	unsigned m_networkId;
+	PlayerController* m_playerController;
+	Gladiator* m_gladiator;
+};
+
 
 
 namespace arena
@@ -30,7 +57,7 @@ namespace arena
 
 		bool startLobby();
 		bool stop();
-		bool startGame();
+		bool startRound();
 		bool returnToLobby();
 
 
@@ -38,18 +65,31 @@ namespace arena
 		std::queue<Packet*> *m_outPacketQueue;
 	private:
 		Server* const m_instance;
+		
+		// Access player data by network id.
+		std::map<unsigned, Player*> playerMap;
 
-		// Send message to client(s). Messages can be created anywhere.
+		// Set map and add gladiators.
+		void initializeRound();
+		
+		// Update positions
+		void sendCharactersData();
+
+		// Create new bullet
+		void createBullets(float angle, Gladiator* gladiator);
+
+		// Network:
+		// Send packet to client(s). Packet can be created anywhere.
 		void pushPacketToQueue(Packet* packet);
-
-		// Read all messages from client(s) in queue and act according to each message.
+		// Read all packets from client(s) in queue and act according to each packet.
 		void handleIncomingPackets();
-		// Handle a single message
+		// Handle a single packet
 		void handleSinglePacket(Packet* packet);
-
-		// Get oldest message from client.
+		// Get oldest packet from client.
 		Packet* getPacketFromQueue();
 
-		Physics physics;
+		GameMap m_map;
+		Physics m_physics;
+
 	};
 }

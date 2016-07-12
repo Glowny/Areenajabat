@@ -30,7 +30,7 @@ struct Platform
 struct BulletInputData
 {
 	// GameTime gameTime;
-	BulletType bulletType;
+	OLDBulletType bulletType;
 	float rotation;
 };
 
@@ -39,7 +39,7 @@ struct BulletOutputData
 {
 	// GameTime gameTime;
 	unsigned playerId;
-	BulletType bulletType;
+	OLDBulletType bulletType;
 	float rotation;
 	// temporary, send only rotation!
 	glm::vec2 velocity;
