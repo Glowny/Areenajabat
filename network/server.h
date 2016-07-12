@@ -33,6 +33,8 @@ private:
 	uint32_t m_updateSize;  //update packet size wont change during gameloop. 
 	unsigned char* m_updateMemory; // memory set for update packet.
 
+	void updateGameRules(GameTime
+
 	void handleClientMessages();
 	void handleMessage(Message &message);
 	void sendPlatformPackets();

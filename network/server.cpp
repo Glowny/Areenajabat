@@ -129,13 +129,13 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 			for (unsigned i = 0; i < m_playerInputVector.size(); i++)
 			{
 				m_playerInputVector[i].jumpTimer += lastDeltaTime;
-			m_playerInputVector[i].passLightPlatformTimer += lastDeltaTime;
-			if (m_playerInputVector[i].passLightPlatformTimer > 2.0f)
-			{
-				m_physics.setGladiatorCollideLightPlatforms(i, true);
-				m_playerInputVector[i].passLightPlatformTimer = 0;
-			}
-			
+				m_playerInputVector[i].passLightPlatformTimer += lastDeltaTime;
+
+				if (m_playerInputVector[i].passLightPlatformTimer > 2.0f)
+				{
+					m_physics.setGladiatorCollideLightPlatforms(i, true);
+					m_playerInputVector[i].passLightPlatformTimer = 0;
+				}
 			}
 
 			if (updatePhysics > timeStep)
@@ -153,6 +153,7 @@ void Server::start(unsigned address, unsigned port, unsigned playerAmount)
 
 				updatePhysics = 0;
 			}
+
 			m_network.checkEvent();
 
 			handleClientMessages();
@@ -266,14 +267,20 @@ void Server::sendBulletHitEvents()
 			{
 				uint32_t size;
 				glm::vec2 position;
+
 				unsigned playerId = m_physics.hitVector[i].targetPlayerId;
+
 				position.x = m_physics.hitVector[i].position.x * 100;
 				position.y = m_physics.hitVector[i].position.y * 100;
+
 				unsigned char *data = createHitPacket(size, position);
+
 				m_network.broadcastPacket(data, size, true);
 				data = createPlayerDamagePacket(size, playerId, 10);
+
 				m_gladiatorVector[playerId].hitPoints -= 10;
 				m_network.broadcastPacket(data, size, true);
+
 				// unsigned, change to signed or do some magic tricts
 				if (m_gladiatorVector[playerId].hitPoints == 0)
 				{
