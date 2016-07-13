@@ -28,7 +28,7 @@
 #include "../input/event.h"
 #include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
-
+#include <common/packet.h>
 
 namespace arena
 {
@@ -79,10 +79,28 @@ namespace arena
 	void SandboxSecene::onUpdate(const GameTime& gameTime)
 	{
         s_stamp = gameTime.m_total;
-        s_client->sendPackets(gameTime.m_total);
+
+        s_client->sendProtocolPackets(gameTime.m_total);
+
         s_client->writePackets();
         s_client->readPackets();
-        s_client->receivePackets(gameTime.m_total);
+
+        Packet* packet = nullptr;
+        ENetPeer* from;
+        while ((packet = s_client->receivePacket(from)) != nullptr)
+        {
+            // "protocol" messages
+            if (packet->getType() <= PacketTypes::Disconnect)
+            {
+                s_client->processClientSidePackets(packet, from, gameTime.m_total);
+            }
+            else
+            {
+
+            }
+
+            destroyPacket(packet);
+        }
         auto tx = (Transform* const)entity->first(TYPEOF(Transform));
 
         Camera& camera = App::instance().camera();

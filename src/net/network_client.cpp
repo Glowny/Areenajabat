@@ -61,7 +61,7 @@ namespace arena
         return m_state == ClientState::SendingConnectionRequest || m_state == ClientState::SendingAuthResponse;
     }
 
-    void NetworkClient::sendPackets(double timestamp)
+    void NetworkClient::sendProtocolPackets(double timestamp)
     {
         switch (m_state)
         {
@@ -153,78 +153,70 @@ namespace arena
         
     }
 
-    void NetworkClient::receivePackets(double timestamp)
+    Packet* NetworkClient::receivePacket(ENetPeer*& from)
     {
-        while (true)
+        return m_networkInterface.receivePacket(from);
+    }
+
+    void NetworkClient::processClientSidePackets(Packet* packet, ENetPeer* peer, double timestamp)
+    {
+        switch (packet->getType())
         {
-            ENetPeer* peer;
-            Packet* packet = m_networkInterface.receivePacket(peer);
+        case PacketTypes::KeepAlive:
+        {
+            // conneciton succeeded
+            ConnectionKeepAlivePacket* cast = (ConnectionKeepAlivePacket*)packet;
 
-            if (packet == nullptr)
+            if (cast->m_clientSalt != m_clientSalt) break;
+            if (cast->m_challengeSalt != m_challengeSalt) break;
+            if (peer->address.host != m_serverAddress.host) break;
+
+            // we are connected now
+            if (m_state == ClientState::SendingAuthResponse)
             {
-                break;
-            }
-
-            switch (packet->getType())
-            {
-            case PacketTypes::KeepAlive:
-            {
-                // conneciton succeeded
-                ConnectionKeepAlivePacket* cast = (ConnectionKeepAlivePacket*)packet;
-
-                if (cast->m_clientSalt != m_clientSalt) break;
-                if (cast->m_challengeSalt != m_challengeSalt) break;
-                if (peer->address.host != m_serverAddress.host) break;
-
-                // we are connected now
-                if (m_state == ClientState::SendingAuthResponse)
-                {
-                    char buf[256];
-                    enet_address_get_host_ip(&m_serverAddress, buf, sizeof(buf));
-                    printf("client is now connected to server %s\n", buf);
-                    m_state = ClientState::Connected;
-                }
-            }
-            break;
-            case PacketTypes::ConnectionChallenge:
-            {
-                ConnectionChallengePacket* cast = (ConnectionChallengePacket*)packet;
-                if (m_state != ClientState::SendingConnectionRequest) return;
-                if (cast->m_clientSalt != m_clientSalt) return;
-                if (peer->address.host != m_serverAddress.host) return;
-
                 char buf[256];
-                enet_address_get_host_ip(&peer->address, buf, sizeof(buf));
-                printf("received connection challenge from server: %s (salt (%" PRIx64 ")\n", buf, cast->m_challengeSalt);
-
-                m_challengeSalt = cast->m_challengeSalt;
-
-                m_lastPacketReceivedTime = timestamp;
-
-                m_state = ClientState::SendingAuthResponse;
+                enet_address_get_host_ip(&m_serverAddress, buf, sizeof(buf));
+                printf("client is now connected to server %s\n", buf);
+                m_state = ClientState::Connected;
             }
-                break;
-            case PacketTypes::Disconnect:
+        }
+        break;
+        case PacketTypes::ConnectionChallenge:
+        {
+            ConnectionChallengePacket* cast = (ConnectionChallengePacket*)packet;
+            if (m_state != ClientState::SendingConnectionRequest) return;
+            if (cast->m_clientSalt != m_clientSalt) return;
+            if (peer->address.host != m_serverAddress.host) return;
+
+            char buf[256];
+            enet_address_get_host_ip(&peer->address, buf, sizeof(buf));
+            printf("received connection challenge from server: %s (salt (%" PRIx64 ")\n", buf, cast->m_challengeSalt);
+
+            m_challengeSalt = cast->m_challengeSalt;
+
+            m_lastPacketReceivedTime = timestamp;
+
+            m_state = ClientState::SendingAuthResponse;
+        }
+        break;
+        case PacketTypes::Disconnect:
+        {
+            ConnectionDisconnectPacket* cast = (ConnectionDisconnectPacket*)packet;
+            // client side has already disconnected so this is reply from server so we shall close the socket now
+            if (m_state != ClientState::Connected)
             {
-                ConnectionDisconnectPacket* cast = (ConnectionDisconnectPacket*)packet;
-                // client side has already disconnected so this is reply from server so we shall close the socket now
-                if (m_state != ClientState::Connected) 
-                {
-                    enet_peer_disconnect_later(m_peer, 0);
-                }
-                else if (cast->m_clientSalt != m_clientSalt) break;
-                else if (cast->m_challengeSalt != m_challengeSalt) break;
-                else if (peer->address.host != m_serverAddress.host) break;
-
-                disconnect(timestamp);
+                enet_peer_disconnect_later(m_peer, 0);
             }
+            else if (cast->m_clientSalt != m_clientSalt) break;
+            else if (cast->m_challengeSalt != m_challengeSalt) break;
+            else if (peer->address.host != m_serverAddress.host) break;
+
+            disconnect(timestamp);
+        }
+        break;
+        default:
+            fprintf(stderr, "Got invalid packet of type %d\n", packet->getType());
             break;
-            default:
-                fprintf(stderr, "Got invalid packet of type %d (not implemented?)\n", packet->getType());
-                break;
-            }
-
-            destroyPacket(packet);
         }
     }
 

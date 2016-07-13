@@ -31,17 +31,20 @@ namespace arena
 
         bool isConnecting() const;
 
-        void sendPackets(double timestamp);
+        // send pings disconnects and connects
+        void sendProtocolPackets(double timestamp);
 
         void writePackets();
 
         void readPackets();
 
-        void receivePackets(double timestamp);
-    private:
+        Packet* receivePacket(ENetPeer*& from);
+
+        // process pings disconnects and connects
+        void processClientSidePackets(Packet* packet, ENetPeer* from, double timestamp);
 
         void sendPacketToServer(Packet* packet, double timestamp);
-
+    private:
         void reset();
 
         NetworkInterface m_networkInterface;

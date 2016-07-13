@@ -15,7 +15,7 @@ namespace arena
             ConnectionChallenge,
             ConnectionResponse,
             KeepAlive,
-            Disconnect,
+            Disconnect, 
 
 			// Game packets.
 			// Server --> Client.
