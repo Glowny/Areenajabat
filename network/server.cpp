@@ -31,6 +31,11 @@ namespace arena
         memset(m_challengeSalt, 0, sizeof(m_challengeSalt));
 
         m_serverSalt = arena::genSalt();
+
+        for (uint32_t i = 0; i < MaxClients; ++i)
+        {
+            m_clientIndices[i] = i;
+        }
     }
 
     Server::~Server()
@@ -84,6 +89,7 @@ namespace arena
         m_clientConnected[clientIndex] = true;
 
         m_clientData[clientIndex].m_peer = peer;
+        m_clientData[clientIndex].m_peer->data = &m_clientIndices[clientIndex];
         m_clientData[clientIndex].m_challengeSalt = challengeSalt;
         m_clientData[clientIndex].m_clientSalt = clientSalt;
         m_clientData[clientIndex].m_connectTime = connectTime;
@@ -427,6 +433,8 @@ namespace arena
                     // because we dont know the clientSalt nor challenge
                 }
             }
+
+            
 
             // this call will process the received serialized packets queue
             receivePackets(totalTime);

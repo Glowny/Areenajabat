@@ -126,6 +126,7 @@ namespace arena
         uint64_t m_clientSalt[MaxClients]; // client salts per client
         uint64_t m_challengeSalt[MaxClients]; // challenge salts per client
         ClientData m_clientData[MaxClients]; // client data per client
+        uint32_t m_clientIndices[MaxClients]; // no need to allocate new uint
 
         uint32_t m_clientsConnected; // number of clients connected
         ServerChallengeHash m_challengeHash; // challenge hashes
