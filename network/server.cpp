@@ -411,7 +411,12 @@ namespace arena
             ENetEvent event;
             while (enet_host_service(m_networkInterface->m_socket, &event, 0) > 0)
             {
-                if (event.type == ENET_EVENT_TYPE_CONNECT)
+                if (event.type == ENET_EVENT_TYPE_RECEIVE)
+                {
+                    // this call will enqueue serialized packet to queue
+                    m_networkInterface->readPacket(event.peer, event.packet);
+                }
+                else if (event.type == ENET_EVENT_TYPE_CONNECT)
                 {
                     printf("ENET: connected\n");
                 }
@@ -421,10 +426,6 @@ namespace arena
                     // hmmm we can't close the socket now so we need to implement new system...
                     // because we dont know the clientSalt nor challenge
                 }
-                if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
-
-                // this call will enqueue serialized packet to queue
-                m_networkInterface->readPacket(event.peer, event.packet);
             }
 
             // this call will process the received serialized packets queue
