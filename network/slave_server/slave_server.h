@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/arena/game_map.h"
 #include "common/arena/physics.h"
 #include "common/arena/arena_packet.h"
 #include <queue>
@@ -9,38 +8,22 @@
 
 #include "common/forward_declare.h"
 #include "common/types.h"
-
+#include <common/arena/game_map.h>
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 #define TIMESTEP 0.016f
 
 namespace arena
 {
+
+	struct ArenaPlatform;
 	struct Weapon;
+	struct PlayerController;
+	struct Gladiator;
 	/*
 		Wraps the server instances that the master manages.
 		One machine can run multiple instances of game
 		server.
 	*/
-	struct PlayerController
-	{
-		glm::ivec2 m_movementDirection;
-		float m_jumpDirection;
-		bool shootFlag;
-		float aimAngle;
-	};
-
-	struct Gladiator
-	{
-		Gladiator() { m_alive = true; m_hitpoints = 100; }
-		unsigned m_physicsId;
-		glm::vec2 m_position;
-		glm::vec2 m_velocity;
-		float m_rotation;
-		Weapon* m_weapon;
-		int m_hitpoints;
-		bool m_alive;
-	};
-
 	struct Player
 	{
 		// salt is used by master server to communicate with client.

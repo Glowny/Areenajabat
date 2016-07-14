@@ -50,7 +50,7 @@ namespace arena
 
 	};
 
-#define PLATFORM_POINTS_MAXAMOUNT 50
+#define PLATFORM_VERTEX_MAXAMOUNT 50
 	struct PlatformData
 	{
 		PlatformData()
@@ -58,8 +58,8 @@ namespace arena
 			m_type = 0;
 		}
 		uint8_t m_type;
-		uint8_t m_pointAmount;
-		glm::vec2 m_pointArray[PLATFORM_POINTS_MAXAMOUNT];
+		uint8_t m_vertexAmount;
+		glm::vec2 m_vertexArray[PLATFORM_VERTEX_MAXAMOUNT];
 
 	};
 
@@ -156,7 +156,7 @@ namespace arena
 		GamePlaformPacket()
 			: m_clientSalt(0)
 		{
-			m_platform.m_pointAmount = 0;
+			m_platform.m_vertexAmount = 0;
 			m_platform.m_type = 0;
 		}
 
@@ -167,11 +167,11 @@ namespace arena
 		{
 			serialize_uint64(stream, m_clientSalt);
 			serialize_bytes(stream, &m_platform.m_type, 1); // TODO, CHECK HOW TO BYTES
-			serialize_int(stream, m_platform.m_pointAmount, 0, PLATFORM_POINTS_MAXAMOUNT);
-			for (unsigned i = 0; i < m_platform.m_pointAmount; ++i)
+			serialize_int(stream, m_platform.m_vertexAmount, 0, PLATFORM_VERTEX_MAXAMOUNT);
+			for (unsigned i = 0; i < m_platform.m_vertexAmount; ++i)
 			{
-				serialize_float(stream, m_platform.m_pointArray[i].x);
-				serialize_float(stream, m_platform.m_pointArray[i].y);
+				serialize_float(stream, m_platform.m_vertexArray[i].x);
+				serialize_float(stream, m_platform.m_vertexArray[i].y);
 			}
 			return true;
 		}

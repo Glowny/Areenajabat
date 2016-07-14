@@ -1,7 +1,10 @@
 #include "slave_server.h"
 #include <common/arena/weapons.h>
-using namespace arena;
+#include <common/arena/gladiator.h>
+#include <common/arena/playerController.h>
+#include <common/arena/scoreboard.h>
 
+using namespace arena;
 
 SlaveServer::SlaveServer()
 {
