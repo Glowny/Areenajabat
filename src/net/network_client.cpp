@@ -11,6 +11,9 @@ namespace arena
     const double ConnectionResponseSendRate = 0.1;
     const double ConnectionKeepAliveSendRate = 1.0;
 
+
+    const double CreateLobbySendRate = 0.5;
+
     NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
         m_lastPacketReceivedTime(0), 
@@ -27,6 +30,7 @@ namespace arena
         enet_address_set_host(&m_serverAddress, address);
         m_peer = enet_host_connect(m_networkInterface.m_socket, &m_serverAddress, 2, 0);
 
+        m_lobbyState = LobbyState::NotInLobby;
         m_state = ClientState::SendingConnectionRequest;
         m_lastPacketSendTime = timeStamp - 1.0;
         m_lastPacketReceivedTime = timeStamp;
@@ -59,6 +63,27 @@ namespace arena
     bool NetworkClient::isConnecting() const
     {
         return m_state == ClientState::SendingConnectionRequest || m_state == ClientState::SendingAuthResponse;
+    }
+
+
+    void NetworkClient::sendMatchMakingPackets(double timestamp)
+    {
+        switch (m_lobbyState)
+        {
+        case LobbyState::SendingCreateLobby:
+            if (m_lastPacketSendTime + CreateLobbySendRate > timestamp)
+            {
+                fprintf(stderr, "Sending create lobby, name %s\n", m_currentLobby.name.c_str());
+                CreateLobbyPacket* packet = (CreateLobbyPacket*)createPacket(PacketTypes::MasterCreateLobby);
+                packet->m_clientSalt = m_clientSalt;
+                memcpy(packet->m_name, m_currentLobby.name.c_str(), m_currentLobby.name.size());
+                sendPacketToServer(packet, timestamp);
+            }
+            break;
+        default:
+            //fprintf(stderr, "LobbyState: %d not implemented", m_lobbyState);
+            break;
+        }
     }
 
     void NetworkClient::sendProtocolPackets(double timestamp)
@@ -153,6 +178,30 @@ namespace arena
         
     }
 
+    void NetworkClient::createLobby(const char* name, double timestamp)
+    {
+        if (m_lobbyState != LobbyState::NotInLobby) return;
+
+        uint32_t len = (uint32_t)strlen(name);
+        ARENA_ASSERT(len < CreateLobbyPacket::MaxNameLen, "Max name length exceeded");
+        m_currentLobby.name = std::string(name);
+        CreateLobbyPacket* packet = (CreateLobbyPacket*)createPacket(PacketTypes::MasterCreateLobby);
+        packet->m_clientSalt = m_clientSalt;
+        memcpy(packet->m_name, name, len);
+
+        m_lobbyState = LobbyState::SendingCreateLobby;
+        
+        sendPacketToServer(packet, timestamp);
+    }
+
+    void NetworkClient::queryLobbies(double timestamp)
+    {
+        ListLobbiesPacket* packet = (ListLobbiesPacket*)createPacket(PacketTypes::MasterListLobbies);
+        sendPacketToServer(packet, timestamp);
+
+        m_lobbyState = LobbyState::SendingQueryLobbies;
+    }
+
     Packet* NetworkClient::receivePacket(ENetPeer*& from)
     {
         return m_networkInterface.receivePacket(from);
@@ -222,6 +271,7 @@ namespace arena
 
     void NetworkClient::reset()
     {
+        m_lobbyState = LobbyState::NotInLobby;
         m_state = ClientState::Disconnected;
         m_challengeSalt = 0;
         m_lastPacketReceivedTime = -9999.0;

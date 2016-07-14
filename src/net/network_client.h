@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <enet/enet.h>
 #include <common/network_interface.h>
+#include <bx/bx.h>
 
 namespace arena
 {
@@ -16,6 +17,29 @@ namespace arena
             SendingConnectionRequest,
             Count,
         };
+    };
+
+    struct LobbyState
+    {
+        enum Enum
+        {
+            NotInLobby,
+            SendingCreateLobby,
+            JoiningLobby,
+            SendingQueryLobbies,
+            Count
+        };
+    };
+
+    struct BX_NO_VTABLE LobbyListener
+    {
+        virtual ~LobbyListener() = 0;
+        virtual void onLobbyList() = 0;
+    };
+
+    struct Lobby
+    {
+        std::string name;
     };
 
     class NetworkClient
@@ -44,6 +68,12 @@ namespace arena
         void processClientSidePackets(Packet* packet, ENetPeer* from, double timestamp);
 
         void sendPacketToServer(Packet* packet, double timestamp);
+
+        void createLobby(const char* name, double timestamp);
+
+        void queryLobbies(double timestamp);
+
+        void sendMatchMakingPackets(double timestamp);
     private:
         void reset();
 
@@ -52,6 +82,8 @@ namespace arena
         ENetPeer* m_peer;
 
         ClientState::Enum m_state;
+        LobbyState::Enum m_lobbyState;
+
 
         ENetAddress m_serverAddress;
         // time we last sent a packet
@@ -65,5 +97,7 @@ namespace arena
 
         // got from server after auth
         uint64_t m_challengeSalt;
+
+        Lobby m_currentLobby;
     };
 }

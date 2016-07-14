@@ -54,6 +54,7 @@ namespace arena
         if (s_client->isConnecting()) return;
 
         s_client->connect("localhost", uint16_t(8088), s_stamp);
+        s_client->createLobby("perkele", s_stamp);
     }
 
     static void disconnect(const void*)
@@ -80,6 +81,7 @@ namespace arena
 	{
         s_stamp = gameTime.m_total;
 
+        s_client->sendMatchMakingPackets(gameTime.m_total);
         s_client->sendProtocolPackets(gameTime.m_total);
 
         s_client->writePackets();

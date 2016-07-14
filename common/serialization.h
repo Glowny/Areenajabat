@@ -68,25 +68,6 @@ namespace arena
         {
             return stream.serializeBytes(data, bytes);
         }
-
-        template <typename Stream>
-        inline bool serializeString(Stream& stream, char* string, uint32_t bufferSize)
-        {
-            uint32_t len;
-            if (Stream::IsWriting)
-            {
-                len = (uint32_t)strlen(string);
-                ARENA_ASSERT(len < bufferSize - 1, "Out of bounds");
-            }
-            serialize_int(stream, len, 0, bufferSize - 1);
-            serialize_bytes(stream, (uint8_t)string, len);
-            if (Stream::IsReading)
-            {
-                string[len] = '\0';
-            }
-
-            return true;
-        }
     }
 }
 
@@ -166,6 +147,32 @@ namespace arena
             return false;                                                                               \
         }                                                                                               \
     } while (0)
+
+
+namespace arena
+{
+    namespace detail
+    {
+        template <typename Stream>
+        inline bool serializeString(Stream& stream, char* string, uint32_t bufferSize)
+        {
+            uint32_t len;
+            if (Stream::IsWriting)
+            {
+                len = (uint32_t)strlen(string);
+                ARENA_ASSERT(len < bufferSize - 1, "Out of bounds");
+            }
+            serialize_int(stream, len, 0, bufferSize - 1);
+            serialize_bytes(stream, (uint8_t*)string, len);
+            if (Stream::IsReading)
+            {
+                string[len] = '\0';
+            }
+
+            return true;
+        }
+    }
+}
 
 #define serialize_string(stream, string, bufferSize)                                                    \
     do                                                                                                  \

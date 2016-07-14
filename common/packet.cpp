@@ -20,6 +20,16 @@ namespace arena
             return new ConnectionKeepAlivePacket;
         case PacketTypes::Disconnect:
             return new ConnectionDisconnectPacket;
+
+            // master
+
+        case PacketTypes::MasterCreateLobby:
+            return new CreateLobbyPacket;
+        case PacketTypes::MasterJoinLobby:
+            return new JoinLobbyPacket;
+        case PacketTypes::MasterListLobbies:
+            return new ListLobbiesPacket;
+
 		case PacketTypes::GameSetup:
 			return new GameSetupPacket;
 		case PacketTypes::GameUpdate:

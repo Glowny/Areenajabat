@@ -299,7 +299,7 @@ namespace arena
 
     struct CreateLobbyPacket : public Packet
     {
-        const uint32_t MaxNameLen = 64;
+        static const uint32_t MaxNameLen = 64;
 
         uint64_t m_clientSalt; // the sender id
         char m_name[64];
@@ -307,7 +307,7 @@ namespace arena
         CreateLobbyPacket() :
             m_clientSalt(0)
         {
-
+            memset(m_name, 0, sizeof(m_name));
         }
 
         virtual ~CreateLobbyPacket() {}
@@ -316,6 +316,7 @@ namespace arena
         bool serialize(Stream& stream)
         {
             serialize_uint64(stream, m_clientSalt);
+            serialize_string(stream, m_name, MaxNameLen);
             return true;
         }
 
@@ -360,6 +361,44 @@ namespace arena
         virtual int32_t getType() const override
         {
             return PacketTypes::MasterJoinLobby;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct ListLobbiesPacket : public Packet
+    {
+        uint64_t m_clientSalt; // the sender id
+        uint64_t m_challengeSalt;
+
+        ListLobbiesPacket() :
+            m_clientSalt(0),
+            m_challengeSalt(0)
+        {
+
+        }
+
+        virtual ~ListLobbiesPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::MasterListLobbies;
         }
 
         bool serializeWrite(WriteStream& stream) override
