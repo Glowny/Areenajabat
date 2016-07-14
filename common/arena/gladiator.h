@@ -1,4 +1,8 @@
 #pragma once
+#include "weapons.h"
+namespace arena
+{
+
 struct Gladiator
 {
 	Gladiator() { m_alive = true; m_hitpoints = 100; }
@@ -10,3 +14,4 @@ struct Gladiator
 	int m_hitpoints;
 	bool m_alive;
 };
+}

@@ -2,6 +2,7 @@
 #include <common/arena/weapons.h>
 #include <common/arena/gladiator.h>
 #include <common/arena/playerController.h>
+#include <common/arena/scoreboard.h>
 
 using namespace arena;
 

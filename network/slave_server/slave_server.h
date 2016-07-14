@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/arena/game_map.h"
 #include "common/arena/physics.h"
 #include "common/arena/arena_packet.h"
 #include <queue>
@@ -9,12 +8,14 @@
 
 #include "common/forward_declare.h"
 #include "common/types.h"
-
+#include <common/arena/game_map.h>
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 #define TIMESTEP 0.016f
 
 namespace arena
 {
+
+	struct ArenaPlatform;
 	struct Weapon;
 	struct PlayerController;
 	struct Gladiator;

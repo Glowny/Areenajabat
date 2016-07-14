@@ -1,6 +1,9 @@
 #pragma once
 #include <vector>
+#include <glm/vec2.hpp>
 
+#define GLADIUSIMPULSE 100.0f
+#define SHOTGUNIMPULSE 100.0f
 namespace arena
 {
 	enum WeaponType
