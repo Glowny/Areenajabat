@@ -35,8 +35,10 @@ namespace arena
 
         uint32_t getTotalBytes() const;
 
-    private:
+
         bx::Error m_error;
+    private:
+        
         BitWriter m_writer;
     };
 }

@@ -17,9 +17,14 @@ namespace arena
             KeepAlive,
             Disconnect, 
 
+            // Client --> server
             MasterCreateLobby,
+            // Client --> server
             MasterJoinLobby,
+            // Client --> server
             MasterListLobbies,
+            // Server --> Client
+            LobbyResultPacket,
 
 			// Game packets.
 			// Server --> Client.
@@ -377,11 +382,9 @@ namespace arena
     struct ListLobbiesPacket : public Packet
     {
         uint64_t m_clientSalt; // the sender id
-        uint64_t m_challengeSalt;
 
         ListLobbiesPacket() :
-            m_clientSalt(0),
-            m_challengeSalt(0)
+            m_clientSalt(0)
         {
 
         }
@@ -392,13 +395,51 @@ namespace arena
         bool serialize(Stream& stream)
         {
             serialize_uint64(stream, m_clientSalt);
-            serialize_uint64(stream, m_challengeSalt);
             return true;
         }
 
         virtual int32_t getType() const override
         {
             return PacketTypes::MasterListLobbies;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct LobbyResultPacket : public Packet
+    {
+        uint64_t m_clientSalt; // the sender id
+        int32_t m_created;
+
+        LobbyResultPacket() :
+            m_clientSalt(0),
+            m_created(false)
+        {
+            //memset(m_reason, 0, sizeof(m_reason));
+        }
+
+        virtual ~LobbyResultPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_int(stream, m_created, 0, 1);
+
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::LobbyResultPacket;
         }
 
         bool serializeWrite(WriteStream& stream) override

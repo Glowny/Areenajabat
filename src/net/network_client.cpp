@@ -13,6 +13,7 @@ namespace arena
 
 
     const double CreateLobbySendRate = 0.5;
+    const double QueryLobbiesSendRate = 0.5;
 
     NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
@@ -65,6 +66,26 @@ namespace arena
         return m_state == ClientState::SendingConnectionRequest || m_state == ClientState::SendingAuthResponse;
     }
 
+    void NetworkClient::processMatchmakingPackets(Packet* packet, ENetPeer* from, double timestamp)
+    {
+        BX_UNUSED(from, timestamp);
+        switch (packet->getType())
+        {
+        case PacketTypes::LobbyResultPacket:
+        {
+            LobbyResultPacket* cast = (LobbyResultPacket*)packet;
+
+            if (cast->m_created)
+            {
+                m_lobbyState = LobbyState::JoiningLobby;
+            }
+            else
+            {
+                fprintf(stderr, "Failed to create lobby\n");
+            }
+        }
+        }
+    }
 
     void NetworkClient::sendMatchMakingPackets(double timestamp)
     {
@@ -80,6 +101,14 @@ namespace arena
                 sendPacketToServer(packet, timestamp);
             }
             break;
+        case LobbyState::SendingQueryLobbies:
+            if (m_lastPacketSendTime + QueryLobbiesSendRate > timestamp)
+            {
+                fprintf(stderr, "Sending query lobbies\n");
+                ListLobbiesPacket* packet = (ListLobbiesPacket*)createPacket(PacketTypes::MasterListLobbies);
+                packet->m_clientSalt = m_clientSalt;
+                sendPacketToServer(packet, timestamp);
+            }
         default:
             //fprintf(stderr, "LobbyState: %d not implemented", m_lobbyState);
             break;
@@ -88,6 +117,8 @@ namespace arena
 
     void NetworkClient::sendProtocolPackets(double timestamp)
     {
+        if (m_lobbyState != LobbyState::InLobby) return;
+
         switch (m_state)
         {
             // let this be the first one, so minimium amount of branching

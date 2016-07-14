@@ -26,6 +26,7 @@ namespace arena
             NotInLobby,
             SendingCreateLobby,
             JoiningLobby,
+            InLobby,
             SendingQueryLobbies,
             Count
         };
@@ -66,6 +67,8 @@ namespace arena
 
         // process pings disconnects and connects
         void processClientSidePackets(Packet* packet, ENetPeer* from, double timestamp);
+
+        void processMatchmakingPackets(Packet* packet, ENetPeer* from, double timestamp);
 
         void sendPacketToServer(Packet* packet, double timestamp);
 

@@ -29,6 +29,9 @@ namespace arena
             return new JoinLobbyPacket;
         case PacketTypes::MasterListLobbies:
             return new ListLobbiesPacket;
+        case PacketTypes::LobbyResultPacket:
+            return new LobbyResultPacket;
+
 
 		case PacketTypes::GameSetup:
 			return new GameSetupPacket;

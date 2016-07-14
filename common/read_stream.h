@@ -37,9 +37,11 @@ namespace arena
         uint32_t getBytesProcessed() const;
 
         uint32_t getBytesRead() const;
+
+        bx::Error m_error;
     private:
         BitReader m_reader;
         uint32_t m_bitsRead;
-        bx::Error m_error;
+        
     };
 }

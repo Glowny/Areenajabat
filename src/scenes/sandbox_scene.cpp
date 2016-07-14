@@ -98,7 +98,7 @@ namespace arena
             }
             else
             {
-
+                s_client->processMatchmakingPackets(packet, from, gameTime.m_total);
             }
 
             destroyPacket(packet);

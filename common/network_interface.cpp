@@ -102,6 +102,8 @@ namespace arena
         entry.m_packet = packet;
         entry.m_peer = from;
 
+        ARENA_ASSERT(stream.m_error.isOk(), "serialization error: %d", stream.m_error.get().code);
+
         m_receiveQueue.push(entry);
 
         enet_packet_destroy(enetPacket);
@@ -164,6 +166,7 @@ namespace arena
             //enet_host_flush(m_socket);
 
             //enet_packet_destroy(out);
+            ARENA_ASSERT(stream.m_error.isOk(), "serialization error: %d", stream.m_error.get().code);
 
             destroyPacket(packet);
         }

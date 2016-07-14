@@ -140,8 +140,11 @@ namespace arena
 
             fprintf(stderr, "Created new slave (salt = %" PRIx64 ") (index = %" PRIu32 ")\n", m_lobbySalts[lobbyIndex], lobbyIndex);
 
-            //CreateLobbyPacket* response = (CreateLobbyPacket*)createPacket(PacketTypes::MasterCreateLobby);
-            //response->
+            LobbyResultPacket* response = (LobbyResultPacket*)createPacket(PacketTypes::LobbyResultPacket);
+            response->m_created = true;
+            
+            // todo if dc
+            m_networkInterface->sendPacket(from, response);
         }
     }
 
