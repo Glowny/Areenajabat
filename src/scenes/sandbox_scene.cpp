@@ -73,11 +73,11 @@ namespace arena
         INPUT_BINDING_END
     };
 
-	SandboxSecene::SandboxSecene() : Scene("sandbox")
+	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 	}
 
-	void SandboxSecene::onUpdate(const GameTime& gameTime)
+	void SandboxScene::onUpdate(const GameTime& gameTime)
 	{
         s_stamp = gameTime.m_total;
 
@@ -139,7 +139,7 @@ namespace arena
         App::instance().spriteBatch()->submit(0);
 	}
 
-	void SandboxSecene::onInitialize()
+	void SandboxScene::onInitialize()
 	{
         s_client = new NetworkClient(uint16_t(13337));
 		EntityBuilder builder;
@@ -174,7 +174,7 @@ namespace arena
 
         inputAddBindings("player", s_bindings);
 	}
-	void SandboxSecene::onDestroy()
+	void SandboxScene::onDestroy()
 	{
         inputRemoveBindings("player");
 	}
