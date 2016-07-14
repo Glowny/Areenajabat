@@ -29,6 +29,7 @@
 #include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
 #include <common/packet.h>
+#include <common/arena/gladiator.h>
 
 namespace arena
 {
@@ -77,8 +78,8 @@ namespace arena
 	{
 	}
 
-	void SandboxScene::onUpdate(const GameTime& gameTime)
-	{
+    void SandboxScene::onUpdate(const GameTime& gameTime)
+    {
         s_stamp = gameTime.m_total;
 
         s_client->sendMatchMakingPackets(gameTime.m_total);
@@ -99,6 +100,65 @@ namespace arena
             else
             {
                 s_client->processMatchmakingPackets(packet, from, gameTime.m_total);
+
+                switch (packet->getType())
+                {
+                case PacketTypes::GameSetup:
+                {
+                    GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
+                    m_playerId = setupPacket->m_clientSalt;
+                    createGladiators(setupPacket->m_playerAmount);
+                    for (unsigned i = 0; i < setupPacket->m_playerAmount; i++)
+                    {
+                        m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
+                    }
+                    break;
+                }
+                case PacketTypes::GameUpdate:
+                {
+                    updateGladiators((GameUpdatePacket*)packet);
+                    break;
+                }
+                case PacketTypes::GamePlatform:
+                {
+                    createPlatform((GamePlaformPacket*)packet);
+                    break;
+                }
+                case PacketTypes::GameSpawnBullets:
+                {
+                    spawnBullets((GameSpawnBulletsPacket*)packet);
+                    break;
+                }
+                case PacketTypes::GameBulletHit:
+                {
+                    spawnBulletHits((GameBulletHitPacket*)packet);
+                    break;
+                }
+                case PacketTypes::GameDamagePlayer:
+                {
+                    damagePlayer((GameDamagePlayerPacket*)packet);
+                    break;
+                }
+                case PacketTypes::GameKillPlayer:
+                {
+                    killPlayer((GameKillPlayerPacket*)packet);
+                    break;
+                }
+                case PacketTypes::GameRespawnPlayer:
+                {
+                    respawnPlayer((GameRespawnPlayerPacket*)packet);
+                    break;
+                }
+                case PacketTypes::GameUpdateScoreBoard:
+                {
+                    GameUpdateScoreBoard((GameUpdateScoreBoardPacket*)packet);
+                    break;
+                }
+                default:
+                {
+                    printf("Unknown packet type received on sandbox_scene\n");
+                }
+                }
             }
 
             destroyPacket(packet);
@@ -118,7 +178,7 @@ namespace arena
 
         SpriteManager::instance().update(gameTime);
         AnimatorManager::instance().update(gameTime);
-        
+
         const MouseState& mouse = Mouse::getState();
 
         glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
@@ -137,7 +197,7 @@ namespace arena
         bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
 
         App::instance().spriteBatch()->submit(0);
-	}
+    }
 
 	void SandboxScene::onInitialize()
 	{
@@ -176,6 +236,90 @@ namespace arena
 	}
 	void SandboxScene::onDestroy()
 	{
-        inputRemoveBindings("player");
+		inputRemoveBindings("player");
 	}
+	
+	void SandboxScene::createGladiators(unsigned amount)
+	{
+		for (unsigned i = 0; i < amount; i++)
+		{
+			Gladiator* gladiator = new Gladiator();
+			gladiator->m_alive = true;
+			gladiator->m_hitpoints = 100;
+			gladiator->m_position = glm::vec2(0, 0);
+			gladiator->m_rotation = 0;
+			Weapon* weapon = new WeaponGladius();
+			gladiator->m_weapon = weapon;
+
+		}
+	}
+	void SandboxScene::createPlatform(GamePlaformPacket* packet)
+	{
+		ArenaPlatform platform;
+		platform.type = (ArenaPlatformType)packet->m_platform.m_type;
+		for (unsigned i = 0; i < packet->m_platform.m_vertexAmount; i++)
+		{
+			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
+		}
+		m_platformVector.push_back(platform);
+	}
+	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
+	{
+		if (m_gladiatorVector.size() != packet->m_playerAmount)
+			printf("DIFFERENT AMOUNT OF GLADIATORS ON UPDATEPACKAGE\n");
+		for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+		{
+			m_gladiatorVector[i]->m_position = packet->m_characterArray[i].m_position;
+			m_gladiatorVector[i]->m_velocity = packet->m_characterArray[i].m_velocity;
+			m_gladiatorVector[i]->m_rotation = packet->m_characterArray[i].m_rotation;
+		}
+	}
+	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
+	{
+		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
+		{
+			Bullet bullet;
+			bullet.m_position = packet->m_bulletSpawnArray[i].m_position;
+			bullet.m_type = (BulletType)packet->m_bulletSpawnArray[i].m_type;
+			bullet.m_creationDelay = packet->m_bulletSpawnArray[i].m_creationDelay;
+			bullet.m_rotation = packet->m_bulletSpawnArray[i].m_rotation;
+			m_spawnBulletVector.push_back(bullet);
+		}
+	}
+	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
+	{
+		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
+		{
+			Bullet bullet;
+			bullet.m_position = packet->bulletHitArray[i].m_position;
+			bullet.m_type = (BulletType)packet->bulletHitArray[i].m_type;
+			bullet.m_rotation = packet->bulletHitArray[i].m_rotation;
+			m_bulletHitVector.push_back(bullet);
+		}
+
+	}
+	void SandboxScene::damagePlayer(GameDamagePlayerPacket* packet)
+	{
+		m_gladiatorVector[packet->m_targetID]->m_hitpoints -= packet->m_damageAmount;
+	}
+	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
+	{
+		m_gladiatorVector[packet->m_playerID]->m_hitpoints = 0;
+		m_gladiatorVector[packet->m_playerID]->m_alive = false;
+	}
+	void SandboxScene::respawnPlayer(GameRespawnPlayerPacket* packet)
+	{
+		m_gladiatorVector[packet->m_playerID]->m_hitpoints = 100;
+		m_gladiatorVector[packet->m_playerID]->m_alive = true;
+	}
+	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet)
+	{
+		m_scoreboard.m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
+		for (unsigned i = 0; i < packet->m_playerAmount; i++)
+		{
+			m_scoreboard.m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
+			m_scoreboard.m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+		}
+	}
+	
 }

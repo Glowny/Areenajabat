@@ -37,7 +37,7 @@ namespace arena
 		void damagePlayer(GameDamagePlayerPacket* packet);
 		void killPlayer(GameKillPlayerPacket* packet);
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
-		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket packet);
+		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
 
 		std::vector<Gladiator*> m_gladiatorVector;
 		std::vector<ArenaPlatform> m_platformVector;
