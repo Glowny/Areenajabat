@@ -109,49 +109,50 @@ namespace arena
 					GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
 					m_playerId = setupPacket->m_clientSalt;
 					createGladiators(setupPacket->m_playerAmount);
+					for (unsigned i = 0; i < setupPacket->m_playerAmount; i++)
+					{
+						m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
+					}
 					break;
 				}
 				case PacketTypes::GameUpdate:
 				{
-					GameUpdatePacket* updatePacket = (GameUpdatePacket*)packet;
-					updateGladiators(updatePacket);
+					updateGladiators((GameUpdatePacket*)packet);
 					break;
 				}
 				case PacketTypes::GamePlatform:
 				{
-					GamePlaformPacket* platformPacket = (GamePlaformPacket*)packet;
-					createPlatform(platformPacket);
+					createPlatform((GamePlaformPacket*)packet);
 					break;
 				}
 				case PacketTypes::GameSpawnBullets:
 				{
-					GameSpawnBulletsPacket* bulletPacket = (GameSpawnBulletsPacket*)packet;
-					spawnBullets(bulletPacket);
+					spawnBullets((GameSpawnBulletsPacket*)packet);
 					break;
 				}
 				case PacketTypes::GameBulletHit:
 				{
-
+					spawnBulletHits((GameBulletHitPacket*)packet);
 					break;
 				}
 				case PacketTypes::GameDamagePlayer:
 				{
-
+					damagePlayer((GameDamagePlayerPacket*)packet);
 					break;
 				}
 				case PacketTypes::GameKillPlayer:
 				{
-
+					killPlayer((GameKillPlayerPacket*)packet);
 					break;
 				}
 				case PacketTypes::GameRespawnPlayer:
 				{
-
+					respawnPlayer((GameRespawnPlayerPacket*)packet);
 					break;
 				}
 				case PacketTypes::GameUpdateScoreBoard:
 				{
-
+					GameUpdateScoreBoard((GameUpdateScoreBoardPacket*)packet);
 					break;
 				}
 				default:
@@ -238,7 +239,7 @@ namespace arena
 	{
 		inputRemoveBindings("player");
 	}
-
+	
 	void SandboxScene::createGladiators(unsigned amount)
 	{
 		for (unsigned i = 0; i < amount; i++)
@@ -253,7 +254,6 @@ namespace arena
 
 		}
 	}
-
 	void SandboxScene::createPlatform(GamePlaformPacket* packet)
 	{
 		ArenaPlatform platform;
@@ -264,7 +264,6 @@ namespace arena
 		}
 		m_platformVector.push_back(platform);
 	}
-
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
 		if (m_gladiatorVector.size() != packet->m_playerAmount)
@@ -276,7 +275,6 @@ namespace arena
 			m_gladiatorVector[i]->m_rotation = packet->m_characterArray[i].m_rotation;
 		}
 	}
-
 	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
 	{
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
@@ -305,21 +303,24 @@ namespace arena
 	{
 		m_gladiatorVector[packet->m_targetID]->m_hitpoints -= packet->m_damageAmount;
 	}
-
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{
 		m_gladiatorVector[packet->m_playerID]->m_hitpoints = 0;
 		m_gladiatorVector[packet->m_playerID]->m_alive = false;
 	}
-
 	void SandboxScene::respawnPlayer(GameRespawnPlayerPacket* packet)
 	{
 		m_gladiatorVector[packet->m_playerID]->m_hitpoints = 100;
 		m_gladiatorVector[packet->m_playerID]->m_alive = true;
 	}
-	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket packet)
+	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
-
-
+		m_scoreboard.m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
+		for (unsigned i = 0; i < packet->m_playerAmount; i++)
+		{
+			m_scoreboard.m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
+			m_scoreboard.m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+		}
 	}
+	
 }
