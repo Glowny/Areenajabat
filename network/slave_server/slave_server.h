@@ -54,7 +54,7 @@ namespace arena
 	class SlaveServer final
 	{
 	public:
-		SlaveServer(const uint32 address, const uint32 port);
+		SlaveServer();
 		~SlaveServer();
 
 		void addPlayer(uint64_t salt);
@@ -70,7 +70,7 @@ namespace arena
 		std::queue<Packet*> *m_inPacketQueue;
 		std::queue<Packet*> *m_outPacketQueue;
 	private:
-		Server* const m_instance;
+		
 
 		// Access player data by network id.
 		std::map<unsigned, Player*> m_playerMap;

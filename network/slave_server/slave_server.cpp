@@ -3,6 +3,10 @@
 using namespace arena;
 
 
+SlaveServer::SlaveServer()
+{
+}
+
 void SlaveServer::addPlayer(uint64_t salt)
 {
 	Player* player = new Player();

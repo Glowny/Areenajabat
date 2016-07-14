@@ -3,6 +3,7 @@
 #include "../server.h"
 #include "../slave_server/slave_server.h"
 #include <unordered_map>
+#include <vector>
 
 namespace arena
 {
@@ -24,7 +25,7 @@ namespace arena
 	class MasterServer final
 	{
         // number of server networks and slaves to be created
-        const static uint32_t MaxSlaves = 4;
+        const static uint32_t MaxGameInstances = 10;
 	public:
 		MasterServer();
 
@@ -34,13 +35,18 @@ namespace arena
 
         void update();
     private:
+        void processCreateLobbyPacket(CreateLobbyPacket* packet, ENetPeer* from, double timestamp);
+        void processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp);
 
         std::unordered_map<uint64_t, SlaveServer*> m_serverLookup;
 
         // this is shared accross all servers
         NetworkInterface* m_networkInterface;
 
-        Server m_servers[MaxSlaves];
-        SlaveServer m_slaves[MaxSlaves];
+        std::vector<SlaveServer*> m_gameInstances;
+        uint64_t m_instanceCreatedBy[MaxGameInstances];
+        uint64_t m_lobbySalts[MaxGameInstances];
+
+        bool m_running;
 	};
 }

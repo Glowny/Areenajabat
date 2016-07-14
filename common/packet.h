@@ -17,6 +17,10 @@ namespace arena
             KeepAlive,
             Disconnect, 
 
+            MasterCreateLobby,
+            MasterJoinLobby,
+            MasterListLobbies,
+
 			// Game packets.
 			// Server --> Client.
 			GameSetup,
@@ -280,6 +284,82 @@ namespace arena
         virtual int32_t getType() const override
         {
             return PacketTypes::Disconnect;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct CreateLobbyPacket : public Packet
+    {
+        const uint32_t MaxNameLen = 64;
+
+        uint64_t m_clientSalt; // the sender id
+        char m_name[64];
+
+        CreateLobbyPacket() :
+            m_clientSalt(0)
+        {
+
+        }
+
+        virtual ~CreateLobbyPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::MasterCreateLobby;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct JoinLobbyPacket : public Packet
+    {
+        uint64_t m_clientSalt; // the sender id
+        uint64_t m_challengeSalt;
+
+        JoinLobbyPacket() :
+            m_clientSalt(0),
+            m_challengeSalt(0)
+        {
+
+        }
+
+        virtual ~JoinLobbyPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::MasterJoinLobby;
         }
 
         bool serializeWrite(WriteStream& stream) override

@@ -7,7 +7,7 @@
 
 namespace arena
 {
-    uint64_t genSalt()
+    inline uint64_t genSalt()
     {
         return  ((uint64_t(rand()) << 0) & 0x000000000000FFFFull)  |
                 ((uint64_t(rand()) << 16) & 0x00000000FFFF0000ull) |
@@ -15,7 +15,7 @@ namespace arena
                 ((uint64_t(rand()) << 48) & 0xFFFF000000000000ull);
     }
 
-    uint64_t murmur_hash_64(const void * key, uint32_t length, uint64_t seed)
+    inline uint64_t murmur_hash_64(const void * key, uint32_t length, uint64_t seed)
     {
         const uint64_t m = 0xc6a4a7935bd1e995ULL;
         const uint32_t r = 47;
@@ -68,7 +68,7 @@ namespace arena
         return h;
     }
 
-    uint64_t calculateChallengeHash(ENetPeer* peer, uint64_t clientSalt, uint64_t serverSeed)
+    inline uint64_t calculateChallengeHash(ENetPeer* peer, uint64_t clientSalt, uint64_t serverSeed)
     {
         char addressString[256];
         enet_address_get_host_ip(&peer->address, addressString, sizeof(addressString));
