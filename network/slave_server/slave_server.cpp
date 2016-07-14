@@ -1,7 +1,9 @@
 #include "slave_server.h"
 #include <common/arena/weapons.h>
-using namespace arena;
+#include <common/arena/gladiator.h>
+#include <common/arena/playerController.h>
 
+using namespace arena;
 
 void SlaveServer::addPlayer(uint64_t salt)
 {

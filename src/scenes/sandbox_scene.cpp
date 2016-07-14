@@ -28,8 +28,8 @@
 #include "../input/event.h"
 #include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
-#include <common/packet.h>
-
+#include <common\packet.h>
+#include <common\arena\arena_packet.h>
 namespace arena
 {
     static double s_stamp = 0.0;
@@ -96,7 +96,59 @@ namespace arena
             }
             else
             {
+				switch (packet->getType())
+				{
+				case PacketTypes::GameSetup:
+				{
+					GameSetupPacket* setupPacket =(GameSetupPacket*)packet;
+					
+					break;
+				}
+				case PacketTypes::GameUpdate:
+				{
+				
+					break;
+				}
+				case PacketTypes::GamePlatform:
+				{
+				
+					break;
+				}
+				case PacketTypes::GameSpawnBullets:
+				{
+				
+					break;
+				}
+				case PacketTypes::GameBulletHit:
+				{
+				
+					break;
+				}
+				case PacketTypes::GameDamagePlayer:
+				{
+				
+					break;
+				}
+				case PacketTypes::GameKillPlayer:
+				{
+				
+					break;
+				}
+				case PacketTypes::GameRespawnPlayer:
+				{
+				
+					break;
+				}
+				case PacketTypes::GameUpdateScoreBoard:
+				{
 
+					break;
+				}
+				default:
+				{
+					printf("Unknown packet type received on sandbox_scene\n");
+				}
+				}
             }
 
             destroyPacket(packet);

@@ -2,6 +2,8 @@
 
 #include "scene.h"
 #include <queue>
+#include "common\arena\game_map.h"
+#include "common\arena\weapons.h"
 
 struct Message;
 namespace arena
