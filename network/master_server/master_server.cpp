@@ -137,6 +137,7 @@ namespace arena
             const uint32_t lobbyIndex = m_gameInstances.size() - 1;
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
             m_lobbySalts[lobbyIndex] = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
+            m_lobbyNames[lobbyIndex] = std::string(packet->m_name);
 
             fprintf(stderr, "Created new slave (salt = %" PRIx64 ") (index = %" PRIu32 ")\n", m_lobbySalts[lobbyIndex], lobbyIndex);
 

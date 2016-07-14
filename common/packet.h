@@ -478,7 +478,7 @@ namespace arena
             serialize_uint64(stream, m_clientSalt);
             serialize_int(stream, m_lobbyCount, 0, MaxLobbyCount);
 
-            for (int32_t i = 0; m_lobbyCount; ++i)
+            for (int32_t i = 0; i < m_lobbyCount; ++i)
             {
                 serialize_uint64(stream, m_lobbySalt[i]);
             }

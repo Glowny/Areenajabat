@@ -13,13 +13,14 @@ namespace arena
 
 
     const double CreateLobbySendRate = 0.5;
-    const double QueryLobbiesSendRate = 0.5;
+    const double QueryLobbiesSendRate = 1.0;
 
     NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
         m_lastPacketReceivedTime(0), 
         m_lastPacketSendTime(0),
-        m_networkInterface(clientPort)
+        m_networkInterface(clientPort),
+        m_lobbyListener(nullptr)
     {
         reset();
     }
@@ -84,6 +85,16 @@ namespace arena
                 fprintf(stderr, "Failed to create lobby\n");
             }
         }
+        break;
+        case PacketTypes::LobbyQueryResultPacket:
+        {
+            LobbyQueryResultPacket* cast = (LobbyQueryResultPacket*)packet;
+
+            ARENA_ASSERT(m_lobbyListener != nullptr, "Lobby notifier is nullptr");
+
+            m_lobbyListener->onLobbyList(this, cast);
+        }
+        break;
         }
     }
 
@@ -102,7 +113,7 @@ namespace arena
             }
             break;
         case LobbyState::SendingQueryLobbies:
-            if (m_lastPacketSendTime + QueryLobbiesSendRate > timestamp)
+            if (m_lastPacketSendTime + QueryLobbiesSendRate < timestamp)
             {
                 fprintf(stderr, "Sending query lobbies\n");
                 ListLobbiesPacket* packet = (ListLobbiesPacket*)createPacket(PacketTypes::MasterListLobbies);
@@ -211,7 +222,7 @@ namespace arena
 
     void NetworkClient::createLobby(const char* name, double timestamp)
     {
-        if (m_lobbyState != LobbyState::NotInLobby) return;
+        //if (m_lobbyState != LobbyState::NotInLobby) return;
 
         uint32_t len = (uint32_t)strlen(name);
         ARENA_ASSERT(len < CreateLobbyPacket::MaxNameLen, "Max name length exceeded");
