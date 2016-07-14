@@ -52,6 +52,11 @@ namespace arena
             {
                 sender->createLobby("perkele", s_stamp);
             }
+            else
+            {
+                // as debug join the first one
+                sender->joinLobby(response->m_lobbySalt[0]);
+            }
         }
     };
 

@@ -345,11 +345,11 @@ namespace arena
     struct JoinLobbyPacket : public Packet
     {
         uint64_t m_clientSalt; // the sender id
-        uint64_t m_challengeSalt;
+        uint64_t m_lobbySalt; // which lobby to join
 
         JoinLobbyPacket() :
             m_clientSalt(0),
-            m_challengeSalt(0)
+            m_lobbySalt(0)
         {
 
         }
@@ -360,7 +360,7 @@ namespace arena
         bool serialize(Stream& stream)
         {
             serialize_uint64(stream, m_clientSalt);
-            serialize_uint64(stream, m_challengeSalt);
+            serialize_uint64(stream, m_lobbySalt);
             return true;
         }
 

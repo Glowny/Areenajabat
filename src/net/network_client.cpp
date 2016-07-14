@@ -75,10 +75,10 @@ namespace arena
         case PacketTypes::LobbyResultPacket:
         {
             LobbyResultPacket* cast = (LobbyResultPacket*)packet;
-
+            // todo listener
             if (cast->m_created)
             {
-                m_lobbyState = LobbyState::JoiningLobby;
+                m_lobbyState = LobbyState::SendingJoinLobby;
             }
             else
             {
@@ -242,6 +242,16 @@ namespace arena
         sendPacketToServer(packet, timestamp);
 
         m_lobbyState = LobbyState::SendingQueryLobbies;
+    }
+
+    void NetworkClient::joinLobby(uint64_t lobbySalt)
+    {
+        JoinLobbyPacket* packet = (JoinLobbyPacket*)createPacket(PacketTypes::MasterJoinLobby);
+        packet->m_clientSalt = m_clientSalt;
+        packet->m_lobbySalt = lobbySalt;
+        m_lobbyState = LobbyState::SendingJoinLobby;
+        // TODO
+        sendPacketToServer(packet, 0.0);
     }
 
     Packet* NetworkClient::receivePacket(ENetPeer*& from)

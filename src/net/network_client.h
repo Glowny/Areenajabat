@@ -25,7 +25,7 @@ namespace arena
         {
             NotInLobby,
             SendingCreateLobby,
-            JoiningLobby,
+            SendingJoinLobby,
             InLobby,
             SendingQueryLobbies,
             Count
@@ -81,6 +81,8 @@ namespace arena
         void sendMatchMakingPackets(double timestamp);
 
         LobbyListener* m_lobbyListener;
+
+        void joinLobby(uint64_t lobbySalt);
     private:
         void reset();
 
