@@ -55,7 +55,8 @@ namespace arena
         if (s_client->isConnecting()) return;
 
         s_client->connect("localhost", uint16_t(8088), s_stamp);
-        s_client->createLobby("perkele", s_stamp);
+        //s_client->createLobby("perkele", s_stamp);
+        s_client->queryLobbies(s_stamp);
     }
 
     static void disconnect(const void*)

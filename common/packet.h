@@ -25,7 +25,8 @@ namespace arena
             MasterListLobbies,
             // Server --> Client
             LobbyResultPacket,
-
+            // Server --> Client
+            LobbyQueryResultPacket,
 			// Game packets.
 			// Server --> Client.
 			GameSetup,
@@ -440,6 +441,58 @@ namespace arena
         virtual int32_t getType() const override
         {
             return PacketTypes::LobbyResultPacket;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct LobbyQueryResultPacket : public Packet
+    {
+        static const uint32_t MaxLobbyCount = 32;
+        uint64_t m_clientSalt; // the sender id
+        int32_t m_lobbyCount;
+        uint64_t m_lobbySalt[MaxLobbyCount];
+        char m_lobbynames[MaxLobbyCount][CreateLobbyPacket::MaxNameLen];
+
+        LobbyQueryResultPacket() :
+            m_clientSalt(0),
+            m_lobbyCount(0)
+        {
+            memset(m_lobbySalt, 0, sizeof(m_lobbySalt));
+            memset(m_lobbynames, 0, sizeof(m_lobbynames));
+        }
+
+        virtual ~LobbyQueryResultPacket() {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            serialize_int(stream, m_lobbyCount, 0, MaxLobbyCount);
+
+            for (int32_t i = 0; m_lobbyCount; ++i)
+            {
+                serialize_uint64(stream, m_lobbySalt[i]);
+            }
+            
+            for (int32_t i = 0; i < m_lobbyCount; ++i)
+            {
+                serialize_string(stream, m_lobbynames[i], CreateLobbyPacket::MaxNameLen);
+            }
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::LobbyQueryResultPacket;
         }
 
         bool serializeWrite(WriteStream& stream) override
