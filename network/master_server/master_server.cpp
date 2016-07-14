@@ -1,18 +1,25 @@
 #include "master_server.h"
 
-//TODO: Add map for finding correct server
-using namespace arena;
 
-void MasterServer::addPacketToQueue(unsigned slaveId, Packet* packet)
+namespace arena
 {
-	//TODO: When threads are implemented, add mutexes.
-	m_slaves[slaveId]->m_inPacketQueue->push(packet);
-}
+    void MasterServer::update()
+    {
+        ENetPeer* from;
+        Packet* pkg;
+        while ((pkg = m_networkInterface->receivePacket(from)) != nullptr)
+        {
+            if (pkg->getType() > PacketTypes::Disconnect)
+            {
+                //uint64_t clientSalt = *(uint64_t*)from->data;
+                //m_serverLookup[clientSalt]->
+            }
+            // matchmaker
+            else
+            {
+                
 
-Packet* MasterServer::getPacketFromQueue(unsigned slaveId)
-{
-	//TODO: When threads are implemented, add mutexes.
-	Packet* packet = m_slaves[slaveId]->m_outPacketQueue->front();
-	m_slaves[slaveId]->m_outPacketQueue->pop();
-	return packet;
+            }
+        }
+    }
 }
