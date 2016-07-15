@@ -419,9 +419,11 @@ namespace arena
     {
         uint64_t m_clientSalt; // the sender id
         int32_t m_created;
+        uint64_t m_lobbySalt;
 
         LobbyResultPacket() :
             m_clientSalt(0),
+            m_lobbySalt(0),
             m_created(false)
         {
             //memset(m_reason, 0, sizeof(m_reason));
@@ -435,6 +437,17 @@ namespace arena
             serialize_uint64(stream, m_clientSalt);
             serialize_int(stream, m_created, 0, 1);
 
+            if (m_created)
+            {
+                serialize_uint64(stream, m_lobbySalt);
+            }
+            else
+            {
+                if (Stream::IsReading)
+                {
+                    m_lobbySalt = 0;
+                }
+            }
             return true;
         }
 

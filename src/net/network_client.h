@@ -35,7 +35,8 @@ namespace arena
     struct BX_NO_VTABLE LobbyListener
     {
         virtual ~LobbyListener() = 0;
-        virtual void onLobbyList(class NetworkClient* sender, struct LobbyQueryResultPacket* response) = 0;
+        virtual void onLobbyList(class NetworkClient* sender, struct LobbyQueryResultPacket* response, double timestamp) = 0;
+        virtual void onLobbyCreationResult(class NetworkClient* sender, struct LobbyResultPacket* response, double timestamp) = 0;
     };
 
     inline LobbyListener::~LobbyListener() {}
@@ -82,7 +83,7 @@ namespace arena
 
         LobbyListener* m_lobbyListener;
 
-        void joinLobby(uint64_t lobbySalt);
+        void requestJoinLobby(uint64_t lobbySalt, double timestamp);
     private:
         void reset();
 

@@ -143,7 +143,17 @@ namespace arena
 
             LobbyResultPacket* response = (LobbyResultPacket*)createPacket(PacketTypes::LobbyResultPacket);
             response->m_created = true;
-            
+            response->m_lobbySalt = m_lobbySalts[lobbyIndex];
+
+            // todo if dc
+            m_networkInterface->sendPacket(from, response);
+        }
+        else
+        {
+            LobbyResultPacket* response = (LobbyResultPacket*)createPacket(PacketTypes::LobbyResultPacket);
+            response->m_created = false;
+            response->m_lobbySalt = 0;
+
             // todo if dc
             m_networkInterface->sendPacket(from, response);
         }

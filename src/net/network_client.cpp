@@ -69,30 +69,31 @@ namespace arena
 
     void NetworkClient::processMatchmakingPackets(Packet* packet, ENetPeer* from, double timestamp)
     {
+        // not from server
+        if (from->address.host != m_serverAddress.host) return;
+
         BX_UNUSED(from, timestamp);
         switch (packet->getType())
         {
         case PacketTypes::LobbyResultPacket:
         {
+            m_lobbyState = LobbyState::NotInLobby;
             LobbyResultPacket* cast = (LobbyResultPacket*)packet;
-            // todo listener
-            if (cast->m_created)
-            {
-                m_lobbyState = LobbyState::SendingJoinLobby;
-            }
-            else
-            {
-                fprintf(stderr, "Failed to create lobby\n");
-            }
+            
+            ARENA_ASSERT(m_lobbyListener != nullptr, "Lobby notifier is nullptr");
+
+            m_lobbyListener->onLobbyCreationResult(this, cast, timestamp);
         }
         break;
         case PacketTypes::LobbyQueryResultPacket:
         {
+            m_lobbyState = LobbyState::NotInLobby;
+
             LobbyQueryResultPacket* cast = (LobbyQueryResultPacket*)packet;
 
             ARENA_ASSERT(m_lobbyListener != nullptr, "Lobby notifier is nullptr");
 
-            m_lobbyListener->onLobbyList(this, cast);
+            m_lobbyListener->onLobbyList(this, cast, timestamp);
         }
         break;
         }
@@ -103,7 +104,7 @@ namespace arena
         switch (m_lobbyState)
         {
         case LobbyState::SendingCreateLobby:
-            if (m_lastPacketSendTime + CreateLobbySendRate > timestamp)
+            if (m_lastPacketSendTime + CreateLobbySendRate < timestamp)
             {
                 fprintf(stderr, "Sending create lobby, name %s\n", m_currentLobby.name.c_str());
                 CreateLobbyPacket* packet = (CreateLobbyPacket*)createPacket(PacketTypes::MasterCreateLobby);
@@ -244,14 +245,14 @@ namespace arena
         m_lobbyState = LobbyState::SendingQueryLobbies;
     }
 
-    void NetworkClient::joinLobby(uint64_t lobbySalt)
+    void NetworkClient::requestJoinLobby(uint64_t lobbySalt, double timestamp)
     {
         JoinLobbyPacket* packet = (JoinLobbyPacket*)createPacket(PacketTypes::MasterJoinLobby);
         packet->m_clientSalt = m_clientSalt;
         packet->m_lobbySalt = lobbySalt;
         m_lobbyState = LobbyState::SendingJoinLobby;
-        // TODO
-        sendPacketToServer(packet, 0.0);
+        
+        sendPacketToServer(packet, timestamp);
     }
 
     Packet* NetworkClient::receivePacket(ENetPeer*& from)
