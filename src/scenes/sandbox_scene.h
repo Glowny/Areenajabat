@@ -47,8 +47,23 @@ namespace arena
 		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
 
 		void sendInput(PlayerController &controller);
+		void sendShootEvent(float angle);
 
 		void createGladiator(glm::vec2 position);
+
+		// Create bullets shot by other players
+		void createBullet(Bullet bullet);
+
+		// Create real hits (debugging & adjusting)
+		void createHit(Bullet bullet);
+
+		// Create fake bullets when player shoots.
+		void createClientSideBullet(Bullet bullet);
+		// Create fake hits when bullets hit.
+		void createClientSideHit(Bullet bullet);
+
+		// Fake death or not?
+		void clientSideGladiatorDeath(unsigned id);
 
 		std::vector<GladiatorDrawData> m_gladiatorDrawDataVector;
 		std::vector<Gladiator*> m_gladiatorVector;
