@@ -21,9 +21,9 @@ namespace arena
 
     static const double PingTimeOut = 10.0;
 
-    Server::Server() :
+    Server::Server(std::vector<PacketEntry>* sendQueue) :
         m_clientsConnected(0),
-        m_networkInterface(nullptr)
+        m_sendQueue(sendQueue)
     {
         memset(m_clientPeers, 0, sizeof(m_clientPeers));
         memset(m_clientConnected, 0, sizeof(m_clientConnected));
@@ -40,42 +40,28 @@ namespace arena
 
     Server::~Server()
     {
-        delete m_networkInterface;
-        m_networkInterface = NULL;
+
     }
 
-    void Server::receivePackets(double timestamp)
+    void Server::processPacket(Packet* packet, ENetPeer* peer, double timestamp)
     {
-        while (true)
+        switch (packet->getType())
         {
-            ENetPeer* peer;
-            Packet* packet = m_networkInterface->receivePacket(peer);
-
-            if (packet == nullptr)
-            {
-                break;
-            }
-
-            switch (packet->getType())
-            {
-            case PacketTypes::ConnectionRequest:
-                processConnectionRequest((ConnectionRequestPacket*)packet, peer, timestamp);
-                break;
-            case PacketTypes::ConnectionResponse:
-                processConnectionResponse((ConnectionResponsePacket*)packet, peer, timestamp);
-                break;
-            case PacketTypes::KeepAlive:
-                processConnectionKeepAlive((ConnectionKeepAlivePacket*)packet, peer, timestamp);
-                break;
-            case PacketTypes::Disconnect:
-                processConnectionDisconnect((ConnectionDisconnectPacket*)packet, peer, timestamp);
-                break;
-            default:
-                fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
-                break;
-            }
-
-            destroyPacket(packet);
+        case PacketTypes::ConnectionRequest:
+            processConnectionRequest((ConnectionRequestPacket*)packet, peer, timestamp);
+            break;
+        case PacketTypes::ConnectionResponse:
+            processConnectionResponse((ConnectionResponsePacket*)packet, peer, timestamp);
+            break;
+        case PacketTypes::KeepAlive:
+            processConnectionKeepAlive((ConnectionKeepAlivePacket*)packet, peer, timestamp);
+            break;
+        case PacketTypes::Disconnect:
+            processConnectionDisconnect((ConnectionDisconnectPacket*)packet, peer, timestamp);
+            break;
+        default:
+            fprintf(stderr, "Got invalid packet of type %d (not implemented?)", packet->getType());
+            break;
         }
     }
 
@@ -133,7 +119,8 @@ namespace arena
         ARENA_ASSERT(m_clientConnected[clientIndex], "Client isn't connected");
         ARENA_ASSERT(packet != nullptr, "Packet can not be NULL");
         ARENA_ASSERT(m_clientPeers[clientIndex] != nullptr, "Peer can not be NULL");
-        m_networkInterface->sendPacket(m_clientPeers[clientIndex], packet);
+
+        m_sendQueue->push_back(PacketEntry{ m_clientPeers[clientIndex], packet });
         m_clientData[clientIndex].m_lastPacketSendTime = timestamp;
     }
 
@@ -176,7 +163,8 @@ namespace arena
             ConnectionDeniedPacket* denied = (ConnectionDeniedPacket*)createPacket(PacketTypes::ConnectionDenied);
             denied->m_clientSalt = packet->m_clientSalt;
             denied->m_reason = ConnectionDeniedPacket::ConnectionDeniedReason::ServerIsFull;
-            m_networkInterface->sendPacket(from, denied);
+            
+            m_sendQueue->push_back(PacketEntry{ from, denied });
         }
 
         else if (isConnected(packet->m_clientSalt, from))
@@ -187,7 +175,7 @@ namespace arena
             denied->m_clientSalt = packet->m_clientSalt;
             denied->m_reason = ConnectionDeniedPacket::ConnectionDeniedReason::AlreadyConnected;
 
-            m_networkInterface->sendPacket(from, denied);
+            m_sendQueue->push_back(PacketEntry{ from, denied });
         }
 
         ServerChallengeEntry* entry = findOrInsertChallenge(from, packet->m_clientSalt, timestamp);
@@ -207,7 +195,7 @@ namespace arena
             packet->m_clientSalt = entry->m_clientSalt;
             packet->m_challengeSalt = entry->m_challengeSalt;
             
-            m_networkInterface->sendPacket(from, packet);
+            m_sendQueue->push_back(PacketEntry{ from, packet });
 
             entry->m_lastSendTime = timestamp;
         }
@@ -378,95 +366,26 @@ namespace arena
         return false;
     }
 
-    void Server::start(const String& iniPath)
+    void Server::checkTimeout(double timestamp)
     {
-        const minIni Ini(iniPath);
-
-        // Init vars.
-        m_gameVars.read(Ini);
-
-        // Init host.
-        m_host = new GameHost(m_gameVars);
-        m_host->startSession();
-
-        m_networkInterface = new arena::NetworkInterface(uint16_t(m_gameVars.m_sv_port));
-
-        fprintf(stderr, "Accepting connections on port %" PRIu16 "\n", uint16_t(m_gameVars.m_sv_port));
-
-        int64_t lastTime = bx::getHPCounter();
-        double totalTime = 0.0;
-        while (true)
+        for (uint32_t i = 0; i < MaxClients; ++i)
         {
-            // More time stuff
-            int64_t currentTime = bx::getHPCounter();
-            const int64_t time = currentTime - lastTime;
-            lastTime = currentTime;
-            const double frequency = (double)bx::getHPFrequency();
-            // seconds
-            float lastDeltaTime = float(time * (1.0f / frequency));
-            totalTime += lastDeltaTime;
+            if (!m_clientConnected[i]) continue;
 
-            updateGameRules(float64(lastDeltaTime));
-
-            // sendPackets
-
-            // write data 
-            m_networkInterface->writePackets();
-
-            // dispatch writte packets and receive from client
-            ENetEvent event;
-            while (enet_host_service(m_networkInterface->m_socket, &event, 0) > 0)
+            if (m_clientData[i].m_lastPacketReceiveTime + PingTimeOut < timestamp)
             {
-                if (event.type == ENET_EVENT_TYPE_RECEIVE)
-                {
-                    // this call will enqueue serialized packet to queue
-                    m_networkInterface->readPacket(event.peer, event.packet);
-                }
-                else if (event.type == ENET_EVENT_TYPE_CONNECT)
-                {
-                    printf("ENET: connected\n");
-                }
-                else if (event.type == ENET_EVENT_TYPE_DISCONNECT)
-                {
-                    printf("ENET: diconnected\n");
-                    // hmmm we can't close the socket now so we need to implement new system...
-                    // because we dont know the clientSalt nor challenge
-                }
-            }
+                char buffer[256];
+                enet_address_get_host_ip(&m_clientPeers[i]->address, buffer, sizeof(buffer));
+                fprintf(stderr, "Client (idx = %" PRIu32 ") (address = %s) timed out, closing link", i, buffer);
 
-            
+                // disconnect nullifies this
+                ENetPeer* clientPeer = m_clientPeers[i];
 
-            // this call will process the received serialized packets queue
-            receivePackets(totalTime);
-
-            // timeout
-
-            for (uint32_t i = 0; i < MaxClients; ++i)
-            {
-                if (!m_clientConnected[i]) continue;
-
-                if (m_clientData[i].m_lastPacketReceiveTime + PingTimeOut < totalTime)
-                {
-                    char buffer[256];
-                    enet_address_get_host_ip(&m_clientPeers[i]->address, buffer, sizeof(buffer));
-                    fprintf(stderr, "Client (idx = %" PRIu32 ") (address = %s) timed out, closing link", i, buffer);
-
-                    // disconnect nullifies this
-                    ENetPeer* clientPeer = m_clientPeers[i];
-
-                    disconnectClient(i, totalTime);
-                    enet_peer_disconnect_later(clientPeer, 0);
-                }
+                disconnectClient(i, timestamp);
+                enet_peer_disconnect_later(clientPeer, 0);
             }
         }
     }
 
-    void Server::updateGameRules(const float64 dt)
-    {
-        if (m_host == nullptr)			return;
-        if (!m_host->isStateValid())	return;
-
-        m_host->tick(dt);
-    }
 }
 #endif

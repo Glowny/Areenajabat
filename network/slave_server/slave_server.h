@@ -2,6 +2,7 @@
 
 #include "common/arena/physics.h"
 #include "common/arena/arena_packet.h"
+#include "../server.h"
 #include <queue>
 #include <map>
 #include <bx/timer.h>
@@ -36,9 +37,13 @@ namespace arena
 
 	class SlaveServer final
 	{
+        // how many packets are reserved per frame
+        static const uint32_t InitialNetworkQueueSize = 256;
 	public:
 		SlaveServer();
 		~SlaveServer();
+
+        void initialize();
 
 		void addPlayer(uint64_t salt);
 
@@ -49,12 +54,25 @@ namespace arena
 		
 		bool returnToLobby();
 
+        void step();
 
 		std::queue<Packet*> *m_inPacketQueue;
 		std::queue<Packet*> *m_outPacketQueue;
-	private:
-		
 
+        // Master server routes the packet using this function call
+        // the packet must be freed eg destroyPackage() in this frame
+        void queueIncoming(Packet* packet, ENetPeer* from);
+	private:
+        // even these are vectors, the packets are sorted correctly 
+        // because the master will fill these
+        std::vector<PacketEntry> m_receiveQueue;
+        std::vector<PacketEntry> m_sendQueue;
+
+        // networking backend
+        Server m_server;
+
+        int64_t m_startTime;
+        double m_totalTime;
 		// Access player data by network id.
 		std::map<unsigned, Player*> m_playerMap;
 

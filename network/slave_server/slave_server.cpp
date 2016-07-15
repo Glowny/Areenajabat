@@ -7,8 +7,58 @@
 namespace arena
 {
 
-    SlaveServer::SlaveServer()
+    SlaveServer::SlaveServer() : 
+        m_startTime(0),
+        m_totalTime(0.0),
+        m_server(&m_sendQueue)
     {
+        m_receiveQueue.reserve(InitialNetworkQueueSize);
+        m_sendQueue.reserve(InitialNetworkQueueSize);
+    }
+
+    void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
+    {
+        m_sendQueue.push_back(PacketEntry{ from, packet });
+    }
+
+    void SlaveServer::initialize()
+    {
+        m_startTime = bx::getHPCounter();
+    }
+
+    void SlaveServer::step()
+    {
+        // More time stuff
+        int64_t currentTime = bx::getHPCounter();
+        const int64_t time = currentTime - m_startTime;
+        m_startTime = currentTime;
+        const double frequency = (double)bx::getHPFrequency();
+        // seconds
+        float lastDeltaTime = float(time * (1.0f / frequency));
+        m_totalTime += lastDeltaTime;
+
+        // incoming packets
+        for (PacketEntry& packetEntry : m_receiveQueue)
+        {
+            Packet* packet = packetEntry.m_packet;
+            ENetPeer* from = packetEntry.m_peer;
+
+            if (packet->getType() <= PacketTypes::Disconnect)
+            {
+                m_server.processPacket(packet, from, m_totalTime);
+            }
+            else
+            {
+                fprintf(stderr, "Not implemented packets %d\n", packet->getType());
+            }
+
+            destroyPacket(packet);
+        }
+
+        // let the disconnects happen if they happen
+        m_server.checkTimeout(m_totalTime);
+
+        // update physics and shit fill sendQueue
     }
 
     void SlaveServer::addPlayer(uint64_t salt)

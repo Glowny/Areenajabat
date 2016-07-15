@@ -111,7 +111,9 @@ namespace arena
 
                 fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
 
-                //m_gameInstances[lobbyIndex]->
+                ARENA_ASSERT(m_gameInstances[lobbyIndex] != nullptr, "The game instance %d is nullptr", lobbyIndex);
+
+                m_gameInstances[lobbyIndex]->queueIncoming(pkg, from);
 
                 // route packets to correct slaves
                 //fprintf(stderr, "Packet of type %d needs to be routed\n", pkg->getType());

@@ -76,10 +76,15 @@ namespace arena
     public:
         static const uint32_t MaxClients = 32;
 
-        Server();
+        Server(std::vector<PacketEntry>* sendQueue);
         ~Server();
-        void start(const String& iniPath);
+
+        void processPacket(Packet* packet, ENetPeer* peer, double timestamp);
+
+        void checkTimeout(double timestamp);
     private:
+        std::vector<PacketEntry>* m_sendQueue;
+
         // returns UINT32_MAX if not found
         uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
 
@@ -111,14 +116,6 @@ namespace arena
 
         void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
     private:
-		GameVars m_gameVars;
-
-		GameHost* m_host;
-
-		void updateGameRules(const float64 dt);
-
-        NetworkInterface* m_networkInterface;
-
         uint64_t m_serverSalt; // server salt
 
         ENetPeer* m_clientPeers[MaxClients]; // peers per client
