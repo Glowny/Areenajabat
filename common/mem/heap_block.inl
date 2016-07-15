@@ -5,9 +5,9 @@
 
 namespace arena
 {
-	HeapBlock::HeapBlock(const uint32 size, const Char* const handle) : m_size(size),
-																		m_address(ADDRESSOF(handle)),
-																		m_handle(handle)
+	HeapBlock::HeapBlock(const uint32 size, Char* const handle) : m_size(size),
+																  m_address(ADDRESSOF(handle)),
+																  m_handle(handle)
 	{
 	}
 	HeapBlock::HeapBlock(const HeapBlock& other) : m_size(other.m_size),

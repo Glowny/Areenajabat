@@ -8,6 +8,7 @@
 namespace arena
 {
     class NetworkInterface;
+    class Server;
 }
 
 
@@ -38,8 +39,12 @@ namespace arena
         void processCreateLobbyPacket(CreateLobbyPacket* packet, ENetPeer* from, double timestamp);
         void processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp);
         void processListLobbiesPacket(ListLobbiesPacket* packet, ENetPeer* from, double timestamp);
-        std::unordered_map<uint64_t, SlaveServer*> m_serverLookup;
 
+        // 
+        std::unordered_map<uint64_t, uint32_t> m_clientSaltToLobbyIndex;
+
+
+        std::unordered_map<uint64_t, uint32_t> m_lobbySaltToLobbyIndex;
         // this is shared accross all servers
         NetworkInterface* m_networkInterface;
 
