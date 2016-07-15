@@ -75,7 +75,7 @@ namespace arena
 
         void sendPacketToServer(Packet* packet, double timestamp);
 
-        void createLobby(const char* name, double timestamp);
+        void requestCreateLobby(const char* name, double timestamp);
 
         void queryLobbies(double timestamp);
 

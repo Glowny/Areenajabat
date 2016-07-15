@@ -50,7 +50,9 @@ namespace arena
 
             if (response->m_lobbyCount == 0)
             {
-                sender->createLobby("perkele", s_stamp);
+                static const char s_debugLobbyName[] = "perkele";
+                fprintf(stderr, "Requesting to create lobby \"%s\"\n", s_debugLobbyName);
+                sender->requestCreateLobby(s_debugLobbyName, s_stamp);
             }
             else
             {

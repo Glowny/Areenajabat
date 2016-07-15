@@ -221,7 +221,7 @@ namespace arena
         
     }
 
-    void NetworkClient::createLobby(const char* name, double timestamp)
+    void NetworkClient::requestCreateLobby(const char* name, double timestamp)
     {
         //if (m_lobbyState != LobbyState::NotInLobby) return;
 
