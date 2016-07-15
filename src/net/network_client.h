@@ -43,7 +43,9 @@ namespace arena
 
     struct Lobby
     {
+        Lobby() : salt(0) {}
         std::string name;
+        uint64_t salt;
     };
 
     class NetworkClient

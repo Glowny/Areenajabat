@@ -1,6 +1,7 @@
 #include "master_server.h"
 #include <bx/thread.h>
 #include <common/salt.h>
+#include <bx/thread.h>
 
 namespace arena
 {
@@ -92,16 +93,23 @@ namespace arena
                 // route packets to correct slaves
                 fprintf(stderr, "Packet of type %d needs to be routed\n", pkg->getType());
             }
-
-            // update
-
-
-            // get data from slaves
-            // ....
-
-            // write data 
-            m_networkInterface->writePackets();
         }
+
+        // update
+        /*
+        bx::Thread thread;
+        thread.init([](void* user) {
+            Server* srv = (Server*)user;
+            BX_UNUSED(srv);
+            printf("Thread\n");
+            return EXIT_SUCCESS;
+        });*/
+
+        // get data from slaves
+        // ....
+
+        // write data 
+        m_networkInterface->writePackets();
     }
 
     uint64_t calculateLobbySalt(ENetPeer* peer, uint64_t clientSalt, const char* lobbyname)
@@ -138,6 +146,7 @@ namespace arena
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
             m_lobbySalts[lobbyIndex] = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
             m_lobbyNames[lobbyIndex] = std::string(packet->m_name);
+            m_lobbySaltToLobbyIndex[m_lobbySalts[lobbyIndex]] =  lobbyIndex;
 
             fprintf(stderr, "Created new slave (salt = %" PRIx64 ") (index = %" PRIu32 ")\n", m_lobbySalts[lobbyIndex], lobbyIndex);
 
@@ -161,6 +170,23 @@ namespace arena
 
     void MasterServer::processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp)
     {
+        fprintf(stderr, "Someone tries to join slave\n");
+        
+        // the lobby exist
+        if (m_lobbySaltToLobbyIndex.count(packet->m_lobbySalt) > 0)
+        {
+            const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
+            m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
+
+            fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
+        }
+        else
+        {
+            // response to client that no no
+        }
+
+        
+
         BX_UNUSED(packet, from, timestamp);
     }
 

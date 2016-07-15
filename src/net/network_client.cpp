@@ -14,6 +14,7 @@ namespace arena
 
     const double CreateLobbySendRate = 0.5;
     const double QueryLobbiesSendRate = 1.0;
+    const double JoinLobbySendRate = 0.1;
 
     NetworkClient::NetworkClient(uint16_t clientPort) : 
         m_state(ClientState::Disconnected), 
@@ -103,6 +104,18 @@ namespace arena
     {
         switch (m_lobbyState)
         {
+        case LobbyState::SendingJoinLobby:
+        {
+            if (m_lastPacketSendTime + JoinLobbySendRate < timestamp)
+            {
+                JoinLobbyPacket* packet = (JoinLobbyPacket*)createPacket(PacketTypes::MasterJoinLobby);
+                packet->m_clientSalt = m_clientSalt;
+                packet->m_lobbySalt = m_currentLobby.salt;
+
+                sendPacketToServer(packet, timestamp);
+            }
+        }
+        break;
         case LobbyState::SendingCreateLobby:
             if (m_lastPacketSendTime + CreateLobbySendRate < timestamp)
             {
@@ -121,6 +134,7 @@ namespace arena
                 packet->m_clientSalt = m_clientSalt;
                 sendPacketToServer(packet, timestamp);
             }
+            break;
         default:
             //fprintf(stderr, "LobbyState: %d not implemented", m_lobbyState);
             break;
@@ -227,7 +241,9 @@ namespace arena
 
         uint32_t len = (uint32_t)strlen(name);
         ARENA_ASSERT(len < CreateLobbyPacket::MaxNameLen, "Max name length exceeded");
+        
         m_currentLobby.name = std::string(name);
+
         CreateLobbyPacket* packet = (CreateLobbyPacket*)createPacket(PacketTypes::MasterCreateLobby);
         packet->m_clientSalt = m_clientSalt;
         memcpy(packet->m_name, name, len);
@@ -247,6 +263,8 @@ namespace arena
 
     void NetworkClient::requestJoinLobby(uint64_t lobbySalt, double timestamp)
     {
+        m_currentLobby.salt = lobbySalt;
+
         JoinLobbyPacket* packet = (JoinLobbyPacket*)createPacket(PacketTypes::MasterJoinLobby);
         packet->m_clientSalt = m_clientSalt;
         packet->m_lobbySalt = lobbySalt;
