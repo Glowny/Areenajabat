@@ -33,6 +33,8 @@ namespace arena
             return new LobbyResultPacket;
         case PacketTypes::LobbyQueryResultPacket:
             return new LobbyQueryResultPacket;
+        case PacketTypes::LobbyJoinResult:
+            return new LobbyJoinResultPacket;
 
 		case PacketTypes::GameSetup:
 			return new GameSetupPacket;

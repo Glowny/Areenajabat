@@ -76,6 +76,20 @@ namespace arena
         BX_UNUSED(from, timestamp);
         switch (packet->getType())
         {
+        case PacketTypes::LobbyJoinResult:
+        {
+            LobbyJoinResultPacket* cast = (LobbyJoinResultPacket*)packet;
+
+            if (cast->m_joined)
+            {
+                m_lobbyState = LobbyState::InLobby;
+            }
+
+            ARENA_ASSERT(m_lobbyListener != nullptr, "Lobby notifier is nullptr");
+
+            m_lobbyListener->onLobbyJoinResult(this, cast, timestamp);
+        }
+        break;
         case PacketTypes::LobbyResultPacket:
         {
             m_lobbyState = LobbyState::NotInLobby;

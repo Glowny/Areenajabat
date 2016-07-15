@@ -90,8 +90,26 @@ namespace arena
             }
             else
             {
+                // okay, the auth clients user data is never null but if someone tries to send 
+                // data before joining lobby the server will crash if we try to cast data
+                // to uint32_t, so just drop this packet
+                if (from->data == nullptr) {
+                    char ip[256];
+                    enet_address_get_host_ip(&from->address, ip, sizeof(ip));
+                    
+                    fprintf(stderr, "!!!!! Dropping packet from %s, invalid state (not in lobby) trying to send lobby packets of type %d\n", ip, pkg->getType());
+
+                    destroyPacket(pkg);
+                    continue;
+                }
+
+                using LobbyIndex = LobbySaltToIndexMap::value_type::second_type;
+
+                LobbyIndex lobbyIndex = *(LobbyIndex*)from->data;
+
+                fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
                 // route packets to correct slaves
-                fprintf(stderr, "Packet of type %d needs to be routed\n", pkg->getType());
+                //fprintf(stderr, "Packet of type %d needs to be routed\n", pkg->getType());
             }
         }
 
@@ -175,14 +193,44 @@ namespace arena
         // the lobby exist
         if (m_lobbySaltToLobbyIndex.count(packet->m_lobbySalt) > 0)
         {
-            const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
-            m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
+            // if the player is not already there
+            if (m_clientSaltToLobbyIndex.count(packet->m_clientSalt) == 0)
+            {
+                const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
+                m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
 
-            fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
+                fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
+
+                LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
+                response->m_clientSalt = packet->m_clientSalt;
+                response->m_joined = true;
+
+                m_networkInterface->sendPacket(from, response);
+
+                // assign lobby index to peer user data
+                // ATTENTION this may be hax, but it's faster than look up in map
+                from->data = &m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
+            }
+            else
+            {
+                // response to client that no no
+                LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
+                response->m_clientSalt = packet->m_clientSalt;
+                response->m_joined = false;
+                response->m_reason = LobbyJoinResultPacket::Reason::AlreadyJoined;
+
+                m_networkInterface->sendPacket(from, response);
+            }
         }
         else
         {
             // response to client that no no
+            LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
+            response->m_clientSalt = packet->m_clientSalt;
+            response->m_joined = false;
+            response->m_reason = LobbyJoinResultPacket::Reason::LobbyDoesNotExist;
+
+            m_networkInterface->sendPacket(from, response);
         }
 
         

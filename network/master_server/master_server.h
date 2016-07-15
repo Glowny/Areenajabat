@@ -43,8 +43,8 @@ namespace arena
         // 
         std::unordered_map<uint64_t, uint32_t> m_clientSaltToLobbyIndex;
 
-
-        std::unordered_map<uint64_t, uint32_t> m_lobbySaltToLobbyIndex;
+        using LobbySaltToIndexMap = std::unordered_map<uint64_t, uint32_t>;
+        LobbySaltToIndexMap m_lobbySaltToLobbyIndex;
         // this is shared accross all servers
         NetworkInterface* m_networkInterface;
 
