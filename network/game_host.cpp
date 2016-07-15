@@ -2,6 +2,7 @@
 #include <common\debug.h>
 #include "server.h"
 #include <common\arena\playerController.h>
+#include <common\mem\packet_allocator.h>
 
 namespace arena
 {
@@ -104,6 +105,8 @@ namespace arena
 		newPlayer->m_clientData = client;
 		newPlayer->m_clientSalt = client->m_clientSalt;
 		newPlayer->m_playerController = new PlayerController();
+
+		m_entities.push_back(newPlayer);
 	}
 	void GameHost::unregisterPlayer(const ClientData* const client)
 	{
@@ -128,6 +131,35 @@ namespace arena
 		for (const Player& player : m_players) if (player.m_clientData == client) return &player;
 		
 		return nullptr;
+	}
+
+	void GameHost::processInput(const uint64 salt, const float32 x, const float32 y)
+	{
+		(void)salt;
+		(void)x;
+		(void)y;
+	}
+	void GameHost::processShooting(const uint64 salt, const bool flags, const float32 angle)
+	{
+		(void)salt;
+		(void)flags;
+		(void)angle;
+	}
+	
+	void GameHost::clearPackets()
+	{
+		PacketAllocator& allocator = PacketAllocator::instance();
+
+		for (Packet* const packet : m_outPackets)
+		{
+			allocator.deallocate(packet);
+		}
+
+		m_outPackets.clear();
+	}
+	const std::vector<Packet*>& GameHost::getResults()
+	{
+		return m_outPackets;
 	}
 
 	void GameHost::sessionTick(const uint64 dt)
@@ -238,8 +270,12 @@ namespace arena
 		else if (m_gameData.m_roundRunning)
 		{
 			// Do normal updates.
-			m_physics.update();
 		}
+
+		// Update.
+		m_physics.update();
+
+		// Draw.
 	}
 
 	GameHost::~GameHost()

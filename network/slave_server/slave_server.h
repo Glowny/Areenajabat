@@ -8,6 +8,7 @@
 #include "common/forward_declare.h"
 #include "common/types.h"
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
 #define TIMESTEP 0.016f
 
 namespace arena
@@ -37,7 +38,8 @@ namespace arena
 		std::queue<Packet*> *m_inPacketQueue;
 		std::queue<Packet*> *m_outPacketQueue;
 	private:
-		
+		GameHost* m_host;
+
 		// Set map and add gladiators.
 		void initializeRound(unsigned playerAmount);
 

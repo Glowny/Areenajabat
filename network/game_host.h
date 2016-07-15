@@ -8,6 +8,7 @@
 
 
 #include <common/arena/physics.h>
+#include <common/packet.h>
 #include <common/arena/game_map.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
@@ -17,7 +18,12 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
 namespace arena
 {
-	struct Player final
+	struct Entity
+	{
+		bool m_dirty { false };
+	};
+
+	struct Player final : public Entity
 	{
 		uint64					m_clientSalt		{ 0 };
 		PlayerController*		m_playerController	{ nullptr };
@@ -114,6 +120,13 @@ namespace arena
 		void registerPlayer(const ClientData* const client);
 		void unregisterPlayer(const ClientData* const client);
 
+		void processInput(const uint64 salt, const float32 x, const float32 y);
+		void processShooting(const uint64 salt, const bool flags, const float32 angle);
+
+
+		void clearPackets();
+		const std::vector<Packet*>& getResults();
+
 		~GameHost();
 	private:
 		const Player* const find(const ClientData* const client) const;
@@ -125,7 +138,9 @@ namespace arena
 		GameMap				m_map;
 		Physics				m_physics;
 
-		std::vector<Player> m_players;
+		std::vector<Entity*>		m_entities;
+		std::vector<Player>			m_players;
+		std::vector<Packet*>	m_outPackets;
 
 		const GameVars		m_vars;
 

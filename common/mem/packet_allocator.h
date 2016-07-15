@@ -3,7 +3,7 @@
 #include "../forward_declare.h"
 #include "block_allocator.h"
 
-FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Packet)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Packet)
 
 namespace arena
 {
