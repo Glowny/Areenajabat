@@ -109,7 +109,7 @@ namespace arena
 
                 LobbyIndex lobbyIndex = *(LobbyIndex*)from->data;
 
-                fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
+                //fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
 
                 ARENA_ASSERT(m_gameInstances[lobbyIndex] != nullptr, "The game instance %d is nullptr", lobbyIndex);
 
@@ -130,8 +130,24 @@ namespace arena
             return EXIT_SUCCESS;
         });*/
 
-        // get data from slaves
-        // ....
+        // TODO run paraller
+        for (auto* instance : m_gameInstances)
+        {
+            instance->step();
+        }
+
+        // get data from slaves, this may be slow asf
+        for (auto* instance : m_gameInstances)
+        {
+            auto& send = instance->getSendQueue();
+
+            for (auto& entry : send)
+            {
+                m_networkInterface->sendPacket(entry.m_peer, entry.m_packet);
+            }
+
+            send.clear();
+        }
 
         // write data 
         m_networkInterface->writePackets();

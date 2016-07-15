@@ -62,6 +62,9 @@ namespace arena
         // Master server routes the packet using this function call
         // the packet must be freed eg destroyPackage() in this frame
         void queueIncoming(Packet* packet, ENetPeer* from);
+
+        // 
+        std::vector<PacketEntry>& getSendQueue();
 	private:
         // even these are vectors, the packets are sorted correctly 
         // because the master will fill these

@@ -18,7 +18,7 @@ namespace arena
 
     void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
     {
-        m_sendQueue.push_back(PacketEntry{ from, packet });
+        m_receiveQueue.push_back(PacketEntry{ from, packet });
     }
 
     void SlaveServer::initialize()
@@ -54,6 +54,9 @@ namespace arena
 
             destroyPacket(packet);
         }
+
+        // all packets have been destroyed so it's safe to clear send queue now
+        m_receiveQueue.clear();
 
         // let the disconnects happen if they happen
         m_server.checkTimeout(m_totalTime);
@@ -245,6 +248,11 @@ namespace arena
         Packet* packet = m_inPacketQueue->front();
         m_inPacketQueue->pop();
         return packet;
+    }
+
+    std::vector<PacketEntry>& SlaveServer::getSendQueue()
+    {
+        return m_sendQueue;
     }
 
 }
