@@ -79,6 +79,22 @@ namespace arena
                 fprintf(stderr, "Failed to create lobby\n");
             }
         }
+
+        virtual void onLobbyJoinResult(NetworkClient* sender, LobbyJoinResultPacket* response, double timestamp) override
+        {
+            BX_UNUSED(sender, response, timestamp);
+
+            if (response->m_joined)
+            {
+                fprintf(stderr, "Joined lobby\n");
+            } 
+            else
+            {
+                fprintf(stderr, "Failed to join lobby: %s\n", 
+                    (response->m_reason == LobbyJoinResultPacket::LobbyDoesNotExist) 
+                    ? "lobby does not exist" : "already joined");
+            }
+        }
     };
 
 

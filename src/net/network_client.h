@@ -37,6 +37,7 @@ namespace arena
         virtual ~LobbyListener() = 0;
         virtual void onLobbyList(class NetworkClient* sender, struct LobbyQueryResultPacket* response, double timestamp) = 0;
         virtual void onLobbyCreationResult(class NetworkClient* sender, struct LobbyResultPacket* response, double timestamp) = 0;
+        virtual void onLobbyJoinResult(class NetworkClient* sender, struct LobbyJoinResultPacket* response, double timestamp) = 0;
     };
 
     inline LobbyListener::~LobbyListener() {}
