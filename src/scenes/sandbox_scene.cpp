@@ -312,6 +312,8 @@ namespace arena
 		m_gladiatorDrawDataVector.push_back(data);
 	}
 
+
+	
 	void SandboxScene::createGladiators(unsigned amount)
 	{
 		for (unsigned i = 0; i < amount; i++)
@@ -419,6 +421,14 @@ namespace arena
 		packet->y = controller.m_movementDirection.y;
 		packet->m_id = m_playerId;
 
+		s_client->sendPacketToServer(packet, s_stamp);
 	}
-	
+	void SandboxScene::sendShootEvent(float angle)
+	{
+		GameShootPacket* packet = new GameShootPacket;
+		packet->m_angle = angle;
+		packet->m_id = m_playerId;
+
+		s_client->sendPacketToServer(packet, s_stamp);
+	}
 }
