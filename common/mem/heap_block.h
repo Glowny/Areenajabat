@@ -9,9 +9,9 @@ namespace arena
 	public:
 		const uint32		m_size;
 		const IntPtr		m_address;
-		const Char* const	m_handle;
+		Char* const			m_handle;
 		
-		inline HeapBlock(const uint32 size, const Char* const handle);
+		inline HeapBlock(const uint32 size, Char* const handle);
 		inline HeapBlock(const HeapBlock& other);
 
 		template<typename T>
