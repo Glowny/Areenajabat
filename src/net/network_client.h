@@ -25,7 +25,7 @@ namespace arena
         {
             NotInLobby,
             SendingCreateLobby,
-            JoiningLobby,
+            SendingJoinLobby,
             InLobby,
             SendingQueryLobbies,
             Count
@@ -35,8 +35,10 @@ namespace arena
     struct BX_NO_VTABLE LobbyListener
     {
         virtual ~LobbyListener() = 0;
-        virtual void onLobbyList() = 0;
+        virtual void onLobbyList(class NetworkClient* sender, struct LobbyQueryResultPacket* response) = 0;
     };
+
+    inline LobbyListener::~LobbyListener() {}
 
     struct Lobby
     {
@@ -77,6 +79,10 @@ namespace arena
         void queryLobbies(double timestamp);
 
         void sendMatchMakingPackets(double timestamp);
+
+        LobbyListener* m_lobbyListener;
+
+        void joinLobby(uint64_t lobbySalt);
     private:
         void reset();
 

@@ -37,7 +37,7 @@ namespace arena
     private:
         void processCreateLobbyPacket(CreateLobbyPacket* packet, ENetPeer* from, double timestamp);
         void processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp);
-
+        void processListLobbiesPacket(ListLobbiesPacket* packet, ENetPeer* from, double timestamp);
         std::unordered_map<uint64_t, SlaveServer*> m_serverLookup;
 
         // this is shared accross all servers
@@ -46,6 +46,7 @@ namespace arena
         std::vector<SlaveServer*> m_gameInstances;
         uint64_t m_instanceCreatedBy[MaxGameInstances];
         uint64_t m_lobbySalts[MaxGameInstances];
+        std::string m_lobbyNames[MaxGameInstances];
 
         bool m_running;
 	};

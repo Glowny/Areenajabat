@@ -34,7 +34,35 @@
 namespace arena
 {
     static double s_stamp = 0.0;
+
+    struct ExampleLobbyListener : public LobbyListener
+    {
+        ~ExampleLobbyListener() override {}
+
+        virtual void onLobbyList(NetworkClient* sender, LobbyQueryResultPacket* response) override
+        {
+            (void)sender;
+            fprintf(stderr, "Lobby count: %d\n", response->m_lobbyCount);
+            for (int32_t i = 0; i < response->m_lobbyCount; ++i)
+            {
+                fprintf(stderr, "\t%s, uid=%" PRIx64 "\n", response->m_lobbynames[i], response->m_lobbySalt[i]);
+            }
+
+            if (response->m_lobbyCount == 0)
+            {
+                sender->createLobby("perkele", s_stamp);
+            }
+            else
+            {
+                // as debug join the first one
+                sender->joinLobby(response->m_lobbySalt[0]);
+            }
+        }
+    };
+
+
     static NetworkClient* s_client;
+    static ExampleLobbyListener s_lobbyListener;
 
 	static Entity* entity;
     static Animator* s_animator;
@@ -55,7 +83,8 @@ namespace arena
         if (s_client->isConnecting()) return;
 
         s_client->connect("localhost", uint16_t(8088), s_stamp);
-        s_client->createLobby("perkele", s_stamp);
+        //s_client->createLobby("perkele", s_stamp);
+        s_client->queryLobbies(s_stamp);
     }
 
     static void disconnect(const void*)
@@ -202,6 +231,7 @@ namespace arena
 	void SandboxScene::onInitialize()
 	{
         s_client = new NetworkClient(uint16_t(13337));
+        s_client->m_lobbyListener = &s_lobbyListener;
 		EntityBuilder builder;
 
 		builder.begin();

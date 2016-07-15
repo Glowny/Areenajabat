@@ -80,7 +80,7 @@ namespace arena
                     break;
                     case PacketTypes::MasterListLobbies:
                     {
-
+                        processListLobbiesPacket((ListLobbiesPacket*)pkg, from, 0.0);
                     }
                     break;
                     default:
@@ -137,6 +137,7 @@ namespace arena
             const uint32_t lobbyIndex = m_gameInstances.size() - 1;
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
             m_lobbySalts[lobbyIndex] = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
+            m_lobbyNames[lobbyIndex] = std::string(packet->m_name);
 
             fprintf(stderr, "Created new slave (salt = %" PRIx64 ") (index = %" PRIu32 ")\n", m_lobbySalts[lobbyIndex], lobbyIndex);
 
@@ -151,5 +152,24 @@ namespace arena
     void MasterServer::processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp)
     {
         BX_UNUSED(packet, from, timestamp);
+    }
+
+    void MasterServer::processListLobbiesPacket(ListLobbiesPacket* packet, ENetPeer* from, double timestamp)
+    {
+        char buf[256];
+        enet_address_get_host_ip(&from->address, buf, sizeof(buf));
+        fprintf(stderr, "Sending lobby listing to %s\n", buf);
+
+        BX_UNUSED(timestamp);
+        LobbyQueryResultPacket* response = (LobbyQueryResultPacket*)createPacket(PacketTypes::LobbyQueryResultPacket);
+        response->m_clientSalt = packet->m_clientSalt;
+        response->m_lobbyCount = (int32_t)m_gameInstances.size();
+        for (uint32_t i = 0; i < (int32_t)m_gameInstances.size(); ++i)
+        {
+            response->m_lobbySalt[i] = m_lobbySalts[i];
+            memcpy(response->m_lobbynames[i], m_lobbyNames[i].c_str(), m_lobbyNames[i].size());
+        }
+
+        m_networkInterface->sendPacket(from, response);
     }
 }
