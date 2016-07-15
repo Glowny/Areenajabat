@@ -39,6 +39,9 @@ namespace arena
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
 
+		Entity* createGladiator();
+
+		std::vector<Entity*> m_entities;
 		std::vector<Gladiator*> m_gladiatorVector;
 		std::vector<ArenaPlatform> m_platformVector;
 		std::vector<Bullet> m_spawnBulletVector;

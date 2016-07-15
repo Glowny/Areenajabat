@@ -239,6 +239,40 @@ namespace arena
 		inputRemoveBindings("player");
 	}
 	
+	Entity* SandboxScene::createGladiator()
+	{
+		Entity* gladiator;
+		EntityBuilder builder;
+		builder.begin();
+
+		ResourceManager* resources = App::instance().resources();
+
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
+		renderer->anchor();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position.x = 500.f;
+		transform->m_position.y = 500.0f;
+
+
+		s_animator = builder.addCharacterAnimator();
+		CharacterAnimator& anim = s_animator->m_animator;
+		anim.setStaticContent(
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
+		);
+		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
+		//anim.setPosition(glm::vec2(0, 0));
+
+		gladiator = builder.getResults();
+
+		registerEntity(gladiator);
+		return gladiator;
+	}
+
 	void SandboxScene::createGladiators(unsigned amount)
 	{
 		for (unsigned i = 0; i < amount; i++)
@@ -250,7 +284,7 @@ namespace arena
 			gladiator->m_rotation = 0;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
-
+			createGladiator();
 		}
 	}
 	void SandboxScene::createPlatform(GamePlaformPacket* packet)
