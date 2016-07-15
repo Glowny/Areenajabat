@@ -64,17 +64,15 @@ namespace arena
     static NetworkClient* s_client;
     static ExampleLobbyListener s_lobbyListener;
 
-	static Entity* entity;
-    static Animator* s_animator;
-
+	static Animator* anime;
     static void left(const void*)
     {
-        s_animator->m_animator.setFlipX(false);
+		anime->m_animator.setFlipX(false);
     }
 
     static void right(const void*)
     {
-        s_animator->m_animator.setFlipX(true);
+		anime->m_animator.setFlipX(true);
     }
     
     static void connect(const void*)
@@ -102,6 +100,7 @@ namespace arena
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
         INPUT_BINDING_END
     };
+
 
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
@@ -192,10 +191,10 @@ namespace arena
 
             destroyPacket(packet);
         }
-        auto tx = (Transform* const)entity->first(TYPEOF(Transform));
-
+		Transform* playerTransform = (Transform* const)m_gladiatorDrawDataVector[0].m_entity->first(TYPEOF(Transform));
+		
         Camera& camera = App::instance().camera();
-        camera.m_position = tx->m_position;
+        camera.m_position = playerTransform->m_position;
         camera.calculate();
         // set views
         float ortho[16];
@@ -213,7 +212,7 @@ namespace arena
         glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
         transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
 
-        glm::vec2 dir(mouseLoc - tx->m_position);
+        glm::vec2 dir(mouseLoc - playerTransform->m_position);
         float a = glm::atan(dir.y, dir.x);
 
         bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
@@ -232,36 +231,12 @@ namespace arena
 	{
         s_client = new NetworkClient(uint16_t(13337));
         s_client->m_lobbyListener = &s_lobbyListener;
-		EntityBuilder builder;
-
-		builder.begin();
-		
-        ResourceManager* resources = App::instance().resources();
-
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
-		renderer->anchor();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position.x = 500.f;
-		transform->m_position.y = 500.0f;
-
-
-        s_animator = builder.addCharacterAnimator();
-        CharacterAnimator& anim = s_animator->m_animator;
-        anim.setStaticContent(
-            resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
-            resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
-            resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
-            resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
-        );
-        anim.setWeaponAnimation(WeaponAnimationType::Gladius);
-        //anim.setPosition(glm::vec2(0, 0));
-
-		entity = builder.getResults();
-	
-		registerEntity(entity);
-
+		m_playerId = 0;
+		for (unsigned i = 0; i < 3; i++)
+		{
+			createGladiator(glm::vec2(100*i, 300));
+		}
+		anime = m_gladiatorDrawDataVector[m_playerId].m_animator;
         inputAddBindings("player", s_bindings);
 	}
 	void SandboxScene::onDestroy()
@@ -269,7 +244,7 @@ namespace arena
 		inputRemoveBindings("player");
 	}
 	
-	Entity* SandboxScene::createGladiator()
+	void SandboxScene::createGladiator(glm::vec2 position)
 	{
 		Entity* gladiator;
 		EntityBuilder builder;
@@ -277,17 +252,11 @@ namespace arena
 
 		ResourceManager* resources = App::instance().resources();
 
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
-		renderer->anchor();
-
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position.x = 500.f;
-		transform->m_position.y = 500.0f;
+		transform->m_position = position;
 
-
-		s_animator = builder.addCharacterAnimator();
-		CharacterAnimator& anim = s_animator->m_animator;
+		Animator* animator = builder.addCharacterAnimator();
+		CharacterAnimator& anim = animator->m_animator;
 		anim.setStaticContent(
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
@@ -300,7 +269,10 @@ namespace arena
 		gladiator = builder.getResults();
 
 		registerEntity(gladiator);
-		return gladiator;
+		GladiatorDrawData data;
+		data.m_entity = gladiator;
+		data.m_animator = animator;
+		m_gladiatorDrawDataVector.push_back(data);
 	}
 
 	void SandboxScene::createGladiators(unsigned amount)
@@ -314,8 +286,9 @@ namespace arena
 			gladiator->m_rotation = 0;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
-			createGladiator();
+			createGladiator(gladiator->m_position);
 		}
+
 	}
 	void SandboxScene::createPlatform(GamePlaformPacket* packet)
 	{
@@ -325,6 +298,21 @@ namespace arena
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
+
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = platform.vertices[0];
+
+		ResourceManager* resources = App::instance().resources();
+
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+		
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
+		
+		renderer->anchor();
+
 		m_platformVector.push_back(platform);
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
@@ -384,6 +372,16 @@ namespace arena
 			m_scoreboard.m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
 			m_scoreboard.m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
 		}
+	}
+	
+	void SandboxScene::sendInput(PlayerController &controller)
+	{
+		GameInputPacket* packet = new GameInputPacket();
+		packet->m_aimAngle = controller.aimAngle;
+		packet->x = controller.m_movementDirection.x;
+		packet->y = controller.m_movementDirection.y;
+		packet->m_id = m_playerId;
+
 	}
 	
 }

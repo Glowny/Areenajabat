@@ -444,6 +444,8 @@ namespace arena
 		uint64_t m_clientSalt;
 		uint8_t x;
 		uint8_t y;
+		float m_aimAngle;
+
 		GameInputPacket()
 			: m_clientSalt(0)
 		{

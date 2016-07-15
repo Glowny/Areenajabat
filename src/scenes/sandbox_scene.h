@@ -12,16 +12,23 @@ struct Message;
 
 namespace arena
 {
+	struct Animator;
+	struct GladiatorDrawData
+	{
+		Entity* m_entity;
+		Animator* m_animator;
+
+	};
+
 	struct Weapon;
 	struct Bullet;
 	struct Gladiator;
 	struct PlayerScore;
-	
+
 	class SandboxScene final : public Scene 
 	{
 	public:
 		SandboxScene();
-
 		~SandboxScene() = default;
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
@@ -39,13 +46,16 @@ namespace arena
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
 
-		Entity* createGladiator();
+		void sendInput(PlayerController &controller);
 
-		std::vector<Entity*> m_entities;
+		void createGladiator(glm::vec2 position);
+
+		std::vector<GladiatorDrawData> m_gladiatorDrawDataVector;
 		std::vector<Gladiator*> m_gladiatorVector;
 		std::vector<ArenaPlatform> m_platformVector;
 		std::vector<Bullet> m_spawnBulletVector;
 		std::vector<Bullet> m_bulletHitVector;
+
 		PlayerController m_controller;
 		Scoreboard m_scoreboard;
 		unsigned m_playerId;
