@@ -40,7 +40,7 @@ namespace arena
 		}
 	};
 
-	struct WeaponGladius :public Weapon
+	struct WeaponGladius : public Weapon
 	{
 		WeaponGladius() { m_type = Gladius; }
 		std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position)
@@ -63,7 +63,7 @@ namespace arena
 	
 	};
 
-	struct WeaponShotgun :public Weapon
+	struct WeaponShotgun : public Weapon
 	{
 		WeaponShotgun() { m_type = Shotgun; }
 		std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position)

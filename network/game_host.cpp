@@ -1,33 +1,31 @@
 #include "game_host.h"
 #include <common\debug.h>
+#include "server.h"
+#include <common\arena\playerController.h>
 
 namespace arena
 {
 	GameHost::GameHost(const GameVars& vars) : m_vars(vars),
-											   m_sessionRunning(false),
-											   m_gameRunning(false),
 											   m_disposed(false),
-											   m_endCalled(false),
-											   m_sessionElapsed(0),
-											   m_gameElapsed(0)
+											   m_endCalled(false)
 	{
 	}
 
 	void GameHost::startSession() 
 	{
-		if (m_sessionRunning) return;
+		if (m_sessionData.m_sessionRunning) return;
 
 		e_sessionStart();
 
-		m_sessionRunning = true;
+		m_sessionData.m_sessionRunning = true;
 	}
 	void GameHost::endSession()
 	{
-		if (!m_sessionRunning) return;
+		if (!m_sessionData.m_sessionRunning) return;
 
 		e_sessionEnd();
 
-		m_sessionRunning = false;
+		m_sessionData.m_sessionRunning = false;
 	}
 
 	void GameHost::endGame()
@@ -50,6 +48,25 @@ namespace arena
 		m_disposed = true;
 	}
 
+	void GameHost::timeOutBegin()
+	{
+		if (m_gameData.m_timeout) return;
+
+		m_gameData.m_timeoutElapsed = 0;
+		m_gameData.m_timeout = true;
+
+		e_timeoutStart();
+	}
+	void GameHost::timeoutEnd()
+	{
+		if (!m_gameData.m_timeout) return;
+
+		m_gameData.m_timeoutElapsed = 0;
+		m_gameData.m_timeout = false;
+
+		e_timeoutEnd();
+	}
+
 	void GameHost::forceShutdown()
 	{
 		endSession();
@@ -66,8 +83,14 @@ namespace arena
 	{
 		const uint64 uidt = uint64(dt);
 
-		if (m_sessionRunning) sessionTick(uidt);
-		if (m_gameRunning)	  gameTick(uidt, dt);
+		if (m_sessionData.m_sessionRunning) sessionTick(uidt);
+		
+		if (m_gameData.m_gameRunning)
+		{
+			gameTick(uidt);
+			
+			worldTick(dt);
+		}
 	}
 
 	void GameHost::registerPlayer(const ClientData* const client)
@@ -79,8 +102,8 @@ namespace arena
 
 		Player* const newPlayer = &m_players.back();
 		newPlayer->m_clientData = client;
-
-		// TODO: register new player.
+		newPlayer->m_clientSalt = client->m_clientSalt;
+		newPlayer->m_playerController = new PlayerController();
 	}
 	void GameHost::unregisterPlayer(const ClientData* const client)
 	{
@@ -98,7 +121,6 @@ namespace arena
 				return;
 			}
 		}
-		// TODO: unregister new player.
 	}
 
 	const Player* const GameHost::find(const ClientData* const client) const
@@ -110,13 +132,114 @@ namespace arena
 
 	void GameHost::sessionTick(const uint64 dt)
 	{
-		// Update session data.
-        BX_UNUSED(dt);
+		m_sessionData.m_sessionElapsed += dt;
+
+		if (!m_gameData.m_gameRunning)
+		{
+			if (m_sessionData.m_sessionElapsed > m_vars.m_gm_player_wait_time)
+			{
+				if (m_vars.m_gm_shutdown_after_wait)
+				{
+					// Not enough players connected, shutdown.
+					e_sessionRestart();
+				}
+				else 
+				{
+					// Restart wait time.
+					m_sessionData.m_sessionElapsed = 0;
+				}
+			}
+		}
+
+		if (m_players.size() >= m_vars.m_gm_players_required)
+		{
+			m_gameData.m_gameRunning = true;
+			
+			m_sessionData.m_sessionElapsed = 0;
+			m_gameData.m_timeoutElapsed = 0;
+			m_gameData.m_gameElapsed = 0;
+			m_gameData.m_roundTimeElapsed = 0;
+			m_gameData.m_roundsCount = 0;
+			m_gameData.m_roundFreezeTimeElapsed = 0;
+
+			e_gameStart();
+		}
 	}
-	void GameHost::gameTick(const uint64 uidt, const float64 dt)
+	void GameHost::gameTick(const uint64 dt)
 	{
-		// Update game data (the world etc).
-        BX_UNUSED(uidt, dt);
+		if (!m_gameData.m_gameRunning) return;
+		
+		if (m_gameData.m_timeout)
+		{
+			if (m_gameData.m_timeoutElapsed == 0) e_timeoutStart();
+
+			m_gameData.m_timeoutElapsed += dt;
+			m_gameData.m_timeout = m_gameData.m_timeoutElapsed < 60;
+
+			if (!m_gameData.m_timeout)
+			{
+				m_gameData.m_timeoutElapsed = 0;
+				
+				e_timeoutEnd();
+			}
+
+			return;
+		}
+
+		if (!m_gameData.m_roundRunning)
+		{
+			if (m_gameData.m_roundFreezeTimeElapsed >= m_vars.m_gm_round_freeze_time)
+			{
+				m_gameData.m_roundFreezeTimeElapsed = 0;
+				m_gameData.m_roundRunning = true;
+
+				// Round start.
+				e_roundStart();
+			}
+			else
+			{
+				m_gameData.m_roundFreezeTimeElapsed += dt;
+			}
+		}
+		else
+		{
+			if (m_gameData.m_roundTimeElapsed >= m_vars.m_gm_round_duration)
+			{
+				m_gameData.m_roundTimeElapsed = 0;
+				m_gameData.m_roundRunning = false;
+
+				e_roundEnd();
+
+				m_gameData.m_roundsCount++;
+
+				if (m_gameData.m_roundsCount >= m_vars.m_gm_rounds_count)
+				{
+					e_roundLimit();
+				}
+			}
+			else
+			{
+				m_gameData.m_roundTimeElapsed += dt;
+			}
+		}
+
+		m_gameData.m_gameElapsed += dt;
+	}
+
+	void GameHost::worldTick(const float64 dt)
+	{
+		// Update game world.
+		(void)dt;
+
+		if (m_gameData.m_timeout)
+		{
+			// Do not apply any player input updates.
+		}
+		else if (m_gameData.m_roundRunning)
+		{
+			// Do normal updates.
+			m_physics.update();
+		}
 	}
 
 	GameHost::~GameHost()

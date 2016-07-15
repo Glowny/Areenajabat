@@ -46,6 +46,7 @@ namespace arena
 	const char* const GM_MID_GAME_RESTART		= "gm_mid_game_restart";
 	const char* const GM_PAUSE					= "gm_pause";
 	const char* const GM_PLAYER_WAIT_TIME		= "gm_player_wait_time";
+	const char* const GM_SHUTDOWN_AFTER_WAIT	= "gm_shutdown_after_wait";
 
 	struct GameVars final
 	{
@@ -59,6 +60,7 @@ namespace arena
 		VictoryCondition	m_gm_victory_condition;
 
 		uint32				m_gm_rounds_count;
+		uint32				m_gm_players_required;
 
 		uint64				m_gm_round_duration;
 		uint64				m_gm_spawn_protection;
@@ -70,6 +72,7 @@ namespace arena
 		bool				m_gm_teams;
 		bool				m_sv_friendly_fire;
 		bool				m_sv_headshots_only;
+		bool				m_gm_shutdown_after_wait;
 	
 		GameVars();
 
