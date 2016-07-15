@@ -35,13 +35,13 @@ namespace arena
 {
     static double s_stamp = 0.0;
 
-    struct ExampleLobbyListener : public LobbyListener
+    struct DebugLobbyListener : public LobbyListener
     {
-        ~ExampleLobbyListener() override {}
+        ~DebugLobbyListener() override {}
 
-        virtual void onLobbyList(NetworkClient* sender, LobbyQueryResultPacket* response) override
+        virtual void onLobbyList(NetworkClient* sender, LobbyQueryResultPacket* response, double timestamp) override
         {
-            (void)sender;
+            (void)sender; (void)timestamp;
             fprintf(stderr, "Lobby count: %d\n", response->m_lobbyCount);
             for (int32_t i = 0; i < response->m_lobbyCount; ++i)
             {
@@ -50,19 +50,40 @@ namespace arena
 
             if (response->m_lobbyCount == 0)
             {
-                sender->createLobby("perkele", s_stamp);
+                static const char s_debugLobbyName[] = "perkele";
+                fprintf(stderr, "Requesting to create lobby \"%s\"\n", s_debugLobbyName);
+                sender->requestCreateLobby(s_debugLobbyName, s_stamp);
             }
             else
             {
+                fprintf(stderr, "Trying to join lobby %" PRIx64 "\n", response->m_lobbySalt[0]);
                 // as debug join the first one
-                sender->joinLobby(response->m_lobbySalt[0]);
+                sender->requestJoinLobby(response->m_lobbySalt[0], timestamp);
+            }
+        }
+
+        virtual void onLobbyCreationResult(NetworkClient* sender, LobbyResultPacket* response, double timestamp) override
+        {
+            BX_UNUSED(sender, response, timestamp);
+            if (response->m_created)
+            {
+                fprintf(stderr, "Created lobby (salt = %" PRIx64 ")\n", response->m_lobbySalt);
+
+                fprintf(stderr, "Trying to join lobby %" PRIx64 "\n", response->m_lobbySalt);
+
+                sender->requestJoinLobby(response->m_lobbySalt, timestamp);
+            }
+            else
+            {
+                // TODO reason
+                fprintf(stderr, "Failed to create lobby\n");
             }
         }
     };
 
 
     static NetworkClient* s_client;
-    static ExampleLobbyListener s_lobbyListener;
+    static DebugLobbyListener s_lobbyListener;
 
 	static Entity* entity;
     static Animator* s_animator;
