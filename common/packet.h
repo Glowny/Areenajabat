@@ -27,6 +27,8 @@ namespace arena
             LobbyResultPacket,
             // Server --> Client
             LobbyQueryResultPacket,
+            // Server --> Client
+            LobbyJoinResult,
 			// Game packets.
 			// Server --> Client.
 			GameSetup,
@@ -454,6 +456,61 @@ namespace arena
         virtual int32_t getType() const override
         {
             return PacketTypes::LobbyResultPacket;
+        }
+
+        bool serializeWrite(WriteStream& stream) override
+        {
+            return serialize(stream);
+        }
+
+        bool serializeRead(ReadStream& stream) override
+        {
+            return serialize(stream);
+        }
+    };
+
+    struct LobbyJoinResultPacket : public Packet
+    {
+        enum Reason
+        {
+            LobbyDoesNotExist,
+            AlreadyJoined,
+            Count
+        };
+
+        uint64_t m_clientSalt; // the sender id
+        int32_t m_joined;
+        int32_t m_reason;
+
+        LobbyJoinResultPacket() :
+            m_joined(false),
+            m_reason(Reason::Count)
+        {
+
+        }
+
+        ~LobbyJoinResultPacket() override {}
+
+        template <typename Stream>
+        bool serialize(Stream& stream)
+        {
+            serialize_uint64(stream, m_clientSalt);
+            
+            serialize_int(stream, m_joined, 0, 1);
+
+            if (m_joined == 1) 
+            {
+                return true;
+            }
+
+            serialize_int(stream, m_reason, 0, Reason::Count);
+
+            return true;
+        }
+
+        virtual int32_t getType() const override
+        {
+            return PacketTypes::LobbyJoinResult;
         }
 
         bool serializeWrite(WriteStream& stream) override

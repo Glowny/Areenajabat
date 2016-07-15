@@ -175,14 +175,40 @@ namespace arena
         // the lobby exist
         if (m_lobbySaltToLobbyIndex.count(packet->m_lobbySalt) > 0)
         {
-            const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
-            m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
+            // if the player is not already there
+            if (m_clientSaltToLobbyIndex.count(packet->m_clientSalt) == 0)
+            {
+                const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
+                m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
 
-            fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
+                fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
+
+                LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
+                response->m_clientSalt = packet->m_clientSalt;
+                response->m_joined = true;
+
+                m_networkInterface->sendPacket(from, response);
+            }
+            else
+            {
+                // response to client that no no
+                LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
+                response->m_clientSalt = packet->m_clientSalt;
+                response->m_joined = false;
+                response->m_reason = LobbyJoinResultPacket::Reason::AlreadyJoined;
+
+                m_networkInterface->sendPacket(from, response);
+            }
         }
         else
         {
             // response to client that no no
+            LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
+            response->m_clientSalt = packet->m_clientSalt;
+            response->m_joined = false;
+            response->m_reason = LobbyJoinResultPacket::Reason::LobbyDoesNotExist;
+
+            m_networkInterface->sendPacket(from, response);
         }
 
         
