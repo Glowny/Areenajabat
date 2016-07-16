@@ -12,6 +12,7 @@
 #include <common/forward_declare.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientListener)
 
 struct PlayerInput
 {
@@ -82,9 +83,13 @@ namespace arena
         void processPacket(Packet* packet, ENetPeer* peer, double timestamp);
 
         void checkTimeout(double timestamp);
+
+        // adds listener for callbacks
+        void addClientListener(ClientListener* listener);
     private:
         std::vector<PacketEntry>* m_sendQueue;
 
+        std::vector<ClientListener*> m_listeners;
         // returns UINT32_MAX if not found
         uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
 

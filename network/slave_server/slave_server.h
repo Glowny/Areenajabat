@@ -6,7 +6,7 @@
 #include <queue>
 #include <map>
 #include <bx/timer.h>
-
+#include "../client_listener.h"
 #include "common/forward_declare.h"
 #include "common/types.h"
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
@@ -17,6 +17,13 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 
 namespace arena
 {
+
+    struct SlaveServerClientListener : public ClientListener
+    {
+        ~SlaveServerClientListener() override;
+
+        void onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp) override;
+    };
 
 	struct ArenaPlatform;
 	struct Weapon;
@@ -54,6 +61,8 @@ namespace arena
         // 
         std::vector<PacketEntry>& getSendQueue();
 	private:
+        SlaveServerClientListener m_clientListener;
+
         // even these are vectors, the packets are sorted correctly 
         // because the master will fill these
         std::vector<PacketEntry> m_receiveQueue;

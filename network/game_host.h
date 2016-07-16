@@ -1,6 +1,6 @@
 #pragma once
 
-#include <functional>
+
 #include <common\mem\memory.h>
 #include <common\forward_declare.h>
 #include <common\event.h>
