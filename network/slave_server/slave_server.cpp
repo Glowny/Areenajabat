@@ -229,7 +229,6 @@ namespace arena
 
 		case PacketTypes::GameShoot:
 		{
-			// nugget niggas
 			GameShootPacket* shootPacket = (GameShootPacket*)packet;
 
 			const uint64 salt = shootPacket->m_clientSalt;
