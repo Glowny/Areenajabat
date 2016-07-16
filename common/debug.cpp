@@ -1,6 +1,7 @@
 #include "debug.h"
 #include <bx/string.h>
 #include <bx/os.h>
+
 namespace arena
 {
     void printVargs(const char* p_path, uint16_t p_line, const char* p_format, va_list p_args)

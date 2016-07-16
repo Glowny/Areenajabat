@@ -86,12 +86,13 @@ namespace arena
 
         // adds listener for callbacks
         void addClientListener(ClientListener* listener);
-    private:
+    
+		// returns UINT32_MAX if not found
+		uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
+	private:
         std::vector<PacketEntry>* m_sendQueue;
 
         std::vector<ClientListener*> m_listeners;
-        // returns UINT32_MAX if not found
-        uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
 
         void receivePackets(double timestamp);
 

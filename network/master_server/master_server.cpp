@@ -230,8 +230,6 @@ namespace arena
                 const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
                 m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
 
-				SlaveServer* lobby = m_gameInstances[lobbyIndex];
-
                 fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
 
                 LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);

@@ -95,20 +95,21 @@ namespace arena
 		}
 	}
 
-	void GameHost::registerPlayer(const uint64 salt, const uint64 id)
+	void GameHost::registerPlayer(const uint32 clientIndex)
 	{
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
 		
+		DEBUG_PRINT("new player registered...");
+
 		m_players.add(Player());
 
 		Player* const newPlayer			= &m_players.back();
-		newPlayer->m_clientID			= id;
-		newPlayer->m_clientSalt			= salt;
+		newPlayer->m_clientIndex		= clientIndex;
 		newPlayer->m_playerController	= new PlayerController();
 
 		m_entities.add(newPlayer);
 	}
-	void GameHost::unregisterPlayer(const uint64 salt, const uint64 id)
+	void GameHost::unregisterPlayer(const uint32 clientIndex)
 	{
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
 		
@@ -116,7 +117,7 @@ namespace arena
 		{
 			const Player* player = &*it;
 
-			if (player->m_clientSalt == salt && player->m_clientID == id) 
+			if (player->m_clientIndex == clientIndex) 
 			{
 				m_players.remove(*it);
 				
@@ -179,15 +180,15 @@ namespace arena
 		return m_physics;
 	}
 
-	void GameHost::processInput(const uint64 salt, const float32 x, const float32 y)
+	void GameHost::processInput(const uint64 clientIndex, const float32 x, const float32 y)
 	{
-		(void)salt;
+		(void)clientIndex;
 		(void)x;
 		(void)y;
 	}
-	void GameHost::processShooting(const uint64 salt, const bool flags, const float32 angle)
+	void GameHost::processShooting(const uint64 clientIndex, const bool flags, const float32 angle)
 	{
-		(void)salt;
+		(void)clientIndex;
 		(void)flags;
 		(void)angle;
 	}

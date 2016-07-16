@@ -438,7 +438,6 @@ namespace arena
 		}
 	};
 
-
 	struct GameInputPacket : public Packet
 	{
 		uint64 m_id;
@@ -599,6 +598,4 @@ namespace arena
 			return serialize(stream);
 		}
 	};
-
-
 }

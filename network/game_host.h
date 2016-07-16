@@ -23,8 +23,7 @@ namespace arena
 {
 	struct Player final : public NetworkEntity
 	{
-		uint64					m_clientID			{ 0 };
-		uint64					m_clientSalt		{ 0 };
+		uint32					m_clientIndex		{ NULL };
 		PlayerController*		m_playerController	{ nullptr };
 		Gladiator*				m_gladiator			{ nullptr };
 		
@@ -210,8 +209,8 @@ namespace arena
 		void timeOutBegin();
 		void timeoutEnd();
 
-		void registerPlayer(const uint64 salt, const uint64 id);
-		void unregisterPlayer(const uint64 salt, const uint64 id);
+		void registerPlayer(const uint32 clientIndex);
+		void unregisterPlayer(const uint32 clientIndex);
 
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);

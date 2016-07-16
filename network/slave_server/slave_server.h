@@ -21,6 +21,10 @@ namespace arena
 
     struct SlaveServerClientListener : public ClientListener
     {
+		GameHost& m_host;
+
+		SlaveServerClientListener(GameHost& host);
+
         ~SlaveServerClientListener() override;
 
         void onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp) override;
@@ -40,8 +44,6 @@ namespace arena
 		~SlaveServer();
 
 		void initialize();
-
-		void addPlayer(const uint64 salt, const uint64 id);
 
 		bool startLobby();
 		bool stop();
@@ -98,8 +100,6 @@ namespace arena
 		void pushPacketToQueue(Packet* packet);
 		// Read all packets from client(s) in queue and act according to each packet.
 		void handleIncomingPackets();
-		// Handle a single packet
-		void handleSinglePacket(Packet* packet);
 		// Get oldest packet from client.
 		Packet* getPacketFromQueue();
 

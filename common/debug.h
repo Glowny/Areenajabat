@@ -4,6 +4,12 @@
 
 namespace arena
 {
+#if _DEBUG
+#	define DEBUG_PRINT(__str__) fprintf(stderr, __str__)
+#elif
+#	define DEBUG_PRINT(__str__) 
+#endif
+
     void trace(const char* path, uint16_t line, const char* format, ...);
     void fatal(const char* path, uint16_t line, const char* format, ...);
 }
