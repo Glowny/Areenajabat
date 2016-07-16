@@ -438,7 +438,6 @@ namespace arena
 		}
 	};
 
-
 	struct GameInputPacket : public Packet
 	{
 		uint64 m_clientSalt;
@@ -603,6 +602,4 @@ namespace arena
 			return serialize(stream);
 		}
 	};
-
-
 }
