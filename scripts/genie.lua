@@ -75,7 +75,8 @@ project ("arena")
 
 	files {
 		ARENA_DIR .. "src/**.cpp",
-		ARENA_DIR .. "src/**.h"
+		ARENA_DIR .. "src/**.h",
+		ARENA_DIR .. "src/**.inl"
 	}
 
 	configuration { "vs*"}
@@ -102,7 +103,8 @@ project "common"
 
 	files {
 		path.join(ARENA_DIR, "common", "**.cpp"),
-		path.join(ARENA_DIR, "common", "**.h")
+		path.join(ARENA_DIR, "common", "**.h"),
+		path.join(ARENA_DIR, "common", "**.inl")
 	}
 
 	includedirs {
@@ -129,6 +131,7 @@ project "server"
 	files {
 		path.join(ARENA_DIR, "network", "**.cpp"),
 		path.join(ARENA_DIR, "network", "**.h"),
+		path.join(ARENA_DIR, "network", "**.inl")
 	}
 	
 	links { 
@@ -160,6 +163,7 @@ project "client_sandbox"
 	files {
 		path.join(ARENA_DIR, "network", "*.cpp"),
 		path.join(ARENA_DIR, "network", "*.h"),
+		path.join(ARENA_DIR, "network", "**.inl")
 	}
 	
 	configuration { "vs*" and "x32"}
@@ -236,7 +240,7 @@ project "Box2D"
 	kind "StaticLib"
 	files { 
 		path.join(ARENA_THIRD_DIR, "Box2D", "**.h"),
-		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
+		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp")
 	}
 	vpaths { [""] = "Box2D" }
 	includedirs { 
@@ -248,7 +252,7 @@ project "minini"
 	language "C"
 	files {
 		path.join(ARENA_THIRD_DIR, "minini", "**.h"),
-		path.join(ARENA_THIRD_DIR, "minini", "**.c"),
+		path.join(ARENA_THIRD_DIR, "minini", "**.c")
 	}
 	vpaths { [""] = "minini" }
 	includedirs {
