@@ -461,7 +461,7 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_uint64(stream, m_clientSalt);
-            serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
 			serialize_bytes(stream, &x, 1);
 			serialize_bytes(stream, &y, 1);
 			return true;
