@@ -145,7 +145,6 @@ namespace arena
 
 	void SlaveServer::updateRound()
 	{
-		handleIncomingPackets();
 		applyPlayerInputs();
 
 		m_host.tick(getDeltaTime());
@@ -234,14 +233,6 @@ namespace arena
 	{
 		// TODO: When threads are implemented, add mutex.
 		m_outPacketQueue->push(packet);
-	}
-
-	void SlaveServer::handleIncomingPackets()
-	{
-		while (!m_inPacketQueue->empty())
-		{
-			handleSinglePacket(getPacketFromQueue());
-		}
 	}
 
 	Packet* SlaveServer::getPacketFromQueue()

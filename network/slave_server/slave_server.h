@@ -98,8 +98,6 @@ namespace arena
 		// Network:
 		// Send packet to client(s). Packet can be created anywhere.
 		void pushPacketToQueue(Packet* packet);
-		// Read all packets from client(s) in queue and act according to each packet.
-		void handleIncomingPackets();
 		// Get oldest packet from client.
 		Packet* getPacketFromQueue();
 
