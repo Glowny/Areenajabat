@@ -109,6 +109,7 @@ namespace arena
 
                 fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
                 // route packets to correct slaves
+
                 //fprintf(stderr, "Packet of type %d needs to be routed\n", pkg->getType());
             }
         }
@@ -204,6 +205,16 @@ namespace arena
                 LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
                 response->m_clientSalt = packet->m_clientSalt;
                 response->m_joined = true;
+
+				// "join"
+				SlaveServer* instance = m_gameInstances[lobbyIndex];
+				
+				ClientData* data		= new ClientData();
+				data->m_peer			= from;
+				data->m_clientSalt		= response->m_clientSalt;
+				data->m_challengeSalt	= packet->m_lobbySalt;	// TODO: idk if this is correct.
+
+				instance->addPlayer(data);
 
                 m_networkInterface->sendPacket(from, response);
 

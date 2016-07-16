@@ -11,6 +11,7 @@ FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Player)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 
 namespace arena
 {
@@ -26,7 +27,7 @@ namespace arena
 		SlaveServer();
 		~SlaveServer();
 
-		void addPlayer(uint64_t salt);
+		void addPlayer(ClientData* const clientData);
 
 		bool startLobby();
 		bool stop();

@@ -314,9 +314,6 @@ namespace arena
 
 	void GameHost::worldTick(const float64 dt)
 	{
-		// Update game world.
-		(void)dt;
-
 		if (m_gameData.m_timeout)
 		{
 			// Do not apply any player input updates.

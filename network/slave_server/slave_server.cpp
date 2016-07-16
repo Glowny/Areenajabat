@@ -12,11 +12,9 @@ SlaveServer::SlaveServer()
 	// TODO: init game host.
 }
 
-void SlaveServer::addPlayer(uint64_t salt)
+void SlaveServer::addPlayer(ClientData* const clientData)
 {
-	(void)salt;
-	// TODO: register player with the host.
-	//m_host->registerPlayer(clientData);
+	m_host->registerPlayer(clientData);
 }
 
 void SlaveServer::initializeRound(unsigned playerAmount)
