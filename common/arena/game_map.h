@@ -37,7 +37,7 @@ namespace arena
 			std::vector<glm::vec2> points;
 		};
 	public:
-		void loadMapFromFile(char* filename)
+		void loadMapFromFile(const char* const filename)
 		{
 			std::ifstream file;
 

@@ -126,6 +126,37 @@ namespace arena
 		}
 	}
 
+	void GameHost::registerEntity(Entity* entity)
+	{
+		if (m_entities.contains(entity)) return;
+
+		m_entities.add(entity);
+	}
+	void GameHost::unregisterEntity(Entity* entity)
+	{
+		if (!m_entities.contains(entity)) return;
+
+		m_entities.remove(entity);
+	}
+
+	void GameHost::loadMap(const char* const mapName)
+	{
+		m_map.loadMapFromFile(mapName);
+	}
+
+	std::vector<Player>& GameHost::players()
+	{
+		return m_players.container();
+	}
+	GameMap& GameHost::map()
+	{
+		return m_map;
+	}
+	Physics& GameHost::physics()
+	{
+		return m_physics;
+	}
+
 	const Player* const GameHost::find(const ClientData* const client) const
 	{
 		for (const Player& player : m_players) if (player.m_clientData == client) return &player;

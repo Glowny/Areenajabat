@@ -92,6 +92,12 @@ namespace arena
 	public:
 		Container() = default;
 
+		bool contains(const T element) const
+		{
+			for (const T entry : m_container) if (element == entry) return true;
+
+			return false;
+		}
 		void add(T element)
 		{
 			m_container.push_back(element);
@@ -201,12 +207,17 @@ namespace arena
 		void registerPlayer(const ClientData* const client);
 		void unregisterPlayer(const ClientData* const client);
 
-		void registerEntity(const Entity* const entity);
-		void unregisterEntity(const Entity* const entity);
+		void registerEntity(Entity* entity);
+		void unregisterEntity(Entity* entity);
 
 		void processInput(const uint64 salt, const float32 x, const float32 y);
 		void processShooting(const uint64 salt, const bool flags, const float32 angle);
-		void initializeRound(const String& mapName);
+		
+		void loadMap(const char* const mapName);
+
+		std::vector<Player>& players();
+		GameMap& map();
+		Physics& physics();
 
 		void clearPackets();
 		const std::vector<Packet*>& getResults();

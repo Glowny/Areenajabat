@@ -22,18 +22,25 @@ void SlaveServer::addPlayer(uint64_t salt)
 void SlaveServer::initializeRound(unsigned playerAmount)
 {
 	// Load map. TODO: Use filesystem.
-	m_map.loadMapFromFile("coordinatesRawData.dat");
+	m_host->loadMap("coordinatesRawData.dat");
 
 	// Add gladiators.
-	unsigned i = 0;
+	std::vector<Player> players = m_host->players();
+	Physics& physics			= m_host->physics();
+	GameMap map					= m_host->map();
+	unsigned i					= 0;
 
 	// TODO: for debugging.
-	for (auto it = m_playerMap.begin(); it != m_playerMap.end(); ++it)
+	for (auto it = players.begin(); it != players.end(); ++it)
 	{
-		Gladiator gladiator;
+		// Create.
+		Gladiator* gladiator = new Gladiator;
 
-		gladiator.m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[i++]);
-		gladiator.m_weapon = new WeaponGladius;
+		gladiator->m_physicsId = physics.addGladiator(map.m_playerSpawnLocations[i++]);
+		gladiator->m_weapon = new WeaponGladius;
+
+		// Register.
+		m_host->registerEntity(gladiator);
 	}
 
 	// Send start packets
@@ -42,7 +49,6 @@ void SlaveServer::initializeRound(unsigned playerAmount)
 	pushPacketToQueue(packet);
 
 	m_last_time = bx::getHPCounter();
-	(void)playerAmount;
 }
 
 bool SlaveServer::startRound(unsigned playerAmount)
