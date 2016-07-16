@@ -22,25 +22,26 @@ void SlaveServer::addPlayer(uint64_t salt)
 void SlaveServer::initializeRound(unsigned playerAmount)
 {
 	// Load map. TODO: Use filesystem.
-	//m_map.loadMapFromFile("coordinatesRawData.dat");
+	m_map.loadMapFromFile("coordinatesRawData.dat");
 
 	// Add gladiators.
-	//unsigned i = 0;
-	//for (std::map<unsigned, Player*>::const_iterator mapIterator = m_playerMap.begin();
-	//	mapIterator != m_playerMap.end(); ++mapIterator)
-	//{
-	//	Gladiator gladiator;
-	//	gladiator.m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[i]);
-	//	gladiator.m_weapon = new WeaponGladius;
-	//	i++;
-	//}
+	unsigned i = 0;
 
-	//// Send start packets
-	//GameSetupPacket* packet = new GameSetupPacket;
-	//packet->m_playerAmount = playerAmount;
-	//pushPacketToQueue(packet);
+	// TODO: for debugging.
+	for (auto it = m_playerMap.begin(); it != m_playerMap.end(); ++it)
+	{
+		Gladiator gladiator;
 
-	//m_last_time = bx::getHPCounter();
+		gladiator.m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[i++]);
+		gladiator.m_weapon = new WeaponGladius;
+	}
+
+	// Send start packets
+	GameSetupPacket* packet = new GameSetupPacket;
+	packet->m_playerAmount = playerAmount;
+	pushPacketToQueue(packet);
+
+	m_last_time = bx::getHPCounter();
 	(void)playerAmount;
 }
 
@@ -167,10 +168,10 @@ void SlaveServer::handleSinglePacket(Packet* packet)
 		case PacketTypes::GameInput:
 		{
 			GameInputPacket* inputPacket = (GameInputPacket*)packet;
-			//TODO: Set ID on master server.
-			const uint64 salt = inputPacket->m_clientSalt;
-			const float32 x = inputPacket->x;
-			const float32 y = inputPacket->y;
+			
+			const uint64 salt	= inputPacket->m_clientSalt;
+			const float32 x		= inputPacket->x;
+			const float32 y		= inputPacket->y;
 
 			m_host->processInput(salt, x, y);
 			break;
@@ -179,9 +180,10 @@ void SlaveServer::handleSinglePacket(Packet* packet)
 		case PacketTypes::GameShoot:
 		{
 			GameShootPacket* shootPacket = (GameShootPacket*)packet;
-			const uint64 salt = shootPacket->m_clientSalt;
-			const bool shootingFlags = true;
-			const float32 angle = shootPacket->m_angle;
+
+			const uint64 salt			= shootPacket->m_clientSalt;
+			const bool shootingFlags	= true;
+			const float32 angle			= shootPacket->m_angle;
 			
 			m_host->processShooting(salt, shootingFlags, angle);
 			break;

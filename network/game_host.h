@@ -1,15 +1,16 @@
 #pragma once
 
+#include <functional>
 #include <common\mem\memory.h>
 #include <common\forward_declare.h>
 #include <common\event.h>
 #include <common\game_vars.h>
 #include <vector>
 
-
 #include <common/arena/physics.h>
 #include <common/packet.h>
 #include <common/arena/game_map.h>
+#include <common/entity.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
@@ -18,11 +19,6 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
 namespace arena
 {
-	struct Entity
-	{
-		bool m_dirty { false };
-	};
-
 	struct Player final : public Entity
 	{
 		uint64					m_clientSalt		{ 0 };
@@ -35,6 +31,10 @@ namespace arena
 			if (lhs == nullptr) return false;
 
 			return ADDRESSOF(lhs) == ADDRESSOF(this);
+		}
+		bool operator ==(const Player& lhs) const
+		{
+			return this == &lhs;
 		}
 		bool operator !=(const Player* const lhs) const
 		{
@@ -83,6 +83,87 @@ namespace arena
 		}
 	};
 
+	template<typename T>
+	using Predicate = std::function<bool(T)>;
+
+	template<typename T>
+	class Container final
+	{
+	public:
+		Container() = default;
+
+		void add(T element)
+		{
+			m_container.push_back(element);
+		}
+		bool remove(T element)
+		{
+			for (auto it = m_container.begin(); it != m_container.end(); it++)
+			{
+				T value = *it;
+				
+				if (value == element)
+				{
+					m_container.erase(it);
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+		void at(const uint32 index)
+		{
+			return m_container[index];
+		}
+		uint32 size() const
+		{
+			return m_container.size();
+		}
+
+		T find(Predicate<T> pred)
+		{
+			for (T element : m_container)
+			{
+				if (pred(element)) return element;
+			}
+
+			return T();
+		}
+
+		T front()
+		{
+			return m_container.front();
+		}
+		T back()
+		{
+			return m_container.back();
+		}
+
+		void clear()
+		{
+			m_container.clear();
+		}
+
+		decltype(auto) begin() const
+		{
+			return m_container.begin();
+		}
+		decltype(auto) end() const
+		{
+			return m_container.end();
+		}
+
+		std::vector<T>& container()
+		{
+			return m_container;
+		}
+
+		~Container() = default;
+	private:
+		std::vector<T> m_container;
+	};
+
 	class GameHost final
 	{
 	public:
@@ -120,15 +201,18 @@ namespace arena
 		void registerPlayer(const ClientData* const client);
 		void unregisterPlayer(const ClientData* const client);
 
+		void registerEntity(const Entity* const entity);
+		void unregisterEntity(const Entity* const entity);
+
 		void processInput(const uint64 salt, const float32 x, const float32 y);
 		void processShooting(const uint64 salt, const bool flags, const float32 angle);
-
+		void initializeRound(const String& mapName);
 
 		void clearPackets();
 		const std::vector<Packet*>& getResults();
 
 		~GameHost();
-	private:
+	private: 
 		const Player* const find(const ClientData* const client) const;
 
 		void sessionTick(const uint64 dt);
@@ -138,9 +222,9 @@ namespace arena
 		GameMap				m_map;
 		Physics				m_physics;
 
-		std::vector<Entity*>		m_entities;
-		std::vector<Player>			m_players;
-		std::vector<Packet*>	m_outPackets;
+		Container<Entity*>		m_entities;
+		Container<Player>		m_players;
+		Container<Packet*>		m_outPackets;
 
 		const GameVars		m_vars;
 

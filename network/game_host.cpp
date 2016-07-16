@@ -99,14 +99,14 @@ namespace arena
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
 		ARENA_ASSERT(find(client) == nullptr, "client already registered as player");
 
-		m_players.push_back(Player());
+		m_players.add(Player());
 
 		Player* const newPlayer = &m_players.back();
 		newPlayer->m_clientData = client;
 		newPlayer->m_clientSalt = client->m_clientSalt;
 		newPlayer->m_playerController = new PlayerController();
 
-		m_entities.push_back(newPlayer);
+		m_entities.add(newPlayer);
 	}
 	void GameHost::unregisterPlayer(const ClientData* const client)
 	{
@@ -119,7 +119,7 @@ namespace arena
 			
 			if (other == client) 
 			{
-				m_players.erase(it);
+				m_players.remove(*it);
 				
 				return;
 			}
@@ -159,7 +159,7 @@ namespace arena
 	}
 	const std::vector<Packet*>& GameHost::getResults()
 	{
-		return m_outPackets;
+		return m_outPackets.container();
 	}
 
 	void GameHost::sessionTick(const uint64 dt)

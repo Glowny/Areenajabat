@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <glm/vec2.hpp>
+#include <common/entity.h>
 
 #define GLADIUSIMPULSE 100.0f
 #define SHOTGUNIMPULSE 100.0f
@@ -27,7 +28,7 @@ namespace arena
 		float m_creationDelay;
 	};
 
-	struct Weapon
+	struct Weapon : public Entity
 	{
 	public:
 		WeaponType m_type;
