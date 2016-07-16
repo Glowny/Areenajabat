@@ -230,23 +230,11 @@ namespace arena
                 const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
                 m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
 
-				SlaveServer* lobby = m_gameInstances[lobbyIndex];
-
                 fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
 
                 LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
                 response->m_clientSalt = packet->m_clientSalt;
                 response->m_joined = true;
-
-				/*// "join"
-				SlaveServer* instance = m_gameInstances[lobbyIndex];
-				
-				ClientData* data		= new ClientData();
-				data->m_peer			= from;
-				data->m_clientSalt		= response->m_clientSalt;
-				data->m_challengeSalt	= packet->m_lobbySalt;	// TODO: idk if this is correct.
-
-				instance->addPlayer(data);*/
 
                 m_networkInterface->sendPacket(from, response);
 
