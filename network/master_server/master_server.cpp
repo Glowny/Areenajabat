@@ -190,6 +190,7 @@ namespace arena
 			const char* const GamemodeName = "dm";
 
             m_gameInstances.push_back(new SlaveServer(GamemodeName));
+
             const uint32_t lobbyIndex = m_gameInstances.size() - 1;
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
             m_lobbySalts[lobbyIndex] = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
@@ -228,6 +229,8 @@ namespace arena
             {
                 const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
                 m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
+
+				SlaveServer* lobby = m_gameInstances[lobbyIndex];
 
                 fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
 

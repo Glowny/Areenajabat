@@ -16,7 +16,9 @@ namespace arena
     {
         fprintf(stderr, "SlaveServerClientListener::onClientConnect(), idx = %d joined\n", clientIndex);
         BX_UNUSED(clientIndex, from, timestamp);
-    }
+		
+
+	}
     
 	SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),

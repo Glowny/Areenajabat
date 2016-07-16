@@ -165,6 +165,7 @@ namespace arena
         enet_address_get_host_ip(&from->address, buffer, sizeof(buffer));
         printf("GOt connection request packet from: %s\n", buffer);
 
+		// TODO: read from game vars.
         if (m_clientsConnected == MaxClients)
         {
             printf("Server is full\n");
