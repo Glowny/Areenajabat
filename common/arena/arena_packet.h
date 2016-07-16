@@ -1,6 +1,7 @@
 #pragma once
 #include "../packet.h"
 #include <glm\glm.hpp>
+#include "..\types.h"
 
 
 namespace arena
@@ -440,14 +441,15 @@ namespace arena
 
 	struct GameInputPacket : public Packet
 	{
-		unsigned m_id;
-		uint64_t m_clientSalt;
-		uint8_t x;
-		uint8_t y;
+		uint64 m_id;
+		uint64 m_clientSalt;
+		uint8 x;
+		uint8 y;
 		float m_aimAngle;
 
-		GameInputPacket()
-			: m_clientSalt(0)
+		GameInputPacket() : m_clientSalt(0),
+							x(0),
+							y(0)
 		{
 			x = 0;
 			y = 0;
@@ -482,7 +484,7 @@ namespace arena
 
 	struct GameShootPacket : public Packet
 	{
-		unsigned m_id;
+		uint64 m_id;
 		uint64_t m_clientSalt;
 		float m_angle; // Less accurate data could be send (data send is between (0-360)).
 

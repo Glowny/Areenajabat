@@ -73,6 +73,6 @@ namespace arena
 
 		PlayerController m_controller;
 		Scoreboard m_scoreboard;
-		unsigned m_playerId;
+		uint64 m_playerId;
 	};
 }

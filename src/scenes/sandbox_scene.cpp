@@ -391,7 +391,7 @@ namespace arena
 	}
 	void SandboxScene::damagePlayer(GameDamagePlayerPacket* packet)
 	{
-		m_gladiatorVector[packet->m_targetID]->m_hitpoints -= packet->m_damageAmount;
+		m_gladiatorVector[packet->m_targetID]->m_hitpoints -= int32(packet->m_damageAmount);
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{
