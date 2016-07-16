@@ -1,4 +1,7 @@
 #if defined(ARENA_SERVER)
+
+#include <bx/bx.h>
+
 #include "server.h"
 #include <stdio.h>
 #include <assert.h>
@@ -6,7 +9,6 @@
 #include <stdint.h>
 #include <common/salt.h>
 #include <minini/minIni.h>
-#include <fstream>
 #include "common/packet.h"
 #include <stdio.h>
 #include "game_host.h"
@@ -389,3 +391,5 @@ namespace arena
 
 }
 #endif
+
+//BX_PRAGMA_DIAGNOSTIC_POP()
