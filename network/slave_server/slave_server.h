@@ -31,6 +31,8 @@ namespace arena
 		SlaveServer();
 		~SlaveServer();
 
+		void initialize();
+
 		void addPlayer(ClientData* const clientData);
 
 		bool startLobby();
@@ -68,9 +70,7 @@ namespace arena
 		// Set map and add gladiators.
 		void initializeRound(unsigned playerAmount);
 
-		float getDeltaTime();
-
-		void updatePhysics();
+		float64 getDeltaTime();
 
 		// Apply client imputs
 		void applyPlayerInputs();
@@ -94,5 +94,7 @@ namespace arena
 		Packet* getPacketFromQueue();
 
 		int64_t m_last_time;
+		
+		GameHost* m_host;
 	};
 }

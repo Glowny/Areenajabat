@@ -92,7 +92,9 @@ namespace arena
 	class Container final
 	{
 	public:
-		Container() = default;
+		Container()
+		{
+		}
 
 		bool contains(const T element) const
 		{
@@ -167,7 +169,9 @@ namespace arena
 			return m_container;
 		}
 
-		~Container() = default;
+		~Container()
+		{
+		}
 	private:
 		std::vector<T> m_container;
 	};
@@ -209,8 +213,8 @@ namespace arena
 		void registerPlayer(const ClientData* const client);
 		void unregisterPlayer(const ClientData* const client);
 
-		void registerEntity(Entity* entity);
-		void unregisterEntity(Entity* entity);
+		void registerEntity(NetworkEntity* entity);
+		void unregisterEntity(NetworkEntity* entity);
 
 		void processInput(const uint64 salt, const float32 x, const float32 y);
 		void processShooting(const uint64 salt, const bool flags, const float32 angle);
@@ -237,7 +241,7 @@ namespace arena
 		GameMap				m_map;
 		Physics				m_physics;
 
-		Container<Entity*>		m_entities;
+		Container<NetworkEntity*>		m_entities;
 		Container<Player>		m_players;
 		Container<Packet*>		m_outPackets;
 

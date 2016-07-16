@@ -127,13 +127,13 @@ namespace arena
 		}
 	}
 
-	void GameHost::registerEntity(Entity* entity)
+	void GameHost::registerEntity(NetworkEntity* entity)
 	{
 		if (m_entities.contains(entity)) return;
 
 		m_entities.add(entity);
 	}
-	void GameHost::unregisterEntity(Entity* entity)
+	void GameHost::unregisterEntity(NetworkEntity* entity)
 	{
 		if (!m_entities.contains(entity)) return;
 
@@ -155,6 +155,7 @@ namespace arena
 			if (int32(currentVelocity.x) < 250 && int32(currentVelocity.x) > -250)
 			{
 				glm::vec2 force;
+
 				force.x = moveDirection.x * 1500.0f;
 
 				m_physics.applyForceToGladiator(force, physicsId);
