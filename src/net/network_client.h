@@ -104,7 +104,7 @@ namespace arena
 
         // time we last received a packet
         double m_lastPacketReceivedTime;
-
+    public:
         // client salt for challenge auth
         uint64_t m_clientSalt;
 

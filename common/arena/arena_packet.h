@@ -441,18 +441,18 @@ namespace arena
 
 	struct GameInputPacket : public Packet
 	{
-		uint64 m_id;
 		uint64 m_clientSalt;
+		uint64 m_challengeSalt;
 		uint8 x;
 		uint8 y;
 		float m_aimAngle;
 
-		GameInputPacket() : m_clientSalt(0),
-							x(0),
-							y(0)
+		GameInputPacket() : 
+            m_clientSalt(0),
+            m_challengeSalt(0),
+			x(0),
+			y(0)
 		{
-			x = 0;
-			y = 0;
 		}
 
 		virtual ~GameInputPacket() {}
@@ -461,6 +461,7 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_clientSalt);
 			serialize_bytes(stream, &x, 1);
 			serialize_bytes(stream, &y, 1);
 			return true;
@@ -484,12 +485,14 @@ namespace arena
 
 	struct GameShootPacket : public Packet
 	{
-		uint64 m_id;
-		uint64_t m_clientSalt;
+        uint64_t m_clientSalt;
+		uint64_t m_challengeSalt;
 		float m_angle; // Less accurate data could be send (data send is between (0-360)).
 
-		GameShootPacket()
-			: m_clientSalt(0)
+		GameShootPacket() : 
+            m_clientSalt(0),
+            m_challengeSalt(0),
+            m_angle(0.f)
 		{
 
 		}
@@ -500,6 +503,7 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_uint64(stream, m_clientSalt);
+            serialize_uint64(stream, m_challengeSalt);
 			serialize_float(stream, m_angle);
 			return true;
 		}
