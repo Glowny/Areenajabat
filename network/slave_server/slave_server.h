@@ -56,6 +56,8 @@ namespace arena
 		// Create new bullets for all the players
 		void createAllBullets();
 
+		void createBullets(Player* player);
+
 		// Network:
 		// Send packet to client(s). Packet can be created anywhere.
 		void pushPacketToQueue(Packet* packet);

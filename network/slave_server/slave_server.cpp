@@ -119,36 +119,40 @@ void SlaveServer::sendCharactersData()
 
 void SlaveServer::createAllBullets()
 {
-	//for (std::map<unsigned, Player*>::const_iterator mapIterator = m_playerMap.begin();
-	//	mapIterator != m_playerMap.end(); ++mapIterator)
-	//{
-	//	createBullets(mapIterator->second);
-	//}
+	auto& players = m_host->players();
+
+	for (auto it = players.begin(); it != players.end(); ++it) createBullets(&*it);
 }
 
-//void SlaveServer::createBullets(Player* player)
-//{
-//	if (player->m_playerController->shootFlag == false)
-//		return;
-//	player->m_playerController->shootFlag = true;
-//
-//	Weapon* weaponPointer = player->m_gladiator->m_weapon;
-//	std::vector<Bullet> bullets = weaponPointer->createBullets(player->m_playerController->aimAngle, 
-//		player->m_gladiator->m_position);
-//
-//	GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
-//	packet->m_bulletAmount = bullets.size();
-//	for (unsigned i = 0; i < bullets.size(); i++)
-//	{
-//		packet->m_bulletSpawnArray[i].m_creationDelay	 = bullets[i].m_creationDelay;
-//		packet->m_bulletSpawnArray[i].m_position		 = bullets[i].m_position;
-//		packet->m_bulletSpawnArray[i].m_rotation		 = bullets[i].m_rotation;
-//		packet->m_bulletSpawnArray[i].m_type			 = bullets[i].m_type;
-//		
-//		m_physics.addBullet(bullets[i].m_position, bullets[i].m_impulse, player->m_gladiator->m_physicsId);
-//	}
-//	pushPacketToQueue(packet);
-//}
+void SlaveServer::createBullets(Player* player)
+{
+	if (!player->m_playerController->shootFlag) return;
+	
+	player->m_playerController->shootFlag = true;
+
+	Weapon* weaponPointer = player->m_gladiator->m_weapon;
+	
+	std::vector<Bullet> bullets = weaponPointer->createBullets(
+		player->m_playerController->aimAngle, 
+		player->m_gladiator->m_position);
+
+	GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
+	packet->m_bulletAmount = bullets.size();
+	
+	Physics& physics = m_host->physics();
+
+	for (unsigned i = 0; i < bullets.size(); i++)
+	{
+		packet->m_bulletSpawnArray[i].m_creationDelay	 = bullets[i].m_creationDelay;
+		packet->m_bulletSpawnArray[i].m_position		 = bullets[i].m_position;
+		packet->m_bulletSpawnArray[i].m_rotation		 = bullets[i].m_rotation;
+		packet->m_bulletSpawnArray[i].m_type			 = bullets[i].m_type;
+		
+		physics.addBullet(bullets[i].m_position, bullets[i].m_impulse, player->m_gladiator->m_physicsId);
+	}
+	
+	pushPacketToQueue(packet);
+}
 
 void SlaveServer::pushPacketToQueue(Packet* packet)
 {
