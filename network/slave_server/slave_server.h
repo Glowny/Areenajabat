@@ -9,10 +9,11 @@
 #include "../client_listener.h"
 #include "common/forward_declare.h"
 #include "common/types.h"
+#include "..\game_host.h"
+
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Player)
-FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 
 namespace arena
