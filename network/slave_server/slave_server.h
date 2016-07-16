@@ -104,6 +104,6 @@ namespace arena
 
 		int64_t m_last_time;
 		
-		GameHost* m_host;
+		GameHost m_host;
 	};
 }
