@@ -236,16 +236,6 @@ namespace arena
                 response->m_clientSalt = packet->m_clientSalt;
                 response->m_joined = true;
 
-				/*// "join"
-				SlaveServer* instance = m_gameInstances[lobbyIndex];
-				
-				ClientData* data		= new ClientData();
-				data->m_peer			= from;
-				data->m_clientSalt		= response->m_clientSalt;
-				data->m_challengeSalt	= packet->m_lobbySalt;	// TODO: idk if this is correct.
-
-				instance->addPlayer(data);*/
-
                 m_networkInterface->sendPacket(from, response);
 
                 // assign lobby index to peer user data

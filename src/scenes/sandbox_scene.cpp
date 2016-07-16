@@ -419,7 +419,8 @@ namespace arena
 		packet->m_aimAngle = controller.aimAngle;
 		packet->x = controller.m_movementDirection.x;
 		packet->y = controller.m_movementDirection.y;
-		packet->m_id = m_playerId;
+		packet->m_clientSalt = s_client->m_clientSalt;
+        packet->m_challengeSalt = s_client->m_challengeSalt;
 
 		s_client->sendPacketToServer(packet, s_stamp);
 	}
@@ -427,7 +428,8 @@ namespace arena
 	{
 		GameShootPacket* packet = new GameShootPacket;
 		packet->m_angle = angle;
-		packet->m_id = m_playerId;
+        packet->m_clientSalt = s_client->m_clientSalt;
+        packet->m_challengeSalt = s_client->m_challengeSalt;
 
 		s_client->sendPacketToServer(packet, s_stamp);
 	}
