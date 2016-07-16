@@ -8,8 +8,9 @@
 #include "common/forward_declare.h"
 #include "common/types.h"
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
+
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Player)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
-#define TIMESTEP 0.016f
 
 namespace arena
 {

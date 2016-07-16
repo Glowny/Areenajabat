@@ -17,9 +17,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, PlayerController)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
-#define FPS			60
-#define MILLIS		1000
-#define TIMESTEP	(float64(MILLIS) / float64(FPS))
+#define TIMESTEP 0.016f
 
 namespace arena
 {

@@ -137,7 +137,7 @@ void SlaveServer::createBullets(Player* player)
 		player->m_gladiator->m_position);
 
 	GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
-	packet->m_bulletAmount = bullets.size();
+	packet->m_bulletAmount = uint8(bullets.size());
 	
 	Physics& physics = m_host->physics();
 
