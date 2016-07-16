@@ -12,6 +12,7 @@
 #include "common/packet.h"
 #include <stdio.h>
 #include "game_host.h"
+#include "client_listener.h"
 
 namespace arena
 {
@@ -43,6 +44,11 @@ namespace arena
     Server::~Server()
     {
 
+    }
+
+    void Server::addClientListener(ClientListener* listener)
+    {
+        m_listeners.push_back(listener);
     }
 
     void Server::processPacket(Packet* packet, ENetPeer* peer, double timestamp)
@@ -249,6 +255,11 @@ namespace arena
             ARENA_ASSERT(clientIndex != UINT32_MAX, "Invalid client index");
 
             connectClient(clientIndex, from, packet->m_clientSalt, packet->m_challengeSalt, timestamp);
+
+            for (uint32_t i = 0; i < (uint32_t)m_listeners.size(); ++i)
+            {
+                m_listeners[i]->onClientConnected(clientIndex, from, timestamp);
+            }
         }
     }
 

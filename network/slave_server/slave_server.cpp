@@ -4,9 +4,20 @@
 #include <common/arena/playerController.h>
 #include <common/arena/scoreboard.h>
 #include "../game_host.h"
+#include "../client_listener.h"
 
 namespace arena
 {
+
+    SlaveServerClientListener::~SlaveServerClientListener() {}
+
+    void SlaveServerClientListener::onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp)
+    {
+        fprintf(stderr, "SlaveServerClientListener::onClientConnect(), idx = %d joined\n", clientIndex);
+        BX_UNUSED(clientIndex, from, timestamp);
+    }
+    
+
 
 	SlaveServer::SlaveServer() :
 		m_startTime(0),
@@ -15,6 +26,7 @@ namespace arena
 	{
 		m_receiveQueue.reserve(InitialNetworkQueueSize);
 		m_sendQueue.reserve(InitialNetworkQueueSize);
+        m_server.addClientListener(&m_clientListener);
 	}
 
 	void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
