@@ -10,21 +10,24 @@
 namespace arena
 {
 
-    SlaveServerClientListener::~SlaveServerClientListener() {}
+	SlaveServerClientListener::SlaveServerClientListener(GameHost& host) : m_host(host) { }
+
+    SlaveServerClientListener::~SlaveServerClientListener() { }
 
     void SlaveServerClientListener::onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp)
     {
         fprintf(stderr, "SlaveServerClientListener::onClientConnect(), idx = %d joined\n", clientIndex);
         BX_UNUSED(clientIndex, from, timestamp);
-		
 
+		m_host.registerPlayer(clientIndex);
 	}
     
 	SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),
 		m_totalTime(0.0),
 		m_server(&m_sendQueue),
-		m_host(GameVars(gamemodeName))
+		m_host(GameVars(gamemodeName)),
+		m_clientListener(m_host)
 	{
 		m_receiveQueue.reserve(InitialNetworkQueueSize);
 		m_sendQueue.reserve(InitialNetworkQueueSize);
@@ -62,6 +65,27 @@ namespace arena
 			{
 				m_server.processPacket(packet, from, m_totalTime);
 			}
+			else if (packet->getType() == PacketTypes::GameInput)
+			{
+				GameInputPacket* inputPacket = (GameInputPacket*)packet;
+
+				const uint32 index	= m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
+				const float32 x		= inputPacket->x;
+				const float32 y		= inputPacket->y;
+
+				m_host.processInput(index, x, y);
+			}
+			else if (packet->getType() == PacketTypes::GameShoot)
+			{
+				GameShootPacket* shootPacket = (GameShootPacket*)packet;
+
+				const uint32 index			= m_server.findExistingClientIndex(from, shootPacket->m_clientSalt, shootPacket->m_challengeSalt);
+				const bool shootingFlags	= true;
+				const float32 angle			= shootPacket->m_angle;
+					
+				m_host.processShooting(index, shootingFlags, angle);
+			
+			}
 			else
 			{
 				fprintf(stderr, "Not implemented packets %d\n", packet->getType());
@@ -77,11 +101,6 @@ namespace arena
 		m_server.checkTimeout(m_totalTime);
 
 		// update physics and shit fill sendQueue
-	}
-
-	void SlaveServer::addPlayer(const uint64 salt, const uint64 id)
-	{
-		m_host.registerPlayer(salt, id);
 	}
 
 	void SlaveServer::initializeRound(unsigned playerAmount)
@@ -126,7 +145,6 @@ namespace arena
 
 	void SlaveServer::updateRound()
 	{
-		handleIncomingPackets();
 		applyPlayerInputs();
 
 		m_host.tick(getDeltaTime());
@@ -215,48 +233,6 @@ namespace arena
 	{
 		// TODO: When threads are implemented, add mutex.
 		m_outPacketQueue->push(packet);
-	}
-
-	void SlaveServer::handleIncomingPackets()
-	{
-		while (!m_inPacketQueue->empty())
-		{
-			handleSinglePacket(getPacketFromQueue());
-		}
-	}
-
-	void SlaveServer::handleSinglePacket(Packet* packet)
-	{
-		switch (packet->getType())
-		{
-		case PacketTypes::GameInput:
-		{
-			GameInputPacket* inputPacket = (GameInputPacket*)packet;
-
-			const uint64 salt = inputPacket->m_clientSalt;
-			const float32 x = inputPacket->x;
-			const float32 y = inputPacket->y;
-
-			m_host.processInput(salt, x, y);
-			break;
-		}
-
-		case PacketTypes::GameShoot:
-		{
-			GameShootPacket* shootPacket = (GameShootPacket*)packet;
-
-			const uint64 salt = shootPacket->m_clientSalt;
-			const bool shootingFlags = true;
-			const float32 angle = shootPacket->m_angle;
-
-			m_host.processShooting(salt, shootingFlags, angle);
-			break;
-		}
-
-		default:
-			printf("Game: Packet id: %d unknown.\n", packet->getType());
-			break;
-		}
 	}
 
 	Packet* SlaveServer::getPacketFromQueue()

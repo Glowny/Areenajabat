@@ -41,8 +41,6 @@ namespace arena
         // TODO figure out how to to this properly
         ENetHost* m_socket;
     private:
-        
-
         std::queue<PacketEntry> m_sendQueue;
         std::queue<PacketEntry> m_receiveQueue;
     };

@@ -12,7 +12,7 @@ struct Message;
 
 namespace arena
 {
-	struct Animator;
+	class Animator;
 	struct GladiatorDrawData
 	{
 		Entity* m_entity;
