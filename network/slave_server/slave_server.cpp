@@ -5,7 +5,44 @@
 #include <common/arena/scoreboard.h>
 #include "../game_host.h"
 
-using namespace arena;
+namespace arena
+{
+
+    SlaveServer::SlaveServer() : 
+        m_startTime(0),
+        m_totalTime(0.0),
+        m_server(&m_sendQueue)
+    {
+        m_receiveQueue.reserve(InitialNetworkQueueSize);
+        m_sendQueue.reserve(InitialNetworkQueueSize);
+    }
+
+    void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
+    {
+        m_receiveQueue.push_back(PacketEntry{ from, packet });
+    }
+
+    void SlaveServer::initialize()
+    {
+        m_startTime = bx::getHPCounter();
+    }
+
+    void SlaveServer::step()
+    {
+        // More time stuff
+        int64_t currentTime = bx::getHPCounter();
+        const int64_t time = currentTime - m_startTime;
+        m_startTime = currentTime;
+        const double frequency = (double)bx::getHPFrequency();
+        // seconds
+        float lastDeltaTime = float(time * (1.0f / frequency));
+        m_totalTime += lastDeltaTime;
+
+        // incoming packets
+        for (PacketEntry& packetEntry : m_receiveQueue)
+        {
+            Packet* packet = packetEntry.m_packet;
+            ENetPeer* from = packetEntry.m_peer;
 
 SlaveServer::SlaveServer()
 {
@@ -43,19 +80,19 @@ void SlaveServer::initializeRound(unsigned playerAmount)
 		m_host->registerEntity(gladiator);
 	}
 
-	// Send start packets
-	GameSetupPacket* packet = new GameSetupPacket;
-	packet->m_playerAmount = playerAmount;
-	pushPacketToQueue(packet);
+        // Send start packets
+        GameSetupPacket* packet = new GameSetupPacket;
+        packet->m_playerAmount = playerAmount;
+        pushPacketToQueue(packet);
 
-	m_last_time = bx::getHPCounter();
-}
+        m_last_time = bx::getHPCounter();
+    }
 
-bool SlaveServer::startRound(unsigned playerAmount)
-{
-	initializeRound(playerAmount);
-	return true;
-}
+    bool SlaveServer::startRound(unsigned playerAmount)
+    {
+        initializeRound(playerAmount);
+        return true;
+    }
 
 void SlaveServer::updateRound()
 {
@@ -65,8 +102,21 @@ void SlaveServer::updateRound()
 }
 void SlaveServer::applyPlayerInputs()
 {
-	m_host->applyPlayerInputs();
-
+	for (std::map<unsigned, Player*>::const_iterator mapIterator = m_playerMap.begin();
+		mapIterator != m_playerMap.end(); ++mapIterator)
+	{
+		unsigned physicsId = mapIterator->second->m_gladiator->m_physicsId;
+		glm::ivec2 moveDirection = mapIterator->second->m_playerController->m_movementDirection;
+		glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(physicsId);
+		
+		if (currentVelocity.x < 250 && currentVelocity.x > -250)
+		{ 
+			glm::vec2 force;
+			force.x = moveDirection.x *1500.0f;
+			m_physics.applyForceToGladiator(force, physicsId);
+			
+		}
+	}
 	createAllBullets();
 }
 
@@ -83,12 +133,10 @@ float SlaveServer::getDeltaTime()
 }
 void SlaveServer::updatePhysics()
 {
-	// TODO: not needed i guess?
-
-	//if ((m_physics.updateTimer += getDeltaTime()) > TIMESTEP)
-	//{
-	//	m_physics.update();
-	//}	
+	if ((m_physics.updateTimer += getDeltaTime()) > TIMESTEP)
+	{
+		m_physics.update();
+	}	
 }
 
 void SlaveServer::sendCharactersData()
@@ -152,19 +200,19 @@ void SlaveServer::createBullets(Player* player)
 	pushPacketToQueue(packet);
 }
 
-void SlaveServer::pushPacketToQueue(Packet* packet)
-{
-	// TODO: When threads are implemented, add mutex.
-	m_outPacketQueue->push(packet);
-}
+    void SlaveServer::pushPacketToQueue(Packet* packet)
+    {
+        // TODO: When threads are implemented, add mutex.
+        m_outPacketQueue->push(packet);
+    }
 
-void SlaveServer::handleIncomingPackets()
-{
-	while (!m_inPacketQueue->empty())
-	{
-		handleSinglePacket(getPacketFromQueue());
-	}
-}
+    void SlaveServer::handleIncomingPackets()
+    {
+        while (!m_inPacketQueue->empty())
+        {
+            handleSinglePacket(getPacketFromQueue());
+        }
+    }
 
 void SlaveServer::handleSinglePacket(Packet* packet)
 {
@@ -194,16 +242,23 @@ void SlaveServer::handleSinglePacket(Packet* packet)
 			break;
 		}
 
-		default:
-			printf("Game: Packet id: %d unknown.\n", packet->getType());
-			break;
-	}
-}
+        default:
+            printf("Game: Packet id: %d unknown.\n", packet->getType());
+            break;
+        }
+    }
 
-Packet* SlaveServer::getPacketFromQueue()
-{
-	// TODO: When threads are implemented, add mutex.
-	Packet* packet = m_inPacketQueue->front();
-	m_inPacketQueue->pop();
-	return packet;
+    Packet* SlaveServer::getPacketFromQueue()
+    {
+        // TODO: When threads are implemented, add mutex.
+        Packet* packet = m_inPacketQueue->front();
+        m_inPacketQueue->pop();
+        return packet;
+    }
+
+    std::vector<PacketEntry>& SlaveServer::getSendQueue()
+    {
+        return m_sendQueue;
+    }
+
 }

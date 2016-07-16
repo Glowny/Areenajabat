@@ -65,7 +65,7 @@ namespace arena
         while ((pkg = m_networkInterface->receivePacket(from)) != nullptr)
         {
             int32_t type = pkg->getType();
-            if (type >= PacketTypes::MasterCreateLobby && type <= PacketTypes::MasterListLobbies)
+            if (type >= PacketTypes::MasterCreateLobby && type < PacketTypes::GameSetup)
             {
                 switch (type)
                 {
@@ -85,6 +85,8 @@ namespace arena
                     }
                     break;
                     default:
+                        // if client sends shit packets which are only send from server we can just drop them
+                        destroyPacket(pkg);
                         break;
                 }
             }
@@ -107,7 +109,12 @@ namespace arena
 
                 LobbyIndex lobbyIndex = *(LobbyIndex*)from->data;
 
-                fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
+                //fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
+
+                ARENA_ASSERT(m_gameInstances[lobbyIndex] != nullptr, "The game instance %d is nullptr", lobbyIndex);
+
+                m_gameInstances[lobbyIndex]->queueIncoming(pkg, from);
+
                 // route packets to correct slaves
 
                 //fprintf(stderr, "Packet of type %d needs to be routed\n", pkg->getType());
@@ -124,8 +131,24 @@ namespace arena
             return EXIT_SUCCESS;
         });*/
 
-        // get data from slaves
-        // ....
+        // TODO run paraller
+        for (auto* instance : m_gameInstances)
+        {
+            instance->step();
+        }
+
+        // get data from slaves, this may be slow asf
+        for (auto* instance : m_gameInstances)
+        {
+            auto& send = instance->getSendQueue();
+
+            for (auto& entry : send)
+            {
+                m_networkInterface->sendPacket(entry.m_peer, entry.m_packet);
+            }
+
+            send.clear();
+        }
 
         // write data 
         m_networkInterface->writePackets();
