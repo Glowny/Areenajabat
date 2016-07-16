@@ -328,10 +328,6 @@ namespace arena
 
 		// Update.
 		if ((m_physics.updateTimer += dt) > TIMESTEP) m_physics.update();
-
-		// Draw.
-		// ...
-		// ...
 	}
 
 	GameHost::~GameHost()
