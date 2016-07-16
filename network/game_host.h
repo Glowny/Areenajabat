@@ -17,6 +17,10 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, PlayerController)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
+#define FPS			60
+#define MILLIS		1000
+#define TIMESTEP	(float64(MILLIS) / float64(FPS))
+
 namespace arena
 {
 	struct Player final : public Entity
@@ -213,6 +217,8 @@ namespace arena
 		void processInput(const uint64 salt, const float32 x, const float32 y);
 		void processShooting(const uint64 salt, const bool flags, const float32 angle);
 		
+		void applyPlayerInputs();
+
 		void loadMap(const char* const mapName);
 
 		std::vector<Player>& players();

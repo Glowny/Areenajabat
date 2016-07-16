@@ -25,19 +25,21 @@ void SlaveServer::initializeRound(unsigned playerAmount)
 	m_host->loadMap("coordinatesRawData.dat");
 
 	// Add gladiators.
-	std::vector<Player> players = m_host->players();
-	Physics& physics			= m_host->physics();
-	GameMap map					= m_host->map();
-	unsigned i					= 0;
+	std::vector<Player>& players = m_host->players();
+	Physics& physics			 = m_host->physics();
+	GameMap map					 = m_host->map();
+	unsigned i					 = 0;
 
 	// TODO: for debugging.
 	for (auto it = players.begin(); it != players.end(); ++it)
 	{
 		// Create.
-		Gladiator* gladiator = new Gladiator;
+		Player* player			= &*it;
+		Gladiator* gladiator	= new Gladiator;
 
-		gladiator->m_physicsId = physics.addGladiator(map.m_playerSpawnLocations[i++]);
-		gladiator->m_weapon = new WeaponGladius;
+		gladiator->m_physicsId	= physics.addGladiator(map.m_playerSpawnLocations[i]);
+		gladiator->m_weapon		= new WeaponGladius;
+		player->m_gladiator		= gladiator;
 
 		// Register.
 		m_host->registerEntity(gladiator);
@@ -65,35 +67,26 @@ void SlaveServer::updateRound()
 }
 void SlaveServer::applyPlayerInputs()
 {
-	//for (std::map<unsigned, Player*>::const_iterator mapIterator = m_playerMap.begin();
-	//	mapIterator != m_playerMap.end(); ++mapIterator)
-	//{
-	//	unsigned physicsId = mapIterator->second->m_gladiator->m_physicsId;
-	//	glm::ivec2 moveDirection = mapIterator->second->m_playerController->m_movementDirection;
-	//	glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(physicsId);
-	//	
-	//	if (currentVelocity.x < 250 && currentVelocity.x > -250)
-	//	{ 
-	//		glm::vec2 force;
-	//		force.x = moveDirection.x *1500.0f;
-	//		m_physics.applyForceToGladiator(force, physicsId);
-	//		
-	//	}
-	//}
-	//createAllBullets();
+	m_host->applyPlayerInputs();
+
+	createAllBullets();
 }
 
 float SlaveServer::getDeltaTime()
 {
-	int64_t currentTime = bx::getHPCounter();
-	const int64_t time = currentTime - m_last_time;
+	const int64 currentTime = bx::getHPCounter();
+	const int64 time		= currentTime - m_last_time;
+	
 	m_last_time = currentTime;
-	const double frequency = (double)bx::getHPFrequency();
+
+	const float64 frequency = (float64)bx::getHPFrequency();
 
 	return float(time * (1.0f / frequency));
 }
 void SlaveServer::updatePhysics()
 {
+	// TODO: not needed i guess?
+
 	//if ((m_physics.updateTimer += getDeltaTime()) > TIMESTEP)
 	//{
 	//	m_physics.update();
@@ -102,22 +95,26 @@ void SlaveServer::updatePhysics()
 
 void SlaveServer::sendCharactersData()
 {
-	//GameUpdatePacket* updatePacket = new GameUpdatePacket;
-	//TODO: Does playeramount need to be serialized?
-	//updatePacket->m_playerAmount = m_playerMap.size();
+	GameUpdatePacket* updatePacket	= new GameUpdatePacket;
+	auto& players					= m_host->players();
+	unsigned i						= 0;
+
+	updatePacket->m_playerAmount	= players.size();
 	
-	//unsigned i = 0;
-	//for (std::map<unsigned, Player*>::const_iterator mapIterator = m_playerMap.begin();
-	//	mapIterator != m_playerMap.end(); ++mapIterator)
-	//{
-	//	CharacterData characterData;
-	//	characterData.m_position = mapIterator->second->m_gladiator->m_position;
-	//	characterData.m_velocity = mapIterator->second->m_gladiator->m_position;
-	//	characterData.m_rotation = mapIterator->second->m_gladiator->m_rotation;
-	//	updatePacket->m_characterArray[i] = characterData;
-	//	i++;
-	//}
-	//pushPacketToQueue(updatePacket);
+	for (auto it = players.begin(); it != players.end(); ++it)
+	{
+		Player* player = &*it;
+
+		CharacterData characterData;
+		characterData.m_position			= player->m_gladiator->m_position;
+		characterData.m_velocity			= player->m_gladiator->m_position;
+		characterData.m_rotation			= player->m_gladiator->m_rotation;
+		updatePacket->m_characterArray[i]	= characterData;
+		
+		i++;
+	}
+
+	pushPacketToQueue(updatePacket);
 }
 
 void SlaveServer::createAllBullets()

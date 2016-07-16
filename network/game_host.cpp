@@ -3,6 +3,7 @@
 #include "server.h"
 #include <common\arena\playerController.h>
 #include <common\mem\packet_allocator.h>
+#include <common\arena\gladiator.h>
 
 namespace arena
 {
@@ -137,6 +138,28 @@ namespace arena
 		if (!m_entities.contains(entity)) return;
 
 		m_entities.remove(entity);
+	}
+
+	void GameHost::applyPlayerInputs()
+	{
+		auto& players = m_players.container();
+
+		for (auto it = players.begin(); it != players.end(); ++it)
+		{
+			Player& player = *it;
+
+			unsigned physicsId			= player.m_gladiator->m_physicsId;
+			glm::ivec2 moveDirection	= player.m_playerController->m_movementDirection;
+			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsId);
+
+			if (int32(currentVelocity.x) < 250 && int32(currentVelocity.x) > -250)
+			{
+				glm::vec2 force;
+				force.x = moveDirection.x * 1500.0f;
+
+				m_physics.applyForceToGladiator(force, physicsId);
+			}
+		}
 	}
 
 	void GameHost::loadMap(const char* const mapName)
@@ -304,9 +327,11 @@ namespace arena
 		}
 
 		// Update.
-		m_physics.update();
+		if ((m_physics.updateTimer += dt) > TIMESTEP) m_physics.update();
 
 		// Draw.
+		// ...
+		// ...
 	}
 
 	GameHost::~GameHost()
