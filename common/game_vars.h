@@ -74,6 +74,7 @@ namespace arena
 		bool				m_sv_headshots_only;
 		bool				m_gm_shutdown_after_wait;
 	
+		GameVars(const char* const gamemodeName);
 		GameVars();
 
 		void read(const minIni& ini);

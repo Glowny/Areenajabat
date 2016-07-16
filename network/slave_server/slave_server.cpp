@@ -3,6 +3,7 @@
 #include <common/arena/gladiator.h>
 #include <common/arena/playerController.h>
 #include <common/arena/scoreboard.h>
+#include <common/game_vars.h>
 #include "../game_host.h"
 #include "../client_listener.h"
 
@@ -15,14 +16,15 @@ namespace arena
     {
         fprintf(stderr, "SlaveServerClientListener::onClientConnect(), idx = %d joined\n", clientIndex);
         BX_UNUSED(clientIndex, from, timestamp);
-    }
+		
+
+	}
     
-
-
-	SlaveServer::SlaveServer() :
+	SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),
 		m_totalTime(0.0),
-		m_server(&m_sendQueue)
+		m_server(&m_sendQueue),
+		m_host(GameVars(gamemodeName))
 	{
 		m_receiveQueue.reserve(InitialNetworkQueueSize);
 		m_sendQueue.reserve(InitialNetworkQueueSize);
@@ -77,21 +79,21 @@ namespace arena
 		// update physics and shit fill sendQueue
 	}
 
-	void SlaveServer::addPlayer(ClientData* const clientData)
+	void SlaveServer::addPlayer(const uint64 salt, const uint64 id)
 	{
-		m_host->registerPlayer(clientData);
+		m_host.registerPlayer(salt, id);
 	}
 
 	void SlaveServer::initializeRound(unsigned playerAmount)
 	{
 		// Load map. TODO: Use filesystem.
-		m_host->loadMap("coordinatesRawData.dat");
+		m_host.loadMap("coordinatesRawData.dat");
 
 		// Add gladiators.
-		std::vector<Player>& players = m_host->players();
-		Physics& physics			= m_host->physics();
-		GameMap map					= m_host->map();
-		unsigned i					= 0;
+		std::vector<Player>& players = m_host.players();
+		Physics& physics			 = m_host.physics();
+		GameMap map					 = m_host.map();
+		unsigned i					 = 0;
 
 		// TODO: for debugging.
 		for (auto it = players.begin(); it != players.end(); ++it)
@@ -105,7 +107,7 @@ namespace arena
 			player->m_gladiator = gladiator;
 
 			// Register.
-			m_host->registerEntity(gladiator);
+			m_host.registerEntity(gladiator);
 		}
 
 		// Send start packets
@@ -127,11 +129,11 @@ namespace arena
 		handleIncomingPackets();
 		applyPlayerInputs();
 
-		m_host->tick(getDeltaTime());
+		m_host.tick(getDeltaTime());
 	}
 	void SlaveServer::applyPlayerInputs()
 	{
-		m_host->applyPlayerInputs();
+		m_host.applyPlayerInputs();
 
 		createAllBullets();
 	}
@@ -151,7 +153,7 @@ namespace arena
 	void SlaveServer::sendCharactersData()
 	{
 		GameUpdatePacket* updatePacket	= new GameUpdatePacket;
-		auto& players					= m_host->players();
+		auto& players					= m_host.players();
 		unsigned i						= 0;
 
 		updatePacket->m_playerAmount = players.size();
@@ -174,7 +176,7 @@ namespace arena
 
 	void SlaveServer::createAllBullets()
 	{
-		auto& players = m_host->players();
+		auto& players = m_host.players();
 
 		for (auto it = players.begin(); it != players.end(); ++it) createBullets(&*it);
 	}
@@ -194,7 +196,7 @@ namespace arena
 		GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
 		packet->m_bulletAmount = uint8(bullets.size());
 
-		Physics& physics = m_host->physics();
+		Physics& physics = m_host.physics();
 
 		for (unsigned i = 0; i < bullets.size(); i++)
 		{
@@ -235,7 +237,7 @@ namespace arena
 			const float32 x = inputPacket->x;
 			const float32 y = inputPacket->y;
 
-			m_host->processInput(salt, x, y);
+			m_host.processInput(salt, x, y);
 			break;
 		}
 
@@ -247,7 +249,7 @@ namespace arena
 			const bool shootingFlags = true;
 			const float32 angle = shootPacket->m_angle;
 
-			m_host->processShooting(salt, shootingFlags, angle);
+			m_host.processShooting(salt, shootingFlags, angle);
 			break;
 		}
 

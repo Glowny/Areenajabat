@@ -9,10 +9,11 @@
 #include "../client_listener.h"
 #include "common/forward_declare.h"
 #include "common/types.h"
+#include "..\game_host.h"
+
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Player)
-FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 
 namespace arena
@@ -35,12 +36,12 @@ namespace arena
         // how many packets are reserved per frame
         static const uint32_t InitialNetworkQueueSize = 256;
 	public:
-		SlaveServer();
+		SlaveServer(const char* const gamemodeName);
 		~SlaveServer();
 
 		void initialize();
 
-		void addPlayer(ClientData* const clientData);
+		void addPlayer(const uint64 salt, const uint64 id);
 
 		bool startLobby();
 		bool stop();
@@ -104,6 +105,6 @@ namespace arena
 
 		int64_t m_last_time;
 		
-		GameHost* m_host;
+		GameHost m_host;
 	};
 }

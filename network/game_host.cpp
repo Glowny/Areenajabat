@@ -95,30 +95,28 @@ namespace arena
 		}
 	}
 
-	void GameHost::registerPlayer(const ClientData* const client)
+	void GameHost::registerPlayer(const uint64 salt, const uint64 id)
 	{
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
-		ARENA_ASSERT(find(client) == nullptr, "client already registered as player");
-
+		
 		m_players.add(Player());
 
-		Player* const newPlayer = &m_players.back();
-		newPlayer->m_clientData = client;
-		newPlayer->m_clientSalt = client->m_clientSalt;
-		newPlayer->m_playerController = new PlayerController();
+		Player* const newPlayer			= &m_players.back();
+		newPlayer->m_clientID			= id;
+		newPlayer->m_clientSalt			= salt;
+		newPlayer->m_playerController	= new PlayerController();
 
 		m_entities.add(newPlayer);
 	}
-	void GameHost::unregisterPlayer(const ClientData* const client)
+	void GameHost::unregisterPlayer(const uint64 salt, const uint64 id)
 	{
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
-		ARENA_ASSERT(find(client) != nullptr, "client not registered as player");
-
+		
 		for (auto it = m_players.begin(); it != m_players.end(); it++)
 		{
-			const ClientData* const other = &*it->m_clientData;
-			
-			if (other == client) 
+			const Player* player = &*it;
+
+			if (player->m_clientSalt == salt && player->m_clientID == id) 
 			{
 				m_players.remove(*it);
 				
@@ -179,13 +177,6 @@ namespace arena
 	Physics& GameHost::physics()
 	{
 		return m_physics;
-	}
-
-	const Player* const GameHost::find(const ClientData* const client) const
-	{
-		for (const Player& player : m_players) if (player.m_clientData == client) return &player;
-		
-		return nullptr;
 	}
 
 	void GameHost::processInput(const uint64 salt, const float32 x, const float32 y)
