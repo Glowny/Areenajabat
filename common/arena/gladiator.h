@@ -2,11 +2,11 @@
 
 #include "weapons.h"
 
-#include <common/entity.h>
+#include <common/network_entity.h>
 
 namespace arena
 {
-	struct Gladiator : public Entity
+	struct Gladiator : public NetworkEntity
 	{
 		Gladiator() { m_alive = true; m_hitpoints = 100; }
 

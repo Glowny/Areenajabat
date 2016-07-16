@@ -10,7 +10,7 @@
 #include <common/arena/physics.h>
 #include <common/packet.h>
 #include <common/arena/game_map.h>
-#include <common/entity.h>
+#include <common/network_entity.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
@@ -21,7 +21,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
 namespace arena
 {
-	struct Player final : public Entity
+	struct Player final : public NetworkEntity
 	{
 		uint64					m_clientSalt		{ 0 };
 		PlayerController*		m_playerController	{ nullptr };
