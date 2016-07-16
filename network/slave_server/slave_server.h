@@ -35,12 +35,12 @@ namespace arena
         // how many packets are reserved per frame
         static const uint32_t InitialNetworkQueueSize = 256;
 	public:
-		SlaveServer();
+		SlaveServer(const char* const gamemodeName);
 		~SlaveServer();
 
 		void initialize();
 
-		void addPlayer(ClientData* const clientData);
+		void addPlayer(const uint64 salt, const uint64 id);
 
 		bool startLobby();
 		bool stop();

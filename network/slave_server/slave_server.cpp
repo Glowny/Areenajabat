@@ -17,12 +17,11 @@ namespace arena
         BX_UNUSED(clientIndex, from, timestamp);
     }
     
-
-
-	SlaveServer::SlaveServer() :
+	SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),
 		m_totalTime(0.0),
-		m_server(&m_sendQueue)
+		m_server(&m_sendQueue),
+		m_host(GameVars)
 	{
 		m_receiveQueue.reserve(InitialNetworkQueueSize);
 		m_sendQueue.reserve(InitialNetworkQueueSize);
@@ -77,9 +76,9 @@ namespace arena
 		// update physics and shit fill sendQueue
 	}
 
-	void SlaveServer::addPlayer(ClientData* const clientData)
+	void SlaveServer::addPlayer(const uint64 salt, const uint64 id)
 	{
-		m_host->registerPlayer(clientData);
+		m_host->registerPlayer(salt, id);
 	}
 
 	void SlaveServer::initializeRound(unsigned playerAmount)
@@ -89,9 +88,9 @@ namespace arena
 
 		// Add gladiators.
 		std::vector<Player>& players = m_host->players();
-		Physics& physics			= m_host->physics();
-		GameMap map					= m_host->map();
-		unsigned i					= 0;
+		Physics& physics			 = m_host->physics();
+		GameMap map					 = m_host->map();
+		unsigned i					 = 0;
 
 		// TODO: for debugging.
 		for (auto it = players.begin(); it != players.end(); ++it)

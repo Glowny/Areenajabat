@@ -183,7 +183,13 @@ namespace arena
 
         if (m_gameInstances.size() < MaxGameInstances)
         {
-            m_gameInstances.push_back(new SlaveServer());
+			// TODO: we need to know what gamemode is 
+			//		 being played
+
+			// TODO: debug
+			const char* const GamemodeName = "dm";
+
+            m_gameInstances.push_back(new SlaveServer(GamemodeName));
             const uint32_t lobbyIndex = m_gameInstances.size() - 1;
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
             m_lobbySalts[lobbyIndex] = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);

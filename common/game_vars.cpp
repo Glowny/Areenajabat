@@ -24,6 +24,12 @@ namespace arena
 		{ "team_round_wins", VictoryCondition::TeamRoundWins }
 	};
 
+	GameVars::GameVars(const char* const gamemodeName) : GameVars()
+	{
+		minIni ini(gamemodeName);
+
+		read(ini);
+	}
 	GameVars::GameVars()
 	{
 		ZERO_MEMORY(this, sizeof(GameVars));

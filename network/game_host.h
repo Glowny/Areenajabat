@@ -23,11 +23,11 @@ namespace arena
 {
 	struct Player final : public NetworkEntity
 	{
+		uint64					m_clientID			{ 0 };
 		uint64					m_clientSalt		{ 0 };
 		PlayerController*		m_playerController	{ nullptr };
 		Gladiator*				m_gladiator			{ nullptr };
-		const ClientData*		m_clientData		{ nullptr };
-
+		
 		bool operator ==(const Player* const lhs) const
 		{
 			if (lhs == nullptr) return false;
@@ -210,8 +210,8 @@ namespace arena
 		void timeOutBegin();
 		void timeoutEnd();
 
-		void registerPlayer(const ClientData* const client);
-		void unregisterPlayer(const ClientData* const client);
+		void registerPlayer(const uint64 salt, const uint64 id);
+		void unregisterPlayer(const uint64 salt, const uint64 id);
 
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
@@ -231,9 +231,7 @@ namespace arena
 		const std::vector<Packet*>& getResults();
 
 		~GameHost();
-	private: 
-		const Player* const find(const ClientData* const client) const;
-
+	private:	
 		void sessionTick(const uint64 dt);
 		void gameTick(const uint64 dt);
 		void worldTick(const float64 dt);
@@ -242,8 +240,8 @@ namespace arena
 		Physics				m_physics;
 
 		Container<NetworkEntity*>		m_entities;
-		Container<Player>		m_players;
-		Container<Packet*>		m_outPackets;
+		Container<Player>				m_players;
+		Container<Packet*>				m_outPackets;
 
 		const GameVars		m_vars;
 
