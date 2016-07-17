@@ -119,6 +119,8 @@ namespace arena
 
 			if (player->m_clientIndex == clientIndex) 
 			{
+				// TODO: unregister all entitites that the
+				//		 player owns as well.
 				unregisterEntity(player);
 				
 				m_players.remove(*it);
