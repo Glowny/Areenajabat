@@ -22,12 +22,31 @@ Lavel 2: servers - gameplay stuff happens here
 
 namespace arena
 {
+    class MasterServerClientListener : public ClientListener
+    {
+    public:
+        MasterServerClientListener(class MasterServer*);
+
+        ~MasterServerClientListener() override;
+
+        virtual void onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp) override;
+
+        virtual void onClientDisconnected(uint32_t clientIndex, ENetPeer* from, double timestamp) override;
+
+    private:
+        MasterServer* m_master;
+    };
+
     // Creates common network interface to be used accross all slave servers
 	class MasterServer final
 	{
+        friend class MasterServerClientListener;
+	public:
         // number of server networks and slaves to be created
         const static uint32_t MaxGameInstances = 10;
-	public:
+
+        using LobbySaltToIndexMap = std::unordered_map<uint64_t, uint32_t>;
+
 		MasterServer();
 
 		void start();
@@ -42,10 +61,8 @@ namespace arena
 
         ENetHost* m_socket;
 
-        // 
-        std::unordered_map<uint64_t, uint32_t> m_clientSaltToLobbyIndex;
+        MasterServerClientListener m_listener;
 
-        using LobbySaltToIndexMap = std::unordered_map<uint64_t, uint32_t>;
         LobbySaltToIndexMap m_lobbySaltToLobbyIndex;
         // this is shared accross all servers
         NetworkInterface* m_networkInterface;
