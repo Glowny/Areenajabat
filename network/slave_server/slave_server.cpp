@@ -120,17 +120,17 @@ namespace arena
 			switch (type)
 			{
 			case NetworkEntityType::Gladiator:
-				sendGladiatorData();
+				// Send gladiator data, cast.
 				break;
 			case NetworkEntityType::Player:
-				sendCharactersData();
+				// Send Player data, cast.
 				break;
 			case NetworkEntityType::Projectile:
-				sendProjectilesData();
 				break;
+				// Send Projectile data, cast.
 			case NetworkEntityType::Weapon:
-				sendWeaponsData();
 				break;
+				// Send Weapon data, cast.
 			case NetworkEntityType::Null:
 			default:
 				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!");
@@ -168,7 +168,10 @@ namespace arena
 		// Send start packets
 		GameSetupPacket* packet = new GameSetupPacket;
 		packet->m_playerAmount = playerAmount;
-		pushPacketToQueue(packet);
+
+		for (Player& player : players) {
+			m_server.sendPacketToConnectedClient(player.m_clientIndex, packet, m_totalTime);
+		}
 
 		m_last_time = bx::getHPCounter();
 	}
@@ -188,8 +191,6 @@ namespace arena
 	void SlaveServer::applyPlayerInputs()
 	{
 		m_host.applyPlayerInputs();
-
-		createAllBullets();
 	}
 
 	float64 SlaveServer::getDeltaTime()
@@ -204,82 +205,75 @@ namespace arena
 		return float64(time * (1.0f / frequency));
 	}
 
-	void SlaveServer::sendCharactersData()
-	{
-		GameUpdatePacket* updatePacket	= new GameUpdatePacket;
-		auto& players					= m_host.players();
-		uint32 i						= 0;
+	#pragma		region Unused
+	//void SlaveServer::sendCharactersData()
+	//{
+	//	GameUpdatePacket* updatePacket	= new GameUpdatePacket;
+	//	auto& players					= m_host.players();
+	//	uint32 i						= 0;
 
-		updatePacket->m_playerAmount = players.size();
+	//	updatePacket->m_playerAmount = players.size();
 
-		// Get data.
-		for (auto it = players.begin(); it != players.end(); ++it)
-		{
-			CharacterData characterData;
-			characterData.m_position			= it->m_gladiator->m_position;
-			characterData.m_velocity			= it->m_gladiator->m_position;
-			characterData.m_rotation			= it->m_gladiator->m_rotation;
-			updatePacket->m_characterArray[i++]	= characterData;
-		}
+	//	// Get data.
+	//	for (auto it = players.begin(); it != players.end(); ++it)
+	//	{
+	//		CharacterData characterData;
+	//		characterData.m_position			= it->m_gladiator->m_position;
+	//		characterData.m_velocity			= it->m_gladiator->m_position;
+	//		characterData.m_rotation			= it->m_gladiator->m_rotation;
+	//		updatePacket->m_characterArray[i++]	= characterData;
+	//	}
 
-		// Send i guess..
-		for (uint32 i = 0; i < players.size(); i++) 
-		{
-			m_server.sendPacketToConnectedClient(players[i].m_clientIndex, updatePacket, this->m_totalTime);
-		}
-	}
-	void SlaveServer::sendGladiatorData()
-	{
-	}
-	void SlaveServer::sendWeaponsData()
-	{
-	}
-	void SlaveServer::sendProjectilesData()
-	{
-	}
+	//	// Send i guess..
+	//	for (uint32 i = 0; i < players.size(); i++) 
+	//	{
+	//		m_server.sendPacketToConnectedClient(players[i].m_clientIndex, updatePacket, this->m_totalTime);
+	//	}
+	//}
 
-	void SlaveServer::createAllBullets()
-	{
-		auto& players = m_host.players();
+	//void SlaveServer::createAllBullets()
+	//{
+	//	auto& players = m_host.players();
 
-		for (auto it = players.begin(); it != players.end(); ++it) createBullets(&*it);
-	}
+	//	for (auto it = players.begin(); it != players.end(); ++it) createBullets(&*it);
+	//}
 
-	void SlaveServer::createBullets(Player* player)
-	{
-		if (!player->m_playerController->shootFlag) return;
+	//void SlaveServer::createBullets(Player* player)
+	//{
+	//	if (!player->m_playerController->shootFlag) return;
 
-		player->m_playerController->shootFlag = true;
+	//	player->m_playerController->shootFlag = true;
 
-		Weapon* weaponPointer = player->m_gladiator->m_weapon;
+	//	Weapon* weaponPointer = player->m_gladiator->m_weapon;
 
-		std::vector<Bullet> bullets = weaponPointer->createBullets(
-			player->m_playerController->aimAngle,
-			player->m_gladiator->m_position);
+	//	std::vector<Bullet> bullets = weaponPointer->createBullets(
+	//		player->m_playerController->aimAngle,
+	//		player->m_gladiator->m_position);
 
-		GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
-		packet->m_bulletAmount = uint8(bullets.size());
+	//	GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
+	//	packet->m_bulletAmount = uint8(bullets.size());
 
-		Physics& physics = m_host.physics();
+	//	Physics& physics = m_host.physics();
 
-		for (unsigned i = 0; i < bullets.size(); i++)
-		{
-			packet->m_bulletSpawnArray[i].m_creationDelay = bullets[i].m_creationDelay;
-			packet->m_bulletSpawnArray[i].m_position = bullets[i].m_position;
-			packet->m_bulletSpawnArray[i].m_rotation = bullets[i].m_rotation;
-			packet->m_bulletSpawnArray[i].m_type = bullets[i].m_type;
+	//	for (unsigned i = 0; i < bullets.size(); i++)
+	//	{
+	//		packet->m_bulletSpawnArray[i].m_creationDelay = bullets[i].m_creationDelay;
+	//		packet->m_bulletSpawnArray[i].m_position = bullets[i].m_position;
+	//		packet->m_bulletSpawnArray[i].m_rotation = bullets[i].m_rotation;
+	//		packet->m_bulletSpawnArray[i].m_type = bullets[i].m_type;
 
-			physics.addBullet(bullets[i].m_position, bullets[i].m_impulse, player->m_gladiator->m_physicsId);
-		}
+	//		physics.addBullet(bullets[i].m_position, bullets[i].m_impulse, player->m_gladiator->m_physicsId);
+	//	}
 
-		pushPacketToQueue(packet);
-	}
+	//	pushPacketToQueue(packet);
+	//}
 
-	void SlaveServer::pushPacketToQueue(Packet* packet)
-	{
-		// TODO: When threads are implemented, add mutex.
-		m_outPacketQueue->push(packet);
-	}
+	//void SlaveServer::pushPacketToQueue(Packet* packet)
+	//{
+	//	// TODO: When threads are implemented, add mutex.
+	//	m_outPacketQueue->push(packet);
+	//}
+#pragma endregion
 
 	Packet* SlaveServer::getPacketFromQueue()
 	{
