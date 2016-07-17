@@ -26,6 +26,8 @@ namespace arena
     {
         BX_UNUSED(from, timestamp);
         fprintf(stderr, "SlaveServerClientListener::onClientDisconnected(), idx = %d disconnected\n", clientIndex);
+
+		m_host.unregisterPlayer(clientIndex);
     }
 
     SlaveServer::SlaveServer(const char* const gamemodeName) :
