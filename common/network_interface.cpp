@@ -30,15 +30,9 @@ namespace arena
         s_initialized = false;
     }
 
-    NetworkInterface::NetworkInterface(uint16_t port)
-        : m_socket(nullptr)
+    NetworkInterface::NetworkInterface(ENetHost* socket)
+        : m_socket(socket)
     {
-        ENetAddress address;
-        address.host = ENET_HOST_ANY;
-        address.port = port;
-        // bound the port even to client
-        m_socket = enet_host_create(&address, 32, 2, 0, 0);
-
         ARENA_ASSERT(m_socket != nullptr, "Failed to create socket");
     }
 

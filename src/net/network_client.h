@@ -52,7 +52,7 @@ namespace arena
     class NetworkClient
     {
     public:
-        NetworkClient(uint16_t clientPort);
+        NetworkClient();
 
         void connect(const char* address, uint16_t port, double timestamp);
 
@@ -90,7 +90,9 @@ namespace arena
     private:
         void reset();
 
-        NetworkInterface m_networkInterface;
+        NetworkInterface* m_networkInterface;
+
+        ENetHost* m_socket;
 
         ENetPeer* m_peer;
 

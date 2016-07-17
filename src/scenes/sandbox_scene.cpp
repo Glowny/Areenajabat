@@ -266,7 +266,7 @@ namespace arena
 
 	void SandboxScene::onInitialize()
 	{
-        s_client = new NetworkClient(uint16_t(13337));
+        s_client = new NetworkClient();
         s_client->m_lobbyListener = &s_lobbyListener;
 		m_playerId = 0;
 		for (unsigned i = 0; i < 3; i++)
@@ -415,7 +415,7 @@ namespace arena
 	
 	void SandboxScene::sendInput(PlayerController &controller)
 	{
-		GameInputPacket* packet = new GameInputPacket();
+        GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
 		packet->x = controller.m_movementDirection.x;
 		packet->y = controller.m_movementDirection.y;
@@ -426,7 +426,7 @@ namespace arena
 	}
 	void SandboxScene::sendShootEvent(float angle)
 	{
-		GameShootPacket* packet = new GameShootPacket;
+		GameShootPacket* packet = (GameShootPacket*)createPacket(PacketTypes::GameShoot);
 		packet->m_angle = angle;
         packet->m_clientSalt = s_client->m_clientSalt;
         packet->m_challengeSalt = s_client->m_challengeSalt;

@@ -5,8 +5,9 @@
 
 namespace arena
 {
-    MasterServer::MasterServer()
-        : m_running(false)
+    MasterServer::MasterServer() : 
+        m_running(false),
+        m_socket(nullptr)
     {
         m_gameInstances.reserve(MaxGameInstances);
         memset(m_instanceCreatedBy, 0, sizeof(m_instanceCreatedBy));
@@ -15,11 +16,21 @@ namespace arena
 
     void MasterServer::start()
     {
+        ARENA_ASSERT(m_socket == nullptr, "Socket has been already initialized");
         ARENA_ASSERT(m_running == false, "Server already running");
 
         uint16_t port = 8088;
 
-        m_networkInterface = new NetworkInterface(port);
+        ENetAddress address;
+        address.host = ENET_HOST_ANY;
+        address.port = port;
+
+        const uint32_t maxPeers = MaxGameInstances * Server::MaxClients;
+        const uint32_t channelsPerPeer = 2;
+
+        m_socket = enet_host_create(&address, maxPeers, channelsPerPeer, 0, 0);
+
+        m_networkInterface = new NetworkInterface(m_socket);
 
         fprintf(stderr, "Accepting connections on port %" PRIu16 "\n", port);
 

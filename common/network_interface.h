@@ -22,7 +22,7 @@ namespace arena
     class NetworkInterface
     {
     public:
-        NetworkInterface(uint16_t port);
+        NetworkInterface(ENetHost* socket);
 
         ~NetworkInterface();
 

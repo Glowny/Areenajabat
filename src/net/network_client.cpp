@@ -16,13 +16,15 @@ namespace arena
     const double QueryLobbiesSendRate = 1.0;
     const double JoinLobbySendRate = 0.1;
 
-    NetworkClient::NetworkClient(uint16_t clientPort) : 
+    NetworkClient::NetworkClient() : 
         m_state(ClientState::Disconnected), 
         m_lastPacketReceivedTime(0), 
         m_lastPacketSendTime(0),
-        m_networkInterface(clientPort),
+        m_networkInterface(nullptr),
         m_lobbyListener(nullptr)
     {
+        m_socket = enet_host_create(NULL, 1, 2, 0, 0);
+        m_networkInterface = new NetworkInterface(m_socket);
         reset();
     }
 
@@ -31,7 +33,7 @@ namespace arena
         disconnect(timeStamp);
         m_serverAddress.port = port;
         enet_address_set_host(&m_serverAddress, address);
-        m_peer = enet_host_connect(m_networkInterface.m_socket, &m_serverAddress, 2, 0);
+        m_peer = enet_host_connect(m_socket, &m_serverAddress, 2, 0);
 
         m_lobbyState = LobbyState::NotInLobby;
         m_state = ClientState::SendingConnectionRequest;
@@ -52,7 +54,7 @@ namespace arena
             out->m_clientSalt = m_clientSalt;
             out->m_challengeSalt = m_challengeSalt;
             
-            m_networkInterface.sendPacket(m_peer, out);
+            m_networkInterface->sendPacket(m_peer, out);
             m_lastPacketSendTime = timestamp;
         }
         reset();
@@ -191,7 +193,7 @@ namespace arena
 
             ARENA_ASSERT(m_state != ClientState::Disconnected, "Cant send packets when disconnected");
 
-            m_networkInterface.sendPacket(m_peer, packet);
+            m_networkInterface->sendPacket(m_peer, packet);
             m_lastPacketSendTime = timestamp;
         }
             break;
@@ -217,19 +219,19 @@ namespace arena
     void NetworkClient::sendPacketToServer(Packet* packet, double timestamp)
     {
         ARENA_ASSERT(m_state != ClientState::Disconnected, "Can not send packets when disconnected");
-        m_networkInterface.sendPacket(m_peer, packet);
+        m_networkInterface->sendPacket(m_peer, packet);
         m_lastPacketSendTime = timestamp;
     }
 
     void NetworkClient::writePackets()
     {
-        m_networkInterface.writePackets();
+        m_networkInterface->writePackets();
     }
 
     void NetworkClient::readPackets()
     {
         ENetEvent event;
-        while (enet_host_service(m_networkInterface.m_socket, &event, 0))
+        while (enet_host_service(m_socket, &event, 0) > 0)
         {
             if (event.type == ENET_EVENT_TYPE_CONNECT) 
             {
@@ -244,7 +246,7 @@ namespace arena
             }
             if (event.type != ENET_EVENT_TYPE_RECEIVE) continue;
             
-            m_networkInterface.readPacket(event.peer, event.packet);
+            m_networkInterface->readPacket(event.peer, event.packet);
         }
         
     }
@@ -289,7 +291,7 @@ namespace arena
 
     Packet* NetworkClient::receivePacket(ENetPeer*& from)
     {
-        return m_networkInterface.receivePacket(from);
+        return m_networkInterface->receivePacket(from);
     }
 
     void NetworkClient::processClientSidePackets(Packet* packet, ENetPeer* peer, double timestamp)

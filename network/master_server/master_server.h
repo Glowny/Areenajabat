@@ -40,6 +40,8 @@ namespace arena
         void processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp);
         void processListLobbiesPacket(ListLobbiesPacket* packet, ENetPeer* from, double timestamp);
 
+        ENetHost* m_socket;
+
         // 
         std::unordered_map<uint64_t, uint32_t> m_clientSaltToLobbyIndex;
 
