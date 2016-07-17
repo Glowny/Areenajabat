@@ -162,10 +162,7 @@ namespace arena
 
 		T* find(Predicate<const T* const> pred)
 		{
-			for (const T* const element : m_container)
-			{
-				if (pred(element)) return element;
-			}
+			for (T& element : m_container) if (pred(&element)) return &element;
 
 			return nullptr;
 		}

@@ -61,7 +61,7 @@ namespace arena
 	}
 	void GameHost::timeoutEnd()
 	{
-		if (!m_gameData.m_state == GameState::Timeout) return;
+		if (!(m_gameData.m_state == GameState::Timeout)) return;
 
 		m_gameData.m_timeoutElapsed = 0;
 		m_gameData.m_state = GameState::Running;
@@ -279,7 +279,7 @@ namespace arena
 			m_gameData.m_timeoutElapsed += dt;
 			m_gameData.m_state = m_gameData.m_timeoutElapsed < 60 ? GameState::Timeout : GameState::Running;
 
-			if (!m_gameData.m_state == GameState::Timeout)
+			if (!(m_gameData.m_state == GameState::Timeout))
 			{
 				m_gameData.m_timeoutElapsed = 0;
 				
