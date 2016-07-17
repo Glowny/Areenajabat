@@ -1,8 +1,5 @@
-#if defined(ARENA_SERVER)
-
-#include <bx/bx.h>
-
 #include "server.h"
+#include <bx/bx.h>
 #include <stdio.h>
 #include <assert.h>
 #include <bx/timer.h>
@@ -414,6 +411,3 @@ namespace arena
     }
 
 }
-#endif
-
-//BX_PRAGMA_DIAGNOSTIC_POP()

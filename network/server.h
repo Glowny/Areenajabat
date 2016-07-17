@@ -1,25 +1,14 @@
 #pragma once
-#if defined(ARENA_SERVER)
-#include <queue>
 #include <vector>
 #include <common/game_vars.h>
-#include <common/GamePackets.h>
 #include <common/network_interface.h>
 #include <common/types.h>
 #include <common/packet.h>
 #include <common/mem/memory.h>
-
 #include <common/forward_declare.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameHost)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientListener)
-
-struct PlayerInput
-{
-	glm::vec2 moveDir;
-	float jumpTimer;
-	// add more when needed;
-};
 
 namespace arena
 {
@@ -135,4 +124,3 @@ namespace arena
         ServerChallengeHash m_challengeHash; // challenge hashes
     };
 }
-#endif

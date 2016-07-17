@@ -116,12 +116,6 @@ project "common"
 project "server"
 	kind "ConsoleApp"
 	
-	defines { 
-		"ARENA_SERVER",
-		--"SFML_STATIC",
-		--"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
-	}
-	
 	includedirs { 
 		ARENA_THIRD_DIR,
 		path.join(BX_DIR, "include/"),
@@ -142,51 +136,6 @@ project "server"
 		"Box2D",
 		"minini"
 	}
-	
-	configuration {}
-	
-
--- remove this project soon
-project "client_sandbox"
-	kind "ConsoleApp"
-
-	defines { 
-		"ARENA_CLIENT",
-		"SFML_STATIC",
-		"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
-	}
-	
-	includedirs { 
-		ARENA_THIRD_DIR
-	}
-	
-	files {
-		path.join(ARENA_DIR, "network", "*.cpp"),
-		path.join(ARENA_DIR, "network", "*.h"),
-		path.join(ARENA_DIR, "network", "**.inl")
-	}
-	
-	configuration { "vs*" and "x32"}
-		links { 
-		"enet",
-		"ws2_32",
-		"winmm"
-		}
-
-	configuration { "vs*" and "x64"}
-	links { 
-		"enet",
-		"ws2_32",
-		"winmm",
-		"sfml-window-s-d",
-		"sfml-graphics-s-d",
-		"sfml-system-s-d",
-		"opengl32",
-		"gdi32",
-		"freetype",
-		"jpeg"
-	}
-	
 	
 	configuration {}
 
