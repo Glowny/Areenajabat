@@ -83,7 +83,6 @@ namespace arena
         m_clientConnected[clientIndex] = true;
 
         m_clientData[clientIndex].m_peer = peer;
-        m_clientData[clientIndex].m_peer->data = &m_clientIndices[clientIndex];
         m_clientData[clientIndex].m_challengeSalt = challengeSalt;
         m_clientData[clientIndex].m_clientSalt = clientSalt;
         m_clientData[clientIndex].m_connectTime = connectTime;

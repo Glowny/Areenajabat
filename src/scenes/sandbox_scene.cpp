@@ -30,6 +30,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <common/packet.h>
 #include <common/arena/gladiator.h>
+#include <time.h>
 
 namespace arena
 {
@@ -266,6 +267,7 @@ namespace arena
 
 	void SandboxScene::onInitialize()
 	{
+        srand((uint32_t)time(NULL));
         s_client = new NetworkClient();
         s_client->m_lobbyListener = &s_lobbyListener;
 		m_playerId = 0;

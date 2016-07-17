@@ -117,8 +117,10 @@ namespace arena
                 }
 
                 using LobbyIndex = LobbySaltToIndexMap::value_type::second_type;
-
+                
                 LobbyIndex lobbyIndex = *(LobbyIndex*)from->data;
+
+                ARENA_ASSERT(lobbyIndex < m_gameInstances.size(), "Lobby index out of bounds, got %d", lobbyIndex);
 
                 //fprintf(stderr, "Routing packet to slave (idx = %d, salt = %" PRIx64 ")\n", lobbyIndex, m_lobbySalts[lobbyIndex]);
 
