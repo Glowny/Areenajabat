@@ -39,7 +39,7 @@ namespace arena
 
 	uint32 HeapAllocator::pages() const
 	{
-		return m_pages.size();
+		return uint32_t(m_pages.size());
 	}
 
 	uint32 HeapAllocator::bytes() const

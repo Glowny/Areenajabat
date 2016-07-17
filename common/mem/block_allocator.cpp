@@ -179,7 +179,7 @@ namespace arena
 
 	uint32 BlockAllocator::maxBlockSize() const
 	{
-		return m_allocators.size();
+		return uint32_t(m_allocators.size());
 	}
 
 	BlockAllocator::~BlockAllocator()

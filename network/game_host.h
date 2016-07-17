@@ -157,7 +157,7 @@ namespace arena
 		}
 		uint32 size() const
 		{
-			return m_container.size();
+			return uint32_t(m_container.size());
 		}
 
 		T* find(Predicate<const T* const> pred)

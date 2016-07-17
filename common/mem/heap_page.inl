@@ -81,15 +81,15 @@ namespace arena
 
 	uint32 HeapPage::totalBlocks() const
 	{
-		return m_released.size() + m_blocks.size();
+		return uint32_t(m_released.size() + m_blocks.size());
 	}
 	uint32 HeapPage::occupiedBlocks() const
 	{
-		return m_blocks.size();
+		return uint32_t(m_blocks.size());
 	}
 	uint32 HeapPage::releasedBlocks() const
 	{
-		return m_released.size();
+		return uint32_t(m_released.size());
 	}
 
 	HeapPage::~HeapPage()

@@ -198,7 +198,7 @@ namespace arena
         enet_address_get_host_ip(&peer->address, addressString, sizeof(addressString));
         const uint32_t len = (uint32_t)strlen(addressString);
 
-        const uint64_t seed = murmur_hash_64(lobbyname, strlen(lobbyname), 0);
+        const uint64_t seed = murmur_hash_64(lobbyname, (uint32_t)strlen(lobbyname), 0);
 
         return murmur_hash_64(
             &seed,
@@ -229,7 +229,7 @@ namespace arena
 
             m_gameInstances.push_back(new SlaveServer(GamemodeName));
 
-            const uint32_t lobbyIndex = m_gameInstances.size() - 1;
+            const uint32_t lobbyIndex = uint32_t(m_gameInstances.size()) - 1;
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
 
             uint64_t lobbySalt = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
