@@ -116,6 +116,13 @@ namespace arena
 
         sendPacketToConnectedClient(clientIndex, packet, timestamp);
 
+        // notify listeners before destroying data if they need something to lookup
+
+        for (ClientListener* listener : m_listeners)
+        {
+            listener->onClientDisconnected(clientIndex, m_clientPeers[clientIndex], timestamp);
+        }
+
         resetClient(clientIndex);
         --m_clientsConnected;
     }
@@ -308,7 +315,9 @@ namespace arena
 
         if (!m_challengeHash.m_exists[index] || (m_challengeHash.m_exists[index] && m_challengeHash.m_entries[index].m_createdTime + ChallengeTimeOut < timestamp))
         {
+#if 0
             printf("found empty entry in challenge hash (idx = %" PRIu32 ")\n", index);
+#endif
             ServerChallengeEntry* entry = &m_challengeHash.m_entries[index];
             entry->m_clientSalt = clientSalt;
             entry->m_challengeSalt = genSalt();
@@ -326,7 +335,9 @@ namespace arena
             && m_challengeHash.m_entries[index].m_clientSalt == clientSalt
             && m_challengeHash.m_entries[index].m_peer->address.host == from->address.host)
         {
+#if 0
             printf("found existing challenge hash (idx = %" PRIu32 ")\n", index);
+#endif
             return &m_challengeHash.m_entries[index];
         }
         return nullptr;
@@ -348,7 +359,9 @@ namespace arena
             && m_challengeHash.m_entries[index].m_clientSalt == clientSalt
             && m_challengeHash.m_entries[index].m_peer->address.host == from->address.host)
         {
+#if 0
             printf("found existing challenge hash (idx = %" PRIu32 ")\n", index);
+#endif
             return &m_challengeHash.m_entries[index];
         }
         return nullptr;
@@ -389,7 +402,7 @@ namespace arena
             {
                 char buffer[256];
                 enet_address_get_host_ip(&m_clientPeers[i]->address, buffer, sizeof(buffer));
-                fprintf(stderr, "Client (idx = %" PRIu32 ") (address = %s) timed out, closing link", i, buffer);
+                fprintf(stderr, "Client (idx = %" PRIu32 ") (address = %s) timed out, closing link\n", i, buffer);
 
                 // disconnect nullifies this
                 ENetPeer* clientPeer = m_clientPeers[i];

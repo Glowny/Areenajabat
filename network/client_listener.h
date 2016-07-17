@@ -8,6 +8,7 @@ namespace arena
     {
         virtual ~ClientListener() = 0;
         virtual void onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp) = 0;
+        virtual void onClientDisconnected(uint32_t clientIndex, ENetPeer* from, double timestamp) = 0;
     };
 
     inline ClientListener::~ClientListener() {}

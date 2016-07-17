@@ -231,9 +231,7 @@ namespace arena
     }
 
     void MasterServer::processJoinLobbyPacket(JoinLobbyPacket* packet, ENetPeer* from, double timestamp)
-    {
-        fprintf(stderr, "Someone tries to join slave\n");
-        
+    {   
         // the lobby exist
         if (m_lobbySaltToLobbyIndex.count(packet->m_lobbySalt) > 0)
         {
@@ -257,6 +255,7 @@ namespace arena
             }
             else
             {
+                fprintf(stderr, "Client (%" PRIx64 ") tried to join lobby (%" PRIx64 ") but is already joined\n", packet->m_clientSalt, packet->m_lobbySalt);
                 // response to client that no no
                 LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
                 response->m_clientSalt = packet->m_clientSalt;
@@ -268,6 +267,7 @@ namespace arena
         }
         else
         {
+            fprintf(stderr, "Client (%" PRIx64 ") tried to join lobby (%" PRIx64 ") which doesn't exist\n", packet->m_clientSalt, packet->m_lobbySalt);
             // response to client that no no
             LobbyJoinResultPacket* response = (LobbyJoinResultPacket*)createPacket(PacketTypes::LobbyJoinResult);
             response->m_clientSalt = packet->m_clientSalt;

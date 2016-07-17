@@ -28,6 +28,11 @@ namespace arena
         ~SlaveServerClientListener() override;
 
         void onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp) override;
+
+        // everything after this call becomes invalid data and should not be used
+        // the peer will be nullified after this and clientIndex will be given to another client
+        // after they connect
+        void onClientDisconnected(uint32_t clientIndex, ENetPeer* from, double timestamp) override;
     };
 
 	struct ArenaPlatform;

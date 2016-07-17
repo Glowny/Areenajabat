@@ -22,7 +22,13 @@ namespace arena
 		m_host.registerPlayer(clientIndex);
 	}
     
-	SlaveServer::SlaveServer(const char* const gamemodeName) :
+    void SlaveServerClientListener::onClientDisconnected(uint32_t clientIndex, ENetPeer* from, double timestamp)
+    {
+        BX_UNUSED(from, timestamp);
+        fprintf(stderr, "SlaveServerClientListener::onClientDisconnected(), idx = %d disconnected\n", clientIndex);
+    }
+
+    SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),
 		m_totalTime(0.0),
 		m_server(&m_sendQueue),
