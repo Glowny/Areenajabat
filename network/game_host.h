@@ -258,7 +258,7 @@ namespace arena
 		GameMap& map();
 		Physics& physics();
 
-		void createSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList) const;
+		void getSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList);
 
 		~GameHost();
 	private:	
@@ -269,8 +269,9 @@ namespace arena
 		GameMap				m_map;
 		Physics				m_physics;
 
-		Container<NetworkEntity*>		m_entities;
-		Container<Player>				m_players;
+		std::vector<const NetworkEntity*>		m_synchronizationList;
+		Container<NetworkEntity*>				m_entities;
+		Container<Player>						m_players;
 		
 		const GameVars		m_vars;
 

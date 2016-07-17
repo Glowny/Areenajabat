@@ -160,6 +160,8 @@ namespace arena
 				force.x = moveDirection.x * 1500.0f;
 
 				m_physics.applyForceToGladiator(force, physicsId);
+			
+				m_synchronizationList.push_back(&player);
 			}
 		}
 	}
@@ -182,12 +184,16 @@ namespace arena
 		return m_physics;
 	}
 
-	void GameHost::createSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList) const
+	void GameHost::getSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList)
 	{
+		outSynchronizationList = m_synchronizationList;
+		m_synchronizationList.clear();
 	}
 
 	void GameHost::processInput(const uint64 clientIndex, const float32 x, const float32 y)
 	{
+		if (!shouldProcessPlayerInput()) return;
+
 		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
 
 		if (player == nullptr) return;
@@ -196,10 +202,13 @@ namespace arena
 		// TODO: how.
 		player->m_gladiator->m_position.x += x;
 		player->m_gladiator->m_position.y += y;
-		player->m_dirty = true;
+		
+		m_synchronizationList.push_back(player);
 	}
 	void GameHost::processShooting(const uint64 clientIndex, const bool flags, const float32 angle)
 	{
+		if (!shouldProcessPlayerInput()) return;
+
 		(void)clientIndex;
 		(void)flags;
 		(void)angle;
@@ -207,7 +216,11 @@ namespace arena
 		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
 
 		if (player == nullptr) return;
+		
+		// TODO: shoot? update projectiles?
+		m_synchronizationList.push_back(player);
 	}
+	
 	bool GameHost::shouldProcessPlayerInput() const
 	{
 		// Round freeze.
@@ -216,22 +229,6 @@ namespace arena
 		if (m_gameData.m_state == GameState::Freezetime)					return false;
 
 		return true;
-	}
-
-	void GameHost::clearPackets()
-	{
-		PacketAllocator& allocator = PacketAllocator::instance();
-
-		for (Packet* const packet : m_outPackets)
-		{
-			allocator.deallocate(packet);
-		}
-
-		m_outPackets.clear();
-	}
-	const std::vector<Packet*>& GameHost::getResults()
-	{
-		return m_outPackets.container();
 	}
 
 	void GameHost::sessionTick(const uint64 dt)
