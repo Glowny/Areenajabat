@@ -75,7 +75,8 @@ project ("arena")
 
 	files {
 		ARENA_DIR .. "src/**.cpp",
-		ARENA_DIR .. "src/**.h"
+		ARENA_DIR .. "src/**.h",
+		ARENA_DIR .. "src/**.inl"
 	}
 
 	configuration { "vs*"}
@@ -102,7 +103,8 @@ project "common"
 
 	files {
 		path.join(ARENA_DIR, "common", "**.cpp"),
-		path.join(ARENA_DIR, "common", "**.h")
+		path.join(ARENA_DIR, "common", "**.h"),
+		path.join(ARENA_DIR, "common", "**.inl")
 	}
 
 	includedirs {
@@ -114,12 +116,6 @@ project "common"
 project "server"
 	kind "ConsoleApp"
 	
-	defines { 
-		"ARENA_SERVER",
-		--"SFML_STATIC",
-		--"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
-	}
-	
 	includedirs { 
 		ARENA_THIRD_DIR,
 		path.join(BX_DIR, "include/"),
@@ -127,8 +123,9 @@ project "server"
 	}
 	
 	files {
-		path.join(ARENA_DIR, "network", "*.cpp"),
-		path.join(ARENA_DIR, "network", "*.h"),
+		path.join(ARENA_DIR, "network", "**.cpp"),
+		path.join(ARENA_DIR, "network", "**.h"),
+		path.join(ARENA_DIR, "network", "**.inl")
 	}
 	
 	links { 
@@ -139,50 +136,6 @@ project "server"
 		"Box2D",
 		"minini"
 	}
-	
-	configuration {}
-	
-
--- remove this project soon
-project "client_sandbox"
-	kind "ConsoleApp"
-
-	defines { 
-		"ARENA_CLIENT",
-		"SFML_STATIC",
-		"_HAS_ITERATOR_DEBUGGING=1" -- fuck you sfml
-	}
-	
-	includedirs { 
-		ARENA_THIRD_DIR
-	}
-	
-	files {
-		path.join(ARENA_DIR, "network", "*.cpp"),
-		path.join(ARENA_DIR, "network", "*.h"),
-	}
-	
-	configuration { "vs*" and "x32"}
-		links { 
-		"enet",
-		"ws2_32",
-		"winmm"
-		}
-
-	configuration { "vs*" and "x64"}
-	links { 
-		"enet",
-		"ws2_32",
-		"winmm",
-		"sfml-window-s-d",
-		"sfml-graphics-s-d",
-		"sfml-system-s-d",
-		"opengl32",
-		"gdi32",
-		"freetype",
-		"jpeg"
-	}
-	
 	
 	configuration {}
 
@@ -236,7 +189,7 @@ project "Box2D"
 	kind "StaticLib"
 	files { 
 		path.join(ARENA_THIRD_DIR, "Box2D", "**.h"),
-		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp"),
+		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp")
 	}
 	vpaths { [""] = "Box2D" }
 	includedirs { 
@@ -248,7 +201,7 @@ project "minini"
 	language "C"
 	files {
 		path.join(ARENA_THIRD_DIR, "minini", "**.h"),
-		path.join(ARENA_THIRD_DIR, "minini", "**.c"),
+		path.join(ARENA_THIRD_DIR, "minini", "**.c")
 	}
 	vpaths { [""] = "minini" }
 	includedirs {

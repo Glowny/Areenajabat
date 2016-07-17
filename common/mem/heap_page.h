@@ -46,4 +46,4 @@ namespace arena
 	};
 }
 
-#include "heap_page.h"
+#include "heap_page.inl"

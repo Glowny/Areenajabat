@@ -5,9 +5,9 @@
 
 namespace arena
 {
-	HeapBlock::HeapBlock(const uint32 size, const Char* const handle) : m_size(size),
-																		m_address(ADDRESSOF(handle)),
-																		m_handle(handle)
+	HeapBlock::HeapBlock(const uint32 size, Char* const handle) : m_size(size),
+																  m_address(ADDRESSOF(handle)),
+																  m_handle(handle)
 	{
 	}
 	HeapBlock::HeapBlock(const HeapBlock& other) : m_size(other.m_size),
@@ -24,5 +24,21 @@ namespace arena
 
 	HeapBlock::~HeapBlock()
 	{
+	}
+
+	void HeapBlock::operator =(const HeapBlock& other)
+	{
+		m_size		= other.m_size;
+		m_address	= other.m_address;
+		m_handle	= other.m_handle;
+	}
+
+	bool HeapBlock::operator ==(const HeapBlock& other) const
+	{
+		return m_address == other.m_address;
+	}
+	bool HeapBlock::operator !=(const HeapBlock& other) const
+	{
+		return !(*this == other);
 	}
 }

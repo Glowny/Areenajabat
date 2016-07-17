@@ -197,7 +197,7 @@ namespace arena
 
         m_spriteBatch = new SpriteBatch;
        
-		SandboxSecene* scene = new  SandboxSecene();
+		SandboxScene* scene = new SandboxScene();
 		
 		SceneManager::instance().push(scene);
 		

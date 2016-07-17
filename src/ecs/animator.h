@@ -11,7 +11,6 @@ namespace arena
         SET_FRIENDS;
 
         DEFINE_RTTI_SUB_TYPE(Animator);
-
     public:
         ~Animator() = default;
     protected:
