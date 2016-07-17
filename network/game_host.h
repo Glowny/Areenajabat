@@ -21,7 +21,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
 namespace arena
 {
-	enum GameState : uint8 
+	enum class GameState : uint8 
 	{
 		// The game is stopped for some reason.
 		Stopped	= 0,

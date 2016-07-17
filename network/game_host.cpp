@@ -225,7 +225,9 @@ namespace arena
 	{
 		// Round freeze.
 		if (m_gameData.m_roundsCount >= m_vars.m_gm_rounds_count)			return false;
+		// Game and session must be running.
 		if (!m_gameData.m_gameRunning || !m_sessionData.m_sessionRunning)	return false;
+		// Do not process input at freezetime.
 		if (m_gameData.m_state == GameState::Freezetime)					return false;
 
 		return true;
@@ -279,7 +281,7 @@ namespace arena
 			m_gameData.m_timeoutElapsed += dt;
 			m_gameData.m_state = m_gameData.m_timeoutElapsed < 60 ? GameState::Timeout : GameState::Running;
 
-			if (!(m_gameData.m_state == GameState::Timeout))
+			if (m_gameData.m_state != GameState::Timeout)
 			{
 				m_gameData.m_timeoutElapsed = 0;
 				

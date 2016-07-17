@@ -94,24 +94,30 @@ namespace arena
 			destroyPacket(packet);
 		}
 
+		// all packets have been destroyed so it's safe to clear send queue now
+		m_receiveQueue.clear();
+
+		// let the disconnects happen if they happen
+		m_server.checkTimeout(m_totalTime);
+
 		// sync the servers game state after we have processed
 		// the incoming packets
 		std::vector<const NetworkEntity*> synchronizationList;
 		m_host.getSynchronizationList(synchronizationList);
 
 		for (const NetworkEntity* entity : synchronizationList)
-		{ 
+		{
 			const NetworkEntityType type = entity->type();
-		
+
 			switch (type)
 			{
-			case NetworkEntityType::Gladiator: 
+			case NetworkEntityType::Gladiator:
 				break;
-			case NetworkEntityType::Player: 
+			case NetworkEntityType::Player:
 				break;
-			case NetworkEntityType::Projectile: 
+			case NetworkEntityType::Projectile:
 				break;
-			case NetworkEntityType::Weapon: 
+			case NetworkEntityType::Weapon:
 				break;
 			case NetworkEntityType::Null:
 			default:
@@ -119,14 +125,6 @@ namespace arena
 				break;
 			}
 		}
-
-		// all packets have been destroyed so it's safe to clear send queue now
-		m_receiveQueue.clear();
-
-		// let the disconnects happen if they happen
-		m_server.checkTimeout(m_totalTime);
-
-		// update physics and shit fill sendQueue
 	}
 
 	void SlaveServer::initializeRound(unsigned playerAmount)
