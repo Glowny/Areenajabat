@@ -107,7 +107,7 @@ namespace arena
 		newPlayer->m_clientIndex		= clientIndex;
 		newPlayer->m_playerController	= new PlayerController();
 
-		m_entities.add(newPlayer);
+		registerEntity(newPlayer);
 	}
 	void GameHost::unregisterPlayer(const uint32 clientIndex)
 	{
@@ -115,12 +115,14 @@ namespace arena
 		
 		for (auto it = m_players.begin(); it != m_players.end(); it++)
 		{
-			const Player* player = &*it;
+			Player* player = const_cast<Player*>(&*it);
 
 			if (player->m_clientIndex == clientIndex) 
 			{
-				m_players.remove(*it);
+				unregisterEntity(player);
 				
+				m_players.remove(*it);
+			
 				return;
 			}
 		}
@@ -178,6 +180,10 @@ namespace arena
 	Physics& GameHost::physics()
 	{
 		return m_physics;
+	}
+
+	void GameHost::createSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList) const
+	{
 	}
 
 	void GameHost::processInput(const uint64 clientIndex, const float32 x, const float32 y)

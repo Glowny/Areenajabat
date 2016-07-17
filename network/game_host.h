@@ -50,6 +50,11 @@ namespace arena
 		PlayerController*		m_playerController	{ nullptr };
 		Gladiator*				m_gladiator			{ nullptr };
 		
+		virtual NetworkEntityType type() final override 
+		{
+			return NetworkEntityType::Player;
+		}
+
 		bool operator ==(const Player* const lhs) const
 		{
 			if (lhs == nullptr) return false;
@@ -253,8 +258,7 @@ namespace arena
 		GameMap& map();
 		Physics& physics();
 
-		void clearPackets();
-		const std::vector<Packet*>& getResults();
+		void createSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList) const;
 
 		~GameHost();
 	private:	
@@ -267,8 +271,7 @@ namespace arena
 
 		Container<NetworkEntity*>		m_entities;
 		Container<Player>				m_players;
-		Container<Packet*>				m_outPackets;
-
+		
 		const GameVars		m_vars;
 
 		GameVariables		m_gameData;
