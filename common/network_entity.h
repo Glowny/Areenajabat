@@ -8,18 +8,27 @@ namespace arena
 	{
 		Null = 0,
 		Player,
-		Projectile 
+		Projectile,
+		Weapon,
+		Gladiator
 	};
 
-	struct NetworkEntity
+	class NetworkEntity
 	{
-		NetworkEntity()				= default;
-	
-		virtual NetworkEntityType type() 
+	public:
+		NetworkEntityType type()
 		{
-			return NetworkEntityType::Null;
+			return m_type;
 		}
 
-		virtual ~NetworkEntity()	= default;
+		virtual ~NetworkEntity() = default;
+	protected:
+		NetworkEntity(const NetworkEntityType type) : m_type(type)
+		{
+		}
+
+		NetworkEntity() = delete;
+	private:
+		NetworkEntityType m_type;
 	};
 }

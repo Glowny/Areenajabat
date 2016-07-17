@@ -1,10 +1,11 @@
 #pragma once
 #include <vector>
 #include <glm/vec2.hpp>
-#include <common/network_entity.h>
+#include <..\common\network_entity.h>
 
 #define GLADIUSIMPULSE 100.0f
 #define SHOTGUNIMPULSE 100.0f
+
 namespace arena
 {
 	enum WeaponType
@@ -32,8 +33,18 @@ namespace arena
 	{
 	public:
 		WeaponType m_type;
+		
+		Weapon() : NetworkEntity(NetworkEntityType::Weapon)
+		{
+		}
+		
 		virtual std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position) 
-		{ aimAngle; position; std::vector<Bullet> temp; return temp; }
+		{ 
+			aimAngle; 
+			position; 
+			std::vector<Bullet> temp; 
+			return temp; 
+		}
 	protected:
 		glm::vec2 radToVec(float r)
 		{
@@ -43,7 +54,8 @@ namespace arena
 
 	struct WeaponGladius : public Weapon
 	{
-		WeaponGladius() { m_type = Gladius; }
+		WeaponGladius() : Weapon() { m_type = Gladius; }
+
 		std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position)
 		{
 			std::vector<Bullet> bullets;
@@ -66,7 +78,8 @@ namespace arena
 
 	struct WeaponShotgun : public Weapon
 	{
-		WeaponShotgun() { m_type = Shotgun; }
+		WeaponShotgun() : Weapon() { m_type = Shotgun; }
+
 		std::vector<Bullet> createBullets(float aimAngle, glm::vec2 position)
 		{
 			std::vector<Bullet> bullets;

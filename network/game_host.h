@@ -44,15 +44,15 @@ namespace arena
 		Timeout
 	};
 
-	struct Player final : public NetworkEntity
+	class Player final : public NetworkEntity
 	{
+	public:
 		uint32					m_clientIndex		{ NULL };
 		PlayerController*		m_playerController	{ nullptr };
 		Gladiator*				m_gladiator			{ nullptr };
-		
-		virtual NetworkEntityType type() final override 
+	
+		Player() : NetworkEntity(NetworkEntityType::Player)
 		{
-			return NetworkEntityType::Player;
 		}
 
 		bool operator ==(const Player* const lhs) const

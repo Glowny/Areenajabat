@@ -8,7 +8,7 @@ namespace arena
 {
 	struct Gladiator : public NetworkEntity
 	{
-		Gladiator() { m_alive = true; m_hitpoints = 100; }
+		Gladiator() : NetworkEntity(NetworkEntityType::Gladiator) { m_alive = true; m_hitpoints = 100; }
 
 		unsigned m_physicsId;
 		

@@ -94,6 +94,16 @@ namespace arena
 			destroyPacket(packet);
 		}
 
+		// sync the servers game state after we have processed
+		// the incoming packets
+		std::vector<const NetworkEntity*> synchronizationList;
+		m_host.getSynchronizationList(synchronizationList);
+
+		for (const NetworkEntity* entity : synchronizationList)
+		{ 
+			(void)entity;
+		}
+
 		// all packets have been destroyed so it's safe to clear send queue now
 		m_receiveQueue.clear();
 
