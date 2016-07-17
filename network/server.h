@@ -89,6 +89,8 @@ namespace arena
     
 		// returns UINT32_MAX if not found
 		uint32_t findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const;
+		
+		void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
 	private:
         std::vector<PacketEntry>* m_sendQueue;
 
@@ -119,9 +121,7 @@ namespace arena
         void connectClient(uint32_t clientIndex, ENetPeer* peer, uint64_t clientSalt, uint64_t challengeSalt, double connectTime);
 
         void disconnectClient(uint32_t clientIndex, double timestamp);
-
-        void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
-    private:
+	private:
         uint64_t m_serverSalt; // server salt
 
         ENetPeer* m_clientPeers[MaxClients]; // peers per client

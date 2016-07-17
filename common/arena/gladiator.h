@@ -2,24 +2,27 @@
 
 #include "weapons.h"
 
-#include <common/network_entity.h>
+#include <../common/network_entity.h>
 
 namespace arena
 {
 	struct Gladiator : public NetworkEntity
 	{
-		Gladiator() : NetworkEntity(NetworkEntityType::Gladiator) { m_alive = true; m_hitpoints = 100; }
+		Gladiator() : NetworkEntity(NetworkEntityType::Gladiator),
+					  m_alive(true),
+					  m_hitpoints(100)
+		{ 
+		}
 
-		unsigned m_physicsId;
+		glm::vec2	m_position;
+		glm::vec2	m_velocity;
+
+		float32		m_rotation;		
+		uint32		m_physicsId;
+		int32		m_hitpoints;
 		
-		glm::vec2 m_position;
-		glm::vec2 m_velocity;
-		
-		float m_rotation;
-		
-		Weapon* m_weapon;
-		
-		int m_hitpoints;
-		bool m_alive;
+		Weapon*		m_weapon;
+
+		bool		m_alive;
 	};
 }
