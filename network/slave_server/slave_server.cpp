@@ -112,12 +112,16 @@ namespace arena
 			switch (type)
 			{
 			case NetworkEntityType::Gladiator:
+				sendGladiatorData();
 				break;
 			case NetworkEntityType::Player:
+				sendCharactersData();
 				break;
 			case NetworkEntityType::Projectile:
+				sendProjectilesData();
 				break;
 			case NetworkEntityType::Weapon:
+				sendWeaponsData();
 				break;
 			case NetworkEntityType::Null:
 			default:
@@ -196,24 +200,34 @@ namespace arena
 	{
 		GameUpdatePacket* updatePacket	= new GameUpdatePacket;
 		auto& players					= m_host.players();
-		unsigned i						= 0;
+		uint32 i						= 0;
 
 		updatePacket->m_playerAmount = players.size();
 
+		// Get data.
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
-			Player* player = &*it;
-
 			CharacterData characterData;
-			characterData.m_position = player->m_gladiator->m_position;
-			characterData.m_velocity = player->m_gladiator->m_position;
-			characterData.m_rotation = player->m_gladiator->m_rotation;
-			updatePacket->m_characterArray[i] = characterData;
-
-			i++;
+			characterData.m_position			= it->m_gladiator->m_position;
+			characterData.m_velocity			= it->m_gladiator->m_position;
+			characterData.m_rotation			= it->m_gladiator->m_rotation;
+			updatePacket->m_characterArray[i++]	= characterData;
 		}
 
-		pushPacketToQueue(updatePacket);
+		// Send i guess..
+		for (uint32 i = 0; i < players.size(); i++) 
+		{
+			m_server.sendPacketToConnectedClient(players[i].m_clientIndex, updatePacket, this->m_totalTime);
+		}
+	}
+	void SlaveServer::sendGladiatorData()
+	{
+	}
+	void SlaveServer::sendWeaponsData()
+	{
+	}
+	void SlaveServer::sendProjectilesData()
+	{
 	}
 
 	void SlaveServer::createAllBullets()

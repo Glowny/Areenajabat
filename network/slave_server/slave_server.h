@@ -89,6 +89,9 @@ namespace arena
 
 		// Update positions
 		void sendCharactersData();
+		void sendGladiatorData();
+		void sendWeaponsData();
+		void sendProjectilesData();
 
 		// Create new bullets for all the players
 		void createAllBullets();
