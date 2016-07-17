@@ -5,9 +5,34 @@
 
 namespace arena
 {
+    MasterServerClientListener::MasterServerClientListener(MasterServer* master) 
+        : m_master(master)
+    {
+
+    }
+
+    MasterServerClientListener::~MasterServerClientListener()
+    {
+
+    }
+
+    void MasterServerClientListener::onClientConnected(uint32_t clientIndex, ENetPeer* from, double timestamp)
+    {
+        BX_UNUSED(clientIndex, from, timestamp);
+    }
+
+    void MasterServerClientListener::onClientDisconnected(uint32_t clientIndex, ENetPeer* from, double timestamp)
+    {
+        BX_UNUSED(clientIndex, from, timestamp);
+        // cut the link between lobbies and routing
+        from->data = nullptr;
+    }
+    
+
     MasterServer::MasterServer() : 
         m_running(false),
-        m_socket(nullptr)
+        m_socket(nullptr),
+        m_listener(this)
     {
         m_gameInstances.reserve(MaxGameInstances);
         memset(m_instanceCreatedBy, 0, sizeof(m_instanceCreatedBy));
@@ -206,15 +231,17 @@ namespace arena
 
             const uint32_t lobbyIndex = m_gameInstances.size() - 1;
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
-            m_lobbySalts[lobbyIndex] = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
+
+            uint64_t lobbySalt = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);
+            m_lobbySalts[lobbyIndex] = lobbySalt;
             m_lobbyNames[lobbyIndex] = std::string(packet->m_name);
-            m_lobbySaltToLobbyIndex[m_lobbySalts[lobbyIndex]] =  lobbyIndex;
+            m_lobbySaltToLobbyIndex[lobbySalt] =  lobbyIndex;
 
             fprintf(stderr, "Created new slave (salt = %" PRIx64 ") (index = %" PRIu32 ")\n", m_lobbySalts[lobbyIndex], lobbyIndex);
 
             LobbyResultPacket* response = (LobbyResultPacket*)createPacket(PacketTypes::LobbyResultPacket);
             response->m_created = true;
-            response->m_lobbySalt = m_lobbySalts[lobbyIndex];
+            response->m_lobbySalt = lobbySalt;
 
             // todo if dc
             m_networkInterface->sendPacket(from, response);
@@ -236,10 +263,9 @@ namespace arena
         if (m_lobbySaltToLobbyIndex.count(packet->m_lobbySalt) > 0)
         {
             // if the player is not already there
-            if (m_clientSaltToLobbyIndex.count(packet->m_clientSalt) == 0)
+            if (from->data == nullptr)
             {
                 const uint32_t lobbyIndex = m_lobbySaltToLobbyIndex[packet->m_lobbySalt];
-                m_clientSaltToLobbyIndex[packet->m_clientSalt] = lobbyIndex;
 
                 fprintf(stderr, "Assing client (%" PRIx64 ") to lobby (%d, salt %" PRIx64 ")\n", packet->m_clientSalt, lobbyIndex, packet->m_lobbySalt);
 
