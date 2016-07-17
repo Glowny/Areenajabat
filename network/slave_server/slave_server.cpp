@@ -101,7 +101,23 @@ namespace arena
 
 		for (const NetworkEntity* entity : synchronizationList)
 		{ 
-			(void)entity;
+			const NetworkEntityType type = entity->type();
+		
+			switch (type)
+			{
+			case NetworkEntityType::Gladiator: 
+				break;
+			case NetworkEntityType::Player: 
+				break;
+			case NetworkEntityType::Projectile: 
+				break;
+			case NetworkEntityType::Weapon: 
+				break;
+			case NetworkEntityType::Null:
+			default:
+				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!");
+				break;
+			}
 		}
 
 		// all packets have been destroyed so it's safe to clear send queue now

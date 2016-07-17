@@ -16,7 +16,7 @@ namespace arena
 	class NetworkEntity
 	{
 	public:
-		NetworkEntityType type()
+		NetworkEntityType type() const
 		{
 			return m_type;
 		}
