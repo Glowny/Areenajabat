@@ -21,6 +21,29 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
 
 namespace arena
 {
+	enum GameState : uint8 
+	{
+		// The game is stopped for some reason.
+		Stopped	= 0,
+
+		// The game is running but it is not 
+		// executing a round yet.
+		Running,
+
+		// The game is currently executing a round.
+		RoundRunning,
+
+		// The game is currently on hold, freeze time
+		// can be set manually, by the server or some
+		// event that has happened.
+		Freezetime,
+
+		// The game is currently on timeout, this can
+		// occur from not enough players being connected
+		// to the game.
+		Timeout
+	};
+
 	struct Player final : public NetworkEntity
 	{
 		uint32					m_clientIndex		{ NULL };
@@ -52,8 +75,8 @@ namespace arena
 		uint64 m_roundTimeElapsed;
 
 		bool m_gameRunning;	
-		bool m_roundRunning;
-		bool m_timeout;
+
+		GameState m_state;
 
 		void resetTimers()
 		{
@@ -63,7 +86,9 @@ namespace arena
 
 		void resetState()
 		{
-			m_gameRunning = m_roundRunning = m_timeout = false;
+			m_gameRunning = false;
+
+			m_state = GameState::Stopped;
 		}
 	};
 
@@ -130,14 +155,14 @@ namespace arena
 			return m_container.size();
 		}
 
-		T find(Predicate<T> pred)
+		T* find(Predicate<const T* const> pred)
 		{
-			for (T element : m_container)
+			for (const T* const element : m_container)
 			{
 				if (pred(element)) return element;
 			}
 
-			return T();
+			return nullptr;
 		}
 
 		T front()
@@ -215,9 +240,11 @@ namespace arena
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
 
-		void processInput(const uint64 salt, const float32 x, const float32 y);
-		void processShooting(const uint64 salt, const bool flags, const float32 angle);
+		void processInput(const uint64 clientIndex, const float32 x, const float32 y);
+		void processShooting(const uint64 clientIndex, const bool flags, const float32 angle);
 		
+		bool shouldProcessPlayerInput() const;
+
 		void applyPlayerInputs();
 
 		void loadMap(const char* const mapName);

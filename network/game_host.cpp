@@ -52,19 +52,19 @@ namespace arena
 
 	void GameHost::timeOutBegin()
 	{
-		if (m_gameData.m_timeout) return;
+		if (m_gameData.m_state == GameState::Timeout) return;
 
 		m_gameData.m_timeoutElapsed = 0;
-		m_gameData.m_timeout = true;
+		m_gameData.m_state = GameState::Running;
 
 		e_timeoutStart();
 	}
 	void GameHost::timeoutEnd()
 	{
-		if (!m_gameData.m_timeout) return;
+		if (!m_gameData.m_state == GameState::Timeout) return;
 
 		m_gameData.m_timeoutElapsed = 0;
-		m_gameData.m_timeout = false;
+		m_gameData.m_state = GameState::Running;
 
 		e_timeoutEnd();
 	}
@@ -182,17 +182,36 @@ namespace arena
 
 	void GameHost::processInput(const uint64 clientIndex, const float32 x, const float32 y)
 	{
-		(void)clientIndex;
-		(void)x;
-		(void)y;
+		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
+
+		if (player == nullptr) return;
+
+		// Player that sent the input.
+		// TODO: how.
+		player->m_gladiator->m_position.x += x;
+		player->m_gladiator->m_position.y += y;
+		player->m_dirty = true;
 	}
 	void GameHost::processShooting(const uint64 clientIndex, const bool flags, const float32 angle)
 	{
 		(void)clientIndex;
 		(void)flags;
 		(void)angle;
+
+		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
+
+		if (player == nullptr) return;
 	}
-	
+	bool GameHost::shouldProcessPlayerInput() const
+	{
+		// Round freeze.
+		if (m_gameData.m_roundsCount >= m_vars.m_gm_rounds_count)			return false;
+		if (!m_gameData.m_gameRunning || !m_sessionData.m_sessionRunning)	return false;
+		if (m_gameData.m_state == GameState::Freezetime)					return false;
+
+		return true;
+	}
+
 	void GameHost::clearPackets()
 	{
 		PacketAllocator& allocator = PacketAllocator::instance();
@@ -248,14 +267,16 @@ namespace arena
 	{
 		if (!m_gameData.m_gameRunning) return;
 		
-		if (m_gameData.m_timeout)
+		// TODO: add freezetime.
+
+		if (m_gameData.m_state == GameState::Timeout)
 		{
 			if (m_gameData.m_timeoutElapsed == 0) e_timeoutStart();
 
 			m_gameData.m_timeoutElapsed += dt;
-			m_gameData.m_timeout = m_gameData.m_timeoutElapsed < 60;
+			m_gameData.m_state = m_gameData.m_timeoutElapsed < 60 ? GameState::Timeout : GameState::Running;
 
-			if (!m_gameData.m_timeout)
+			if (!m_gameData.m_state == GameState::Timeout)
 			{
 				m_gameData.m_timeoutElapsed = 0;
 				
@@ -265,12 +286,12 @@ namespace arena
 			return;
 		}
 
-		if (!m_gameData.m_roundRunning)
+		if (m_gameData.m_state != GameState::RoundRunning)
 		{
 			if (m_gameData.m_roundFreezeTimeElapsed >= m_vars.m_gm_round_freeze_time)
 			{
 				m_gameData.m_roundFreezeTimeElapsed = 0;
-				m_gameData.m_roundRunning = true;
+				m_gameData.m_state = GameState::RoundRunning;
 
 				// Round start.
 				e_roundStart();
@@ -285,7 +306,7 @@ namespace arena
 			if (m_gameData.m_roundTimeElapsed >= m_vars.m_gm_round_duration)
 			{
 				m_gameData.m_roundTimeElapsed = 0;
-				m_gameData.m_roundRunning = false;
+				m_gameData.m_state = GameState::Running;
 
 				e_roundEnd();
 
@@ -307,11 +328,11 @@ namespace arena
 
 	void GameHost::worldTick(const float64 dt)
 	{
-		if (m_gameData.m_timeout)
+		if (m_gameData.m_state == GameState::Timeout)
 		{
 			// Do not apply any player input updates.
 		}
-		else if (m_gameData.m_roundRunning)
+		else if (m_gameData.m_state == GameState::RoundRunning)
 		{
 			// Do normal updates.
 		}
