@@ -55,6 +55,8 @@ namespace arena
 
         m_socket = enet_host_create(&address, maxPeers, channelsPerPeer, 0, 0);
 
+        ARENA_ASSERT(m_socket != nullptr, "Failed to create socket");
+
         m_networkInterface = new NetworkInterface(m_socket);
 
         fprintf(stderr, "Accepting connections on port %" PRIu16 "\n", port);
