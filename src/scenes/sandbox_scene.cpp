@@ -187,7 +187,7 @@ namespace arena
                 }
                 case PacketTypes::GamePlatform:
                 {
-                    createPlatform((GamePlaformPacket*)packet);
+                    createPlatform((GamePlatformPacket*)packet);
                     break;
                 }
                 case PacketTypes::GameSpawnBullets:
@@ -331,7 +331,7 @@ namespace arena
 		}
 
 	}
-	void SandboxScene::createPlatform(GamePlaformPacket* packet)
+	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
 		ArenaPlatform platform;
 		platform.type = (ArenaPlatformType)packet->m_platform.m_type;

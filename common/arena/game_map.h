@@ -2,6 +2,7 @@
 #include <vector>
 #include <glm\glm.hpp>
 #include <fstream>
+#include <common\network_entity.h>
 namespace arena
 {
 
@@ -19,7 +20,7 @@ namespace arena
 	
 	
 
-	struct GameMap
+	struct GameMap : public NetworkEntity
 	{
 		
 		std::vector<ArenaPlatform> m_platformVector;
@@ -37,6 +38,13 @@ namespace arena
 			std::vector<glm::vec2> points;
 		};
 	public:
+
+		GameMap()
+			: NetworkEntity(NetworkEntityType::Map)
+		{
+
+		}
+
 		void loadMapFromFile(const char* const filename)
 		{
 			std::ifstream file;

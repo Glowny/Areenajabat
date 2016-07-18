@@ -10,7 +10,8 @@ namespace arena
 		Player,
 		Projectile,
 		Weapon,
-		Gladiator
+		Gladiator,
+		Map,
 	};
 
 	class NetworkEntity

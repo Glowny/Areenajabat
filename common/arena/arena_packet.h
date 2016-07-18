@@ -35,6 +35,7 @@ namespace arena
 		glm::vec2 m_position;
 		glm::vec2 m_velocity;
 		float m_rotation;
+		uint8_t m_ownerId;
 
 	};
 	struct PlayerScoreData
@@ -123,6 +124,8 @@ namespace arena
 			serialize_int(stream, m_playerAmount, 0, CHARACTER_MAXAMOUNT);
 			for (int32_t i = 0; i < m_playerAmount; ++i)
 			{
+
+				serialize_bytes(stream, &m_characterArray[i].m_ownerId, 1);
 				serialize_float(stream, m_characterArray[i].m_position.x);
 				serialize_float(stream, m_characterArray[i].m_position.y);
 				serialize_float(stream, m_characterArray[i].m_velocity.x);
@@ -149,25 +152,25 @@ namespace arena
 		}
 	};
 
-	struct GamePlaformPacket : public Packet
+	struct GamePlatformPacket : public Packet
 	{
 		uint64_t m_clientSalt;
 		PlatformData m_platform;
 
-		GamePlaformPacket()
+		GamePlatformPacket()
 			: m_clientSalt(0)
 		{
 			m_platform.m_vertexAmount = 0;
 			m_platform.m_type = 0;
 		}
 
-		virtual ~GamePlaformPacket() {}
+		virtual ~GamePlatformPacket() {}
 
 		template <typename Stream>
 		bool serialize(Stream& stream)
 		{
 			serialize_uint64(stream, m_clientSalt);
-			serialize_bytes(stream, &m_platform.m_type, 1); // TODO, CHECK HOW TO BYTES
+			serialize_bytes(stream, &uint8_t(m_platform.m_type), 1); // TODO, CHECK HOW TO BYTES
 			serialize_int(stream, m_platform.m_vertexAmount, 0, PLATFORM_VERTEX_MAXAMOUNT);
 			for (unsigned i = 0; i < m_platform.m_vertexAmount; ++i)
 			{
