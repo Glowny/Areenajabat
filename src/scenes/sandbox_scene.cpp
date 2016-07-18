@@ -118,7 +118,7 @@ namespace arena
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
 
-        s_client->connect("172.31.16.46", uint16_t(8088), s_stamp);
+        s_client->connect("localhost", uint16_t(8088), s_stamp);
         //s_client->createLobby("perkele", s_stamp);
         s_client->queryLobbies(s_stamp);
     }
@@ -347,12 +347,12 @@ namespace arena
 		transform->m_position = platform.vertices[0];
 
 		ResourceManager* resources = App::instance().resources();
-
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
+        (void)resources;
+/*		SpriteRenderer* renderer = builder.addSpriteRenderer();
 		
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
 		
-		renderer->anchor();
+		renderer->anchor();*/
 
 		m_platformVector.push_back(platform);
 	}

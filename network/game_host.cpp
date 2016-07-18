@@ -283,6 +283,7 @@ namespace arena
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
 			e_gameStart();
+            loadMap("coordinatesRawData.dat");
 		}
 	}
 	void GameHost::gameTick(const uint64 dt)

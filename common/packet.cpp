@@ -71,6 +71,70 @@ namespace arena
         }
     }
 
+    size_t getMaxPacketSize(int32_t type)
+    {
+        switch (type)
+        {
+        case PacketTypes::ConnectionRequest:
+            return sizeof(ConnectionRequestPacket);
+        case PacketTypes::ConnectionDenied:
+            return sizeof(ConnectionDeniedPacket);
+        case PacketTypes::ConnectionChallenge:
+            return sizeof(ConnectionChallengePacket);
+        case PacketTypes::ConnectionResponse:
+            return sizeof(ConnectionResponsePacket);
+        case PacketTypes::KeepAlive:
+            return sizeof(ConnectionKeepAlivePacket);
+        case PacketTypes::Disconnect:
+            return sizeof(ConnectionDisconnectPacket);
+
+            // master
+
+        case PacketTypes::MasterCreateLobby:
+            return sizeof( CreateLobbyPacket);
+        case PacketTypes::MasterJoinLobby:
+            return sizeof( JoinLobbyPacket);
+        case PacketTypes::MasterListLobbies:
+            return sizeof( ListLobbiesPacket);
+        case PacketTypes::LobbyResultPacket:
+            return sizeof( LobbyResultPacket);
+        case PacketTypes::LobbyQueryResultPacket:
+            return sizeof( LobbyQueryResultPacket);
+        case PacketTypes::LobbyJoinResult:
+            return sizeof( LobbyJoinResultPacket);
+
+        case PacketTypes::GameSetup:
+            return sizeof( GameSetupPacket);
+        case PacketTypes::GameUpdate:
+            return sizeof( GameUpdatePacket);
+        case PacketTypes::GamePlatform:
+            return sizeof( GamePlatformPacket);
+        case PacketTypes::GameSpawnBullets:
+            return sizeof( GameSpawnBulletsPacket);
+        case PacketTypes::GameBulletHit:
+            return sizeof(GameBulletHitPacket);
+        case PacketTypes::GameDamagePlayer:
+            return sizeof(GameDamagePlayerPacket);
+        case PacketTypes::GameKillPlayer:
+            return sizeof(GameKillPlayerPacket);
+        case PacketTypes::GameRespawnPlayer:
+            return sizeof(GameRespawnPlayerPacket);
+        case PacketTypes::GameUpdateScoreBoard:
+            return sizeof(GameUpdateScoreBoardPacket);
+        case PacketTypes::GameInput:
+            return sizeof(GameInputPacket);
+        case PacketTypes::GameShoot:
+            return sizeof(GameShootPacket);
+        case PacketTypes::GameBulletCurrentPosition:
+            return sizeof(GameBulletCurrentPositionPacket);
+        case PacketTypes::GameSetPlayerAmount:
+            return sizeof(GameSetPlayerAmountPacket);
+        default:
+            ARENA_ASSERT(0, "invalid packet type");
+            return 0;
+        }
+    }
+
     void destroyPacket(Packet* packet)
     {
         delete packet;

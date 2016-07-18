@@ -41,6 +41,7 @@ namespace arena
 		m_receiveQueue.reserve(InitialNetworkQueueSize);
 		m_sendQueue.reserve(InitialNetworkQueueSize);
         m_server.addClientListener(&m_clientListener);
+        m_host.startSession();
 	}
 
 	void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
@@ -109,6 +110,8 @@ namespace arena
 		// let the disconnects happen if they happen
 		m_server.checkTimeout(m_totalTime);
 
+        m_host.tick(m_totalTime);
+
 		// sync the servers game state after we have processed
 		// the incoming packets
 		std::vector<const NetworkEntity*> synchronizationList;
@@ -169,22 +172,23 @@ namespace arena
 				// Send Weapon data, cast.
 				break;
 			case NetworkEntityType::Map:
-			{// Send map data. This data is only send once per game.
-				GamePlatformPacket* packet = new GamePlatformPacket();
-				GameMap* mapEntity = (GameMap*)entity;
-				for (auto platform : mapEntity->m_platformVector)
-				{
-					packet->m_platform.m_type = platform.type;
-					packet->m_platform.m_vertexAmount = platform.vertices.size();
-					for (unsigned i = 0; i < platform.vertices.size(); i++)
-					{
-						packet->m_platform.m_vertexArray[i] = platform.vertices[i];
-					}
-					for (Player& player : m_host.players())
-					{
-						m_server.sendPacketToConnectedClient(player.m_clientIndex, packet, m_totalTime);
-					}
-				}
+			{
+				GameMap* mapEntity = (GameMap*)entity;   
+
+                for (auto platform : mapEntity->m_platformVector)
+                {
+                    // Send map data. This data is only send once per game.
+                    GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
+                    packet->m_platform.m_type = platform.type;
+                    packet->m_platform.m_vertexAmount = uint8_t(platform.vertices.size());
+                    for (unsigned i = 0; i < platform.vertices.size(); i++)
+                    {
+                        packet->m_platform.m_vertexArray[i] = platform.vertices[i];
+                    }
+
+                    m_server.broadcastPacket(packet, m_totalTime);
+                }
+
 				break;
 			}
 			case NetworkEntityType::Null:
@@ -204,7 +208,6 @@ namespace arena
 					m_server.sendPacketToConnectedClient(player.m_clientIndex, gladiatorUpdatePacket, m_totalTime);
 				}
 			}
-
 		}
 	}
 
@@ -272,84 +275,6 @@ namespace arena
 		const float64 frequency = (float64)bx::getHPFrequency();
 
 		return float64(time * (1.0f / frequency));
-	}
-
-	#pragma		region Unused
-	//void SlaveServer::sendCharactersData()
-	//{
-	//	GameUpdatePacket* updatePacket	= new GameUpdatePacket;
-	//	auto& players					= m_host.players();
-	//	uint32 i						= 0;
-
-	//	updatePacket->m_playerAmount = players.size();
-
-	//	// Get data.
-	//	for (auto it = players.begin(); it != players.end(); ++it)
-	//	{
-	//		CharacterData characterData;
-	//		characterData.m_position			= it->m_gladiator->m_position;
-	//		characterData.m_velocity			= it->m_gladiator->m_position;
-	//		characterData.m_rotation			= it->m_gladiator->m_rotation;
-	//		updatePacket->m_characterArray[i++]	= characterData;
-	//	}
-
-	//	// Send i guess..
-	//	for (uint32 i = 0; i < players.size(); i++) 
-	//	{
-	//		m_server.sendPacketToConnectedClient(players[i].m_clientIndex, updatePacket, this->m_totalTime);
-	//	}
-	//}
-
-	//void SlaveServer::createAllBullets()
-	//{
-	//	auto& players = m_host.players();
-
-	//	for (auto it = players.begin(); it != players.end(); ++it) createBullets(&*it);
-	//}
-
-	//void SlaveServer::createBullets(Player* player)
-	//{
-	//	if (!player->m_playerController->shootFlag) return;
-
-	//	player->m_playerController->shootFlag = true;
-
-	//	Weapon* weaponPointer = player->m_gladiator->m_weapon;
-
-	//	std::vector<Bullet> bullets = weaponPointer->createBullets(
-	//		player->m_playerController->aimAngle,
-	//		player->m_gladiator->m_position);
-
-	//	GameSpawnBulletsPacket* packet = new GameSpawnBulletsPacket;
-	//	packet->m_bulletAmount = uint8(bullets.size());
-
-	//	Physics& physics = m_host.physics();
-
-	//	for (unsigned i = 0; i < bullets.size(); i++)
-	//	{
-	//		packet->m_bulletSpawnArray[i].m_creationDelay = bullets[i].m_creationDelay;
-	//		packet->m_bulletSpawnArray[i].m_position = bullets[i].m_position;
-	//		packet->m_bulletSpawnArray[i].m_rotation = bullets[i].m_rotation;
-	//		packet->m_bulletSpawnArray[i].m_type = bullets[i].m_type;
-
-	//		physics.addBullet(bullets[i].m_position, bullets[i].m_impulse, player->m_gladiator->m_physicsId);
-	//	}
-
-	//	pushPacketToQueue(packet);
-	//}
-
-	//void SlaveServer::pushPacketToQueue(Packet* packet)
-	//{
-	//	// TODO: When threads are implemented, add mutex.
-	//	m_outPacketQueue->push(packet);
-	//}
-#pragma endregion
-
-	Packet* SlaveServer::getPacketFromQueue()
-	{
-		// TODO: When threads are implemented, add mutex.
-		Packet* packet = m_inPacketQueue->front();
-		m_inPacketQueue->pop();
-		return packet;
 	}
 
 	std::vector<PacketEntry>& SlaveServer::getSendQueue()

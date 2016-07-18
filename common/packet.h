@@ -71,6 +71,8 @@ namespace arena
 
     void destroyPacket(Packet* packet);
 
+    size_t getMaxPacketSize(int32_t type);
+
     struct ConnectionRequestPacket : public Packet
     {
         uint64_t m_clientSalt;
