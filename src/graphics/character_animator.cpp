@@ -89,10 +89,9 @@ namespace arena
 
         if (m_weaponAnimType != type)
         {
-            // TODO RESET 
             if (m_animationData != nullptr)
             {
-                // reset the data here
+                delete m_animationData;
             }
 
             m_animationData = getAnimationDataFor(type);
