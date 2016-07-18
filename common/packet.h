@@ -526,7 +526,7 @@ namespace arena
 
     struct LobbyQueryResultPacket : public Packet
     {
-        static const uint32_t MaxLobbyCount = 32;
+        static const uint32_t MaxLobbyCount = 8;
         uint64_t m_clientSalt; // the sender id
         int32_t m_lobbyCount;
         uint64_t m_lobbySalt[MaxLobbyCount];

@@ -113,39 +113,32 @@ namespace arena
         SpriterAnimationPlayer m_animation;
     };
 
-#define DEFINE_ANIMATION(name) { new name##RightArm, nullptr, nullptr }
-
-    static AnimationData s_animations[WeaponAnimationType::Enum::Count]
-    {
-        DEFINE_ANIMATION(Gladius)
-    };
-
-#undef DEFINE_ANIMATION
-
-    static_assert(BX_COUNTOF(s_animations) == WeaponAnimationType::Enum::Count, "Invalid amount of animations");
+#define DEFINE_ANIMATION(name)                                                                  \
+    {                                                                                           \
+        AnimationData* data = new AnimationData { new name##RightArm, nullptr, nullptr };       \
+        data->m_rightHand->create();                                                            \
+        return data;                                                                            \
+    }
 
     AnimationData* getAnimationDataFor(WeaponAnimationType::Enum type)
     {
-        return &s_animations[type];
+        switch (type)
+        {
+        case WeaponAnimationType::Gladius:
+            DEFINE_ANIMATION(Gladius);
+        default:
+            return nullptr;
+        }
     }
 
+#undef DEFINE_ANIMATION
     void animationSystemInit()
     {
-        for (uint32_t i = 0; i < WeaponAnimationType::Enum::Count; ++i)
-        {
-            //s_animations[i].m_leftHand->create();
-            s_animations[i].m_rightHand->create();
-            //s_animations[i].m_reload->create();
-        }
+
     }
 
     void animationSystemShutdown()
     {
-        for (uint32_t i = 0; i < WeaponAnimationType::Enum::Count; ++i)
-        {
-            delete s_animations[i].m_leftHand;
-            delete s_animations[i].m_rightHand;
-            delete s_animations[i].m_reload;
-        }
+
     }
 }

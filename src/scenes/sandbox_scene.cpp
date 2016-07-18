@@ -118,7 +118,7 @@ namespace arena
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
 
-        s_client->connect("localhost", uint16_t(8088), s_stamp);
+        s_client->connect("172.31.16.46", uint16_t(8088), s_stamp);
         //s_client->createLobby("perkele", s_stamp);
         s_client->queryLobbies(s_stamp);
     }
@@ -174,7 +174,7 @@ namespace arena
                     GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
                     m_playerId = setupPacket->m_clientSalt;
                     createGladiators(setupPacket->m_playerAmount);
-                    for (unsigned i = 0; i < setupPacket->m_playerAmount; i++)
+                    for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
                     {
                         m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
                     }

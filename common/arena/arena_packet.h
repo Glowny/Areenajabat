@@ -66,8 +66,11 @@ namespace arena
 
     struct GameSetupPacket : public Packet
     {
+        static const int32_t MaxPlayers = 32;
+
         uint64_t m_clientSalt;
-		uint8_t m_playerAmount;
+        // how many players there can be
+		int32_t m_playerAmount;
 
 		GameSetupPacket()
             : m_clientSalt(0)
@@ -81,7 +84,7 @@ namespace arena
         bool serialize(Stream& stream)
         {
             serialize_uint64(stream, m_clientSalt);
-			serialize_bytes(stream,& m_playerAmount, 1);
+            serialize_int(stream, m_playerAmount, 0, MaxPlayers);
 			return true;
         }
 
