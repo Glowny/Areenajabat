@@ -3,6 +3,7 @@
 #include <common/salt.h>
 #include <bx/thread.h>
 
+
 namespace arena
 {
     MasterServerClientListener::MasterServerClientListener(MasterServer* master) 

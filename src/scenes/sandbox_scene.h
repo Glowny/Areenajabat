@@ -37,7 +37,7 @@ namespace arena
 	private:
 
 		void createGladiators(unsigned amount);
-		void createPlatform(GamePlaformPacket* packet);
+		void createPlatform(GamePlatformPacket* packet);
 		void updateGladiators(GameUpdatePacket* packet);
 		void spawnBullets(GameSpawnBulletsPacket* packet);
 		void spawnBulletHits(GameBulletHitPacket* packet);

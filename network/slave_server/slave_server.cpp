@@ -1,4 +1,5 @@
 #include "slave_server.h"
+#include <common/arena/game_map.h>
 #include <common/arena/weapons.h>
 #include <common/arena/gladiator.h>
 #include <common/arena/playerController.h>
@@ -113,6 +114,11 @@ namespace arena
 		std::vector<const NetworkEntity*> synchronizationList;
 		m_host.getSynchronizationList(synchronizationList);
 
+		// Packet all entities to be updated
+		// TODO: pack all entities on one packet?
+		GameUpdatePacket *gladiatorUpdatePacket = NULL;
+		GameSpawnBulletsPacket* spawnBulletsPacket = NULL;
+		
 		for (const NetworkEntity* entity : synchronizationList)
 		{
 			const NetworkEntityType type = entity->type();
@@ -120,22 +126,85 @@ namespace arena
 			switch (type)
 			{
 			case NetworkEntityType::Gladiator:
-				// Send gladiator data, cast.
+			{
+				Gladiator* gladiator = (Gladiator*)entity;
+				// TODO: Pack all the gladiator data on one packet.
+				if (gladiatorUpdatePacket == NULL)
+				{
+					gladiatorUpdatePacket = new GameUpdatePacket;
+					gladiatorUpdatePacket->m_playerAmount = 0;
+				}
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = gladiator->m_position;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = gladiator->m_velocity;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_rotation = gladiator->m_rotation;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
+
+				gladiatorUpdatePacket->m_playerAmount++;
 				break;
+			}
 			case NetworkEntityType::Player:
 				// Send Player data, cast.
 				break;
+
 			case NetworkEntityType::Projectile:
+			{
+				// Send new projectile creation data. Bullets should not be synced after creation, 
+				// as the data will be too late to make any difference.
+				Bullet* bulletSpawn = (Bullet*)entity;
+				if (spawnBulletsPacket == NULL)
+				{
+					spawnBulletsPacket = new GameSpawnBulletsPacket;
+					spawnBulletsPacket->m_bulletAmount = 0;
+				}
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_position = bulletSpawn->m_position;
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_rotation = bulletSpawn->m_rotation;
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_type = bulletSpawn->m_type;
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_creationDelay = bulletSpawn->m_creationDelay;
+				spawnBulletsPacket->m_bulletAmount++;
 				break;
-				// Send Projectile data, cast.
+			}
+
 			case NetworkEntityType::Weapon:
-				break;
+				// weapon switch synch.
 				// Send Weapon data, cast.
+				break;
+			case NetworkEntityType::Map:
+			{// Send map data. This data is only send once per game.
+				GamePlatformPacket* packet = new GamePlatformPacket();
+				GameMap* mapEntity = (GameMap*)entity;
+				for (auto platform : mapEntity->m_platformVector)
+				{
+					packet->m_platform.m_type = platform.type;
+					packet->m_platform.m_vertexAmount = platform.vertices.size();
+					for (unsigned i = 0; i < platform.vertices.size(); i++)
+					{
+						packet->m_platform.m_vertexArray[i] = platform.vertices[i];
+					}
+					for (Player& player : m_host.players())
+					{
+						m_server.sendPacketToConnectedClient(player.m_clientIndex, packet, m_totalTime);
+					}
+				}
+				break;
+			}
 			case NetworkEntityType::Null:
 			default:
 				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!");
 				break;
 			}
+
+			for (Player& player : m_host.players()) 
+			{
+				if (spawnBulletsPacket != NULL)
+				{ 
+					m_server.sendPacketToConnectedClient(player.m_clientIndex, spawnBulletsPacket, m_totalTime);
+				}
+				if (gladiatorUpdatePacket != NULL)
+				{ 
+					m_server.sendPacketToConnectedClient(player.m_clientIndex, gladiatorUpdatePacket, m_totalTime);
+				}
+			}
+
 		}
 	}
 

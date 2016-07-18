@@ -41,7 +41,7 @@ namespace arena
 		case PacketTypes::GameUpdate:
 			return new GameUpdatePacket;
 		case PacketTypes::GamePlatform:
-			return new GamePlaformPacket;
+			return new GamePlatformPacket;
 		case PacketTypes::GameSpawnBullets:
 			return new GameSpawnBulletsPacket;
 		case PacketTypes::GameBulletHit:

@@ -145,15 +145,19 @@ namespace arena
 
 	void GameHost::applyPlayerInputs()
 	{
+		// TODO: add jump and dont let player decide amount of force applied!
 		auto& players = m_players.container();
 
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
 			Player& player = *it;
-
 			unsigned physicsId			= player.m_gladiator->m_physicsId;
 			glm::ivec2 moveDirection	= player.m_playerController->m_movementDirection;
+			// Do not add forces if there are none.
+			if (moveDirection.x == 0 && moveDirection.y == 0)
+				continue;
 			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsId);
+
 
 			if (int32(currentVelocity.x) < 250 && int32(currentVelocity.x) > -250)
 			{
@@ -165,12 +169,16 @@ namespace arena
 			
 				m_synchronizationList.push_back(&player);
 			}
+			// Set the inputs to zero as they are handled.
+			player.m_playerController->m_movementDirection.x = 0;
+			player.m_playerController->m_movementDirection.y = 0;
 		}
 	}
 
 	void GameHost::loadMap(const char* const mapName)
 	{
 		m_map.loadMapFromFile(mapName);
+		m_synchronizationList.push_back(&m_map);
 	}
 
 	std::vector<Player>& GameHost::players()
@@ -200,12 +208,9 @@ namespace arena
 
 		if (player == nullptr) return;
 
-		// Player that sent the input.
-		// TODO: how.
-		player->m_gladiator->m_position.x += x;
-		player->m_gladiator->m_position.y += y;
-		
-		m_synchronizationList.push_back(player);
+		// Apply force only when physics are also updated.
+		player->m_playerController->m_movementDirection.x = x;
+		player->m_playerController->m_movementDirection.y = y;
 	}
 	void GameHost::processShooting(const uint64 clientIndex, const bool flags, const float32 angle)
 	{
@@ -219,8 +224,18 @@ namespace arena
 
 		if (player == nullptr) return;
 		
-		// TODO: shoot? update projectiles?
-		m_synchronizationList.push_back(player);
+		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
+		// Bullets should be deleted after synchronization, should slave delete them?
+
+		std::vector<Bullet*> bullets = player->m_gladiator->m_weapon->createBullets(angle, player->m_gladiator->m_position);
+		
+		for(unsigned i = 0; i < bullets.size(); i++)
+		{ 
+			m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, player->m_gladiator->m_physicsId);
+			m_synchronizationList.push_back(bullets[i]);
+		}
+
+		
 	}
 	
 	bool GameHost::shouldProcessPlayerInput() const
@@ -342,10 +357,18 @@ namespace arena
 		else if (m_gameData.m_state == GameState::RoundRunning)
 		{
 			// Do normal updates.
+			
+			if ((m_physics.updateTimer += dt) > TIMESTEP)
+			{
+				//TODO: uncomment check when confirmed working
+				//if(shouldProcessPlayerInput())
+					applyPlayerInputs();
+				// Update physics
+				m_physics.update();
+			}
 		}
 
-		// Update.
-		if ((m_physics.updateTimer += dt) > TIMESTEP) m_physics.update();
+		
 	}
 
 	GameHost::~GameHost()

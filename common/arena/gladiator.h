@@ -19,6 +19,7 @@ namespace arena
 
 		float32		m_rotation;		
 		uint32		m_physicsId;
+		uint8_t		m_ownerId;
 		int32		m_hitpoints;
 		
 		Weapon*		m_weapon;
