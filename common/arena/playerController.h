@@ -8,6 +8,7 @@ namespace arena
 		glm::ivec2 m_movementDirection;
 		float m_jumpDirection;
 		bool shootFlag;
+		bool moveFlag;
 		float aimAngle;
 		WeaponType weapon;
 	};

@@ -24,12 +24,14 @@ namespace arena
 	struct Bullet;
 	struct Gladiator;
 	struct PlayerScore;
-
+	
+	
 	class SandboxScene final : public Scene 
 	{
 	public:
 		SandboxScene();
 		~SandboxScene() = default;
+		void setInput(glm::ivec2 direction);
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
@@ -46,8 +48,8 @@ namespace arena
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
 
-		void sendInput(PlayerController &controller);
 		void sendShootEvent(float angle);
+		void sendInput(PlayerController &controller);
 
 		void createGladiator(glm::vec2 position);
 
@@ -72,7 +74,12 @@ namespace arena
 		std::vector<Bullet> m_bulletHitVector;
 
 		PlayerController m_controller;
+		float sendInputToServerTimer;
 		Scoreboard m_scoreboard;
 		uint64 m_playerId;
 	};
+
+	static void moveLeft(const void*);
+	static void moveRight(const void*);
+	static void moveUp(const void*);
 }
