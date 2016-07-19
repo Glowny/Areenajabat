@@ -186,11 +186,11 @@ namespace arena
 			return nullptr;
 		}
 
-		T front()
+		T& front()
 		{
 			return m_container.front();
 		}
-		T back()
+		T& back()
 		{
 			return m_container.back();
 		}

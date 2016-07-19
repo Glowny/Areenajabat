@@ -31,6 +31,11 @@ namespace arena
 		m_host.unregisterPlayer(clientIndex);
     }
 
+    void onGameStart()
+    {
+        fprintf(stderr, "On game start\n");
+    }
+
     SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),
 		m_totalTime(0.0),
@@ -42,6 +47,7 @@ namespace arena
 		m_sendQueue.reserve(InitialNetworkQueueSize);
         m_server.addClientListener(&m_clientListener);
         m_host.startSession();
+        m_host.e_gameStart += onGameStart;
 	}
 
 	void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
@@ -173,20 +179,23 @@ namespace arena
 				break;
 			case NetworkEntityType::Map:
 			{
+                // this wont work
 				GameMap* mapEntity = (GameMap*)entity;   
 
-                for (auto platform : mapEntity->m_platformVector)
+                for (Player& p : m_host.players())
                 {
-                    // Send map data. This data is only send once per game.
-                    GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
-                    packet->m_platform.m_type = platform.type;
-                    packet->m_platform.m_vertexAmount = uint8_t(platform.vertices.size());
-                    for (unsigned i = 0; i < platform.vertices.size(); i++)
+                    for (auto platform : mapEntity->m_platformVector)
                     {
-                        packet->m_platform.m_vertexArray[i] = platform.vertices[i];
+                        // Send map data. This data is only send once per game.
+                        GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
+                        packet->m_platform.m_type = platform.type;
+                        packet->m_platform.m_vertexAmount = uint8_t(platform.vertices.size());
+                        for (unsigned i = 0; i < platform.vertices.size(); i++)
+                        {
+                            packet->m_platform.m_vertexArray[i] = platform.vertices[i];
+                        }
+                        m_server.sendPacketToConnectedClient(p.m_clientIndex, packet, m_totalTime);
                     }
-
-                    m_server.broadcastPacket(packet, m_totalTime);
                 }
 
 				break;

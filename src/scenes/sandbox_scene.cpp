@@ -348,11 +348,11 @@ namespace arena
 
 		ResourceManager* resources = App::instance().resources();
         (void)resources;
-/*		SpriteRenderer* renderer = builder.addSpriteRenderer();
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
 		
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
 		
-		renderer->anchor();*/
+		renderer->anchor();
 
 		m_platformVector.push_back(platform);
 	}

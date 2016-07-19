@@ -11,6 +11,7 @@ namespace arena
 											   m_disposed(false),
 											   m_endCalled(false)
 	{
+        
 	}
 
 	void GameHost::startSession() 
@@ -106,6 +107,12 @@ namespace arena
 		Player* const newPlayer			= &m_players.back();
 		newPlayer->m_clientIndex		= clientIndex;
 		newPlayer->m_playerController	= new PlayerController();
+
+        Gladiator* gladiator = new Gladiator;
+
+        gladiator->m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[clientIndex]);
+        gladiator->m_weapon = new WeaponGladius;
+        newPlayer->m_gladiator = gladiator;
 
 		registerEntity(newPlayer);
 	}
@@ -271,7 +278,7 @@ namespace arena
 			}
 		}
 
-		if (m_players.size() >= m_vars.m_gm_players_required)
+		if (m_players.size() >= m_vars.m_gm_players_required && !m_gameData.m_gameRunning)
 		{
 			m_gameData.m_gameRunning = true;
 			
