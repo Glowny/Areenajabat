@@ -432,8 +432,6 @@ namespace arena
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
-		if (m_gladiatorDrawDataVector.size() != packet->m_playerAmount)
-			printf("DIFFERENT AMOUNT OF GLADIATORS ON UPDATEPACKAGE\n");
 		for (unsigned i = 0; i < packet->m_playerAmount; i++)
 		{
 			// TODO: SET CORRECT ID TO SYNCH
@@ -442,7 +440,7 @@ namespace arena
 			m_gladiatorDrawDataVector[index].m_transform->m_position= packet->m_characterArray[i].m_position;
 			m_gladiatorDrawDataVector[index].m_gladiator.m_velocity = packet->m_characterArray[i].m_velocity;
 			m_gladiatorDrawDataVector[index].m_gladiator.m_rotation = packet->m_characterArray[i].m_rotation;
-			printf("Received update on gladiator position:\n %f, %f \n");
+			printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
 		}
 		
 	}

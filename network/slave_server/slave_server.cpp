@@ -150,7 +150,6 @@ namespace arena
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = gladiator->m_velocity;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_rotation = gladiator->m_rotation;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
-				printf("Sending gladiator position %d, %d to client\n", gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position.x, gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position.y);
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
 			}

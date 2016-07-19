@@ -111,6 +111,7 @@ namespace arena
         Gladiator* gladiator = new Gladiator;
 
         gladiator->m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[clientIndex]);
+		gladiator->m_position = m_physics.getGladiatorPosition(gladiator->m_physicsId);
         gladiator->m_weapon = new WeaponGladius;
         newPlayer->m_gladiator = gladiator;
 
@@ -174,6 +175,7 @@ namespace arena
 				if (moveDirection.x == 2)
 					moveDirection.x = -1;
 
+				force.y = -30.0f;
 				force.x = moveDirection.x * 1500.0f;
 
 				m_physics.applyForceToGladiator(force, physicsId);
@@ -297,6 +299,8 @@ namespace arena
 
 			e_gameStart();
             loadMap("coordinatesRawData.dat");
+			for(unsigned i = 0; i < m_map.m_platformVector.size(); i++)
+				m_physics.createPlatform(m_map.m_platformVector[i].vertices,m_map.m_platformVector[i].type);
 		}
 	}
 	void GameHost::gameTick(const uint64 dt)
@@ -384,8 +388,8 @@ namespace arena
 				for (Player& player : players())
 				{
 					player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
-					// update position because gravity
-					m_synchronizationList.push_back(player.m_gladiator);
+					// update position because gravity - dont update too much
+					// m_synchronizationList.push_back(player.m_gladiator);
 				}
 				
 			}
