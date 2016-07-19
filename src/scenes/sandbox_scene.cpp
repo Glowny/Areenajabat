@@ -136,24 +136,40 @@ namespace arena
     {
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
-		{ arena::Key::KeyH, arena::Modifier::None, 0, moveLeft, "moveleft" },
-		{ arena::Key::KeyK, arena::Modifier::None, 0, moveRight, "moveright" },
-		{ arena::Key::KeyU, arena::Modifier::None, 0, moveUp, "moveup" },
+		{ arena::Key::KeyH, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
+		{ arena::Key::KeyK, arena::Modifier::None, 0, inputMoveRight, "moveright" },
+		{ arena::Key::KeyU, arena::Modifier::None, 0, inputMoveUp, "moveup" },
+		{ arena::Key::KeyY, arena::Modifier::None, 0, inputShoot, "shoot" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
         INPUT_BINDING_END
     };
-	static void moveLeft(const void*)
+	static void inputMoveLeft(const void*)
 	{
 		sandbox->setInput(glm::vec2(1, 0));
 	}
-	static void moveRight(const void*)
+	static void inputMoveRight(const void*)
 	{
 		sandbox->setInput(glm::vec2(-1, 0));
 	}
-	static void moveUp(const void*)
+	static void inputMoveUp(const void*)
 	{
 		sandbox->setInput(glm::vec2(0, -2));
+	}
+	static void inputShoot(const void*)
+	{
+		sandbox->setShoot();
+	}
+
+	void SandboxScene::setAimAngle(float angle)
+	{
+		m_controller.aimAngle = angle;
+		m_controller.moveFlag = true;
+	}
+
+	void SandboxScene::setShoot()
+	{
+		m_controller.shootFlag = true;
 	}
 
 	void SandboxScene::setInput(glm::ivec2 direction)
@@ -181,7 +197,6 @@ namespace arena
 			{ 
 				sendInput(m_controller);
 				m_controller.moveFlag = false;
-				printf("Spamming move to server\n");
 			}
 			if (m_controller.shootFlag == true)
 			{

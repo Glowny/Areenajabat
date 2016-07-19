@@ -32,6 +32,8 @@ namespace arena
 		SandboxScene();
 		~SandboxScene() = default;
 		void setInput(glm::ivec2 direction);
+		void setShoot();
+		void setAimAngle(float angle);
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
@@ -79,7 +81,8 @@ namespace arena
 		uint64 m_playerId;
 	};
 
-	static void moveLeft(const void*);
-	static void moveRight(const void*);
-	static void moveUp(const void*);
+	static void inputMoveLeft(const void*);
+	static void inputMoveRight(const void*);
+	static void inputMoveUp(const void*);
+	static void inputShoot(const void*);
 }
