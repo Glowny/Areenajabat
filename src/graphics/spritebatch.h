@@ -37,7 +37,7 @@ namespace arena
     {
     public:
         static const uint32_t MaxBatchSize = 2048;
-        static const uint32_t InitialQueueSize = 64;
+        static const uint32_t InitialQueueSize = 512;
 
         SpriteBatch();
         ~SpriteBatch();

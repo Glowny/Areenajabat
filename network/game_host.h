@@ -83,6 +83,18 @@ namespace arena
 
 		GameState m_state;
 
+        GameVariables() :
+            m_gameElapsed(0),
+            m_timeoutElapsed(0),
+            m_roundFreezeTimeElapsed(0),
+            m_roundsCount(0),
+            m_roundTimeElapsed(0),
+            m_gameRunning(false),
+            m_state(GameState::Stopped)
+        {
+
+        }
+
 		void resetTimers()
 		{
 			m_gameElapsed = m_timeoutElapsed = m_roundFreezeTimeElapsed = m_roundsCount =
@@ -102,6 +114,13 @@ namespace arena
 		uint64 m_sessionElapsed;
 
 		bool m_sessionRunning;
+
+        SessionVariables() :
+            m_sessionElapsed(0),
+            m_sessionRunning(false)
+        {
+        }
+            
 
 		void resetTimers()
 		{
@@ -167,11 +186,11 @@ namespace arena
 			return nullptr;
 		}
 
-		T front()
+		T& front()
 		{
 			return m_container.front();
 		}
-		T back()
+		T& back()
 		{
 			return m_container.back();
 		}
