@@ -34,6 +34,7 @@ namespace arena
     void onGameStart()
     {
         fprintf(stderr, "On game start\n");
+		
     }
 
     SlaveServer::SlaveServer(const char* const gamemodeName) :
@@ -86,10 +87,12 @@ namespace arena
 				GameInputPacket* inputPacket = (GameInputPacket*)packet;
 
 				const uint32 index	= m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
+			
 				const float32 x		= inputPacket->x;
 				const float32 y		= inputPacket->y;
 
 				m_host.processInput(index, x, y);
+				printf("Received movement packet to direction %d, %d\n", int(inputPacket->x), int(inputPacket->y));
 			}
 			else if (packet->getType() == PacketTypes::GameShoot)
 			{
@@ -98,7 +101,7 @@ namespace arena
 				const uint32 index			= m_server.findExistingClientIndex(from, shootPacket->m_clientSalt, shootPacket->m_challengeSalt);
 				const bool shootingFlags	= true;
 				const float32 angle			= shootPacket->m_angle;
-					
+				printf("Received shoot packet to angle %f, from playerid %d", angle, index);
 				m_host.processShooting(index, shootingFlags, angle);
 			
 			}
@@ -147,7 +150,7 @@ namespace arena
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = gladiator->m_velocity;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_rotation = gladiator->m_rotation;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
-
+				printf("Sending gladiator position %d, %d to client\n", gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position.x, gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position.y);
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
 			}
@@ -194,8 +197,16 @@ namespace arena
                         {
                             packet->m_platform.m_vertexArray[i] = platform.vertices[i];
                         }
+						
                         m_server.sendPacketToConnectedClient(p.m_clientIndex, packet, m_totalTime);
                     }
+					// Send game start package to client.
+					// TODO: This should be send somewhere else.
+					GameSetupPacket* setupPacket = new GameSetupPacket;
+					// player amount should be gotten from host, but the players.size() is drunk or something
+					// TOOD: Set correct amount of players.
+					setupPacket->m_playerAmount = 1;
+					m_server.sendPacketToConnectedClient(p.m_clientIndex, setupPacket, m_totalTime);
                 }
 
 				break;
@@ -218,50 +229,18 @@ namespace arena
 				}
 			}
 		}
+
 	}
 
-	void SlaveServer::initializeRound(unsigned playerAmount)
-	{
-		// Load map. TODO: Use filesystem.
-		m_host.loadMap("coordinatesRawData.dat");
-
-		// Add gladiators.
-		std::vector<Player>& players = m_host.players();
-		Physics& physics			 = m_host.physics();
-		GameMap map					 = m_host.map();
-		unsigned i					 = 0;
-
-		// TODO: for debugging.
-		for (auto it = players.begin(); it != players.end(); ++it)
-		{
-			// Create.
-			Player* player = &*it;
-			Gladiator* gladiator = new Gladiator;
-
-			gladiator->m_physicsId = physics.addGladiator(map.m_playerSpawnLocations[i]);
-			gladiator->m_weapon = new WeaponGladius;
-			player->m_gladiator = gladiator;
-
-			// Register.
-			m_host.registerEntity(gladiator);
-		}
-
-		// Send start packets
-		GameSetupPacket* packet = new GameSetupPacket;
-		packet->m_playerAmount = playerAmount;
-
-		for (Player& player : players) {
-			m_server.sendPacketToConnectedClient(player.m_clientIndex, packet, m_totalTime);
-		}
-
-		m_last_time = bx::getHPCounter();
-	}
-
-	bool SlaveServer::startRound(unsigned playerAmount)
-	{
-		initializeRound(playerAmount);
-		return true;
-	}
+	// NOT IN USE
+	//void SlaveServer::initializeRound(unsigned playerAmount)
+	//{
+	//	
+	//}
+	//bool SlaveServer::startRound(unsigned playerAmount)
+	//{
+	//
+	//}
 
 	void SlaveServer::updateRound()
 	{

@@ -144,17 +144,18 @@ namespace arena
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
         INPUT_BINDING_END
     };
+	// 1 right, 2 left, 1 down, 2 up because  network casting stuff is broken
 	static void inputMoveLeft(const void*)
 	{
 		sandbox->setInput(glm::vec2(1, 0));
 	}
 	static void inputMoveRight(const void*)
 	{
-		sandbox->setInput(glm::vec2(-1, 0));
+		sandbox->setInput(glm::vec2(2, 0));
 	}
 	static void inputMoveUp(const void*)
 	{
-		sandbox->setInput(glm::vec2(0, -2));
+		sandbox->setInput(glm::vec2(0, 2));
 	}
 	static void inputShoot(const void*)
 	{
@@ -182,6 +183,12 @@ namespace arena
 	{
 		sandbox = this;
 		sendInputToServerTimer = 0;
+		m_controller.aimAngle = 0;
+		m_controller.moveFlag = false;
+		m_controller.m_jumpDirection = 0;
+		m_controller.weapon = Gladius;
+		m_controller.shootFlag = false;
+		m_controller.m_movementDirection = glm::ivec2(0, 0);
 	}
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -241,6 +248,7 @@ namespace arena
                 case PacketTypes::GameUpdate:
                 {
                     updateGladiators((GameUpdatePacket*)packet);
+		
                     break;
                 }
                 case PacketTypes::GamePlatform:
@@ -284,43 +292,46 @@ namespace arena
                 }
                 }
             }
-			printf("Packed id: %d received on sandbox_scene \n", packet->getType());
+
             destroyPacket(packet);
         }
-		Transform* playerTransform = (Transform* const)m_gladiatorDrawDataVector[0].m_entity->first(TYPEOF(Transform));
-		
-        Camera& camera = App::instance().camera();
-        camera.m_position = playerTransform->m_position;
-        camera.calculate();
-        // set views
-        float ortho[16];
-        bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
-        bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
-        bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+		if (m_gladiatorDrawDataVector.size() != 0)
+		{ 
+			Transform* playerTransform = (Transform* const)m_gladiatorDrawDataVector[0].m_entity->first(TYPEOF(Transform));
+			
+			Camera& camera = App::instance().camera();
+			camera.m_position = playerTransform->m_position;
+			camera.calculate();
+			// set views
+			float ortho[16];
+			bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
+			bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
+			bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
 
-        bgfx::dbgTextClear();
+			bgfx::dbgTextClear();
 
-        SpriteManager::instance().update(gameTime);
-        AnimatorManager::instance().update(gameTime);
+			SpriteManager::instance().update(gameTime);
+			AnimatorManager::instance().update(gameTime);
 
-        const MouseState& mouse = Mouse::getState();
+			const MouseState& mouse = Mouse::getState();
 
-        glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-        transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+			glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+			transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
 
-        glm::vec2 dir(mouseLoc - playerTransform->m_position);
-        float a = glm::atan(dir.y, dir.x);
+			glm::vec2 dir(mouseLoc - playerTransform->m_position);
+			float a = glm::atan(dir.y, dir.x);
 
-        bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
-        bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
-            mouse.m_buttons[MouseButton::Left] ? "down" : "up",
-            mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
-            mouse.m_buttons[MouseButton::Right] ? "down" : "up");
-        bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
-        bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
-        bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
+			bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
+			bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
+			    mouse.m_buttons[MouseButton::Left] ? "down" : "up",
+			    mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
+			    mouse.m_buttons[MouseButton::Right] ? "down" : "up");
+			bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
+			bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+			bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
 
-        App::instance().spriteBatch()->submit(0);
+			App::instance().spriteBatch()->submit(0);
+		}
     }
 
 	void SandboxScene::onInitialize()
@@ -329,11 +340,8 @@ namespace arena
         s_client = new NetworkClient();
         s_client->m_lobbyListener = &s_lobbyListener;
 		m_playerId = 0;
-		for (unsigned i = 0; i < 3; i++)
-		{
-			createGladiator(glm::vec2(100*i, 300));
-		}
-		anime = m_gladiatorDrawDataVector[m_playerId].m_animator;
+
+		
         inputAddBindings("player", s_bindings);
 	}
 	void SandboxScene::onDestroy()
@@ -366,10 +374,17 @@ namespace arena
 		gladiator = builder.getResults();
 
 		registerEntity(gladiator);
+
+		// TODO: should use entities.
 		GladiatorDrawData data;
 		data.m_entity = gladiator;
 		data.m_animator = animator;
+		data.m_transform = transform;
+		data.m_gladiator = Gladiator();
 		m_gladiatorDrawDataVector.push_back(data);
+
+		// TODO: do animation stuff better
+		anime = m_gladiatorDrawDataVector[m_playerId].m_animator;
 	}
 
 
@@ -413,17 +428,23 @@ namespace arena
 		renderer->anchor();
 
 		m_platformVector.push_back(platform);
+		printf("platformVector size: %d\n", m_platformVector.size());
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
-		if (m_gladiatorVector.size() != packet->m_playerAmount)
+		if (m_gladiatorDrawDataVector.size() != packet->m_playerAmount)
 			printf("DIFFERENT AMOUNT OF GLADIATORS ON UPDATEPACKAGE\n");
-		for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+		for (unsigned i = 0; i < packet->m_playerAmount; i++)
 		{
-			m_gladiatorVector[i]->m_position = packet->m_characterArray[i].m_position;
-			m_gladiatorVector[i]->m_velocity = packet->m_characterArray[i].m_velocity;
-			m_gladiatorVector[i]->m_rotation = packet->m_characterArray[i].m_rotation;
+			// TODO: SET CORRECT ID TO SYNCH
+			unsigned index = 0;// packet->m_characterArray[i].m_ownerId;
+			m_gladiatorDrawDataVector[index].m_gladiator.m_position = packet->m_characterArray[i].m_position;
+			m_gladiatorDrawDataVector[index].m_transform->m_position= packet->m_characterArray[i].m_position;
+			m_gladiatorDrawDataVector[index].m_gladiator.m_velocity = packet->m_characterArray[i].m_velocity;
+			m_gladiatorDrawDataVector[index].m_gladiator.m_rotation = packet->m_characterArray[i].m_rotation;
+			printf("Received update on gladiator position:\n %f, %f \n");
 		}
+		
 	}
 	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
 	{
@@ -449,19 +470,20 @@ namespace arena
 		}
 
 	}
+	// These might not work
 	void SandboxScene::damagePlayer(GameDamagePlayerPacket* packet)
 	{
-		m_gladiatorVector[packet->m_targetID]->m_hitpoints -= int32(packet->m_damageAmount);
+		m_gladiatorDrawDataVector[packet->m_targetID].m_gladiator.m_hitpoints -= int32(packet->m_damageAmount);
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{
-		m_gladiatorVector[packet->m_playerID]->m_hitpoints = 0;
-		m_gladiatorVector[packet->m_playerID]->m_alive = false;
+		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_hitpoints = 0;
+		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_alive = false;
 	}
 	void SandboxScene::respawnPlayer(GameRespawnPlayerPacket* packet)
 	{
-		m_gladiatorVector[packet->m_playerID]->m_hitpoints = 100;
-		m_gladiatorVector[packet->m_playerID]->m_alive = true;
+		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_hitpoints = 100;
+		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_alive = true;
 	}
 	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{

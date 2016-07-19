@@ -11,7 +11,7 @@ namespace arena
 											   m_disposed(false),
 											   m_endCalled(false)
 	{
-        
+		m_physics = physics();
 	}
 
 	void GameHost::startSession() 
@@ -170,11 +170,15 @@ namespace arena
 			{
 				glm::vec2 force;
 
+				// TODO: Make better, done because network is not working correctly fix later
+				if (moveDirection.x == 2)
+					moveDirection.x = -1;
+
 				force.x = moveDirection.x * 1500.0f;
 
 				m_physics.applyForceToGladiator(force, physicsId);
 			
-				m_synchronizationList.push_back(&player);
+				m_synchronizationList.push_back(player.m_gladiator);
 			}
 			// Set the inputs to zero as they are handled.
 			player.m_playerController->m_movementDirection.x = 0;
@@ -203,17 +207,19 @@ namespace arena
 
 	void GameHost::getSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList)
 	{
-		outSynchronizationList = m_synchronizationList;
-		m_synchronizationList.clear();
+		 outSynchronizationList = m_synchronizationList;
+		 m_synchronizationList.clear();
 	}
 
 	void GameHost::processInput(const uint64 clientIndex, const float32 x, const float32 y)
 	{
-		if (!shouldProcessPlayerInput()) return;
+		// TODO: do proper check.
+		//if (!shouldProcessPlayerInput()) return;
 
 		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
 
 		if (player == nullptr) return;
+
 
 		// Apply force only when physics are also updated.
 		player->m_playerController->m_movementDirection.x = x;
@@ -373,6 +379,15 @@ namespace arena
 					applyPlayerInputs();
 				// Update physics
 				m_physics.update();
+
+				// get data from gladiators.
+				for (Player& player : players())
+				{
+					player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
+					// update position because gravity
+					m_synchronizationList.push_back(player.m_gladiator);
+				}
+				
 			}
 		}
 

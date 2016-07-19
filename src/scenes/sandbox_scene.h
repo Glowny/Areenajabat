@@ -7,24 +7,26 @@
 #include "common\arena\playerController.h"
 #include <common\arena\arena_packet.h>
 #include "common\arena\scoreboard.h"
+#include "..\ecs\transform.h"
+#include "common\arena\gladiator.h"
 struct Message;
 
 
 namespace arena
 {
 	class Animator;
-	struct GladiatorDrawData
-	{
-		Entity* m_entity;
-		Animator* m_animator;
 
-	};
 
 	struct Weapon;
 	struct Bullet;
-	struct Gladiator;
 	struct PlayerScore;
-	
+	struct GladiatorDrawData
+	{
+		Entity* m_entity;
+		Transform* m_transform;
+		Animator* m_animator;
+		Gladiator m_gladiator;
+	};
 	
 	class SandboxScene final : public Scene 
 	{
@@ -70,7 +72,8 @@ namespace arena
 		void clientSideGladiatorDeath(unsigned id);
 
 		std::vector<GladiatorDrawData> m_gladiatorDrawDataVector;
-		std::vector<Gladiator*> m_gladiatorVector;
+		// TODO: should use entities
+
 		std::vector<ArenaPlatform> m_platformVector;
 		std::vector<Bullet> m_spawnBulletVector;
 		std::vector<Bullet> m_bulletHitVector;
