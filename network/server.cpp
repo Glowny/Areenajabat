@@ -135,6 +135,39 @@ namespace arena
         m_clientData[clientIndex].m_lastPacketSendTime = timestamp;
     }
 
+    void Server::broadcastPacket(Packet* packet, double timestamp)
+    {
+        uint32_t start = UINT32_MAX;
+        for (uint32_t i = 0; i < MaxClients; ++i)
+        {
+            if (!m_clientConnected[i]) continue;
+
+            start = i;
+
+            sendPacketToConnectedClient(i, packet, timestamp);
+        }
+
+        // no clients connected so we dont need to send packets
+        if (start == UINT32_MAX)
+        {
+            return;
+        }
+
+        int32_t packetType = packet->getType();
+        // size in bytes to copy
+        size_t size = getMaxPacketSize(packetType);
+        // start from next index
+        for (start = start + 1; start < MaxClients; ++start)
+        {
+            if (!m_clientConnected[start]) continue;
+            // TODO this is dangerous and violates standard probably :D
+            // but the packets are PODs and doesnt have any dynamic data so it's fine
+            Packet* send = createPacket(packetType);
+            memcpy(send, packet, size);
+            sendPacketToConnectedClient(start, send, timestamp);
+        }
+    }
+
     uint32_t Server::findExistingClientIndex(ENetPeer* host, uint64_t clientSalt, uint64_t challengeSalt) const
     {
         enet_uint32 address = host->address.host;

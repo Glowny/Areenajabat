@@ -111,7 +111,7 @@ namespace arena
         serialize_bits(stream, boolvalue, 1);                                                           \
         if (Stream::IsReading)                                                                          \
         {                                                                                               \
-            boolvalue = boolvalue != 0;                                                                 \
+            value = boolvalue != 0;                                                                     \
         }                                                                                               \
     } while (0)
 

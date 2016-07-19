@@ -156,11 +156,12 @@ namespace arena
             ENetPacket* out = enet_packet_create(packetbuffer, packetLength, 0);
             
             enet_peer_send(entry.m_peer, 0, out);
-
             //enet_host_flush(m_socket);
 
             //enet_packet_destroy(out);
             ARENA_ASSERT(stream.m_error.isOk(), "serialization error: %d", stream.m_error.get().code);
+            
+            entry.m_packet = nullptr;
 
             destroyPacket(packet);
         }
