@@ -34,6 +34,7 @@
 
 namespace arena
 {
+	SandboxScene* sandbox;
     static double s_stamp = 0.0;
 
     struct DebugLobbyListener : public LobbyListener
@@ -106,6 +107,7 @@ namespace arena
     static void left(const void*)
     {
 		anime->m_animator.setFlipX(false);
+		
     }
 
     static void right(const void*)
@@ -134,25 +136,66 @@ namespace arena
     {
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
+		{ arena::Key::KeyH, arena::Modifier::None, 0, moveLeft, "moveleft" },
+		{ arena::Key::KeyK, arena::Modifier::None, 0, moveRight, "moveright" },
+		{ arena::Key::KeyU, arena::Modifier::None, 0, moveUp, "moveup" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
         INPUT_BINDING_END
     };
+	static void moveLeft(const void*)
+	{
+		sandbox->setInput(glm::vec2(1, 0));
+	}
+	static void moveRight(const void*)
+	{
+		sandbox->setInput(glm::vec2(-1, 0));
+	}
+	static void moveUp(const void*)
+	{
+		sandbox->setInput(glm::vec2(0, -2));
+	}
 
+	void SandboxScene::setInput(glm::ivec2 direction)
+	{
+		m_controller.m_movementDirection = direction;
+		m_controller.moveFlag = true;
+	}
 
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
+		sandbox = this;
+		sendInputToServerTimer = 0;
 	}
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
     {
-        s_stamp = gameTime.m_total;
+		s_stamp = gameTime.m_total;
 
         s_client->sendMatchMakingPackets(gameTime.m_total);
         s_client->sendProtocolPackets(gameTime.m_total);
+		
+		if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f)
+		{
+			if(m_controller.moveFlag == true)
+			{ 
+				sendInput(m_controller);
+				m_controller.moveFlag = false;
+				printf("Spamming move to server\n");
+			}
+			if (m_controller.shootFlag == true)
+			{
+				sendShootEvent(m_controller.aimAngle);
+				m_controller.shootFlag = false;
+			}
+			
+			sendInputToServerTimer = 0;
+		}
 
-        s_client->writePackets();
+		s_client->writePackets();
         s_client->readPackets();
+
+
 
         Packet* packet = nullptr;
         ENetPeer* from;
@@ -222,11 +265,11 @@ namespace arena
                 }
                 default:
                 {
-                    printf("Unknown packet type received on sandbox_scene\n");
+                    printf("Unknown packet type received on sandbox_scene, id: %d\n", packet->getType());
                 }
                 }
             }
-
+			printf("Packed id: %d received on sandbox_scene \n", packet->getType());
             destroyPacket(packet);
         }
 		Transform* playerTransform = (Transform* const)m_gladiatorDrawDataVector[0].m_entity->first(TYPEOF(Transform));
