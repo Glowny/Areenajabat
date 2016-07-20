@@ -225,11 +225,11 @@ namespace arena
 			{
 				if (spawnBulletsPacket != NULL)
 				{ 
-					m_server.sendPacketToConnectedClient(player.m_clientIndex, spawnBulletsPacket, m_totalTime);
+					m_server.broadcastPacket(spawnBulletsPacket, m_totalTime);
 				}
 				if (gladiatorUpdatePacket != NULL)
 				{ 
-					m_server.sendPacketToConnectedClient(player.m_clientIndex, gladiatorUpdatePacket, m_totalTime);
+					m_server.broadcastPacket(gladiatorUpdatePacket, m_totalTime);
 				}
 			}
 		}
