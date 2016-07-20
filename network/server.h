@@ -82,10 +82,6 @@ namespace arena
         // queues the packet to send queue
         // IMPORTANT: the packet should not be used after this call because it will be deleted
 		void sendPacketToConnectedClient(uint32_t clientIndex, Packet* packet, double timestamp);
-
-        // queues the packet to sendqueue to all peers
-        // IMPORTANT: the packet should not be used after this call because it will be deleted
-        void broadcastPacket(Packet* packet, double timestamp);
 	private:
         std::vector<PacketEntry>* m_sendQueue;
 
