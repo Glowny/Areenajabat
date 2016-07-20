@@ -16,6 +16,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, PlayerController)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, Gladiator)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, PlayerInput)
 
 #define TIMESTEP 0.016f
 
@@ -261,7 +262,7 @@ namespace arena
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
 
-		void processInput(const uint64 clientIndex, const float32 x, const float32 y);
+		void processInput(const uint64 clientIndex, const PlayerInput& input);
 		void processShooting(const uint64 clientIndex, const bool flags, const float32 angle);
 		
 		bool shouldProcessPlayerInput() const;

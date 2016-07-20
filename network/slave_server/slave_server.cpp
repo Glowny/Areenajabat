@@ -97,11 +97,8 @@ namespace arena
 				GameInputPacket* inputPacket = (GameInputPacket*)packet;
 
 				const uint32 index	= m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
-			
-				const float32 x		= inputPacket->x;
-				const float32 y		= inputPacket->y;
 
-				m_host.processInput(index, x, y);
+				m_host.processInput(index, inputPacket->m_input);
 
 			}
 			else if (packet->getType() == PacketTypes::GameShoot)

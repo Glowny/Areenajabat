@@ -146,22 +146,26 @@ namespace arena
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
         INPUT_BINDING_END
     };
-	// 1 right, 2 left, 1 down, 2 up because  network casting stuff is broken
+
 	static void inputMoveLeft(const void*)
 	{
-		sandbox->setInput(glm::vec2(1, 0));
+        sandbox->m_controller.m_input.m_leftButtonDown = true;
+        sandbox->m_controller.moveFlag = true;
 	}
 	static void inputMoveRight(const void*)
 	{
-		sandbox->setInput(glm::vec2(2, 0));
+        sandbox->m_controller.m_input.m_rightButtonDown = true;
+        sandbox->m_controller.moveFlag = true;
 	}
 	static void inputMoveUp(const void*)
 	{
-		sandbox->setInput(glm::vec2(0, 2));
+        sandbox->m_controller.m_input.m_upButtonDown = true;
+        sandbox->m_controller.moveFlag = true;
 	}
 	static void inputShoot(const void*)
 	{
-		sandbox->setShoot();
+        sandbox->m_controller.m_input.m_shootButtonDown = true;
+        sandbox->m_controller.shootFlag = true;
 	}
 
 	void SandboxScene::setAimAngle(float angle)
@@ -175,12 +179,6 @@ namespace arena
 		m_controller.shootFlag = true;
 	}
 
-	void SandboxScene::setInput(glm::ivec2 direction)
-	{
-		m_controller.m_movementDirection = direction;
-		m_controller.moveFlag = true;
-	}
-
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 		sandbox = this;
@@ -190,7 +188,6 @@ namespace arena
 		m_controller.m_jumpDirection = 0;
 		m_controller.weapon = Gladius;
 		m_controller.shootFlag = false;
-		m_controller.m_movementDirection = glm::ivec2(0, 0);
 		createBackground();
 	}
 
@@ -207,6 +204,8 @@ namespace arena
 			{ 
 				sendInput(m_controller);
 				m_controller.moveFlag = false;
+                // reset
+                memset(&m_controller.m_input, false, sizeof(PlayerInput));
 			}
 			if (m_controller.shootFlag == true)
 			{
@@ -538,8 +537,8 @@ namespace arena
 	{
         GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
-		packet->x = controller.m_movementDirection.x;
-		packet->y = controller.m_movementDirection.y;
+        packet->m_input = controller.m_input;
+
 		packet->m_clientSalt = s_client->m_clientSalt;
         packet->m_challengeSalt = s_client->m_challengeSalt;
 
