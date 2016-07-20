@@ -221,17 +221,10 @@ namespace arena
 				break;
 			}
 
-			for (Player& player : m_host.players()) 
-			{
-				if (spawnBulletsPacket != NULL)
-				{ 
-					m_server.broadcastPacket(spawnBulletsPacket, m_totalTime);
-				}
-				if (gladiatorUpdatePacket != NULL)
-				{ 
-					m_server.broadcastPacket(gladiatorUpdatePacket, m_totalTime);
-				}
-			}
+            if (spawnBulletsPacket != NULL)
+                broadcast(spawnBulletsPacket);
+            if (gladiatorUpdatePacket != NULL)
+                broadcast(gladiatorUpdatePacket);
 		}
 
 	}
