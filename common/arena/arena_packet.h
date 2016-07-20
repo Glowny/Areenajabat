@@ -70,7 +70,7 @@ namespace arena
         static const int32_t MaxPlayers = 32;
 
         uint64_t m_clientSalt;
-        // how many players there can be
+		uint8_t m_clientIndex;
 		int32_t m_playerAmount;
 
 		GameSetupPacket()
@@ -86,6 +86,7 @@ namespace arena
         {
             serialize_uint64(stream, m_clientSalt);
             serialize_int(stream, m_playerAmount, 0, MaxPlayers);
+			serialize_bytes(stream, &m_clientIndex, 1);
 			return true;
         }
 
@@ -142,6 +143,56 @@ namespace arena
 		virtual int32_t getType() const override
 		{
 			return PacketTypes::GameUpdate;
+		}
+
+		bool serializeWrite(WriteStream& stream) override
+		{
+			return serialize(stream);
+		}
+
+		bool serializeRead(ReadStream& stream) override
+		{
+			return serialize(stream);
+		}
+	};
+
+	struct GameCreateGladiatorsPacket : public Packet
+	{
+		uint64_t m_clientSalt;
+		CharacterData m_characterArray[CHARACTER_MAXAMOUNT];
+		int32_t m_playerAmount;
+
+		GameCreateGladiatorsPacket()
+			: m_clientSalt(0)
+		{
+			m_playerAmount = 0;
+		}
+
+		virtual ~GameCreateGladiatorsPacket() {}
+
+		template <typename Stream>
+		bool serialize(Stream& stream)
+		{
+			serialize_uint64(stream, m_clientSalt);
+
+			serialize_int(stream, m_playerAmount, 0, CHARACTER_MAXAMOUNT);
+			for (int32_t i = 0; i < m_playerAmount; ++i)
+			{
+
+				serialize_bytes(stream, &m_characterArray[i].m_ownerId, 1);
+				serialize_float(stream, m_characterArray[i].m_position.x);
+				serialize_float(stream, m_characterArray[i].m_position.y);
+				serialize_float(stream, m_characterArray[i].m_velocity.x);
+				serialize_float(stream, m_characterArray[i].m_velocity.y);
+				serialize_float(stream, m_characterArray[i].m_rotation);
+
+			}
+			return true;
+		}
+
+		virtual int32_t getType() const override
+		{
+			return PacketTypes::GameCreateGladiators;
 		}
 
 		bool serializeWrite(WriteStream& stream) override

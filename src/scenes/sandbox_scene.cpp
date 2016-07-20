@@ -240,8 +240,8 @@ namespace arena
                 case PacketTypes::GameSetup:
                 {
                     GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
-                    m_playerId = setupPacket->m_clientSalt;
-                    createGladiators(setupPacket->m_playerAmount);
+					m_playerId = setupPacket->m_clientIndex;
+					
                     for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
                     {
                         m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
@@ -254,6 +254,10 @@ namespace arena
 		
                     break;
                 }
+				case PacketTypes::GameCreateGladiators:
+				{
+					createGladiators((GameCreateGladiatorsPacket*)packet);
+				}
                 case PacketTypes::GamePlatform:
                 {
                     createPlatform((GamePlatformPacket*)packet);
@@ -298,9 +302,9 @@ namespace arena
 
             destroyPacket(packet);
         }
-		if (m_gladiatorDrawDataVector.size() != 0)
+		if (m_clientIdToGladiatorData.size() != 0)
 		{ 
-			Transform* playerTransform = (Transform* const)m_gladiatorDrawDataVector[0].m_entity->first(TYPEOF(Transform));
+			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 			
 			Camera& camera = App::instance().camera();
 			camera.m_position = playerTransform->m_position;
@@ -352,16 +356,16 @@ namespace arena
 		inputRemoveBindings("player");
 	}
 	
-	void SandboxScene::createGladiator(glm::vec2 position)
+	void SandboxScene::createGladiator(Gladiator* gladiator)
 	{
-		Entity* gladiator;
+		Entity* entity_gladiator;
 		EntityBuilder builder;
 		builder.begin();
 
 		ResourceManager* resources = App::instance().resources();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = position;
+		transform->m_position = gladiator->m_position;
 
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
@@ -374,20 +378,21 @@ namespace arena
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
 		//anim.setPosition(glm::vec2(0, 0));
 
-		gladiator = builder.getResults();
+		entity_gladiator = builder.getResults();
 
-		registerEntity(gladiator);
+		registerEntity(entity_gladiator);
 
 		// TODO: should use entities.
-		GladiatorDrawData data;
-		data.m_entity = gladiator;
-		data.m_animator = animator;
-		data.m_transform = transform;
-		data.m_gladiator = Gladiator();
-		m_gladiatorDrawDataVector.push_back(data);
+		GladiatorDrawData* data = new GladiatorDrawData;
+		data->m_entity = entity_gladiator;
+		data->m_animator = animator;
+		data->m_transform = transform;
+		data->m_gladiator = new Gladiator();
+		
+		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
 
 		// TODO: do animation stuff better
-		anime = m_gladiatorDrawDataVector[m_playerId].m_animator;
+		anime = m_clientIdToGladiatorData[gladiator->m_ownerId]->m_animator;
 	}
 	void SandboxScene::createBackground()
 	{
@@ -400,9 +405,6 @@ namespace arena
 				builder.begin();
 				ResourceManager* resources = App::instance().resources();
 				(void)resources;
-				
-				
-				
 
 				SpriteRenderer* renderer = builder.addSpriteRenderer();
 
@@ -427,18 +429,22 @@ namespace arena
 	}
 
 	
-	void SandboxScene::createGladiators(unsigned amount)
+	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
-		for (unsigned i = 0; i < amount; i++)
+		// This differs from updatePacket by setting the ownerId.
+		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
+			CharacterData* characterData = &packet->m_characterArray[i];
 			Gladiator* gladiator = new Gladiator();
+			gladiator->m_ownerId = characterData->m_ownerId;
 			gladiator->m_alive = true;
 			gladiator->m_hitpoints = 100;
-			gladiator->m_position = glm::vec2(0, 0);
-			gladiator->m_rotation = 0;
+			gladiator->m_position = characterData->m_position;
+			gladiator->m_rotation = characterData->m_rotation;
+			gladiator->m_velocity = characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
-			createGladiator(gladiator->m_position);
+			createGladiator(gladiator);
 		}
 
 	}
@@ -469,18 +475,18 @@ namespace arena
 		renderer->anchor();
 		*/
 		m_platformVector.push_back(platform);
-		printf("platformVector size: %d\n", m_platformVector.size());
+
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
 		for (unsigned i = 0; i < packet->m_playerAmount; i++)
 		{
 			// TODO: SET CORRECT ID TO SYNCH
-			unsigned index = 0;// packet->m_characterArray[i].m_ownerId;
-			m_gladiatorDrawDataVector[index].m_gladiator.m_position = packet->m_characterArray[i].m_position;
-			m_gladiatorDrawDataVector[index].m_transform->m_position= packet->m_characterArray[i].m_position;
-			m_gladiatorDrawDataVector[index].m_gladiator.m_velocity = packet->m_characterArray[i].m_velocity;
-			m_gladiatorDrawDataVector[index].m_gladiator.m_rotation = packet->m_characterArray[i].m_rotation;
+			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
+			m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
+			m_clientIdToGladiatorData[playerId]->m_transform->m_position= packet->m_characterArray[i].m_position;
+			m_clientIdToGladiatorData[playerId]->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
+			m_clientIdToGladiatorData[playerId]->m_gladiator->m_rotation = packet->m_characterArray[i].m_rotation;
 			//printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
 		}
 		
@@ -512,17 +518,17 @@ namespace arena
 	// These might not work
 	void SandboxScene::damagePlayer(GameDamagePlayerPacket* packet)
 	{
-		m_gladiatorDrawDataVector[packet->m_targetID].m_gladiator.m_hitpoints -= int32(packet->m_damageAmount);
+		m_clientIdToGladiatorData[packet->m_targetID]->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{
-		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_hitpoints = 0;
-		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_alive = false;
+		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 0;
+		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = false;
 	}
 	void SandboxScene::respawnPlayer(GameRespawnPlayerPacket* packet)
 	{
-		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_hitpoints = 100;
-		m_gladiatorDrawDataVector[packet->m_playerID].m_gladiator.m_alive = true;
+		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 100;
+		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = true;
 	}
 	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{

@@ -9,6 +9,7 @@
 #include "common\arena\scoreboard.h"
 #include "..\ecs\transform.h"
 #include "common\arena\gladiator.h"
+#include <map>
 struct Message;
 
 
@@ -22,10 +23,17 @@ namespace arena
 	struct PlayerScore;
 	struct GladiatorDrawData
 	{
+		GladiatorDrawData()
+		{
+			m_entity = NULL;
+			m_transform = NULL;
+			m_animator = NULL;
+			m_gladiator = NULL;
+		}
 		Entity* m_entity;
 		Transform* m_transform;
 		Animator* m_animator;
-		Gladiator m_gladiator;
+		Gladiator* m_gladiator;
 	};
 	
 	class SandboxScene final : public Scene 
@@ -43,7 +51,7 @@ namespace arena
 	private:
 
 		void createBackground();
-		void createGladiators(unsigned amount);
+		void createGladiators(GameCreateGladiatorsPacket* packet);
 		void createPlatform(GamePlatformPacket* packet);
 		void updateGladiators(GameUpdatePacket* packet);
 		void spawnBullets(GameSpawnBulletsPacket* packet);
@@ -56,7 +64,7 @@ namespace arena
 		void sendShootEvent(float angle);
 		void sendInput(PlayerController &controller);
 
-		void createGladiator(glm::vec2 position);
+		void createGladiator(Gladiator* gladiator);
 
 		// Create bullets shot by other players
 		void createBullet(Bullet bullet);
@@ -72,7 +80,8 @@ namespace arena
 		// Fake death or not?
 		void clientSideGladiatorDeath(unsigned id);
 
-		std::vector<GladiatorDrawData> m_gladiatorDrawDataVector;
+		std::map<uint8_t, GladiatorDrawData*> m_clientIdToGladiatorData;
+	
 		// TODO: should use entities
 
 		std::vector<ArenaPlatform> m_platformVector;
@@ -82,7 +91,7 @@ namespace arena
 		PlayerController m_controller;
 		float sendInputToServerTimer;
 		Scoreboard m_scoreboard;
-		uint64 m_playerId;
+		uint8_t m_playerId;
 	};
 
 	static void inputMoveLeft(const void*);

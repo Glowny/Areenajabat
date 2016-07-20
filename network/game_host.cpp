@@ -112,6 +112,7 @@ namespace arena
 
         Gladiator* gladiator = new Gladiator;
 
+		gladiator->m_ownerId = newPlayer->m_clientIndex;
         gladiator->m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[clientIndex]);
 		gladiator->m_position = m_physics.getGladiatorPosition(gladiator->m_physicsId);
         gladiator->m_weapon = new WeaponGladius;
@@ -181,7 +182,6 @@ namespace arena
 				force.x = moveDirection.x * 150000.0f * dt;
 
 				m_physics.applyForceToGladiator(force, physicsId);
-				printf("DeltaTime: %f\n", dt);
 				
 			}
 			// Set the inputs to zero as they are handled.

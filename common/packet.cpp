@@ -40,6 +40,8 @@ namespace arena
 			return new GameSetupPacket;
 		case PacketTypes::GameUpdate:
 			return new GameUpdatePacket;
+		case PacketTypes::GameCreateGladiators:
+			return new GameCreateGladiatorsPacket;
 		case PacketTypes::GamePlatform:
 			return new GamePlatformPacket;
 		case PacketTypes::GameSpawnBullets:

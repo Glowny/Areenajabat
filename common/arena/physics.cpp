@@ -210,7 +210,6 @@ void Physics::applyForceToGladiator(glm::vec2 direction, unsigned id)
 {
 	m_gladiatorVector[id]->m_body->ApplyForce(b2Vec2(direction.x, direction.y),
 		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
-	printf("Applying force: %f, %f \n", direction.x, direction.y);
 }
 
 void Physics::applyImpulseToGladiator(glm::vec2 direction, unsigned id)

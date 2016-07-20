@@ -139,6 +139,7 @@ namespace arena
 		// Packet all entities to be updated
 		// TODO: pack all entities on one packet?
 		GameUpdatePacket *gladiatorUpdatePacket = NULL;
+
 		GameSpawnBulletsPacket* spawnBulletsPacket = NULL;
 		
 		for (const NetworkEntity* entity : synchronizationList)
@@ -191,7 +192,7 @@ namespace arena
 				break;
 			case NetworkEntityType::Map:
             {
-                // this wont work
+               
                 GameMap* mapEntity = (GameMap*)entity;
 
                 for (auto platform : mapEntity->m_platformVector)
@@ -207,15 +208,32 @@ namespace arena
 
                     broadcast(packet);
                 }
-                // Send game start package to client.
-                // TODO: This should be send somewhere else.
-                GameSetupPacket* setupPacket = (GameSetupPacket*)createPacket(PacketTypes::GameSetup);
-                // player amount should be gotten from host, but the players.size() is drunk or something
-                // TOOD: Set correct amount of players.
-                setupPacket->m_playerAmount = (int32_t)m_host.players().size();
+				
+				// send data about player amount and clients id.
+				std::vector<Player>& players = m_host.players();
 
-                broadcast(setupPacket);
+				for (Player& player : players)
+				{
+					GameSetupPacket* setupPacket = (GameSetupPacket*)createPacket(PacketTypes::GameSetup);
+					setupPacket->m_playerAmount = (int32_t)m_host.players().size();
+					setupPacket->m_clientIndex = player.m_clientIndex;
+					m_server.sendPacketToConnectedClient(player.m_clientIndex, setupPacket, m_totalTime);
+				}
+				
+				// send data about gladiators and their ids.
 
+				GameCreateGladiatorsPacket *gladiatorsCreatePacket = (GameCreateGladiatorsPacket*)createPacket(PacketTypes::GameCreateGladiators);
+				gladiatorsCreatePacket->m_playerAmount = players.size();
+				for (unsigned i = 0; i < players.size(); i++)
+				{
+					gladiatorsCreatePacket->m_characterArray[i].m_position = players[i].m_gladiator->m_position;
+					gladiatorsCreatePacket->m_characterArray[i].m_velocity = players[i].m_gladiator->m_velocity;
+					gladiatorsCreatePacket->m_characterArray[i].m_rotation = players[i].m_gladiator->m_rotation;
+					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
+				}
+				broadcast(gladiatorsCreatePacket);
+
+       
                 break;
             }
 			case NetworkEntityType::Null:
@@ -224,17 +242,16 @@ namespace arena
 				break;
 			}
 
-			for (Player& player : m_host.players()) 
-			{
-				if (spawnBulletsPacket != NULL)
-				{ 
-					m_server.broadcastPacket(spawnBulletsPacket, m_totalTime);
-				}
-				if (gladiatorUpdatePacket != NULL)
-				{ 
-					m_server.broadcastPacket(gladiatorUpdatePacket, m_totalTime);
-				}
+	
+			if (spawnBulletsPacket != NULL)
+			{ 
+				broadcast(spawnBulletsPacket);
 			}
+			if (gladiatorUpdatePacket != NULL)
+			{
+				broadcast(gladiatorUpdatePacket);
+			}
+			
 		}
 
 	}

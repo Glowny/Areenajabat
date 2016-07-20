@@ -33,6 +33,7 @@ namespace arena
 			// Server --> Client.
 			GameSetup,
 			GameUpdate,
+			GameCreateGladiators,
 			GamePlatform,
 			GameSpawnBullets,
 			GameBulletHit,
