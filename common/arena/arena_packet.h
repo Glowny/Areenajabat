@@ -2,7 +2,7 @@
 #include "../packet.h"
 #include <glm\glm.hpp>
 #include "..\types.h"
-
+#include "playerController.h"
 
 namespace arena
 {
@@ -495,20 +495,20 @@ namespace arena
 		}
 	};
 
-
 	struct GameInputPacket : public Packet
 	{
 		uint64 m_clientSalt;
 		uint64 m_challengeSalt;
-		uint8 x;
-		uint8 y;
+
+        PlayerInput m_input;
+
 		float m_aimAngle;
 
 		GameInputPacket() : 
             m_clientSalt(0),
             m_challengeSalt(0),
-			x(0),
-			y(0)
+
+            m_aimAngle(0.f)
 		{
 		}
 
@@ -519,8 +519,14 @@ namespace arena
 		{
 			serialize_uint64(stream, m_clientSalt);
             serialize_uint64(stream, m_challengeSalt);
-			serialize_bytes(stream, &x, 1);
-			serialize_bytes(stream, &y, 1);
+            serialize_bool(stream, m_input.m_leftButtonDown);
+            serialize_bool(stream, m_input.m_rightButtonDown);
+            serialize_bool(stream, m_input.m_upButtonDown);
+            serialize_bool(stream, m_input.m_downButtonDown);
+            serialize_bool(stream, m_input.m_jumpButtonDown);
+            serialize_bool(stream, m_input.m_shootButtonDown);
+            serialize_bool(stream, m_input.m_grenadeButtonDown);
+            serialize_bool(stream, m_input.m_changeWeaponButtonDown);
 			return true;
 		}
 

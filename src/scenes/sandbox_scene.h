@@ -41,7 +41,7 @@ namespace arena
 	public:
 		SandboxScene();
 		~SandboxScene() = default;
-		void setInput(glm::ivec2 direction);
+		
 		void setShoot();
 		void setAimAngle(float angle);
 	protected:
@@ -88,10 +88,12 @@ namespace arena
 		std::vector<Bullet> m_spawnBulletVector;
 		std::vector<Bullet> m_bulletHitVector;
 
-		PlayerController m_controller;
+		
 		float sendInputToServerTimer;
 		Scoreboard m_scoreboard;
 		uint8_t m_playerId;
+    public:
+        PlayerController m_controller;
 	};
 
 	static void inputMoveLeft(const void*);

@@ -163,20 +163,36 @@ namespace arena
 		{
 			Player& player = *it;
 			unsigned physicsId			= player.m_gladiator->m_physicsId;
-			glm::ivec2 moveDirection	= player.m_playerController->m_movementDirection;
-			// Do not add forces if there are none.
-			if (moveDirection.x == 0 && moveDirection.y == 0)
-				continue;
-			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsId);
 
+            PlayerInput& input = player.m_playerController->m_input;
+
+            // Do not add forces if there are none.
+            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown))
+                continue;
+                      
+            int32_t x = 0;
+            int32_t y = 0;
+            if (input.m_leftButtonDown)
+            {
+                x = -1;
+            }
+            else if (input.m_rightButtonDown)
+            {
+                x = 1;
+            }
+
+            if (input.m_upButtonDown)
+            {
+                y = 10;
+            }
+
+            glm::ivec2 moveDirection(x, y);
+      
+			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsId);
 
 			if (int32(currentVelocity.x) < 200 && int32(currentVelocity.x) > -200)
 			{
 				glm::vec2 force;
-
-				// TODO: Make better, done because network is not working correctly fix later
-				if (moveDirection.x == 2)
-					moveDirection.x = -1;
 
 				force.y = moveDirection.y * -30000.0f * dt;
 				force.x = moveDirection.x * 150000.0f * dt;
@@ -185,8 +201,7 @@ namespace arena
 				
 			}
 			// Set the inputs to zero as they are handled.
-			player.m_playerController->m_movementDirection.x = 0;
-			player.m_playerController->m_movementDirection.y = 0;
+            memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
 		}
 	}
 
@@ -215,7 +230,7 @@ namespace arena
 		 m_synchronizationList.clear();
 	}
 
-	void GameHost::processInput(const uint64 clientIndex, const float32 x, const float32 y)
+	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input)
 	{
 		// TODO: do proper check.
 		//if (!shouldProcessPlayerInput()) return;
@@ -226,8 +241,7 @@ namespace arena
 
 
 		// Apply force only when physics are also updated.
-		player->m_playerController->m_movementDirection.x = x;
-		player->m_playerController->m_movementDirection.y = y;
+        player->m_playerController->m_input = input;
 	}
 	void GameHost::processShooting(const uint64 clientIndex, const bool flags, const float32 angle)
 	{
