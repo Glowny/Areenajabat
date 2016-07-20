@@ -50,25 +50,20 @@ namespace arena
 
 		void initialize();
 
-		bool startLobby();
-		bool stop();
-		bool startRound(unsigned playerAmount);
-		void updateRound();
-		
-		bool returnToLobby();
-
+        // run physics 
         void step();
-
-		std::queue<Packet*> *m_inPacketQueue;
-		std::queue<Packet*> *m_outPacketQueue;
 
         // Master server routes the packet using this function call
         // the packet must be freed eg destroyPackage() in this frame
         void queueIncoming(Packet* packet, ENetPeer* from);
 
-        // 
+        // should be called after step() and cleared after that
         std::vector<PacketEntry>& getSendQueue();
+
+        // wtf?
+        float64 getDeltaTime();
 	private:
+        // listener which posts connect and disconnect events
         SlaveServerClientListener m_clientListener;
 
         // even these are vectors, the packets are sorted correctly 
@@ -81,19 +76,6 @@ namespace arena
 
         int64_t m_startTime;
         double m_totalTime;
-		// Access player data by network id.
-		std::map<unsigned, Player*> m_playerMap;
-
-		// Set map and add gladiators.
-		void initializeRound(unsigned playerAmount);
-
-		float64 getDeltaTime();
-
-		// Apply client imputs
-		void applyPlayerInputs();
-
-		// Get oldest packet from client.
-		Packet* getPacketFromQueue();
 
 		int64_t m_last_time;
 		

@@ -231,27 +231,6 @@ namespace arena
 
 	}
 
-	// NOT IN USE
-	//void SlaveServer::initializeRound(unsigned playerAmount)
-	//{
-	//	
-	//}
-	//bool SlaveServer::startRound(unsigned playerAmount)
-	//{
-	//
-	//}
-
-	//void SlaveServer::updateRound()
-	//{
-	//	applyPlayerInputs();
-	//
-	//	m_host.tick(getDeltaTime());
-	//}
-	//void SlaveServer::applyPlayerInputs()
-	//{
-	//	m_host.applyPlayerInputs();
-	//}
-
 	float64 SlaveServer::getDeltaTime()
 	{
 		const int64 currentTime = bx::getHPCounter();
