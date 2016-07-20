@@ -56,6 +56,16 @@ namespace arena
 		m_receiveQueue.push_back(PacketEntry{ from, packet });
 	}
 
+    void SlaveServer::broadcast(Packet* packet)
+    {
+        std::vector<Player>& players = m_host.players();
+
+        for (Player& player : players)
+        {
+            m_server.sendPacketToConnectedClient(player.m_clientIndex, packet, m_totalTime);
+        }
+    }
+
 	void SlaveServer::initialize()
 	{
 		m_startTime = bx::getHPCounter();
@@ -180,36 +190,34 @@ namespace arena
 				// Send Weapon data, cast.
 				break;
 			case NetworkEntityType::Map:
-			{
+            {
                 // this wont work
-				GameMap* mapEntity = (GameMap*)entity;   
+                GameMap* mapEntity = (GameMap*)entity;
 
-                for (Player& p : m_host.players())
+                for (auto platform : mapEntity->m_platformVector)
                 {
-                    for (auto platform : mapEntity->m_platformVector)
+                    // Send map data. This data is only send once per game.
+                    GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
+                    packet->m_platform.m_type = platform.type;
+                    packet->m_platform.m_vertexAmount = uint8_t(platform.vertices.size());
+                    for (unsigned i = 0; i < platform.vertices.size(); i++)
                     {
-                        // Send map data. This data is only send once per game.
-                        GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
-                        packet->m_platform.m_type = platform.type;
-                        packet->m_platform.m_vertexAmount = uint8_t(platform.vertices.size());
-                        for (unsigned i = 0; i < platform.vertices.size(); i++)
-                        {
-                            packet->m_platform.m_vertexArray[i] = platform.vertices[i];
-                        }
-						
-                        m_server.sendPacketToConnectedClient(p.m_clientIndex, packet, m_totalTime);
+                        packet->m_platform.m_vertexArray[i] = platform.vertices[i];
                     }
-					// Send game start package to client.
-					// TODO: This should be send somewhere else.
-					GameSetupPacket* setupPacket = new GameSetupPacket;
-					// player amount should be gotten from host, but the players.size() is drunk or something
-					// TOOD: Set correct amount of players.
-					setupPacket->m_playerAmount = 1;
-					m_server.sendPacketToConnectedClient(p.m_clientIndex, setupPacket, m_totalTime);
-                }
 
-				break;
-			}
+                    broadcast(packet);
+                }
+                // Send game start package to client.
+                // TODO: This should be send somewhere else.
+                GameSetupPacket* setupPacket = (GameSetupPacket*)createPacket(PacketTypes::GameSetup);
+                // player amount should be gotten from host, but the players.size() is drunk or something
+                // TOOD: Set correct amount of players.
+                setupPacket->m_playerAmount = (int32_t)m_host.players().size();
+
+                broadcast(setupPacket);
+
+                break;
+            }
 			case NetworkEntityType::Null:
 			default:
 				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!");

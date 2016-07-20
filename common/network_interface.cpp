@@ -156,11 +156,23 @@ namespace arena
             ENetPacket* out = enet_packet_create(packetbuffer, packetLength, 0);
             
             enet_peer_send(entry.m_peer, 0, out);
-            //enet_host_flush(m_socket);
 
-            //enet_packet_destroy(out);
             ARENA_ASSERT(stream.m_error.isOk(), "serialization error: %d", stream.m_error.get().code);
-            
+
+            // broadcast if necessary, because all the packets should be queued next to each other
+            while (!m_sendQueue.empty())
+            {
+                PacketEntry& another = m_sendQueue.front();
+                // if it's same packet, we dont need to serialize it again
+                // send it to all peers
+                if (another.m_packet != entry.m_packet) break;
+
+                enet_peer_send(another.m_peer, 0, out);
+                another.m_packet = nullptr;
+                
+                m_sendQueue.pop();
+            }
+ 
             entry.m_packet = nullptr;
 
             destroyPacket(packet);
