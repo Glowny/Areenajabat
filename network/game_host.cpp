@@ -177,7 +177,7 @@ namespace arena
 				if (moveDirection.x == 2)
 					moveDirection.x = -1;
 
-				force.y = 0;
+				force.y = moveDirection.y * -30000.0f * dt;
 				force.x = moveDirection.x * 150000.0f * dt;
 
 				m_physics.applyForceToGladiator(force, physicsId);

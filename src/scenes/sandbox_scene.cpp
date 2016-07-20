@@ -18,6 +18,7 @@
 #   include "..\rtti\rtti_define.h"
 #   include "..\ecs\transform.h"
 #   include "..\ecs\sprite_renderer.h"
+#	include "../res/texture_resource.h"
 #endif
 
 #include "..\ecs\entity_builder.h"
@@ -31,6 +32,7 @@
 #include <common/packet.h>
 #include <common/arena/gladiator.h>
 #include <time.h>
+
 
 namespace arena
 {
@@ -189,6 +191,7 @@ namespace arena
 		m_controller.weapon = Gladius;
 		m_controller.shootFlag = false;
 		m_controller.m_movementDirection = glm::ivec2(0, 0);
+		createBackground();
 	}
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -386,7 +389,42 @@ namespace arena
 		// TODO: do animation stuff better
 		anime = m_gladiatorDrawDataVector[m_playerId].m_animator;
 	}
+	void SandboxScene::createBackground()
+	{
+		
+		for(unsigned y = 0; y <= 1; y++)
+		{ 
+		for(unsigned x = 0; x <= 3; x++)
+			{ 
+				EntityBuilder builder;
+				builder.begin();
+				ResourceManager* resources = App::instance().resources();
+				(void)resources;
+				
+				
+				
 
+				SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+				std::string name = "map/";
+				name += std::to_string(x);
+				name += std::to_string(y);
+				name += ".png";
+
+				TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
+
+				glm::vec2 scale = glm::vec2(1920.0f / float(textureResource->width), 1080.0f / float(textureResource->height));
+				
+				Transform* transform = builder.addTransformComponent();
+
+				transform->m_position = glm::vec2(x * 1920, y * 1080 +64);
+				transform->m_scale = scale;
+				renderer->setTexture(textureResource);
+
+				renderer->anchor();
+			}
+		}
+	}
 
 	
 	void SandboxScene::createGladiators(unsigned amount)
@@ -412,21 +450,24 @@ namespace arena
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
-
+		// TODO: Make proper physics platform drawing for debugging.
+		/*
 		EntityBuilder builder;
 		builder.begin();
 
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = platform.vertices[0];
+		
 
 		ResourceManager* resources = App::instance().resources();
         (void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 		
+		
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
 		
 		renderer->anchor();
-
+		*/
 		m_platformVector.push_back(platform);
 		printf("platformVector size: %d\n", m_platformVector.size());
 	}

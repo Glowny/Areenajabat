@@ -42,6 +42,7 @@ namespace arena
 		virtual void onDestroy() final override;
 	private:
 
+		void createBackground();
 		void createGladiators(unsigned amount);
 		void createPlatform(GamePlatformPacket* packet);
 		void updateGladiators(GameUpdatePacket* packet);

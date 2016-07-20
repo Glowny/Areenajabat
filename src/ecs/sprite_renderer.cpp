@@ -75,8 +75,8 @@ namespace arena
 
 		m_sprite.m_src.x = 0.0f;
 		m_sprite.m_src.y = 0.0f;
-		m_sprite.m_src.h = width;
-		m_sprite.m_src.w = height;
+		m_sprite.m_src.h = height;
+		m_sprite.m_src.w = width;
 
 		if (int32(m_sprite.m_size.x) == 0 && int32(m_sprite.m_size.y) == 0)
 		{
