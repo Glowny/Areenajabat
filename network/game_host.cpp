@@ -7,6 +7,8 @@
 
 namespace arena
 {
+
+
 	GameHost::GameHost(const GameVars& vars) : m_vars(vars),
 											   m_disposed(false),
 											   m_endCalled(false)
@@ -19,7 +21,7 @@ namespace arena
 		if (m_sessionData.m_sessionRunning) return;
 
 		e_sessionStart();
-
+		m_gameData.m_state = GameState::RoundRunning;
 		m_sessionData.m_sessionRunning = true;
 	}
 	void GameHost::endSession()
@@ -91,7 +93,7 @@ namespace arena
 		if (m_gameData.m_gameRunning)
 		{
 			gameTick(uidt);
-			
+
 			worldTick(dt);
 		}
 	}
@@ -151,7 +153,7 @@ namespace arena
 		m_entities.remove(entity);
 	}
 
-	void GameHost::applyPlayerInputs()
+	void GameHost::applyPlayerInputs(float dt)
 	{
 		// TODO: add jump and dont let player decide amount of force applied!
 		auto& players = m_players.container();
@@ -167,7 +169,7 @@ namespace arena
 			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsId);
 
 
-			if (int32(currentVelocity.x) < 250 && int32(currentVelocity.x) > -250)
+			if (int32(currentVelocity.x) < 200 && int32(currentVelocity.x) > -200)
 			{
 				glm::vec2 force;
 
@@ -175,13 +177,14 @@ namespace arena
 				if (moveDirection.x == 2)
 					moveDirection.x = -1;
 
-				force.y = -30.0f;
-				force.x = moveDirection.x * 1500.0f;
+				force.y = 0;
+				force.x = moveDirection.x * 150000.0f * dt;
 
 				m_physics.applyForceToGladiator(force, physicsId);
-			
-				m_synchronizationList.push_back(player.m_gladiator);
+				printf("DeltaTime: %f\n", dt);
+				
 			}
+			m_synchronizationList.push_back(player.m_gladiator);
 			// Set the inputs to zero as they are handled.
 			player.m_playerController->m_movementDirection.x = 0;
 			player.m_playerController->m_movementDirection.y = 0;
@@ -366,8 +369,11 @@ namespace arena
 		m_gameData.m_gameElapsed += dt;
 	}
 
+
+
 	void GameHost::worldTick(const float64 dt)
 	{
+	
 		if (m_gameData.m_state == GameState::Timeout)
 		{
 			// Do not apply any player input updates.
@@ -380,9 +386,9 @@ namespace arena
 			{
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
-					applyPlayerInputs();
+				applyPlayerInputs(m_physics.updateTimer);
 				// Update physics
-				m_physics.update();
+				m_physics.update(m_physics.updateTimer);
 
 				// get data from gladiators.
 				for (Player& player : players())
@@ -391,6 +397,7 @@ namespace arena
 					// update position because gravity - dont update too much
 					// m_synchronizationList.push_back(player.m_gladiator);
 				}
+				m_physics.updateTimer = 0;
 				
 			}
 		}

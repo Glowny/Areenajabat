@@ -109,9 +109,6 @@ class ContactListener : public b2ContactListener
 
 class Physics
 {
-
-	// add movement functions
-	// add functions for getting position and velocity data
 public:
 	b2Filter b2Filters[6];
 	Physics();
@@ -119,7 +116,7 @@ public:
 
 	float64 updateTimer;
 	void reset();
-	void update();
+	void update(float timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	unsigned addGladiator(glm::vec2 position);

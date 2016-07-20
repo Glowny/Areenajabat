@@ -92,7 +92,7 @@ namespace arena
 				const float32 y		= inputPacket->y;
 
 				m_host.processInput(index, x, y);
-				printf("Received movement packet to direction %d, %d\n", int(inputPacket->x), int(inputPacket->y));
+
 			}
 			else if (packet->getType() == PacketTypes::GameShoot)
 			{
@@ -101,7 +101,7 @@ namespace arena
 				const uint32 index			= m_server.findExistingClientIndex(from, shootPacket->m_clientSalt, shootPacket->m_challengeSalt);
 				const bool shootingFlags	= true;
 				const float32 angle			= shootPacket->m_angle;
-				printf("Received shoot packet to angle %f, from playerid %d", angle, index);
+
 				m_host.processShooting(index, shootingFlags, angle);
 			
 			}
@@ -119,7 +119,7 @@ namespace arena
 		// let the disconnects happen if they happen
 		m_server.checkTimeout(m_totalTime);
 
-        m_host.tick(m_totalTime);
+        m_host.tick(lastDeltaTime);
 
 		// sync the servers game state after we have processed
 		// the incoming packets
@@ -241,16 +241,16 @@ namespace arena
 	//
 	//}
 
-	void SlaveServer::updateRound()
-	{
-		applyPlayerInputs();
-
-		m_host.tick(getDeltaTime());
-	}
-	void SlaveServer::applyPlayerInputs()
-	{
-		m_host.applyPlayerInputs();
-	}
+	//void SlaveServer::updateRound()
+	//{
+	//	applyPlayerInputs();
+	//
+	//	m_host.tick(getDeltaTime());
+	//}
+	//void SlaveServer::applyPlayerInputs()
+	//{
+	//	m_host.applyPlayerInputs();
+	//}
 
 	float64 SlaveServer::getDeltaTime()
 	{

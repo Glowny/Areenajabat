@@ -266,7 +266,7 @@ namespace arena
 		
 		bool shouldProcessPlayerInput() const;
 
-		void applyPlayerInputs();
+		void applyPlayerInputs(float dt);
 
 		void loadMap(const char* const mapName);
 
