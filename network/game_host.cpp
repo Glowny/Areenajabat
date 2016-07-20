@@ -184,7 +184,6 @@ namespace arena
 				printf("DeltaTime: %f\n", dt);
 				
 			}
-			m_synchronizationList.push_back(player.m_gladiator);
 			// Set the inputs to zero as they are handled.
 			player.m_playerController->m_movementDirection.x = 0;
 			player.m_playerController->m_movementDirection.y = 0;
@@ -395,7 +394,7 @@ namespace arena
 				{
 					player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
 					// update position because gravity - dont update too much
-					// m_synchronizationList.push_back(player.m_gladiator);
+					 m_synchronizationList.push_back(player.m_gladiator);
 				}
 				m_physics.updateTimer = 0;
 				
