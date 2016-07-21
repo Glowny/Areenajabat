@@ -8,13 +8,13 @@
 
 namespace arena
 {
-	enum WeaponType
+	enum WeaponType :uint8_t
 	{
 		Gladius,
 		Shotgun,
 	};
 
-	enum BulletType
+	enum BulletType :uint8_t
 	{
 		GladiusBullet,
 		ShotgunBullet,
@@ -42,9 +42,11 @@ namespace arena
 	{
 	public:
 		WeaponType m_type;
-		
+		float coolDownTimer;
+		float coolDown;
 		Weapon() : NetworkEntity(NetworkEntityType::Weapon)
 		{
+			coolDownTimer = 0;
 		}
 		
 		virtual std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position) 
@@ -53,6 +55,15 @@ namespace arena
 			position; 
 			std::vector<Bullet*> temp; 
 			return temp; 
+		}
+		inline bool checkCoolDown(float deltaTime)
+		{
+			if ((coolDownTimer += deltaTime) > coolDown)
+			{ 
+				coolDownTimer = 0;
+				return true;
+			}
+			return false;
 		}
 	protected:
 		glm::vec2 radToVec(float r)
@@ -63,7 +74,12 @@ namespace arena
 
 	struct WeaponGladius : public Weapon
 	{
-		WeaponGladius() : Weapon() { m_type = Gladius; }
+		WeaponGladius() : Weapon() 
+		{ 
+			m_type = Gladius; 
+			coolDown = 0.2f;
+			coolDownTimer = 0;
+		}
 
 		std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position)
 		{
@@ -74,9 +90,8 @@ namespace arena
 				Bullet* bullet = new Bullet;
 				bullet->m_type = GladiusBullet;
 				bullet->m_creationDelay = 0.1f * i;
-				bullet->m_rotation = aimAngle; // not really needed
+				bullet->m_rotation = aimAngle;
 				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-				// Shotgun does not know playerposition, has to be moved +playerposition.x &.y later
 				bullet->m_position.x = position.x + vectorAngle.x * 72; bullet->m_position.y = position.y + vectorAngle.y * 72;
 				bullets.push_back(bullet);
 			}
@@ -87,7 +102,12 @@ namespace arena
 
 	struct WeaponShotgun : public Weapon
 	{
-		WeaponShotgun() : Weapon() { m_type = Shotgun; }
+		WeaponShotgun() : Weapon() 
+		{
+			m_type = Shotgun; 
+			coolDown = 0.4f;
+			coolDownTimer = 0;
+		}
 
 		std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position)
 		{
@@ -98,10 +118,8 @@ namespace arena
 				Bullet* bullet = new Bullet;
 				bullet->m_type = ShotgunBullet;
 				bullet->m_creationDelay = 0;
-				bullet->m_rotation = aimAngle; // not really needed
+				bullet->m_rotation = aimAngle; 
 				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-				// Shotgun does not know playerposition, has to be moved +playerposition.x &.y later
-				//  Adjust creation spot according to aim!
 				bullet->m_position.x = position.x + vectorAngle.x * 72; bullet->m_position.y = position.y + vectorAngle.y * 72;
 				bullets.push_back(bullet);
 			}

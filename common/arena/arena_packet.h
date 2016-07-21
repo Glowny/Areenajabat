@@ -7,7 +7,7 @@
 namespace arena
 {
 //TODO: Set size on how many bullet creation events can possibly happen
-#define BULLET_MAX_AMOUNT 50
+#define BULLET_MAX_AMOUNT 20
 	struct BulletData
 	{
 		BulletData()
@@ -258,7 +258,7 @@ namespace arena
 		GameSpawnBulletsPacket()
 			: m_clientSalt(0)
 		{
-
+			m_bulletAmount = 0;
 		}
 
 		virtual ~GameSpawnBulletsPacket() {}
@@ -270,7 +270,7 @@ namespace arena
 			serialize_int(stream, m_bulletAmount, 0, BULLET_MAX_AMOUNT);
 			for (unsigned i = 0; i < m_bulletAmount; ++i)
 			{
-				serialize_bytes(stream, &m_bulletSpawnArray[i].m_type, 1);
+				serialize_bytes(stream, &(uint8_t)m_bulletSpawnArray[i].m_type, 1);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.x);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.y);
 				serialize_float(stream, m_bulletSpawnArray[i].m_rotation);

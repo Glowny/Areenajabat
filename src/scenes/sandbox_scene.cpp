@@ -123,7 +123,6 @@ namespace arena
         if (s_client->isConnecting()) return;
 
         s_client->connect("localhost", uint16_t(8088), s_stamp);
-        //s_client->createLobby("perkele", s_stamp);
         s_client->queryLobbies(s_stamp);
     }
 
@@ -468,7 +467,6 @@ namespace arena
 	{
 		for (unsigned i = 0; i < packet->m_playerAmount; i++)
 		{
-			// TODO: SET CORRECT ID TO SYNCH
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
 			m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
 			m_clientIdToGladiatorData[playerId]->m_transform->m_position= packet->m_characterArray[i].m_position;
@@ -482,55 +480,77 @@ namespace arena
 	{
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
-			Bullet bullet;
-			bullet.m_position = packet->m_bulletSpawnArray[i].m_position;
-			bullet.m_type = (BulletType)packet->m_bulletSpawnArray[i].m_type;
-			bullet.m_creationDelay = packet->m_bulletSpawnArray[i].m_creationDelay;
-			bullet.m_rotation = packet->m_bulletSpawnArray[i].m_rotation;
-			m_spawnBulletVector.push_back(bullet);
-			
-			EntityBuilder builder;
-			builder.begin();
-
-			Transform* transform = builder.addTransformComponent();
-			transform->m_position = bullet.m_position;
-
-			ResourceManager* resources = App::instance().resources();
-			(void)resources;
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
-			renderer->anchor();
+			createBullet(packet->m_bulletSpawnArray[i]);
 		}
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
 	{
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
-			EntityBuilder builder;
-			builder.begin();
-
-			Bullet bullet;
-			bullet.m_position = packet->bulletHitArray[i].m_position;
-			bullet.m_type = (BulletType)packet->bulletHitArray[i].m_type;
-			bullet.m_rotation = packet->bulletHitArray[i].m_rotation;
-			m_bulletHitVector.push_back(bullet);
-
-			Transform* transform = builder.addTransformComponent();
-			transform->m_position = bullet.m_position;
-
-			ResourceManager* resources = App::instance().resources();
-			(void)resources;
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
-			renderer->anchor();
+			createBulletHit(packet->bulletHitArray[i]);
 		}
 
 	}
-	// These might not work
+	void SandboxScene::createBullet(BulletData &data)
+	{
+		Bullet bullet;
+		bullet.m_position = data.m_position;
+		bullet.m_type = (BulletType)data.m_type;
+		bullet.m_creationDelay = data.m_creationDelay;
+		bullet.m_rotation = data.m_rotation;
+		m_spawnBulletVector.push_back(bullet);
+
+		createBulletEntity(bullet);
+	}
+
+	void SandboxScene::createBulletEntity(Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = bullet.m_position;
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "blank.png"));
+		renderer->anchor();
+	}
+	
+
+
+
+	void SandboxScene::createBulletHit(BulletData& data)
+	{
+		Bullet bullet;
+		bullet.m_position = data.m_position;
+		bullet.m_type = (BulletType)data.m_type;
+		bullet.m_rotation = data.m_rotation;
+		m_bulletHitVector.push_back(bullet);
+
+		createBulletHitEntity(bullet);
+	}
+
+	void SandboxScene::createBulletHitEntity(Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = bullet.m_position;
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
+		renderer->anchor();
+	}
+
 	void SandboxScene::damagePlayer(GameDamagePlayerPacket* packet)
 	{
 		m_clientIdToGladiatorData[packet->m_targetID]->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
@@ -566,13 +586,5 @@ namespace arena
 
 		s_client->sendPacketToServer(packet, s_stamp);
 	}
-	void SandboxScene::sendShootEvent(float angle)
-	{
-		GameShootPacket* packet = (GameShootPacket*)createPacket(PacketTypes::GameShoot);
-		packet->m_angle = angle;
-        packet->m_clientSalt = s_client->m_clientSalt;
-        packet->m_challengeSalt = s_client->m_challengeSalt;
 
-		s_client->sendPacketToServer(packet, s_stamp);
-	}
 }

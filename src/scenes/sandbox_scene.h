@@ -61,16 +61,17 @@ namespace arena
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
 
-		void sendShootEvent(float angle);
 		void sendInput(PlayerController &controller);
 
 		void createGladiator(Gladiator* gladiator);
 
 		// Create bullets shot by other players
-		void createBullet(Bullet bullet);
+		void createBullet(BulletData& data);
+		void createBulletEntity(Bullet& bullet);
 
 		// Create real hits (debugging & adjusting)
-		void createHit(Bullet bullet);
+		void createBulletHit(BulletData& data);
+		void createBulletHitEntity(Bullet& bullet);
 
 		// Create fake bullets when player shoots.
 		void createClientSideBullet(Bullet bullet);

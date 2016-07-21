@@ -165,8 +165,20 @@ namespace arena
 			unsigned physicsId			= player.m_gladiator->m_physicsId;
 
             PlayerInput& input = player.m_playerController->m_input;
+
 			player.m_gladiator->m_aimAngle = player.m_playerController->aimAngle;
-            // Do not add forces if there are none.
+            
+			// Check if player wants to shoot, and if weapon is able to shoot.
+			// Reset shoot flag here, so that shoot messages are not missed.
+			bool check = player.m_gladiator->m_weapon->checkCoolDown(dt);
+			if (input.m_shootButtonDown && check)
+			{
+				GladiatorShoot(player.m_gladiator);
+				input.m_shootButtonDown = false;
+			}
+
+			
+			// Do not add forces if there are none.
             if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown))
                 continue;
                       
@@ -201,11 +213,7 @@ namespace arena
 				
 			}
 
-			if (input.m_shootButtonDown)
-			{
-				GladiatorShoot(player.m_gladiator);
-			}
-
+			
 			// Set the inputs to zero as they are handled.
             memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
 		}
@@ -236,7 +244,7 @@ namespace arena
 		 m_synchronizationList.clear();
 	}
 
-	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input)
+	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input, float aimAngle)
 	{
 		// TODO: do proper check.
 		//if (!shouldProcessPlayerInput()) return;
@@ -247,12 +255,12 @@ namespace arena
 		
 		// Do stuff with this on physics update.
         player->m_playerController->m_input = input;
+		player->m_playerController->aimAngle = aimAngle;
 	}
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
 	{		
 		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
 		// Bullets should be deleted after synchronization, should slave delete them?
-
 		std::vector<Bullet*> bullets = gladiator->createBullets();
 		
 		for(unsigned i = 0; i < bullets.size(); i++)

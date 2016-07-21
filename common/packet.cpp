@@ -68,7 +68,7 @@ namespace arena
 
 
         default:
-            fprintf(stderr, "Invalid packet type %d", type);
+			assert(1); // Crash here rather than create no packet.
             return nullptr;
         }
     }

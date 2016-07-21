@@ -97,9 +97,7 @@ namespace arena
 				GameInputPacket* inputPacket = (GameInputPacket*)packet;
 
 				const uint32 index	= m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
-
-				m_host.processInput(index, inputPacket->m_input);
-
+				m_host.processInput(index, inputPacket->m_input, inputPacket->m_aimAngle);
 			}
 
 			else
@@ -125,7 +123,7 @@ namespace arena
 
 		// Packet all entities to be updated
 		// TODO: pack all entities on one packet?
-		GameUpdatePacket *gladiatorUpdatePacket = NULL;
+		GameUpdatePacket* gladiatorUpdatePacket = NULL;
 
 		GameSpawnBulletsPacket* spawnBulletsPacket = NULL;
 		
@@ -141,7 +139,7 @@ namespace arena
 				// TODO: Pack all the gladiator data on one packet.
 				if (gladiatorUpdatePacket == NULL)
 				{
-					gladiatorUpdatePacket = new GameUpdatePacket;
+					gladiatorUpdatePacket = (GameUpdatePacket*)createPacket(PacketTypes::GameUpdate);
 					gladiatorUpdatePacket->m_playerAmount = 0;
 				}
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = gladiator->m_position;
@@ -162,7 +160,7 @@ namespace arena
 				Bullet* bulletSpawn = (Bullet*)entity;
 				if (spawnBulletsPacket == NULL)
 				{
-					spawnBulletsPacket = new GameSpawnBulletsPacket;
+					spawnBulletsPacket = (GameSpawnBulletsPacket*)createPacket(PacketTypes::GameSpawnBullets);
 					spawnBulletsPacket->m_bulletAmount = 0;
 				}
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_position = bulletSpawn->m_position;
@@ -229,12 +227,15 @@ namespace arena
 				break;
 			}
 
-            if (spawnBulletsPacket != NULL)
-                broadcast(spawnBulletsPacket);
-            if (gladiatorUpdatePacket != NULL)
-                broadcast(gladiatorUpdatePacket);
-			
 		}
+            if (spawnBulletsPacket != NULL)
+			{ 
+                broadcast(spawnBulletsPacket);
+			}
+			if (gladiatorUpdatePacket != NULL)
+			{ 
+                broadcast(gladiatorUpdatePacket);
+			}
 
 	}
 
