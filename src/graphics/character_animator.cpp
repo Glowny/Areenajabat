@@ -6,6 +6,19 @@
 
 namespace arena
 {
+
+    struct AnimationPosition
+    {
+        enum Enum
+        {
+            Helmet, 
+            RightArm,
+            LeftArm,
+            
+            Count
+        };
+    };
+
     float calculateTorsoOffsetY(uint32_t milliseconds)
     {
         static const uint32_t length = 600;
@@ -45,19 +58,20 @@ namespace arena
     {
         m_torso.m_relativeOffset = glm::vec2(-6.f, 37.f);
         m_legs.m_relativeOffset = glm::vec2(11, 124);
-        m_head.m_helmet.m_position = glm::vec2(0, -28);
-        m_head.m_crest.m_position = glm::vec2(0, -9);
+        m_head.m_helmet.m_position = glm::vec2(-16, -57);
+		m_head.m_crest.m_position = glm::vec2(0,0);
         // build sprite hierarchy
         // assign crest to be child of helmet
         m_head.m_helmet.m_children.push_back(&m_head.m_crest);
 
         // torso will hold 2 arms and head 
         // TODO only one hand for now
-        m_torso.m_sprite.m_children.resize(1 + 1);
+        m_torso.m_sprite.m_children.resize(AnimationPosition::Count);
         // put helmet as first child of torso
-        m_torso.m_sprite.m_children[0] = &m_head.m_helmet;
+        m_torso.m_sprite.m_children[AnimationPosition::Helmet] = &m_head.m_helmet;
         // this is the hand, but we dont have it. The flipX assumes there is allocated space 
-        m_torso.m_sprite.m_children[1] = nullptr;
+        m_torso.m_sprite.m_children[AnimationPosition::RightArm] = nullptr;
+        m_torso.m_sprite.m_children[AnimationPosition::LeftArm] = nullptr;
     }
 
     void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso, SpriterEngine::EntityInstance* legs)
@@ -74,6 +88,7 @@ namespace arena
     {
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
         m_animationData->m_rightHand->rotateTo(radians);
+        m_animationData->m_leftHand->rotateTo(radians);
 
     }
 
@@ -107,7 +122,8 @@ namespace arena
             auto& childrens = m_torso.m_sprite.m_children;
             // replace the hand
             // TODO other hands too
-            childrens[childrens.size() - 1] = m_animationData->m_rightHand->getParent();
+            childrens[AnimationPosition::RightArm] = m_animationData->m_rightHand->getParent();
+            childrens[AnimationPosition::LeftArm] = m_animationData->m_leftHand->getParent();
         }
     }
 
@@ -131,6 +147,7 @@ namespace arena
             }
 
             m_animationData->m_rightHand->flip();
+            m_animationData->m_leftHand->flip();
         }
     }
 
