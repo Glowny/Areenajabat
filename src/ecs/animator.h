@@ -17,5 +17,7 @@ namespace arena
         Animator() = default;
     public:
         CharacterAnimator m_animator;
+
+        void rotateAimTo(float radians);
     };
 }
