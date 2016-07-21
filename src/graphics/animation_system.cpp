@@ -53,6 +53,18 @@ namespace arena
             m_gun.m_position = glm::vec2(5.f, 18.f); // 10.f
         }
 
+        void rotateTo(float radians) override
+        {
+            if (m_flipX)
+            {
+                m_upperArm.m_rotation = m_gunAngle + radians;
+            }
+            else
+            {
+                m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
+            }
+        }
+
         void flip() override
         {
             m_flipX = !m_flipX;

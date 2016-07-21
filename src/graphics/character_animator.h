@@ -56,6 +56,8 @@ namespace arena
         void setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso, SpriterEngine::EntityInstance* legs);
 
         void render();
+
+        void rotateAimTo(float radians);
     private:
         Head m_head;
         Torso m_torso;
