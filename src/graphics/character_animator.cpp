@@ -45,8 +45,8 @@ namespace arena
     {
         m_torso.m_relativeOffset = glm::vec2(-6.f, 37.f);
         m_legs.m_relativeOffset = glm::vec2(11, 124);
-        m_head.m_helmet.m_position = glm::vec2(0, -28);
-        m_head.m_crest.m_position = glm::vec2(0, -9);
+        m_head.m_helmet.m_position = glm::vec2(-16, -57);
+		m_head.m_crest.m_position = glm::vec2(0,0);
         // build sprite hierarchy
         // assign crest to be child of helmet
         m_head.m_helmet.m_children.push_back(&m_head.m_crest);
