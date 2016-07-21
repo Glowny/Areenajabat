@@ -14,8 +14,8 @@ namespace arena
 	public:
 		FixedBlockAllocator(const uint32 blockSize, const uint32 initialBlocks);
 		
-		HeapBlock* const allocate();
-		bool deallocate(const HeapBlock* const block);
+		char* const allocate();
+		bool deallocate(char* const handle);
 
 		uint32 pages() const;
 
@@ -46,8 +46,8 @@ namespace arena
 		// initialMaxBlocks: how many blocks of given size we can allocate (initial, dynamic)
 		BlockAllocator(const uint32 initialMaxBlockSize, const uint32 initialMaxBlocks);
 		
-		HeapBlock* const allocate(const uint32 size);
-		bool deallocate(const HeapBlock* const handle);
+		char* const allocate(const uint32 size);
+		bool deallocate(char* const handle, const uint32 size);
 
 		inline uint32 pages() const;
 
