@@ -43,72 +43,74 @@ namespace arena
     Packet* createPacket(int32_t type)
     {
 		#pragma region		Old impl
-  //      switch (type)
-  //      {
-  //      case PacketTypes::ConnectionRequest:
-  //          return new ConnectionRequestPacket;
-  //      case PacketTypes::ConnectionDenied:
-  //          return new ConnectionDeniedPacket;
-  //      case PacketTypes::ConnectionChallenge:
-  //          return new ConnectionChallengePacket;
-  //      case PacketTypes::ConnectionResponse:
-  //          return new ConnectionResponsePacket;
-  //      case PacketTypes::KeepAlive:
-  //          return new ConnectionKeepAlivePacket;
-  //      case PacketTypes::Disconnect:
-  //          return new ConnectionDisconnectPacket;
+        switch (type)
+        {
+        case PacketTypes::ConnectionRequest:
+            return new ConnectionRequestPacket;
+        case PacketTypes::ConnectionDenied:
+            return new ConnectionDeniedPacket;
+        case PacketTypes::ConnectionChallenge:
+            return new ConnectionChallengePacket;
+        case PacketTypes::ConnectionResponse:
+            return new ConnectionResponsePacket;
+        case PacketTypes::KeepAlive:
+            return new ConnectionKeepAlivePacket;
+        case PacketTypes::Disconnect:
+            return new ConnectionDisconnectPacket;
 
-  //          // master
+            // master
 
-  //      case PacketTypes::MasterCreateLobby:
-  //          return new CreateLobbyPacket;
-  //      case PacketTypes::MasterJoinLobby:
-  //          return new JoinLobbyPacket;
-  //      case PacketTypes::MasterListLobbies:
-  //          return new ListLobbiesPacket;
-  //      case PacketTypes::LobbyResultPacket:
-  //          return new LobbyResultPacket;
-  //      case PacketTypes::LobbyQueryResultPacket:
-  //          return new LobbyQueryResultPacket;
-  //      case PacketTypes::LobbyJoinResult:
-  //          return new LobbyJoinResultPacket;
+        case PacketTypes::MasterCreateLobby:
+            return new CreateLobbyPacket;
+        case PacketTypes::MasterJoinLobby:
+            return new JoinLobbyPacket;
+        case PacketTypes::MasterListLobbies:
+            return new ListLobbiesPacket;
+        case PacketTypes::LobbyResultPacket:
+            return new LobbyResultPacket;
+        case PacketTypes::LobbyQueryResultPacket:
+            return new LobbyQueryResultPacket;
+        case PacketTypes::LobbyJoinResult:
+            return new LobbyJoinResultPacket;
 
-		//case PacketTypes::GameSetup:
-		//	return new GameSetupPacket;
-		//case PacketTypes::GameUpdate:
-		//	return new GameUpdatePacket;
-		//case PacketTypes::GameCreateGladiators:
-		//	return new GameCreateGladiatorsPacket;
-		//case PacketTypes::GamePlatform:
-		//	return new GamePlatformPacket;
-		//case PacketTypes::GameSpawnBullets:
-		//	return new GameSpawnBulletsPacket;
-		//case PacketTypes::GameBulletHit:
-		//	return new GameBulletHitPacket;
-		//case PacketTypes::GameDamagePlayer:
-		//	return new GameDamagePlayerPacket;
-		//case PacketTypes::GameKillPlayer:
-		//	return new GameKillPlayerPacket;
-		//case PacketTypes::GameRespawnPlayer:
-		//	return new GameRespawnPlayerPacket;
-		//case PacketTypes::GameUpdateScoreBoard:
-		//	return new GameUpdateScoreBoardPacket;
-		//case PacketTypes::GameInput:
-		//	return new GameInputPacket;
-		//case PacketTypes::GameShoot:
-		//	return new GameShootPacket;
-		//case PacketTypes::GameBulletCurrentPosition:
-		//	return new GameBulletCurrentPositionPacket;
-		//case PacketTypes::GameSetPlayerAmount:
-		//	return new GameSetPlayerAmountPacket;
-  //      default:
-  //          fprintf(stderr, "Invalid packet type %d", type);
-  //          return nullptr;
-		// }
+		case PacketTypes::GameSetup:
+			return new GameSetupPacket;
+		case PacketTypes::GameUpdate:
+			return new GameUpdatePacket;
+		case PacketTypes::GameCreateGladiators:
+			return new GameCreateGladiatorsPacket;
+		case PacketTypes::GamePlatform:
+			return new GamePlatformPacket;
+		case PacketTypes::GameSpawnBullets:
+			return new GameSpawnBulletsPacket;
+		case PacketTypes::GameBulletHit:
+			return new GameBulletHitPacket;
+		case PacketTypes::GameDamagePlayer:
+			return new GameDamagePlayerPacket;
+		case PacketTypes::GameKillPlayer:
+			return new GameKillPlayerPacket;
+		case PacketTypes::GameRespawnPlayer:
+			return new GameRespawnPlayerPacket;
+		case PacketTypes::GameUpdateScoreBoard:
+			return new GameUpdateScoreBoardPacket;
+		case PacketTypes::GameInput:
+			return new GameInputPacket;
+		case PacketTypes::GameShoot:
+			return new GameShootPacket;
+		case PacketTypes::GameBulletCurrentPosition:
+			return new GameBulletCurrentPositionPacket;
+		case PacketTypes::GameSetPlayerAmount:
+			return new GameSetPlayerAmountPacket;
+        default:
+            fprintf(stderr, "Invalid packet type %d", type);
+            return nullptr;
+		 }
 #pragma endregion
 
-		return reinterpret_cast<Packet*>(s_allocator.allocate(s_packetSizes[type]));
-    }
+		//Packet* packet = reinterpret_cast<Packet*>(s_allocator.allocate(s_packetSizes[type]));
+		//
+		//return packet;
+	}
 
     size_t getMaxPacketSize(int32_t type)
     {
@@ -181,6 +183,7 @@ namespace arena
 
     void destroyPacket(Packet* packet)
     {
-        delete packet;
+		delete packet;
+		//s_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(packet->getType()));
     }
 }

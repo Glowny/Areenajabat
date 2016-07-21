@@ -59,8 +59,9 @@ namespace arena
 
     struct BX_NO_VTABLE Packet
     {
-		
-        virtual ~Packet() = 0;
+		Packet() = default;
+		virtual ~Packet();
+
         virtual int32_t getType() const = 0;
         virtual bool serializeWrite(WriteStream& stream) = 0;
         virtual bool serializeRead(ReadStream& stream) = 0;
@@ -68,7 +69,7 @@ namespace arena
 
     inline Packet::~Packet() {}
 
-    Packet* createPacket(int32_t type);
+	Packet* createPacket(int32_t type);
 
     void destroyPacket(Packet* packet);
 
