@@ -180,6 +180,7 @@ namespace arena
 		Gladiator* glad = new Gladiator();
 		glad->m_position = glm::vec2(200, 200);
 		glad->m_ownerId = 0;
+		m_playerId = 0;
 		createGladiator(glad);
 	}
 
@@ -286,7 +287,7 @@ namespace arena
             destroyPacket(packet);
         }
 
-			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[0]->m_entity->first(TYPEOF(Transform));
+			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 			
 
 			Camera& camera = App::instance().camera();
@@ -311,8 +312,13 @@ namespace arena
 			glm::vec2 dir(mouseLoc - playerTransform->m_position);
 			float a = glm::atan(dir.y, dir.x);
             m_controller.aimAngle = a;
+			
 
-            m_clientIdToGladiatorData[0]->m_animator->rotateAimTo(a);
+			for (const auto& elem : m_clientIdToGladiatorData)
+			{
+				elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+			}
+            m_clientIdToGladiatorData[m_playerId]->m_animator->rotateAimTo(a);
 
             App::instance().spriteBatch()->submit(0);
 
