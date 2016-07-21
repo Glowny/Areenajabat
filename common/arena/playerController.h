@@ -37,11 +37,6 @@ namespace arena
         }
 
         PlayerInput m_input;
-
-		float m_jumpDirection;
-		bool shootFlag;
-		bool moveFlag;
 		float aimAngle;
-		WeaponType weapon;
 	};
 }

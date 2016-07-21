@@ -165,7 +165,7 @@ namespace arena
 			unsigned physicsId			= player.m_gladiator->m_physicsId;
 
             PlayerInput& input = player.m_playerController->m_input;
-
+			player.m_gladiator->m_aimAngle = player.m_playerController->aimAngle;
             // Do not add forces if there are none.
             if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown))
                 continue;
@@ -200,6 +200,12 @@ namespace arena
 				m_physics.applyForceToGladiator(force, physicsId);
 				
 			}
+
+			if (input.m_shootButtonDown)
+			{
+				GladiatorShoot(player.m_gladiator);
+			}
+
 			// Set the inputs to zero as they are handled.
             memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
 		}
@@ -238,31 +244,20 @@ namespace arena
 		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
 
 		if (player == nullptr) return;
-
-
-		// Apply force only when physics are also updated.
+		
+		// Do stuff with this on physics update.
         player->m_playerController->m_input = input;
 	}
-	void GameHost::processShooting(const uint64 clientIndex, const bool flags, const float32 angle)
-	{
-		if (!shouldProcessPlayerInput()) return;
-
-		(void)clientIndex;
-		(void)flags;
-		(void)angle;
-
-		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
-
-		if (player == nullptr) return;
-		
+	void GameHost::GladiatorShoot(Gladiator* gladiator)
+	{		
 		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
 		// Bullets should be deleted after synchronization, should slave delete them?
 
-		std::vector<Bullet*> bullets = player->m_gladiator->m_weapon->createBullets(angle, player->m_gladiator->m_position);
+		std::vector<Bullet*> bullets = gladiator->createBullets();
 		
 		for(unsigned i = 0; i < bullets.size(); i++)
 		{ 
-			m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, player->m_gladiator->m_physicsId);
+			m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->m_physicsId);
 			m_synchronizationList.push_back(bullets[i]);
 		}
 

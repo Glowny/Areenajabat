@@ -101,17 +101,7 @@ namespace arena
 				m_host.processInput(index, inputPacket->m_input);
 
 			}
-			else if (packet->getType() == PacketTypes::GameShoot)
-			{
-				GameShootPacket* shootPacket = (GameShootPacket*)packet;
 
-				const uint32 index			= m_server.findExistingClientIndex(from, shootPacket->m_clientSalt, shootPacket->m_challengeSalt);
-				const bool shootingFlags	= true;
-				const float32 angle			= shootPacket->m_angle;
-
-				m_host.processShooting(index, shootingFlags, angle);
-			
-			}
 			else
 			{
 				fprintf(stderr, "Not implemented packets %d\n", packet->getType());
@@ -156,7 +146,7 @@ namespace arena
 				}
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = gladiator->m_position;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = gladiator->m_velocity;
-				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_rotation = gladiator->m_rotation;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_aimAngle = gladiator->m_aimAngle;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
@@ -225,7 +215,7 @@ namespace arena
 				{
 					gladiatorsCreatePacket->m_characterArray[i].m_position = players[i].m_gladiator->m_position;
 					gladiatorsCreatePacket->m_characterArray[i].m_velocity = players[i].m_gladiator->m_velocity;
-					gladiatorsCreatePacket->m_characterArray[i].m_rotation = players[i].m_gladiator->m_rotation;
+					gladiatorsCreatePacket->m_characterArray[i].m_aimAngle = players[i].m_gladiator->m_aimAngle;
 					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
 				}
 				broadcast(gladiatorsCreatePacket);

@@ -30,11 +30,11 @@ namespace arena
 		{
 			m_position = glm::vec2(0,0);
 			m_velocity = glm::vec2(0, 0);
-			m_rotation = 0;
+			m_aimAngle = 0;
 		}
 		glm::vec2 m_position;
 		glm::vec2 m_velocity;
-		float m_rotation;
+		float m_aimAngle;
 		uint8_t m_ownerId;
 
 	};
@@ -134,7 +134,7 @@ namespace arena
 				serialize_float(stream, m_characterArray[i].m_position.y);
 				serialize_float(stream, m_characterArray[i].m_velocity.x);
 				serialize_float(stream, m_characterArray[i].m_velocity.y);
-				serialize_float(stream, m_characterArray[i].m_rotation);
+				serialize_float(stream, m_characterArray[i].m_aimAngle);
 				
 			}
 			return true;
@@ -184,7 +184,7 @@ namespace arena
 				serialize_float(stream, m_characterArray[i].m_position.y);
 				serialize_float(stream, m_characterArray[i].m_velocity.x);
 				serialize_float(stream, m_characterArray[i].m_velocity.y);
-				serialize_float(stream, m_characterArray[i].m_rotation);
+				serialize_float(stream, m_characterArray[i].m_aimAngle);
 
 			}
 			return true;
@@ -519,6 +519,7 @@ namespace arena
 		{
 			serialize_uint64(stream, m_clientSalt);
             serialize_uint64(stream, m_challengeSalt);
+			serialize_float(stream, m_aimAngle);
             serialize_bool(stream, m_input.m_leftButtonDown);
             serialize_bool(stream, m_input.m_rightButtonDown);
             serialize_bool(stream, m_input.m_upButtonDown);
@@ -527,6 +528,7 @@ namespace arena
             serialize_bool(stream, m_input.m_shootButtonDown);
             serialize_bool(stream, m_input.m_grenadeButtonDown);
             serialize_bool(stream, m_input.m_changeWeaponButtonDown);
+			
 			return true;
 		}
 

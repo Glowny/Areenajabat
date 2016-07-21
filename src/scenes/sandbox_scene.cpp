@@ -149,46 +149,39 @@ namespace arena
 
 	static void inputMoveLeft(const void*)
 	{
-        sandbox->m_controller.m_input.m_leftButtonDown = true;
-        sandbox->m_controller.moveFlag = true;
+		sandbox->m_controller.m_input.m_leftButtonDown = true;
 	}
 	static void inputMoveRight(const void*)
 	{
         sandbox->m_controller.m_input.m_rightButtonDown = true;
-        sandbox->m_controller.moveFlag = true;
 	}
 	static void inputMoveUp(const void*)
 	{
         sandbox->m_controller.m_input.m_upButtonDown = true;
-        sandbox->m_controller.moveFlag = true;
 	}
 	static void inputShoot(const void*)
 	{
         sandbox->m_controller.m_input.m_shootButtonDown = true;
-        sandbox->m_controller.shootFlag = true;
 	}
 
 	void SandboxScene::setAimAngle(float angle)
 	{
 		m_controller.aimAngle = angle;
-		m_controller.moveFlag = true;
 	}
 
-	void SandboxScene::setShoot()
-	{
-		m_controller.shootFlag = true;
-	}
 
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 		sandbox = this;
+		connected = false;
 		sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
-		m_controller.moveFlag = false;
-		m_controller.m_jumpDirection = 0;
-		m_controller.weapon = Gladius;
-		m_controller.shootFlag = false;
+
 		createBackground();
+		Gladiator* glad = new Gladiator();
+		glad->m_position = glm::vec2(200, 200);
+		glad->m_ownerId = 0;
+		createGladiator(glad);
 	}
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -198,20 +191,11 @@ namespace arena
         s_client->sendMatchMakingPackets(gameTime.m_total);
         s_client->sendProtocolPackets(gameTime.m_total);
 		
-		if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f)
+		if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
 		{
-			if(m_controller.moveFlag == true)
-			{ 
-				sendInput(m_controller);
-				m_controller.moveFlag = false;
-                // reset
-                memset(&m_controller.m_input, false, sizeof(PlayerInput));
-			}
-			if (m_controller.shootFlag == true)
-			{
-				sendShootEvent(m_controller.aimAngle);
-				m_controller.shootFlag = false;
-			}
+			sendInput(m_controller);
+
+            memset(&m_controller.m_input, false, sizeof(PlayerInput));
 			
 			sendInputToServerTimer = 0;
 		}
@@ -238,6 +222,7 @@ namespace arena
                 {
                 case PacketTypes::GameSetup:
                 {
+					connected = true;
                     GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
 					m_playerId = setupPacket->m_clientIndex;
 					
@@ -301,10 +286,10 @@ namespace arena
 
             destroyPacket(packet);
         }
-		if (m_clientIdToGladiatorData.size() != 0)
-		{ 
-			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+
+			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[0]->m_entity->first(TYPEOF(Transform));
 			
+
 			Camera& camera = App::instance().camera();
 			camera.m_position = playerTransform->m_position;
 			camera.calculate();
@@ -335,9 +320,9 @@ namespace arena
 			bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
 			bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 			bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
-
+			m_controller.aimAngle = a;
 			App::instance().spriteBatch()->submit(0);
-		}
+		
     }
 
 	void SandboxScene::onInitialize()
@@ -375,6 +360,8 @@ namespace arena
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
 		);
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
+		
+		
 		//anim.setPosition(glm::vec2(0, 0));
 
 		entity_gladiator = builder.getResults();
@@ -439,7 +426,7 @@ namespace arena
 			gladiator->m_alive = true;
 			gladiator->m_hitpoints = 100;
 			gladiator->m_position = characterData->m_position;
-			gladiator->m_rotation = characterData->m_rotation;
+			gladiator->m_aimAngle = characterData->m_aimAngle;
 			gladiator->m_velocity = characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
@@ -456,6 +443,7 @@ namespace arena
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
 		// TODO: Make proper physics platform drawing for debugging.
+		// This draw only draws sprites.
 		/*
 		EntityBuilder builder;
 		builder.begin();
@@ -485,7 +473,7 @@ namespace arena
 			m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
 			m_clientIdToGladiatorData[playerId]->m_transform->m_position= packet->m_characterArray[i].m_position;
 			m_clientIdToGladiatorData[playerId]->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			m_clientIdToGladiatorData[playerId]->m_gladiator->m_rotation = packet->m_characterArray[i].m_rotation;
+			m_clientIdToGladiatorData[playerId]->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 			//printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
 		}
 		
@@ -500,17 +488,45 @@ namespace arena
 			bullet.m_creationDelay = packet->m_bulletSpawnArray[i].m_creationDelay;
 			bullet.m_rotation = packet->m_bulletSpawnArray[i].m_rotation;
 			m_spawnBulletVector.push_back(bullet);
+			
+			EntityBuilder builder;
+			builder.begin();
+
+			Transform* transform = builder.addTransformComponent();
+			transform->m_position = bullet.m_position;
+
+			ResourceManager* resources = App::instance().resources();
+			(void)resources;
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
+			renderer->anchor();
 		}
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
 	{
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
+			EntityBuilder builder;
+			builder.begin();
+
 			Bullet bullet;
 			bullet.m_position = packet->bulletHitArray[i].m_position;
 			bullet.m_type = (BulletType)packet->bulletHitArray[i].m_type;
 			bullet.m_rotation = packet->bulletHitArray[i].m_rotation;
 			m_bulletHitVector.push_back(bullet);
+
+			Transform* transform = builder.addTransformComponent();
+			transform->m_position = bullet.m_position;
+
+			ResourceManager* resources = App::instance().resources();
+			(void)resources;
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
+			renderer->anchor();
 		}
 
 	}

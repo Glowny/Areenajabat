@@ -13,11 +13,15 @@ namespace arena
 					  m_hitpoints(100)
 		{ 
 		}
+		std::vector<Bullet*> createBullets()
+		{
+			return m_weapon->createBullets(m_aimAngle, m_position);
+		}
 
 		glm::vec2	m_position;
 		glm::vec2	m_velocity;
 
-		float32		m_rotation;		
+		float32		m_aimAngle;		
 		uint32		m_physicsId;
 		uint8_t		m_ownerId;
 		int32		m_hitpoints;

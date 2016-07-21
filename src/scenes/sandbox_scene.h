@@ -88,7 +88,8 @@ namespace arena
 		std::vector<Bullet> m_spawnBulletVector;
 		std::vector<Bullet> m_bulletHitVector;
 
-		
+		bool connected;
+
 		float sendInputToServerTimer;
 		Scoreboard m_scoreboard;
 		uint8_t m_playerId;
