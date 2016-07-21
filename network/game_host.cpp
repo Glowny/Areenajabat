@@ -224,7 +224,7 @@ namespace arena
 	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input)
 	{
 		// TODO: do proper check.
-		if (!shouldProcessPlayerInput()) return;
+		//if (!shouldProcessPlayerInput()) return;
 
 		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
 
@@ -234,7 +234,10 @@ namespace arena
         player->m_playerController->m_input = input;
 	}
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
-	{		
+	{
+		// TODO: do proper check.
+		//if (!shouldProcessPlayerInput()) return;
+
 		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
 		// Bullets should be deleted after synchronization, should slave delete them?
 		// No, host owns them. Host should delete them.
@@ -383,6 +386,7 @@ namespace arena
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
 				applyPlayerInputs(m_physics.updateTimer);
+
 				// Update physics
 				m_physics.update(m_physics.updateTimer);
 
