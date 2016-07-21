@@ -116,8 +116,8 @@ namespace arena
         void create() override
         {
             ResourceManager* resources = App::instance().resources();
-            m_upperArm.m_texture = resources->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png");
-            m_foreArm.m_texture = resources->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png");
+			m_upperArm.m_texture = resources->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_lUpperArm.png");
+			m_foreArm.m_texture = resources->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm_l.png");
 
             // setup children hierarchy
             m_upperArm.m_children.push_back(&m_foreArm);
