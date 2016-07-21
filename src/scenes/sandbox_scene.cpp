@@ -362,7 +362,7 @@ namespace arena
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
 		);
-		anim.setWeaponAnimation(WeaponAnimationType::Axe);
+		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
 		
 		
 		//anim.setPosition(glm::vec2(0, 0));
