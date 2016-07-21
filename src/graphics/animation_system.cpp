@@ -102,6 +102,85 @@ namespace arena
         bool m_flipX;
     };
 
+    struct GladiusLeftArm : public IHandAnimation
+    {
+        GladiusLeftArm() :
+            m_upperAngle(0),
+            m_forearmAngle(0),
+            m_flipX(false),
+            m_upperArm(nullptr),
+            m_foreArm(nullptr)
+        {
+
+        }
+        void create() override
+        {
+            ResourceManager* resources = App::instance().resources();
+            m_upperArm.m_texture = resources->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_UpperArm.png");
+            m_foreArm.m_texture = resources->get<TextureResource>(ResourceType::Texture, "Characters/arms/1_Forearm.png");
+
+            // setup children hierarchy
+            m_upperArm.m_children.push_back(&m_foreArm);
+
+            // upper arm
+            m_upperArm.m_position = glm::vec2(00, 00);
+            m_upperArm.m_origin = glm::vec2(m_upperArm.m_texture->width / 2.f, 10.f);
+            m_upperArm.m_rotation = glm::radians(m_upperAngle);
+            m_upperArm.m_depth = 2.f;
+
+            // fore arm
+            m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 10.f);;
+            m_foreArm.m_position = glm::vec2(50, 300);
+            m_foreArm.m_rotation = glm::radians(m_forearmAngle);
+            m_foreArm.m_depth = 2.f;
+        }
+
+        void rotateTo(float radians) override
+        {
+            (void)radians;
+            if (m_flipX)
+            {
+                //m_upperArm.m_rotation = m_gunAngle + radians;
+            }
+            else
+            {
+                //m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
+            }
+        }
+
+        void flip() override
+        {
+            m_flipX = !m_flipX;
+
+            if (m_flipX)
+            {
+                m_upperArm.m_rotation = glm::radians(-m_upperAngle);
+                m_foreArm.m_rotation = glm::radians(-m_forearmAngle);
+                m_foreArm.m_position.x = 9.f;
+            }
+            else
+            {
+                m_upperArm.m_rotation = glm::radians(m_upperAngle);
+                m_foreArm.m_rotation = glm::radians(m_forearmAngle);
+                m_foreArm.m_position.x = 5.f;
+            }
+        }
+
+        CompositeSprite* getParent() override
+        {
+            return &m_upperArm;
+        }
+
+        // left angles
+        float m_upperAngle;
+        float m_forearmAngle;
+
+        CompositeSprite m_upperArm;
+        CompositeSprite m_foreArm;
+
+        bool m_flipX;
+    };
+
     struct GladiusReloadAnimation
     {
         GladiusReloadAnimation() : 
@@ -127,8 +206,9 @@ namespace arena
 
 #define DEFINE_ANIMATION(name)                                                                  \
     {                                                                                           \
-        AnimationData* data = new AnimationData { new name##RightArm, nullptr, nullptr };       \
+        AnimationData* data = new AnimationData { new name##RightArm, new name##LeftArm, nullptr };       \
         data->m_rightHand->create();                                                            \
+        data->m_leftHand->create();                                                             \
         return data;                                                                            \
     }
 
