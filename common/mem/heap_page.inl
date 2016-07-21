@@ -10,7 +10,8 @@ namespace arena
 											m_lowAddress(ADDRESSOF(&m_memory[0])),
 											m_highAddress(ADDRESSOF(&m_memory[size - 1])),
 											m_size(size),
-										    m_bytes(0)
+										    m_bytes(0),
+											m_hp(0)
 	{
 	}
 
