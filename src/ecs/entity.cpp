@@ -10,7 +10,7 @@ namespace arena
 	*/
 
 	const uint32 InitialPages	= 4;
-	const uint32 PageSize		= Mem1K;
+	const uint32 PageSize		= mem::Mem1K;
 
 	/*
 		Entity allocator.

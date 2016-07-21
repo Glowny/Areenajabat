@@ -1,4 +1,5 @@
 #include "packet_allocator.h"
+#include "..\packet.h"
 
 namespace arena
 {
@@ -8,14 +9,12 @@ namespace arena
 
 	Packet* const PacketAllocator::allocate(const uint32 size)
 	{
-		HeapBlock* const block = m_allocator.allocate(size);
+		char* const handle = m_allocator.allocate(size);
 
-		return reinterpret_cast<Packet* const>(block->m_handle);
+		return reinterpret_cast<Packet* const>(handle);
 	}
 	bool PacketAllocator::deallocate(Packet* const packet)
 	{
-		const HeapBlock block(sizeof(packet), reinterpret_cast<Char* const>(packet));
-
-		return m_allocator.deallocate(&block);
+		return m_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(packet->getType()));
 	}
 }

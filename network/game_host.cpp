@@ -7,8 +7,6 @@
 
 namespace arena
 {
-
-
 	GameHost::GameHost(const GameVars& vars) : m_vars(vars),
 											   m_disposed(false),
 											   m_endCalled(false)
@@ -110,13 +108,12 @@ namespace arena
 		newPlayer->m_clientIndex		= clientIndex;
 		newPlayer->m_playerController	= new PlayerController();
 
-        Gladiator* gladiator = new Gladiator;
-
-		gladiator->m_ownerId = newPlayer->m_clientIndex;
-        gladiator->m_physicsId = m_physics.addGladiator(m_map.m_playerSpawnLocations[clientIndex]);
-		gladiator->m_position = m_physics.getGladiatorPosition(gladiator->m_physicsId);
-        gladiator->m_weapon = new WeaponGladius;
-        newPlayer->m_gladiator = gladiator;
+        Gladiator* gladiator		= new Gladiator;
+		gladiator->m_ownerId		= newPlayer->m_clientIndex;
+        gladiator->m_physicsId		= m_physics.addGladiator(m_map.m_playerSpawnLocations[clientIndex]);
+		gladiator->m_position		= m_physics.getGladiatorPosition(gladiator->m_physicsId);
+        gladiator->m_weapon			= new WeaponGladius;
+        newPlayer->m_gladiator		= gladiator;
 
 		registerEntity(newPlayer);
 	}
@@ -161,12 +158,11 @@ namespace arena
 
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
-			Player& player = *it;
-			unsigned physicsId			= player.m_gladiator->m_physicsId;
+			Player& player					= *it;
+			unsigned physicsId				= player.m_gladiator->m_physicsId;
+            PlayerInput& input				= player.m_playerController->m_input;
 
-            PlayerInput& input = player.m_playerController->m_input;
-
-			player.m_gladiator->m_aimAngle = player.m_playerController->aimAngle;
+			player.m_gladiator->m_aimAngle  = player.m_playerController->aimAngle;
             
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
@@ -179,24 +175,15 @@ namespace arena
 
 			
 			// Do not add forces if there are none.
-            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown))
-                continue;
+            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown)) continue;
                       
-            int32_t x = 0;
-            int32_t y = 0;
-            if (input.m_leftButtonDown)
-            {
-                x = -1;
-            }
-            else if (input.m_rightButtonDown)
-            {
-                x = 1;
-            }
+            int32 x = 0;
+			int32 y = 0;
+            
+			if		(input.m_leftButtonDown)	x = -1;
+            else if (input.m_rightButtonDown)	x = 1;
 
-            if (input.m_upButtonDown)
-            {
-                y = 10;
-            }
+            if (input.m_upButtonDown) y = 10;
 
             glm::ivec2 moveDirection(x, y);
       
@@ -258,18 +245,21 @@ namespace arena
 		player->m_playerController->aimAngle = aimAngle;
 	}
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
-	{		
+	{
+		// TODO: do proper check.
+		//if (!shouldProcessPlayerInput()) return;
+
 		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
 		// Bullets should be deleted after synchronization, should slave delete them?
+		// No, host owns them. Host should delete them.
 		std::vector<Bullet*> bullets = gladiator->createBullets();
 		
-		for(unsigned i = 0; i < bullets.size(); i++)
+		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
 			m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->m_physicsId);
+			
 			m_synchronizationList.push_back(bullets[i]);
 		}
-
-		
 	}
 	
 	bool GameHost::shouldProcessPlayerInput() const
@@ -317,9 +307,13 @@ namespace arena
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
 			e_gameStart();
+
             loadMap("coordinatesRawData.dat");
-			for(unsigned i = 0; i < m_map.m_platformVector.size(); i++)
-				m_physics.createPlatform(m_map.m_platformVector[i].vertices,m_map.m_platformVector[i].type);
+
+			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
+			{
+				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
+			}
 		}
 	}
 	void GameHost::gameTick(const uint64 dt)
@@ -389,7 +383,6 @@ namespace arena
 
 	void GameHost::worldTick(const float64 dt)
 	{
-	
 		if (m_gameData.m_state == GameState::Timeout)
 		{
 			// Do not apply any player input updates.
@@ -403,6 +396,7 @@ namespace arena
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
 				applyPlayerInputs(m_physics.updateTimer);
+
 				// Update physics
 				m_physics.update(m_physics.updateTimer);
 
@@ -410,15 +404,14 @@ namespace arena
 				for (Player& player : players())
 				{
 					player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
-					// update position because gravity - dont update too much
+
+					 // update position because gravity - dont update too much
 					 m_synchronizationList.push_back(player.m_gladiator);
 				}
+
 				m_physics.updateTimer = 0;
-				
 			}
 		}
-
-		
 	}
 
 	GameHost::~GameHost()

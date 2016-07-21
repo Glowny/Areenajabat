@@ -9,13 +9,15 @@ namespace arena
 	{
 	}
 
-	HeapBlock* const FixedBlockAllocator::allocate()
+	char* const FixedBlockAllocator::allocate()
 	{
-		return m_allocator.allocate(m_blockSize);	
+		return m_allocator.allocate(m_blockSize)->m_handle;	
 	}
-	bool FixedBlockAllocator::deallocate(const HeapBlock* const block)
+	bool FixedBlockAllocator::deallocate(char* const handle)
 	{
-		return m_allocator.deallocate(block);
+		HeapBlock block(m_blockSize, handle);
+
+		return m_allocator.deallocate(&block);
 	}
 
 	uint32 FixedBlockAllocator::pages() const
@@ -54,7 +56,7 @@ namespace arena
 		m_allocators.resize(initialMaxBlockSize);
 	}
 
-	HeapBlock* const BlockAllocator::allocate(const uint32 size)
+	char* const BlockAllocator::allocate(const uint32 size)
 	{
 		// Resize if needed.
 		if (size > maxBlockSize()) m_allocators.resize(size);
@@ -73,13 +75,13 @@ namespace arena
 		// Allocate and return.
 		return allocator->allocate();
 	}
-	bool BlockAllocator::deallocate(const HeapBlock* const block)
+	bool BlockAllocator::deallocate(char* const handle, const uint32 size)
 	{
-		FixedBlockAllocator* const allocator = m_allocators[block->m_size];
+		FixedBlockAllocator* const allocator = m_allocators[size];
 		
 		assert(allocator != nullptr);
 
-		return allocator->deallocate(block);
+		return allocator->deallocate(handle);
 	}
 
 	uint32 BlockAllocator::pages() const

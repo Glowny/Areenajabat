@@ -4,64 +4,67 @@
 
 namespace arena
 {
-	HeapPage::HeapPage(const uint32 pageSize) : m_pageSize(pageSize)
+	namespace mem
 	{
-		m_memory		= new Char[pageSize];
-		
-		m_lowAddress	= reinterpret_cast<UintPtr>(&m_memory[0]);
-		m_highAddress	= reinterpret_cast<UintPtr>(&m_memory[pageSize]);
-	}
-
-	Char* HeapPage::allocate(const uint32 bytes) 
-	{
-		// Fast alloc from free memory if we can, handle lookups are slow.
-		if (m_pagePointer + bytes < m_pageSize) 
+		HeapPage::HeapPage(const uint32 pageSize) : m_pageSize(pageSize)
 		{
-			Char* handle = &m_memory[m_pagePointer];
-			
-			m_pagePointer += bytes;
+			m_memory = new Char[pageSize];
 
-			return handle;
+			m_lowAddress = reinterpret_cast<UintPtr>(&m_memory[0]);
+			m_highAddress = reinterpret_cast<UintPtr>(&m_memory[pageSize]);
 		}
-		else if (!m_handles.empty())
+
+		Char* HeapPage::allocate(const uint32 bytes)
 		{
-			// Lookup from handle list.
-			for (auto iter = m_handles.begin(); iter < m_handles.end(); iter++) 
+			// Fast alloc from free memory if we can, handle lookups are slow.
+			if (m_pagePointer + bytes < m_pageSize)
 			{
-				HeapHandle& handle = *iter;
+				Char* handle = &m_memory[m_pagePointer];
 
-				if (handle.m_size <= bytes) 
+				m_pagePointer += bytes;
+
+				return handle;
+			}
+			else if (!m_handles.empty())
+			{
+				// Lookup from handle list.
+				for (auto iter = m_handles.begin(); iter < m_handles.end(); iter++)
 				{
-					m_handles.erase(iter);
+					HeapHandle& handle = *iter;
 
-					return handle.m_handle;
+					if (handle.m_size <= bytes)
+					{
+						m_handles.erase(iter);
+
+						return handle.m_handle;
+					}
 				}
 			}
+
+			// Could not allocate, return null.
+			return nullptr;
 		}
-
-		// Could not allocate, return null.
-		return nullptr;
-	}
-	bool HeapPage::deallocate(Char* handle, const uint32 bytes) 
-	{
-		const auto address = reinterpret_cast<UintPtr>(handle);
-
-		if (address >= m_lowAddress && address <= m_highAddress)
+		bool HeapPage::deallocate(Char* handle, const uint32 bytes)
 		{
-			m_handles.push_back(HeapHandle());
+			const auto address = reinterpret_cast<UintPtr>(handle);
 
-			HeapHandle& heapHandle	= m_handles.back();
-			heapHandle.m_handle		= handle;
-			heapHandle.m_size		= bytes;
+			if (address >= m_lowAddress && address <= m_highAddress)
+			{
+				m_handles.push_back(HeapHandle());
 
-			return true;
+				HeapHandle& heapHandle = m_handles.back();
+				heapHandle.m_handle = handle;
+				heapHandle.m_size = bytes;
+
+				return true;
+			}
+
+			return false;
 		}
 
-		return false;
-	}
-
-	HeapPage::~HeapPage()
-	{
-		delete m_memory;
+		HeapPage::~HeapPage()
+		{
+			delete m_memory;
+		}
 	}
 }

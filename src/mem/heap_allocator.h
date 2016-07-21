@@ -10,18 +10,21 @@
 
 namespace arena
 {
-	class HeapAllocator final 
+	namespace mem
 	{
-	public:
-		HeapAllocator(const uint32 initialPagesCount, const uint32 pageSize);
-		
-		Char* allocate(const uint32 bytes);
-		bool deallocate(Char* handle, const uint32 bytes);
+		class HeapAllocator final
+		{
+		public:
+			HeapAllocator(const uint32 initialPagesCount, const uint32 pageSize);
 
-		~HeapAllocator();
-	private:
-		std::vector<HeapPage*>		m_pages;
+			Char* allocate(const uint32 bytes);
+			bool deallocate(Char* handle, const uint32 bytes);
 
-		const uint32				m_pageSize;
-	};
+			~HeapAllocator();
+		private:
+			std::vector<HeapPage*>		m_pages;
+
+			const uint32				m_pageSize;
+		};
+	}
 }

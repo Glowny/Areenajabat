@@ -29,12 +29,12 @@ namespace arena
 
 		~EntityAllocator() = default;
 	private:
-		PoolAllocator<Entity> m_allocator;
+		mem::PoolAllocator<Entity> m_allocator;
 	};
 
 	class Entity final 
 	{
-	friend class PoolAllocator<Entity>;
+	friend class mem::PoolAllocator<Entity>;
 	friend class EntityAllocator;
 	
 	public:

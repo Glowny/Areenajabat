@@ -310,6 +310,11 @@ namespace arena
 
 			glm::vec2 dir(mouseLoc - playerTransform->m_position);
 			float a = glm::atan(dir.y, dir.x);
+            m_controller.aimAngle = a;
+
+            m_clientIdToGladiatorData[0]->m_animator->rotateAimTo(a);
+
+            App::instance().spriteBatch()->submit(0);
 
 			bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
 			bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
@@ -319,8 +324,6 @@ namespace arena
 			bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
 			bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 			bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
-			m_controller.aimAngle = a;
-			App::instance().spriteBatch()->submit(0);
 		
     }
 
@@ -353,10 +356,10 @@ namespace arena
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
 		anim.setStaticContent(
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest.png"),
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/Run.scml")->getNewEntityInstance(0)
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0)
 		);
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
 		
@@ -465,7 +468,7 @@ namespace arena
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
-		for (unsigned i = 0; i < packet->m_playerAmount; i++)
+		for (int32_t i = 0; i < packet->m_playerAmount; i++)
 		{
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
 			m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;

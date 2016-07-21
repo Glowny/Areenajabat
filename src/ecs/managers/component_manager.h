@@ -104,7 +104,7 @@ namespace arena
 		{
 		}
 	private:
-		PoolAllocator<T> m_allocator;
+		mem::PoolAllocator<T> m_allocator;
 		
 		std::vector<T*> m_components;
 	};
