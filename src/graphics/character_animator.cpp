@@ -70,6 +70,13 @@ namespace arena
         m_legs.m_animation.m_entity = legs;
     }
 
+    void CharacterAnimator::rotateAimTo(float radians)
+    {
+        ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
+        m_animationData->m_rightHand->rotateTo(radians);
+
+    }
+
     void CharacterAnimator::update(float dt)
     {
         double inMillis = dt * 1000.0;
