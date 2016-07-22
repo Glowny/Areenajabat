@@ -490,7 +490,7 @@ namespace arena
 		{
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
 			*m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
-			m_clientIdToGladiatorData[playerId]->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y+64.0f);
+			m_clientIdToGladiatorData[playerId]->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y-64.0f);
 			*m_clientIdToGladiatorData[playerId]->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			m_clientIdToGladiatorData[playerId]->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 			//printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
