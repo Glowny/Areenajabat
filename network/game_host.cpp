@@ -102,20 +102,19 @@ namespace arena
 		
 		DEBUG_PRINT("new player registered...");
 
-		m_players.add(Player());
-
-		Player* const newPlayer			= &m_players.back();
-		newPlayer->m_clientIndex		= clientIndex;
-		newPlayer->m_playerController	= new PlayerController();
+        Player newPlayer;
+		newPlayer.m_clientIndex		= clientIndex;
+		newPlayer.m_playerController	= new PlayerController();
 
         Gladiator* gladiator		= new Gladiator;
-		gladiator->m_position		= new glm::vec2(m_map.m_playerSpawnLocations[clientIndex]);
-		gladiator->m_ownerId		= newPlayer->m_clientIndex;
+		gladiator->m_ownerId		= newPlayer.m_clientIndex;
         gladiator->m_physicsId		= m_physics.addGladiator(gladiator->m_position);
         gladiator->m_weapon			= new WeaponGladius;
-        newPlayer->m_gladiator		= gladiator;
+        newPlayer.m_gladiator		= gladiator;
 
-		registerEntity(newPlayer);
+        m_players.add(newPlayer);
+
+		registerEntity(&m_players.back());
 	}
 	void GameHost::unregisterPlayer(const uint32 clientIndex)
 	{
@@ -123,7 +122,7 @@ namespace arena
 		
 		for (auto it = m_players.begin(); it != m_players.end(); it++)
 		{
-			Player* player = const_cast<Player*>(&*it);
+            Player* player = &*it;
 
 			if (player->m_clientIndex == clientIndex) 
 			{

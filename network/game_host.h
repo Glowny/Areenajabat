@@ -147,21 +147,21 @@ namespace arena
 		{
 		}
 
-		bool contains(const T element) const
+		bool contains(const T& element) const
 		{
 			for (const T entry : m_container) if (element == entry) return true;
 
 			return false;
 		}
-		void add(T element)
+		void add(T& element)
 		{
 			m_container.push_back(element);
 		}
-		bool remove(T element)
+		bool remove(T& element)
 		{
 			for (auto it = m_container.begin(); it != m_container.end(); it++)
 			{
-				T value = *it;
+				T& value = *it;
 				
 				if (value == element)
 				{
@@ -202,6 +202,16 @@ namespace arena
 		{
 			m_container.clear();
 		}
+
+        decltype(auto) begin()
+        {
+            return m_container.begin();
+        }
+
+        decltype(auto) end()
+        {
+            return m_container.end();
+        }
 
 		decltype(auto) begin() const
 		{

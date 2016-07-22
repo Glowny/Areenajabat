@@ -66,6 +66,11 @@ namespace arena
         }
     }
 
+    void SlaveServer::addListener(ClientListener* listener)
+    {
+        m_server.addClientListener(listener);
+    }
+
 	void SlaveServer::initialize()
 	{
 		m_startTime = bx::getHPCounter();
