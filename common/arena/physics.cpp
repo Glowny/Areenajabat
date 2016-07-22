@@ -8,7 +8,7 @@ Physics::Physics()
 	m_b2DWorld = new b2World(b2Vec2(0.f,9.81f));
 	m_b2DWorld->SetContactListener(&m_ContactListener);
 
-
+	currentFreeId = 0;
 
 	b2Filter filter;
 	// Platform collide filter 
@@ -57,8 +57,16 @@ void Physics::update(float timeStep)
 
 	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
 
+	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	{
+		b2Vec2 pos = m_gladiatorVector[i]->m_body->GetPosition();
+		*m_gladiatorVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
+	}
+
 	for (unsigned i = 0; i < m_bulletVector.size(); i++)
 	{
+		b2Vec2 pos = m_bulletVector[i]->m_body->GetPosition();
+		*m_bulletVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
 		if (m_bulletVector[i]->m_contact == true)
 		{
 			switch (m_bulletVector[i]->m_contactUserData->m_bodyType)
@@ -117,7 +125,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	b2Vec2* points = new b2Vec2[platform.size()];
 	for (unsigned i = 0; i < platform.size(); i++)
 	{
-		points[i].Set(platform[i].x/100, platform[i].y/100);
+		points[i].Set(platform[i].x/100.0f, platform[i].y/100.0f);
 	}
 	p_userData* userData = new p_userData;
 	p_Platform* temp_platform = new p_Platform;
@@ -155,14 +163,14 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 }
 
 // returns id.
-unsigned Physics::addGladiator(glm::vec2 position)
+unsigned Physics::addGladiator(glm::vec2* position)
 {
 	p_Gladiator* glad = new p_Gladiator;
-
+	glad->gamePosition = position;
 
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
-	bodydef.position.Set(position.x/100, position.y/100);
+	bodydef.position.Set(position->x/100.0f, position->y/100.0f);
 	bodydef.fixedRotation = true;
 	glad->m_body = m_b2DWorld->CreateBody(&bodydef);
 
@@ -221,33 +229,34 @@ void Physics::applyImpulseToGladiator(glm::vec2 direction, unsigned id)
 void Physics::setGladiatorPosition(unsigned id, glm::vec2 position)
 {
 	b2Vec2 pos;
-	pos.x = position.x / 100;
-	pos.y = position.y / 100;
+	pos.x = position.x / 100.0f;
+	pos.y = position.y / 100.0f;
 	m_gladiatorVector[id]->m_body->SetTransform(pos, m_gladiatorVector[id]->m_body->GetAngle());
 }
 glm::vec2 Physics::getGladiatorPosition(unsigned id)
 {
 	b2Vec2 pos = m_gladiatorVector[id]->m_body->GetPosition();
 	glm::vec2 position;
-	position.x = pos.x*100;
-	position.y = pos.y*100;
+	position.x = pos.x*100.0f;
+	position.y = pos.y*100.0f;
 	return position;
 }
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
 	b2Vec2 vel = m_gladiatorVector[id]->m_body->GetLinearVelocity();
 	glm::vec2 velocity;
-	velocity.x = vel.x*100;
-	velocity.y = vel.y*100;
+	velocity.x = vel.x*100.0f;
+	velocity.y = vel.y*100.0f;
 	return velocity;
 }
 void Physics::removeGladiator(unsigned id)
 {
-
+	// TODO: Do proper removal.
 };
-void Physics::addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooterID)
+uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID)
 {
-	b2Vec2 pos(position.x/100, position.y/100), vel(velocity.x/100, velocity.y/100);
+	
+	b2Vec2 pos(position->x/100.0f, position->y/100.0f), vel(velocity.x/100.0f, velocity.y/100.0f);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
@@ -271,6 +280,7 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooter
 	body->CreateFixture(&fixtureDef);
 
 	p_Bullet* bullet = new p_Bullet;
+	bullet->bulletId = getFreeBulletId();
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Bullet;
 	userData->m_object = bullet;
@@ -279,14 +289,14 @@ void Physics::addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooter
 	bullet->m_contact = false;
 	bullet->m_contactBody = B_NONE;
 	bullet->m_shooterID = shooterID;
+	bullet->gamePosition = position;
 	body->SetUserData(userData);
 	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1,1), true);
 	m_bulletVector.push_back(bullet);
+	
+	return bullet->bulletId;
 };
-void Physics::removeBullet()
-{
 
-};
 
 void Physics::reset()
 {
@@ -304,4 +314,38 @@ void Physics::reset()
 	}
 	m_gladiatorVector.clear();
 	m_bulletVector.clear();
+}
+void Physics::removeBullet(uint8_t id)
+{
+	// TODO: Do proper removal.
+	assert(id < 256);
+	isIdFree[id] = true;
+}
+
+uint8_t Physics::getFreeBulletId()
+{
+	nextUint8_t(currentFreeId);
+	return currentFreeId;
+}
+
+void Physics::nextUint8_t(uint8_t& current)
+{
+	uint8_t old = current;
+	current++;
+
+	// search for id till there is a free one left. Will crash if there is none left.
+	while(current != old)
+	{ 
+		
+		if (current > 255)
+			current = 0;
+		if (isIdFree[current])
+		{
+			isIdFree[current] = false;			
+			return;
+		}
+		current++;
+	}
+	// If this happens, there is no free ids left. To add more bullets, use bigger data type
+	assert(false);
 }

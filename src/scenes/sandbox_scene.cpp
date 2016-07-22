@@ -178,7 +178,7 @@ namespace arena
 
 		createBackground();
 		Gladiator* glad = new Gladiator();
-		glad->m_position = glm::vec2(200, 200);
+		*glad->m_position = glm::vec2(200, 200);
 		glad->m_ownerId = 0;
 		m_playerId = 0;
 		createGladiator(glad);
@@ -289,6 +289,18 @@ namespace arena
 
 			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 			
+			for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); ++it)
+			{
+				if (it->second.lifeTime += gameTime.m_delta < 2.0f)
+				{ 
+					Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
+					bulletTransform->m_position = *it->second.bullet->m_position;
+				}
+				else
+				{
+					// delete bullet and do stuf fa
+				}
+			}
 
 			Camera& camera = App::instance().camera();
 			camera.m_position = playerTransform->m_position;
@@ -357,7 +369,7 @@ namespace arena
 		ResourceManager* resources = App::instance().resources();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = gladiator->m_position;
+		transform->m_position = *gladiator->m_position;
 
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
@@ -413,7 +425,7 @@ namespace arena
 				
 				Transform* transform = builder.addTransformComponent();
 
-				transform->m_position = glm::vec2(x * 1920, y * 1080 +64);
+				transform->m_position = glm::vec2(x * 1920, y * 1080 );
 				transform->m_scale = scale;
 				renderer->setTexture(textureResource);
 
@@ -433,9 +445,9 @@ namespace arena
 			gladiator->m_ownerId = characterData->m_ownerId;
 			gladiator->m_alive = true;
 			gladiator->m_hitpoints = 100;
-			gladiator->m_position = characterData->m_position;
+			gladiator->m_position =  &characterData->m_position;
 			gladiator->m_aimAngle = characterData->m_aimAngle;
-			gladiator->m_velocity = characterData->m_velocity;
+			gladiator->m_velocity = &characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
 			createGladiator(gladiator);
@@ -477,9 +489,9 @@ namespace arena
 		for (int32_t i = 0; i < packet->m_playerAmount; i++)
 		{
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
-			m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
-			m_clientIdToGladiatorData[playerId]->m_transform->m_position= packet->m_characterArray[i].m_position;
-			m_clientIdToGladiatorData[playerId]->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
+			*m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
+			m_clientIdToGladiatorData[playerId]->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y+64.0f);
+			*m_clientIdToGladiatorData[playerId]->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			m_clientIdToGladiatorData[playerId]->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 			//printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
 		}
@@ -489,7 +501,18 @@ namespace arena
 	{
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
-			createBullet(packet->m_bulletSpawnArray[i]);
+			// Check if bullet exists.
+			std::map<uint8_t, DebugBullet>::iterator it;
+			it = m_debugBullets.find(packet->m_bulletSpawnArray[i].m_id);
+	
+			if (it != m_debugBullets.end())
+			{
+				// if bullet exists, set position
+				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
+				
+			}
+			else
+				createBullet(packet->m_bulletSpawnArray[i]);
 		}
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
@@ -502,40 +525,43 @@ namespace arena
 	}
 	void SandboxScene::createBullet(BulletData &data)
 	{
-		Bullet bullet;
-		bullet.m_position = data.m_position;
-		bullet.m_type = (BulletType)data.m_type;
-		bullet.m_creationDelay = data.m_creationDelay;
-		bullet.m_rotation = data.m_rotation;
-		m_spawnBulletVector.push_back(bullet);
+		Bullet* bullet = new Bullet;
+		*bullet->m_position = data.m_position;
+		bullet->m_bulletId = data.m_id;
+		bullet->m_type = (BulletType)data.m_type;
+		bullet->m_creationDelay = data.m_creationDelay;
+		bullet->m_rotation = data.m_rotation;
 
 		createBulletEntity(bullet);
 	}
 
-	void SandboxScene::createBulletEntity(Bullet& bullet)
+	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
 		EntityBuilder builder;
 		builder.begin();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = bullet.m_position;
+		transform->m_position = *bullet->m_position;
 
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "blank.png"));
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
 		renderer->anchor();
+
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
+		debugBullet.entity = builder.getResults();
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 	}
 	
-
-
 
 	void SandboxScene::createBulletHit(BulletData& data)
 	{
 		Bullet bullet;
-		bullet.m_position = data.m_position;
+		*bullet.m_position = data.m_position;
 		bullet.m_type = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
 		m_bulletHitVector.push_back(bullet);
@@ -549,7 +575,7 @@ namespace arena
 		builder.begin();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = bullet.m_position;
+		transform->m_position = *bullet.m_position;
 
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;

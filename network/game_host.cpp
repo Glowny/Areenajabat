@@ -109,9 +109,9 @@ namespace arena
 		newPlayer->m_playerController	= new PlayerController();
 
         Gladiator* gladiator		= new Gladiator;
+		gladiator->m_position		= new glm::vec2(m_map.m_playerSpawnLocations[clientIndex]);
 		gladiator->m_ownerId		= newPlayer->m_clientIndex;
-        gladiator->m_physicsId		= m_physics.addGladiator(m_map.m_playerSpawnLocations[clientIndex]);
-		gladiator->m_position		= m_physics.getGladiatorPosition(gladiator->m_physicsId);
+        gladiator->m_physicsId		= m_physics.addGladiator(gladiator->m_position);
         gladiator->m_weapon			= new WeaponGladius;
         newPlayer->m_gladiator		= gladiator;
 
@@ -256,9 +256,13 @@ namespace arena
 		
 		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
-			m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->m_physicsId);
+			bullets[i]->m_bulletId = m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->m_physicsId);
 			
 			m_synchronizationList.push_back(bullets[i]);
+			DebugBullet dBullet;
+			dBullet.lifeTime = 0;
+			dBullet.m_bullet = bullets[i];
+			m_debugBullets.push_back(dBullet);
 		}
 	}
 	
@@ -383,6 +387,7 @@ namespace arena
 
 	void GameHost::worldTick(const float64 dt)
 	{
+
 		if (m_gameData.m_state == GameState::Timeout)
 		{
 			// Do not apply any player input updates.
@@ -403,12 +408,27 @@ namespace arena
 				// get data from gladiators.
 				for (Player& player : players())
 				{
-					player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
+					// Updated on physics atm.
+					// player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
 
 					 // update position because gravity - dont update too much
 					 m_synchronizationList.push_back(player.m_gladiator);
 				}
 
+				for (unsigned i = 0; i < m_debugBullets.size(); ++i)
+				{
+					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 1.5f)
+					{ 
+						m_synchronizationList.push_back(m_debugBullets[i].m_bullet);
+					}
+					else
+					{
+						m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
+						delete m_debugBullets[i].m_bullet;
+						m_debugBullets.erase(m_debugBullets.begin() + i);
+					}
+					
+				}
 				m_physics.updateTimer = 0;
 			}
 		}

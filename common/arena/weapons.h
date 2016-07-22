@@ -26,13 +26,15 @@ namespace arena
 			: NetworkEntity(NetworkEntityType::Projectile)
 		{
 			m_type = BulletType(0);
-			m_position = glm::vec2(0,0);
+			m_bulletId = 0;
+			m_position = new glm::vec2(0,0);
 			m_impulse = glm::vec2(0, 0);
 			m_rotation = 0;
 			m_creationDelay = 0;
 		}
 		BulletType m_type;
-		glm::vec2 m_position;
+		uint8_t m_bulletId;
+		glm::vec2* m_position;
 		glm::vec2 m_impulse;
 		float m_rotation;
 		float m_creationDelay;
@@ -92,7 +94,7 @@ namespace arena
 				bullet->m_creationDelay = 0.1f * i;
 				bullet->m_rotation = aimAngle;
 				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-				bullet->m_position.x = position.x + vectorAngle.x * 72; bullet->m_position.y = position.y + vectorAngle.y * 72;
+				bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 				bullets.push_back(bullet);
 			}
 			return bullets;
@@ -120,7 +122,7 @@ namespace arena
 				bullet->m_creationDelay = 0;
 				bullet->m_rotation = aimAngle; 
 				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-				bullet->m_position.x = position.x + vectorAngle.x * 72; bullet->m_position.y = position.y + vectorAngle.y * 72;
+				bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 				bullets.push_back(bullet);
 			}
 			return bullets;

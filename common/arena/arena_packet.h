@@ -7,16 +7,18 @@
 namespace arena
 {
 //TODO: Set size on how many bullet creation events can possibly happen
-#define BULLET_MAX_AMOUNT 20
+#define BULLET_MAX_AMOUNT 50
 	struct BulletData
 	{
 		BulletData()
 		{
+			m_id = 0;
 			m_type = 0;
 			m_position = glm::vec2(0,0);
 			m_rotation = 0;
 			m_creationDelay = 0;
 		}
+		uint8_t m_id;
 		uint8_t m_type;
 		glm::vec2 m_position;
 		float m_rotation;
@@ -315,6 +317,7 @@ namespace arena
 			for (unsigned i = 0; i < m_bulletAmount; ++i)
 			{
 				serialize_bytes(stream, &bulletHitArray[i].m_type, 1);
+				serialize_bytes(stream, &bulletHitArray[i].m_id, 1);
 				serialize_float(stream, bulletHitArray[i].m_position.x);
 				serialize_float(stream, bulletHitArray[i].m_position.y);
 				serialize_float(stream, bulletHitArray[i].m_rotation);

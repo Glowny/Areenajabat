@@ -12,14 +12,21 @@ namespace arena
 					  m_alive(true),
 					  m_hitpoints(100)
 		{ 
+			m_position = new glm::vec2(0,0);
+			m_velocity = new glm::vec2(0, 0);
+		}
+		~Gladiator()
+		{
+			delete m_position;
+			delete m_velocity;
 		}
 		std::vector<Bullet*> createBullets()
 		{
-			return m_weapon->createBullets(m_aimAngle, m_position);
+			return m_weapon->createBullets(m_aimAngle, *m_position);
 		}
 
-		glm::vec2	m_position;
-		glm::vec2	m_velocity;
+		glm::vec2*	m_position;
+		glm::vec2*	m_velocity;
 
 		float32		m_aimAngle;		
 		uint32		m_physicsId;

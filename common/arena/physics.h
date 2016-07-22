@@ -65,16 +65,20 @@ struct p_Gladiator
 	unsigned m_id;
 	b2Body* m_body;
 	p_userData* m_userData;
+	glm::vec2* gamePosition;
+
 };
 
 struct p_Bullet
 {
 	unsigned m_shooterID;
+	uint8_t bulletId;
 	bool m_contact;
 	bodyType m_contactBody;
 	p_userData* m_contactUserData;
 	b2Body* m_body;
 	p_userData* m_myUserData;
+	glm::vec2* gamePosition;
 	glm::vec2 hitPosition;
 	void startContact(p_userData* contactUserData)
 	{ 
@@ -119,19 +123,25 @@ public:
 	void update(float timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
-	unsigned addGladiator(glm::vec2 position);
+	unsigned addGladiator(glm::vec2* position);
 	void applyForceToGladiator(glm::vec2 direction, unsigned id);
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
-	void addBullet(glm::vec2 position, glm::vec2 velocity, unsigned shooterID);
-	void removeBullet();
+	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
+	void removeBullet(uint8_t id);
 	ContactListener m_ContactListener;
 	std::vector<BulletHit> hitVector;
 	std::vector<p_Bullet*> m_bulletVector;
+
+	uint8_t getFreeBulletId();
 private:
+	
+	bool isIdFree[256];
+	void nextUint8_t(uint8_t& current);
+	uint8_t currentFreeId;
 	b2World* m_b2DWorld;
 	//TODO: Better way to communicate with server.
 	std::vector<p_Gladiator*> m_gladiatorVector;

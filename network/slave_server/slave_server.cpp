@@ -142,8 +142,8 @@ namespace arena
 					gladiatorUpdatePacket = (GameUpdatePacket*)createPacket(PacketTypes::GameUpdate);
 					gladiatorUpdatePacket->m_playerAmount = 0;
 				}
-				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = gladiator->m_position;
-				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = gladiator->m_velocity;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = *gladiator->m_position;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = *gladiator->m_velocity;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_aimAngle = gladiator->m_aimAngle;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
 				gladiatorUpdatePacket->m_playerAmount++;
@@ -163,9 +163,10 @@ namespace arena
 					spawnBulletsPacket = (GameSpawnBulletsPacket*)createPacket(PacketTypes::GameSpawnBullets);
 					spawnBulletsPacket->m_bulletAmount = 0;
 				}
-				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_position = bulletSpawn->m_position;
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_position = *bulletSpawn->m_position;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_rotation = bulletSpawn->m_rotation;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_type = bulletSpawn->m_type;
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_id = bulletSpawn->m_bulletId;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_creationDelay = bulletSpawn->m_creationDelay;
 				spawnBulletsPacket->m_bulletAmount++;
 				break;
@@ -211,8 +212,8 @@ namespace arena
 				gladiatorsCreatePacket->m_playerAmount = players.size();
 				for (unsigned i = 0; i < players.size(); i++)
 				{
-					gladiatorsCreatePacket->m_characterArray[i].m_position = players[i].m_gladiator->m_position;
-					gladiatorsCreatePacket->m_characterArray[i].m_velocity = players[i].m_gladiator->m_velocity;
+					gladiatorsCreatePacket->m_characterArray[i].m_position = *players[i].m_gladiator->m_position;
+					gladiatorsCreatePacket->m_characterArray[i].m_velocity = *players[i].m_gladiator->m_velocity;
 					gladiatorsCreatePacket->m_characterArray[i].m_aimAngle = players[i].m_gladiator->m_aimAngle;
 					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
 				}

@@ -17,7 +17,16 @@ namespace arena
 {
 	class Animator;
 
-
+	struct DebugBullet
+	{
+		DebugBullet()
+		{
+			lifeTime = 2.0f;
+		}
+		Entity* entity;
+		Bullet* bullet;
+		float lifeTime;
+	};
 	struct Weapon;
 	struct Bullet;
 	struct PlayerScore;
@@ -67,7 +76,7 @@ namespace arena
 
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
-		void createBulletEntity(Bullet& bullet);
+		void createBulletEntity(Bullet* bullet);
 
 		// Create real hits (debugging & adjusting)
 		void createBulletHit(BulletData& data);
@@ -86,14 +95,15 @@ namespace arena
 		// TODO: should use entities
 
 		std::vector<ArenaPlatform> m_platformVector;
-		std::vector<Bullet> m_spawnBulletVector;
 		std::vector<Bullet> m_bulletHitVector;
 
+		std::map<uint8_t, DebugBullet> m_debugBullets;
 		bool connected;
 
 		float sendInputToServerTimer;
 		Scoreboard m_scoreboard;
 		uint8_t m_playerId;
+
     public:
         PlayerController m_controller;
 	};

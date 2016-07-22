@@ -12,6 +12,8 @@
 #include <common/arena/game_map.h>
 #include <common/network_entity.h>
 
+#include <common/arena/weapons.h>
+
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, PlayerController)
@@ -286,6 +288,13 @@ namespace arena
 		GameMap				m_map;
 		Physics				m_physics;
 
+		struct DebugBullet
+		{
+			Bullet* m_bullet;
+			float lifeTime;
+		};
+
+		std::vector<DebugBullet> m_debugBullets;
 		std::vector<const NetworkEntity*>		m_synchronizationList;
 		Container<NetworkEntity*>				m_entities;
 		Container<Player>						m_players;
