@@ -42,7 +42,7 @@ namespace arena
 
             // fore arm
             m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 10.f);;
-            m_foreArm.m_position = glm::vec2(5, 30);
+            m_foreArm.m_position = glm::vec2(6, 29);
             m_foreArm.m_rotation = glm::radians(m_forearmAngle);
             m_foreArm.m_depth = 2.f;
 
@@ -50,7 +50,7 @@ namespace arena
             m_gun.m_depth = 1.9f;
             m_gun.m_origin = glm::vec2(m_gun.m_texture->width, m_gun.m_texture->height) / 2.f;
             m_gun.m_rotation = glm::radians(m_gunAngle);
-            m_gun.m_position = glm::vec2(5.f, 18.f); // 10.f
+            m_gun.m_position = glm::vec2(6.f, 20.f); // 10.f
         }
 
         void rotateTo(float radians) override
@@ -105,8 +105,8 @@ namespace arena
     struct GladiusLeftArm : public IHandAnimation
     {
         GladiusLeftArm() :
-            m_upperAngle(0),
-            m_forearmAngle(0),
+            m_upperAngle(17.f),
+            m_forearmAngle(125.f),
             m_flipX(false),
             m_upperArm(nullptr),
             m_foreArm(nullptr)
@@ -123,16 +123,16 @@ namespace arena
             m_upperArm.m_children.push_back(&m_foreArm);
 
             // upper arm
-            m_upperArm.m_position = glm::vec2(00, 00);
+            m_upperArm.m_position = glm::vec2(16, 10);
             m_upperArm.m_origin = glm::vec2(m_upperArm.m_texture->width / 2.f, 10.f);
             m_upperArm.m_rotation = glm::radians(m_upperAngle);
-            m_upperArm.m_depth = 2.f;
+            m_upperArm.m_depth = 1.8f;
 
             // fore arm
             m_foreArm.m_origin = glm::vec2(m_foreArm.m_texture->width / 2.f, 10.f);;
-            m_foreArm.m_position = glm::vec2(50, 300);
+            m_foreArm.m_position = glm::vec2(5, 25);
             m_foreArm.m_rotation = glm::radians(m_forearmAngle);
-            m_foreArm.m_depth = 2.f;
+            m_foreArm.m_depth = 1.8f;
         }
 
         void rotateTo(float radians) override
