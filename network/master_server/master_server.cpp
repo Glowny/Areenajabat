@@ -24,6 +24,8 @@ namespace arena
 
     void MasterServerClientListener::onClientDisconnected(uint32_t clientIndex, ENetPeer* from, double timestamp)
     {
+        fprintf(stderr, "MasterServerClientListener::onClientDisconnect()\n");
+
         BX_UNUSED(clientIndex, from, timestamp);
         // cut the link between lobbies and routing
         from->data = nullptr;
@@ -233,6 +235,7 @@ namespace arena
             m_gameInstances.push_back(new SlaveServer(GamemodeName));
 
             const uint32_t lobbyIndex = uint32_t(m_gameInstances.size()) - 1;
+            m_gameInstances[lobbyIndex]->addListener(&m_listener);
             m_instanceCreatedBy[lobbyIndex] = packet->m_clientSalt;
 
             uint64_t lobbySalt = calculateLobbySalt(from, packet->m_clientSalt, packet->m_name);

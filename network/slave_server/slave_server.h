@@ -63,8 +63,9 @@ namespace arena
         // wtf?
         float64 getDeltaTime();
 
-		void SlaveServer::broadcast(Packet* packet);
+		void broadcast(Packet* packet);
 
+        void addListener(ClientListener* listener);
 	private:
         // listener which posts connect and disconnect events
         SlaveServerClientListener m_clientListener;
