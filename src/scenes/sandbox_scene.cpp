@@ -391,35 +391,35 @@ namespace arena
 	void SandboxScene::createBackground()
 	{
 		
-		for(unsigned y = 0; y <= 1; y++)
-		{ 
-		for(unsigned x = 0; x <= 3; x++)
-			{ 
-				EntityBuilder builder;
-				builder.begin();
-				ResourceManager* resources = App::instance().resources();
-				(void)resources;
+        for (unsigned y = 0; y <= 1; y++)
+        {
+            for (unsigned x = 0; x <= 3; x++)
+            {
+                EntityBuilder builder;
+                builder.begin();
+                ResourceManager* resources = App::instance().resources();
+                (void)resources;
 
-				SpriteRenderer* renderer = builder.addSpriteRenderer();
+                SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-				std::string name = "map/";
-				name += std::to_string(x);
-				name += std::to_string(y);
-				name += ".png";
+                std::string name = "map/";
+                name += std::to_string(x);
+                name += std::to_string(y);
+                name += ".png";
 
-				TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
+                TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
 
-				glm::vec2 scale = glm::vec2(1920.0f / float(textureResource->width), 1080.0f / float(textureResource->height));
-				
-				Transform* transform = builder.addTransformComponent();
+                glm::vec2 scale = glm::vec2(1920.0f / float(textureResource->width), 1080.0f / float(textureResource->height));
 
-				transform->m_position = glm::vec2(x * 1920, y * 1080 +64);
-				transform->m_scale = scale;
-				renderer->setTexture(textureResource);
+                Transform* transform = builder.addTransformComponent();
 
-				renderer->anchor();
-			}
-		}
+                transform->m_position = glm::vec2(x * 1920, y * 1080 + 64);
+                transform->m_scale = scale;
+                renderer->setTexture(textureResource);
+
+                renderer->anchor();
+            }
+        }
 	}
 
 	
