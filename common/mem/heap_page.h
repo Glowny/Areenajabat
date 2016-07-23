@@ -35,8 +35,8 @@ namespace arena
 		std::vector<HeapBlock> m_released;		// Released blocks that can be used for allocations.
 		std::vector<HeapBlock> m_blocks;		// Blocks that are being used.
 		
-		const UintPtr		   m_lowAddress;	// Low and high address of the
-		const UintPtr		   m_highAddress;	// m_memory.
+		UintPtr				   m_lowAddress;	// Low and high address of the
+		UintPtr				   m_highAddress;	// m_memory.
 
 		uint32				   m_bytes;			// How many bytes are being used.
 		const uint32		   m_size;			// Size of the page in bytes.

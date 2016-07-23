@@ -17,6 +17,11 @@ namespace arena
 	{
 		HeapBlock block(m_blockSize, handle);
 
+		if (m_blockSize == 24) {
+			static volatile int i = 0;
+			i++;
+		}
+
 		return m_allocator.deallocate(&block);
 	}
 
@@ -58,18 +63,21 @@ namespace arena
 
 	char* const BlockAllocator::allocate(const uint32 size)
 	{
+		if (size == 0) return nullptr;
+
 		// Resize if needed.
 		if (size > maxBlockSize()) m_allocators.resize(size);
 
 		// Get the allocator for the given size.
-		FixedBlockAllocator* allocator = m_allocators[size];
+		const uint32 allocatorIndex		= size - 1;
+		FixedBlockAllocator* allocator	= m_allocators[allocatorIndex];
 
 		// No allocator for this block size, create one.
 		if (allocator == nullptr)
 		{
 			allocator = new FixedBlockAllocator(size, m_initialMaxBlocks);
 		
-			m_allocators[size] = allocator;
+			m_allocators[allocatorIndex] = allocator;
 		}
 
 		// Allocate and return.
@@ -77,7 +85,11 @@ namespace arena
 	}
 	bool BlockAllocator::deallocate(char* const handle, const uint32 size)
 	{
-		FixedBlockAllocator* const allocator = m_allocators[size];
+		if (handle == nullptr)	return false;
+		if (size == 0)			return false;
+
+		const uint32 allocatorIndex			 = size - 1;
+		FixedBlockAllocator* const allocator = m_allocators[allocatorIndex];
 		
 		assert(allocator != nullptr);
 

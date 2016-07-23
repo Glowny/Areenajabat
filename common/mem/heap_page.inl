@@ -7,12 +7,15 @@
 namespace arena
 {
 	HeapPage::HeapPage(const uint32 size) : m_memory(new char[size]),
-											m_lowAddress(ADDRESSOF(&m_memory[0])),
-											m_highAddress(ADDRESSOF(&m_memory[size - 1])),
 											m_size(size),
 										    m_bytes(0),
 											m_hp(0)
 	{
+		const UintPtr low	= ADDRESSOF(&m_memory[0]);
+		const UintPtr high	= ADDRESSOF(&m_memory[size - 1]);
+
+		m_lowAddress	= low < high ? low : high;
+		m_highAddress	= low < high ? high : low;
 	}
 
 	HeapBlock* const HeapPage::allocate(const uint32 bytes)
@@ -37,7 +40,7 @@ namespace arena
 			{
 				const HeapBlock& block = *it;
 
-				if (bytes < block.m_size)
+				if (bytes <= block.m_size)
 				{
 					// Erase from released.
 					m_released.erase(it);

@@ -40,76 +40,118 @@ namespace arena
 		sizeof(GameSetPlayerAmountPacket)
 	};
 
+#if _DEBUG
+	static uint32 createCalls	= 0;
+	static uint32 destroyCalls	= 0;
+#endif
+
     Packet* createPacket(int32_t type)
     {
-		#pragma region		Old impl
+#if _DEBUG
+		createCalls++;
+
+		if (createCalls == 38) {
+			volatile static int i = 7;
+			i++;
+		}
+#endif
+
+		Packet* packet = reinterpret_cast<Packet*>(s_allocator.allocate(getMaxPacketSize(type)));
+
         switch (type)
         {
         case PacketTypes::ConnectionRequest:
-            return new ConnectionRequestPacket;
+            DYNAMIC_NEW_DEFAULT(packet, ConnectionRequestPacket);
+			break;
         case PacketTypes::ConnectionDenied:
-            return new ConnectionDeniedPacket;
+            DYNAMIC_NEW_DEFAULT(packet, ConnectionDeniedPacket);
+			break;
         case PacketTypes::ConnectionChallenge:
-            return new ConnectionChallengePacket;
+            DYNAMIC_NEW_DEFAULT(packet, ConnectionChallengePacket);
+			break;
         case PacketTypes::ConnectionResponse:
-            return new ConnectionResponsePacket;
+            DYNAMIC_NEW_DEFAULT(packet, ConnectionResponsePacket);
+			break;
         case PacketTypes::KeepAlive:
-            return new ConnectionKeepAlivePacket;
+            DYNAMIC_NEW_DEFAULT(packet, ConnectionKeepAlivePacket);
+			break;
         case PacketTypes::Disconnect:
-            return new ConnectionDisconnectPacket;
+            DYNAMIC_NEW_DEFAULT(packet, ConnectionDisconnectPacket);
+			break;
 
             // master
 
         case PacketTypes::MasterCreateLobby:
-            return new CreateLobbyPacket;
+            DYNAMIC_NEW_DEFAULT(packet, CreateLobbyPacket);
+			break;
         case PacketTypes::MasterJoinLobby:
-            return new JoinLobbyPacket;
+            DYNAMIC_NEW_DEFAULT(packet, JoinLobbyPacket);
+			break;
         case PacketTypes::MasterListLobbies:
-            return new ListLobbiesPacket;
+            DYNAMIC_NEW_DEFAULT(packet, ListLobbiesPacket);
+			break;
         case PacketTypes::LobbyResultPacket:
-            return new LobbyResultPacket;
+            DYNAMIC_NEW_DEFAULT(packet, LobbyResultPacket);
+			break;
         case PacketTypes::LobbyQueryResultPacket:
-            return new LobbyQueryResultPacket;
+            DYNAMIC_NEW_DEFAULT(packet, LobbyQueryResultPacket);
+			break;
         case PacketTypes::LobbyJoinResult:
-            return new LobbyJoinResultPacket;
+            DYNAMIC_NEW_DEFAULT(packet, LobbyJoinResultPacket);
+			break;
 
 		case PacketTypes::GameSetup:
-			return new GameSetupPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameSetupPacket);
+			break;
 		case PacketTypes::GameUpdate:
-			return new GameUpdatePacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameUpdatePacket);
+			break;
 		case PacketTypes::GameCreateGladiators:
-			return new GameCreateGladiatorsPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameCreateGladiatorsPacket);
+			break;
 		case PacketTypes::GamePlatform:
-			return new GamePlatformPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GamePlatformPacket);
+			break;
 		case PacketTypes::GameSpawnBullets:
-			return new GameSpawnBulletsPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameSpawnBulletsPacket);
+			break;
 		case PacketTypes::GameBulletHit:
-			return new GameBulletHitPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameBulletHitPacket);
+			break;
 		case PacketTypes::GameDamagePlayer:
-			return new GameDamagePlayerPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameDamagePlayerPacket);
+			break;
 		case PacketTypes::GameKillPlayer:
-			return new GameKillPlayerPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameKillPlayerPacket);
+			break;
 		case PacketTypes::GameRespawnPlayer:
-			return new GameRespawnPlayerPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameRespawnPlayerPacket);
+			break;
 		case PacketTypes::GameUpdateScoreBoard:
-			return new GameUpdateScoreBoardPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameUpdateScoreBoardPacket);
+			break;
 		case PacketTypes::GameInput:
-			return new GameInputPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameInputPacket);
 		case PacketTypes::GameShoot:
-			return new GameShootPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameShootPacket);
+			break;
 		case PacketTypes::GameBulletCurrentPosition:
-			return new GameBulletCurrentPositionPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameBulletCurrentPositionPacket);
+			break;
 		case PacketTypes::GameSetPlayerAmount:
-			return new GameSetPlayerAmountPacket;
+			DYNAMIC_NEW_DEFAULT(packet, GameSetPlayerAmountPacket);
+			break;
         default:
             fprintf(stderr, "Invalid packet type %d", type);
-            return nullptr;
-		 }
-#pragma endregion
+			
+			s_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(type));
 
-		//Packet* packet = reinterpret_cast<Packet*>(s_allocator.allocate(s_packetSizes[type]));
-		//
-		//return packet;
+			packet = nullptr;
+
+			break;
+		 }
+
+		return packet;
 	}
 
     size_t getMaxPacketSize(int32_t type)
@@ -183,7 +225,100 @@ namespace arena
 
     void destroyPacket(Packet* packet)
     {
-		delete packet;
-		//s_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(packet->getType()));
-    }
+#if _DEBUG
+		destroyCalls++;
+#endif
+
+		s_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(packet->getType()));
+	
+		const int32 type = packet->getType();
+
+		switch (type)
+		{
+		case PacketTypes::ConnectionRequest:
+			DYNAMIC_DTOR(static_cast<ConnectionRequestPacket*>(packet), ConnectionRequestPacket);
+			break;
+		case PacketTypes::ConnectionDenied:
+			DYNAMIC_DTOR(static_cast<ConnectionDeniedPacket*>(packet), ConnectionDeniedPacket);
+			break;
+		case PacketTypes::ConnectionChallenge:
+			DYNAMIC_DTOR(static_cast<ConnectionChallengePacket*>(packet), ConnectionChallengePacket);
+			break;
+		case PacketTypes::ConnectionResponse:
+			DYNAMIC_DTOR(static_cast<ConnectionResponsePacket*>(packet), ConnectionResponsePacket);
+			break;
+		case PacketTypes::KeepAlive:
+			DYNAMIC_DTOR(static_cast<ConnectionKeepAlivePacket*>(packet), ConnectionKeepAlivePacket);
+			break;
+		case PacketTypes::Disconnect:
+			DYNAMIC_DTOR(static_cast<ConnectionDisconnectPacket*>(packet), ConnectionDisconnectPacket);
+			break;
+
+			// master
+
+		case PacketTypes::MasterCreateLobby:
+			DYNAMIC_DTOR(static_cast<CreateLobbyPacket*>(packet), CreateLobbyPacket);
+			break;
+		case PacketTypes::MasterJoinLobby:
+			DYNAMIC_DTOR(static_cast<JoinLobbyPacket*>(packet), JoinLobbyPacket);
+			break;
+		case PacketTypes::MasterListLobbies:
+			DYNAMIC_DTOR(static_cast<ListLobbiesPacket*>(packet), ListLobbiesPacket);
+			break;
+		case PacketTypes::LobbyResultPacket:
+			DYNAMIC_DTOR(static_cast<LobbyResultPacket*>(packet), LobbyResultPacket);
+			break;
+		case PacketTypes::LobbyQueryResultPacket:
+			DYNAMIC_DTOR(static_cast<LobbyQueryResultPacket*>(packet), LobbyQueryResultPacket);
+			break;
+		case PacketTypes::LobbyJoinResult:
+			DYNAMIC_DTOR(static_cast<LobbyJoinResultPacket*>(packet), LobbyJoinResultPacket);
+			break;
+
+		case PacketTypes::GameSetup:
+			DYNAMIC_DTOR(static_cast<GameSetupPacket*>(packet), GameSetupPacket);
+			break;
+		case PacketTypes::GameUpdate:
+			DYNAMIC_DTOR(static_cast<GameUpdatePacket*>(packet), GameUpdatePacket);
+			break;
+		case PacketTypes::GameCreateGladiators:
+			DYNAMIC_DTOR(static_cast<GameCreateGladiatorsPacket*>(packet), GameCreateGladiatorsPacket);
+			break;
+		case PacketTypes::GamePlatform:
+			DYNAMIC_DTOR(static_cast<GamePlatformPacket*>(packet), GamePlatformPacket);
+			break;
+		case PacketTypes::GameSpawnBullets:
+			DYNAMIC_DTOR(static_cast<GameSpawnBulletsPacket*>(packet), GameSpawnBulletsPacket);
+			break;
+		case PacketTypes::GameBulletHit:
+			DYNAMIC_DTOR(static_cast<GameBulletHitPacket*>(packet), GameBulletHitPacket);
+			break;
+		case PacketTypes::GameDamagePlayer:
+			DYNAMIC_DTOR(static_cast<GameDamagePlayerPacket*>(packet), GameDamagePlayerPacket);
+			break;
+		case PacketTypes::GameKillPlayer:
+			DYNAMIC_DTOR(static_cast<GameKillPlayerPacket*>(packet), GameKillPlayerPacket);
+			break;
+		case PacketTypes::GameRespawnPlayer:
+			DYNAMIC_DTOR(static_cast<GameRespawnPlayerPacket*>(packet), GameRespawnPlayerPacket);
+			break;
+		case PacketTypes::GameUpdateScoreBoard:
+			DYNAMIC_DTOR(static_cast<GameUpdateScoreBoardPacket*>(packet), GameUpdateScoreBoardPacket);
+			break;
+		case PacketTypes::GameInput:
+			DYNAMIC_DTOR(static_cast<GameInputPacket*>(packet), GameInputPacket);
+			break;
+		case PacketTypes::GameShoot:
+			DYNAMIC_DTOR(static_cast<GameShootPacket*>(packet), GameShootPacket);
+			break;
+		case PacketTypes::GameBulletCurrentPosition:
+			DYNAMIC_DTOR(static_cast<GameBulletCurrentPositionPacket*>(packet), GameBulletCurrentPositionPacket);
+			break;
+		case PacketTypes::GameSetPlayerAmount:
+			DYNAMIC_DTOR(static_cast<GameSetPlayerAmountPacket*>(packet), GameSetPlayerAmountPacket);
+			break;
+		default:
+			fprintf(stderr, "Invalid packet type %d", type);
+		}
+	}
 }
