@@ -103,8 +103,8 @@ namespace arena
 		DEBUG_PRINT("new player registered...");
 
         Player newPlayer;
-		newPlayer.m_clientIndex		= clientIndex;
-		newPlayer.m_playerController	= new PlayerController();
+		newPlayer.m_clientIndex		 = clientIndex;
+		newPlayer.m_playerController = new PlayerController();
 
         Gladiator* gladiator		= new Gladiator;
 		gladiator->m_ownerId		= newPlayer.m_clientIndex;
@@ -150,7 +150,7 @@ namespace arena
 		m_entities.remove(entity);
 	}
 
-	void GameHost::applyPlayerInputs(float dt)
+	void GameHost::applyPlayerInputs(const float64 dt)
 	{
 		// TODO: add jump and dont let player decide amount of force applied!
 		auto& players = m_players.container();
@@ -205,6 +205,10 @@ namespace arena
 		}
 	}
 
+	void GameHost::applyBulletUpdates(const float64 dt)
+	{
+	}
+
 	void GameHost::loadMap(const char* const mapName)
 	{
 		m_map.loadMapFromFile(mapName);
@@ -230,7 +234,7 @@ namespace arena
 		 m_synchronizationList.clear();
 	}
 
-	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input, float aimAngle)
+	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input, const float32 aimAngle)
 	{
 		// TODO: do proper check.
 		//if (!shouldProcessPlayerInput()) return;
@@ -381,8 +385,6 @@ namespace arena
 
 		m_gameData.m_gameElapsed += dt;
 	}
-
-
 
 	void GameHost::worldTick(const float64 dt)
 	{

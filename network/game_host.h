@@ -274,12 +274,13 @@ namespace arena
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
 
-		void processInput(const uint64 clientIndex, const PlayerInput& input, float aimAngle);
+		void processInput(const uint64 clientIndex, const PlayerInput& input, float32 aimAngle);
 		void GladiatorShoot(Gladiator* gladiator);
 		
 		bool shouldProcessPlayerInput() const;
 
-		void applyPlayerInputs(float dt);
+		void applyPlayerInputs(const float64 dt);
+		void applyBulletUpdates(const float64 dt);
 
 		void loadMap(const char* const mapName);
 

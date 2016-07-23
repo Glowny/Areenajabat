@@ -150,6 +150,7 @@ public:
 	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
 	void removeBullet(uint8_t id);
 	ContactListener m_ContactListener;
+
 	std::vector<BulletHit> hitVector;
 	std::vector<p_Bullet*> m_bulletVector;
 
