@@ -280,8 +280,11 @@ namespace arena
 		bool shouldProcessPlayerInput() const;
 
 		void applyPlayerInputs(const float64 dt);
+		void processBulletCollisions(const float64 dt);
 
 		void loadMap(const char* const mapName);
+
+		NetworkEntity* const find(Predicate<NetworkEntity* const> pred);
 
 		std::vector<Player>& players();
 		GameMap& map();

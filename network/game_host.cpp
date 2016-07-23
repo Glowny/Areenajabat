@@ -108,9 +108,10 @@ namespace arena
 
         Gladiator* gladiator		= new Gladiator;
 		gladiator->m_ownerId		= newPlayer.m_clientIndex;
-        gladiator->m_physicsId		= m_physics.addGladiator(gladiator->m_position);
-        gladiator->m_weapon			= new WeaponGladius;
+		gladiator->m_weapon			= new WeaponGladius;
         newPlayer.m_gladiator		= gladiator;
+
+		gladiator->setPhysicsID(m_physics.addGladiator(gladiator->m_position));
 
         m_players.add(newPlayer);
 
@@ -204,11 +205,40 @@ namespace arena
             memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
 		}
 	}
+	void GameHost::processBulletCollisions(const float64 dt)
+	{
+		std::vector<BulletCollisionEntry>& entries = m_physics.m_ContactListener.m_bulletCollisionEntries;
+
+		if (entries.empty()) return;
+
+		for (BulletCollisionEntry& entry : entries) 
+		{
+			p_Gladiator& shooter	= entry.m_shooter;
+			p_Gladiator& target		= entry.m_target;
+			p_Bullet& bullet		= entry.m_bullet;
+
+			// Get target entity instance.
+			Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
+			Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
+
+			// TODO: bullet?! what do we do with you..
+			// TODO: vesa, we has player <-> bullet collisions here!
+		}
+
+		entries.clear();
+	}
 
 	void GameHost::loadMap(const char* const mapName)
 	{
 		m_map.loadMapFromFile(mapName);
 		m_synchronizationList.push_back(&m_map);
+	}
+
+	NetworkEntity* const GameHost::find(Predicate<NetworkEntity* const> pred)
+	{
+		for (NetworkEntity* const e : m_entities) if (pred(e)) return e;
+
+		return nullptr;
 	}
 
 	std::vector<Player>& GameHost::players()

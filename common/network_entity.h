@@ -22,6 +22,15 @@ namespace arena
 			return m_type;
 		}
 
+		void setPhysicsID(const uint32 physicsID)
+		{
+			m_physicsID = physicsID;
+		}
+		uint32 getPhysicsID() const
+		{
+			return m_physicsID;
+		}
+
 		virtual ~NetworkEntity() = default;
 	protected:
 		NetworkEntity(const NetworkEntityType type) : m_type(type)
@@ -30,6 +39,8 @@ namespace arena
 
 		NetworkEntity() = delete;
 	private:
-		NetworkEntityType m_type;
+		uint32				m_physicsID	{ 0 };
+		
+		NetworkEntityType	m_type;
 	};
 }
