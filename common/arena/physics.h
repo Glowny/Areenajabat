@@ -91,8 +91,38 @@ struct p_Bullet
 	};
 
 };
+
+struct BulletCollisionEntry final 
+{
+	p_Bullet		m_bullet;
+
+	p_Gladiator		m_shooter;
+	p_Gladiator		m_target;
+};
+
 class ContactListener : public b2ContactListener
 {
+public:
+	std::vector<BulletCollisionEntry> m_bulletCollisionEntries;
+
+	std::vector<p_Gladiator*>* m_gladiators { nullptr };
+
+	ContactListener(std::vector<p_Gladiator*>* gladiators) : b2ContactListener(),
+															 m_gladiators(gladiators)
+	{
+	}
+
+	~ContactListener() = default;
+private:
+	p_Gladiator* findGladiator(const uint32 id)
+	{
+		if (m_gladiators == nullptr) return nullptr;
+		
+		for (p_Gladiator* g : *m_gladiators) if (g->m_id == id) return g;
+
+		return nullptr;
+	}
+
 	void BeginContact(b2Contact* contact)
 	{
 		void* targetBodyUserData = contact->GetFixtureA()->GetBody()->GetUserData();
@@ -107,6 +137,13 @@ class ContactListener : public b2ContactListener
 			{
 				p_Bullet* bullet =  static_cast<p_Bullet*>(bulletUserData->m_object);
 				bullet->startContact( targetUserData);
+
+				BulletCollisionEntry entry;
+				entry.m_bullet	= *bullet;
+				entry.m_shooter = *findGladiator(bullet->m_shooterID);
+				entry.m_target	= *static_cast<p_Gladiator*>(targetUserData->m_object);
+				
+				m_bulletCollisionEntries.push_back(entry);
 			}
 		}
 
@@ -114,13 +151,13 @@ class ContactListener : public b2ContactListener
 };
 
 
-class ArenaContactListener : public ContactListener {
-	// Called when two fixtures begin to touch
-	virtual void BeginContact(b2Contact* contact) final override;
-
-	// Called when two fixtures cease to touch
-	virtual void EndContact(b2Contact* contact) final override;
-};
+//class ArenaContactListener : public ContactListener {
+//	// Called when two fixtures begin to touch
+//	virtual void BeginContact(b2Contact* contact) final override;
+//
+//	// Called when two fixtures cease to touch
+//	virtual void EndContact(b2Contact* contact) final override;
+//};
 
 using CollisionCallback = std::function<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>;
 
@@ -142,8 +179,8 @@ public:
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
 
-	void addCollisionCallback(CollisionCallback callback);
-	void removeCollisionCallback(CollisionCallback callback);
+	//void addCollisionCallback(CollisionCallback callback);
+	//void removeCollisionCallback(CollisionCallback callback);
 
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
@@ -157,7 +194,7 @@ public:
 	uint8_t getFreeBulletId();
 private:
 	
-	ArenaContactListener m_listener;
+	//ArenaContactListener m_listener;
 
 	std::vector<CollisionCallback> m_callbacks;
 

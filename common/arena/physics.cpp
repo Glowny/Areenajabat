@@ -1,12 +1,26 @@
 #include "Physics.h"
 
-void ArenaContactListener::BeginContact(b2Contact* contact) {
-}
+//void ArenaContactListener::BeginContact(b2Contact* contact) {
+//	b2Body* const bodyA = contact->GetFixtureA()->GetBody();
+//	b2Body* const bodyB = contact->GetFixtureB()->GetBody();
+//
+//	void* userDataA = bodyA->GetUserData();
+//	void* userDataB = bodyB->GetUserData();
+//
+//	(void)userDataA;
+//	(void)userDataB;
+//
+//	(void)bodyA;
+//	(void)bodyB;
+//}
+//
+//void ArenaContactListener::EndContact(b2Contact* contact) {
+//	(void)contact;
+//
+//	return;
+//}
 
-void ArenaContactListener::EndContact(b2Contact* contact) {
-}
-
-Physics::Physics() 
+Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 {
 	updateTimer = 0;
 	m_b2DWorld = new b2World(b2Vec2(0.f,9.81f));
@@ -55,69 +69,73 @@ Physics::~Physics() {};
 
 void Physics::update(float timeStep)
 {
-	
-	int32 velocityIterations = 6;
-	int32 positionIterations = 2;
+	const int32 VelocityIterations = 6;
+	const int32 PositionIterations = 2;
 
-	m_b2DWorld->Step(timeStep, velocityIterations, positionIterations);
+	m_b2DWorld->Step(timeStep, VelocityIterations, PositionIterations);
 
+	// Set gladiator positions.
 	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
 		b2Vec2 pos = m_gladiatorVector[i]->m_body->GetPosition();
 		*m_gladiatorVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
 	}
 
-	for (unsigned i = 0; i < m_bulletVector.size(); i++)
-	{
-		b2Vec2 pos = m_bulletVector[i]->m_body->GetPosition();
-		*m_bulletVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
-		if (m_bulletVector[i]->m_contact == true)
-		{
-			switch (m_bulletVector[i]->m_contactUserData->m_bodyType)
-			{
-			case B_Platform:
-			{
-				BulletHit hit;
-				hit.hitType = B_Platform;
-				hit.position = m_bulletVector[i]->hitPosition;
-				hitVector.push_back(hit);
-			}
-			break;
-			case B_Gladiator:
-			{
+	#pragma region Old impl
+	// TODO: old impl, see contact listener.
+	//for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	//{
+	//	b2Vec2 pos = m_bulletVector[i]->m_body->GetPosition();
+	//	*m_bulletVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
+	//	if (m_bulletVector[i]->m_contact == true)
+	//	{
+	//		switch (m_bulletVector[i]->m_contactUserData->m_bodyType)
+	//		{
+	//		case B_Platform:
+	//		{
+	//			BulletHit hit;
+	//			hit.hitType = B_Platform;
+	//			hit.position = m_bulletVector[i]->hitPosition;
+	//			hitVector.push_back(hit);
+	//		}
+	//		break;
+	//		case B_Gladiator:
+	//		{
 
-				BulletHit hit;
-				p_Gladiator* glad = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object);
-				unsigned targetID = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object)->m_id;
-				hit.hitType = B_Gladiator;
-				hit.position = m_bulletVector[i]->hitPosition;
-				hit.targetPlayerId = targetID;
-				hit.shooterPlayerId = static_cast<p_Bullet*>(m_bulletVector[i]->m_myUserData->m_object)->m_shooterID;
-				hitVector.push_back(hit);
-			}
-			break;
-			default:
-				break;
-			}
+	//			BulletHit hit;
+	//			p_Gladiator* glad = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object);
+	//			unsigned targetID = static_cast<p_Gladiator*>(m_bulletVector[i]->m_contactUserData->m_object)->m_id;
+	//			hit.hitType = B_Gladiator;
+	//			hit.position = m_bulletVector[i]->hitPosition;
+	//			hit.targetPlayerId = targetID;
+	//			hit.shooterPlayerId = static_cast<p_Bullet*>(m_bulletVector[i]->m_myUserData->m_object)->m_shooterID;
+	//			hitVector.push_back(hit);
+	//		}
+	//		break;
+	//		default:
+	//			break;
+	//		}
 
 
-		}
+	//	}
 		
 		//printf("%f, %f\n", position.x, position.y);
-	}
-	if(m_bulletVector.size() != 0)
-	{ 
-		for (int i = m_bulletVector.size()-1; i >= 0; i--)
-		{
-			if (m_bulletVector[i]->m_contact == true)
-			{
-				m_bulletVector[i]->m_body->GetWorld()->DestroyBody(m_bulletVector[i]->m_body);
-				delete(m_bulletVector[i]->m_myUserData);
-				delete(m_bulletVector[i]);
-				m_bulletVector.erase(m_bulletVector.begin() + i);
-			}
-		}
-	}
+	// }
+	
+	//if( m_bulletVector.size() != 0)
+	//{ 
+	//	for (int i = m_bulletVector.size()-1; i >= 0; i--)
+	//	{
+	//		if (m_bulletVector[i]->m_contact == true)
+	//		{
+	//			m_bulletVector[i]->m_body->GetWorld()->DestroyBody(m_bulletVector[i]->m_body);
+	//			delete(m_bulletVector[i]->m_myUserData);
+	//			delete(m_bulletVector[i]);
+	//			m_bulletVector.erase(m_bulletVector.begin() + i);
+	//		}
+	//	}
+	//}
+#pragma endregion
 };
 
 void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
@@ -245,34 +263,34 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 	return position;
 }
 
-void Physics::addCollisionCallback(CollisionCallback callback) 
-{
-	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++) 
-	{
-		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() == 
-		    callback.template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>())
-		{
-			return;
-		}
-	}
-
-	m_callbacks.push_back(callback);
-}
-void Physics::removeCollisionCallback(CollisionCallback callback) 
-{
-	if (m_callbacks.empty()) return;
-	
-	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++)
-	{
-		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() ==
-			callback.template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>())
-		{
-			m_callbacks.erase(it);
-
-			return;
-		}
-	}
-}
+//void Physics::addCollisionCallback(CollisionCallback callback) 
+//{
+//	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++) 
+//	{
+//		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() == 
+//		    callback.template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>())
+//		{
+//			return;
+//		}
+//	}
+//
+//	m_callbacks.push_back(callback);
+//}
+//void Physics::removeCollisionCallback(CollisionCallback callback) 
+//{
+//	if (m_callbacks.empty()) return;
+//	
+//	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++)
+//	{
+//		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() ==
+//			callback.template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>())
+//		{
+//			m_callbacks.erase(it);
+//
+//			return;
+//		}
+//	}
+//}
 
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
