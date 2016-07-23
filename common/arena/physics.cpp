@@ -246,9 +246,33 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 	return position;
 }
 
-void addCollisionCallback(CollisionCallback callback) {
+void Physics::addCollisionCallback(CollisionCallback callback) 
+{
+	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++) 
+	{
+		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() == 
+		    callback.template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>())
+		{
+			return;
+		}
+	}
+
+	m_callbacks.push_back(callback);
 }
-void removeCollisionCallback(CollisionCallback callback) {
+void Physics::removeCollisionCallback(CollisionCallback callback) 
+{
+	if (m_callbacks.empty()) return;
+	
+	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++)
+	{
+		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() ==
+			callback.template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>())
+		{
+			m_callbacks.erase(it);
+
+			return;
+		}
+	}
 }
 
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
