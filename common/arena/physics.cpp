@@ -247,9 +247,6 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 
 void Physics::addCollisionCallback(CollisionCallback callback) 
 {
-	// TODO: rm if we end up using these functions.
-	assert(0);
-
 	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++) 
 	{
 		if (it->template target<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>() == 
@@ -263,9 +260,6 @@ void Physics::addCollisionCallback(CollisionCallback callback)
 }
 void Physics::removeCollisionCallback(CollisionCallback callback) 
 {
-	// TODO: rm if we end up using these functions.
-	assert(0);
-
 	if (m_callbacks.empty()) return;
 	
 	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++)

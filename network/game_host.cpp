@@ -205,10 +205,6 @@ namespace arena
 		}
 	}
 
-	void GameHost::applyBulletUpdates(const float64 dt)
-	{
-	}
-
 	void GameHost::loadMap(const char* const mapName)
 	{
 		m_map.loadMapFromFile(mapName);

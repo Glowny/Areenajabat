@@ -280,7 +280,6 @@ namespace arena
 		bool shouldProcessPlayerInput() const;
 
 		void applyPlayerInputs(const float64 dt);
-		void applyBulletUpdates(const float64 dt);
 
 		void loadMap(const char* const mapName);
 
