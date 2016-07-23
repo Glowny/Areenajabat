@@ -423,7 +423,9 @@ namespace arena
 					else
 					{
 						m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
+
 						delete m_debugBullets[i].m_bullet;
+						
 						m_debugBullets.erase(m_debugBullets.begin() + i);
 					}
 					

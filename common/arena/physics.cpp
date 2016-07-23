@@ -1,6 +1,10 @@
-
 #include "Physics.h"
 
+void ArenaContactListener::BeginContact(b2Contact* contact) {
+}
+
+void ArenaContactListener::EndContact(b2Contact* contact) {
+}
 
 Physics::Physics() 
 {
@@ -241,6 +245,12 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 	position.y = pos.y*100.0f;
 	return position;
 }
+
+void addCollisionCallback(CollisionCallback callback) {
+}
+void removeCollisionCallback(CollisionCallback callback) {
+}
+
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
 	b2Vec2 vel = m_gladiatorVector[id]->m_body->GetLinearVelocity();

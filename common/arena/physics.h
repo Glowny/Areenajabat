@@ -1,10 +1,13 @@
 #pragma once
 
+#include <functional>
 #include <Box2D\Box2D.h>
 #include <stdarg.h>
 #include <vector>
 #include <glm\glm.hpp>
 #include <typeinfo>
+#include "..\network_entity.h"
+
 // TODO: platform has extra stuff that could be removed.
 
 enum entityCategory
@@ -111,6 +114,16 @@ class ContactListener : public b2ContactListener
 };
 
 
+class ArenaContactListener : public ContactListener {
+	// Called when two fixtures begin to touch
+	virtual void BeginContact(b2Contact* contact) final override;
+
+	// Called when two fixtures cease to touch
+	virtual void EndContact(b2Contact* contact) final override;
+};
+
+using CollisionCallback = std::function<void(arena::NetworkEntity* const, arena::NetworkEntity* const)>;
+
 class Physics
 {
 public:
@@ -128,6 +141,10 @@ public:
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
+
+	void addCollisionCallback(CollisionCallback callback);
+	void removeCollisionCallback(CollisionCallback callback);
+
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
 	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
@@ -139,6 +156,10 @@ public:
 	uint8_t getFreeBulletId();
 private:
 	
+	ArenaContactListener m_listener;
+
+	std::vector<CollisionCallback> m_callbacks;
+
 	bool isIdFree[256];
 	void nextUint8_t(uint8_t& current);
 	uint8_t currentFreeId;
