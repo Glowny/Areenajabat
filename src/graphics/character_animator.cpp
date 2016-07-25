@@ -57,6 +57,7 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
+		fillMap();
 		aimAngle = 0;
 		m_skin = Bronze;
         m_torso.m_relativeOffset = glm::vec2(-6.f, 37.f);
@@ -196,7 +197,7 @@ namespace arena
 		std::cout << std::to_string(animation) << std::endl;*/
 		DyingAnimations dyingAnimation = DyingAnimations(hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator));
 		m_death.m_animation.setCurrentAnimation(enumToFileName[dyingAnimation]);
-		printf("animation enum: %d, string : %s\n", dyingAnimation, enumToFileName[dyingAnimation]);
+		printf("animation enum: %d, string : %s\n", dyingAnimation, enumToFileName[dyingAnimation].c_str());
 	}
 
     const glm::vec2& CharacterAnimator::getPosition() const
