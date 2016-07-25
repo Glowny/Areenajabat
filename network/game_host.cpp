@@ -217,10 +217,14 @@ namespace arena
 			p_Gladiator& target		= entry.m_target;
 			p_Bullet& bullet		= entry.m_bullet;
 
+			dt;
+			bullet;
+			shooter;
 			// Get target entity instance.
 			Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
 			Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
+			shooterGladiator;
 			// TODO: bullet?! what do we do with you..
 			// TODO: vesa, we has player <-> bullet collisions here!
 			//		 reduce target hp, dispose bullet etc.

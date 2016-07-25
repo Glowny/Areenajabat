@@ -56,6 +56,7 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
+		aimAngle = 0;
         m_torso.m_relativeOffset = glm::vec2(-6.f, 37.f);
         m_legs.m_relativeOffset = glm::vec2(11, 124);
         m_head.m_helmet.m_position = glm::vec2(-16, -57);
@@ -74,7 +75,7 @@ namespace arena
         m_torso.m_sprite.m_children[AnimationPosition::LeftArm] = nullptr;
     }
 
-    void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso, SpriterEngine::EntityInstance* legs)
+    void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso, SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death)
     {
         m_head.m_crest.m_texture = crest;
         m_head.m_helmet.m_texture = helmet;
@@ -82,10 +83,13 @@ namespace arena
         m_torso.m_sprite.m_texture = torso;
 
         m_legs.m_animation.m_entity = legs;
+		m_death.m_animation.m_entity = death;
+
     }
 
     void CharacterAnimator::rotateAimTo(float radians)
     {
+		aimAngle = radians;
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
         m_animationData->m_rightHand->rotateTo(radians);
         m_animationData->m_leftHand->rotateTo(radians);
@@ -95,14 +99,21 @@ namespace arena
     void CharacterAnimator::update(float dt)
     {
         double inMillis = dt * 1000.0;
-        m_legs.m_animation.setTimeElapsed(inMillis);
-        
-        glm::vec2 offset(
-            0.f,
-            calculateTorsoOffsetY(uint32_t(m_legs.m_animation.getCurrentTime()))
-            );
+		if (m_death.dying)
+		{
+			m_death.m_animation.setTimeElapsed(inMillis);
+		}
+		else
+		{ 
+			m_legs.m_animation.setTimeElapsed(inMillis);
+			
+			glm::vec2 offset(
+			    0.f,
+			    calculateTorsoOffsetY(uint32_t(m_legs.m_animation.getCurrentTime()))
+			    );
 
-        m_torso.m_sprite.m_position = m_position + m_torso.m_relativeOffset + offset;
+			m_torso.m_sprite.m_position = m_position + m_torso.m_relativeOffset + offset;
+		}
     }
 
     void CharacterAnimator::setWeaponAnimation(WeaponAnimationType::Enum type)
@@ -150,6 +161,14 @@ namespace arena
             m_animationData->m_leftHand->flip();
         }
     }
+
+	void CharacterAnimator::playDeathAnimation(bool hitDirection, float hitPositionY)
+	{
+		m_death.dying = true;
+		hitDirection;
+	    hitPositionY;
+		m_death.m_animation.setCurrentAnimation("2_toBackOfTheHead_left");
+	}
 
     const glm::vec2& CharacterAnimator::getPosition() const
     {

@@ -28,6 +28,19 @@ namespace arena
         glm::vec2 m_relativeOffset;
     };
 
+	struct Death
+	{
+		Death() : m_animation(nullptr) 
+		{
+			dying = false;
+			m_relativeOffset = glm::vec2(0, 0);
+		}
+
+		SpriterAnimationPlayer m_animation;
+		glm::vec2 m_relativeOffset;
+		bool dying;
+	};
+
     struct Torso
     {
         Torso() : m_sprite(nullptr) {}
@@ -53,7 +66,10 @@ namespace arena
 
         void setWeaponAnimation(WeaponAnimationType::Enum type);
 
-        void setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso, SpriterEngine::EntityInstance* legs);
+		void playDeathAnimation(bool hitDirection, float hitPositionY);
+
+        void setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
+			SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death);
 
         void render();
 
@@ -62,7 +78,7 @@ namespace arena
         Head m_head;
         Torso m_torso;
         Legs m_legs;
-
+		Death m_death;
         AnimationData* m_animationData;
 
         WeaponAnimationType::Enum m_weaponAnimType;
@@ -70,5 +86,6 @@ namespace arena
         glm::vec2 m_position;
 
         bool m_flipX;
+		float aimAngle;
     };
 }
