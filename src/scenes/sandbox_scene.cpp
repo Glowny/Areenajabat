@@ -117,6 +117,11 @@ namespace arena
 		anime->m_animator.setFlipX(true);
     }
     
+	static void diefool(const void*)
+	{
+		anime->m_animator.playDeathAnimation(0, 20.0f);
+	}
+
     static void connect(const void*)
     {
         if (s_client->isConnected()) return;
@@ -137,6 +142,7 @@ namespace arena
     {
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
+		{ arena::Key::KeyS, arena::Modifier::None, 0, diefool, "die" },
 		{ arena::Key::KeyH, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyK, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyU, arena::Modifier::None, 0, inputMoveUp, "moveup" },
@@ -373,11 +379,15 @@ namespace arena
 
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
+		SpriterEngine::EntityInstance* entity;
+	
 		anim.setStaticContent(
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0)
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0)
+
 		);
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
 		

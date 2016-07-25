@@ -219,11 +219,15 @@ namespace arena
 			dt;
 			
 
+			dt;
+			bullet;
+			shooter;
 			// Get target entity instance.
 			Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
 			shooterGladiator;
 			Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
+			shooterGladiator;
 
 			BulletHit* hit = new BulletHit;
 			hit->m_damageAmount = 10;
