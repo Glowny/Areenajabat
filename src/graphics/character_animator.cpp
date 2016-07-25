@@ -184,8 +184,16 @@ namespace arena
     {
         SpriteEffects::Enum effects = m_flipX ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
 
-        m_legs.m_animation.render();
-        // torso will render head and hands
-        m_torso.m_sprite.render(effects);
+        if (!m_death.dying)
+        {
+
+            m_legs.m_animation.render();
+            // torso will render head and hands
+            m_torso.m_sprite.render(effects);
+        }
+        else
+        {
+            m_death.m_animation.render();
+        }
     }
 }

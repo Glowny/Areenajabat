@@ -56,7 +56,7 @@ namespace arena
 		}
 #endif
 
-		Packet* packet = reinterpret_cast<Packet*>(s_allocator.allocate(getMaxPacketSize(type)));
+		Packet* packet = reinterpret_cast<Packet*>(s_allocator.allocate((uint32_t)getMaxPacketSize(type)));
 
         switch (type)
         {
@@ -144,7 +144,7 @@ namespace arena
         default:
             fprintf(stderr, "Invalid packet type %d", type);
 			
-			s_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(type));
+			s_allocator.deallocate(reinterpret_cast<Char* const>(packet), (uint32_t)getMaxPacketSize(type));
 
 			packet = nullptr;
 
@@ -229,7 +229,7 @@ namespace arena
 		destroyCalls++;
 #endif
 
-		s_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(packet->getType()));
+		s_allocator.deallocate(reinterpret_cast<Char* const>(packet), (uint32_t)getMaxPacketSize(packet->getType()));
 	
 		const int32 type = packet->getType();
 
