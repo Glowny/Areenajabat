@@ -65,7 +65,7 @@ namespace arena
 		void updateGladiators(GameUpdatePacket* packet);
 		void spawnBullets(GameSpawnBulletsPacket* packet);
 		void spawnBulletHits(GameBulletHitPacket* packet);
-		void damagePlayer(GameDamagePlayerPacket* packet);
+		void processDamagePlayer(GameDamagePlayerPacket* packet);
 		void killPlayer(GameKillPlayerPacket* packet);
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);

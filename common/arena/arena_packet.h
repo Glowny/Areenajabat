@@ -345,7 +345,9 @@ namespace arena
 	{
 		uint64_t m_clientSalt;
 		uint8_t m_targetID;
-		float m_damageAmount;
+		int32 m_damageAmount;
+		uint8_t m_hitDirection; // Direction where the bullet came from, bool
+		glm::vec2 m_hitPosition;
 
 		GameDamagePlayerPacket()
 			: m_clientSalt(0)
@@ -360,7 +362,10 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_bytes(stream, &m_targetID, 1);
-			serialize_float(stream, m_damageAmount);
+			serialize_bytes(stream, &m_hitDirection, 1);
+			serialize_int(stream, m_damageAmount, 0, 100);
+			serialize_float(stream, m_hitPosition.x);
+			serialize_float(stream, m_hitPosition.y);
 			serialize_uint64(stream, m_clientSalt);
 			return true;
 		}

@@ -12,6 +12,7 @@ namespace arena
 		Weapon,
 		Gladiator,
 		Map,
+		BulletHit,
 	};
 
 	class NetworkEntity

@@ -40,6 +40,22 @@ namespace arena
 		float m_creationDelay;
 	};
 
+	struct BulletHit : public NetworkEntity
+	{
+		BulletHit()
+			: NetworkEntity(NetworkEntityType::BulletHit)
+		{
+			m_damageAmount = 0;
+			m_hitDirection = 0;
+			m_hitPosition = glm::vec2(0, 0);
+		}
+		int32 m_damageAmount;
+		uint8_t m_hitDirection;
+		uint8_t m_targetPlayerId;
+		glm::vec2 m_hitPosition;
+
+	};
+
 	struct Weapon : public NetworkEntity
 	{
 	public:
