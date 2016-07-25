@@ -3,9 +3,46 @@
 #include "../res/spriter_animation_player.h"
 #include "composite_sprite.h"
 #include "animation_system.h"
+#include <map>
 
 namespace arena
 {
+
+	enum CharacterSkin
+	{
+		Bronze,
+		Gold,
+
+	};
+
+	enum DyingAnimations
+	{
+		ToForeheadLeft1,
+		ToForeheadRight1,
+		ToBackOfTheHeadLeft1,
+		ToBackOfTheHeadRight1,
+		ToChestLeft1,
+		ToChestRight1,
+		ToBackLeft1,
+		ToBackRight1,
+		ToFrontLegsLeft1,
+		ToFrontLegsRight1,
+		ToBackLegsLeft1,
+		ToBackLegsRight1,
+		ToForeheadLeft2,
+		ToForeheadRight2,
+		ToBackOfTheHeadLeft2,
+		ToBackOfTheHeadRight2,
+		ToChestLeft2,
+		ToChestRight2,
+		ToBackLeft2,
+		ToBackRight2,
+		ToFrontLegsLeft2,
+		ToFrontLegsRight2,
+		ToBackLegsLeft2,
+		ToBackLegsRight2,
+	};
+
 
     struct Head
     {
@@ -49,6 +86,7 @@ namespace arena
         glm::vec2 m_relativeOffset;
     };
 
+	
     class CharacterAnimator
     {
     public:
@@ -62,7 +100,10 @@ namespace arena
 
         const glm::vec2& getPosition() const;
 
+		void setCharacterSkin(CharacterSkin skin);
+
         void setFlipX(bool flip);
+
 
         void setWeaponAnimation(WeaponAnimationType::Enum type);
 
@@ -75,6 +116,7 @@ namespace arena
 
         void rotateAimTo(float radians);
     private:
+		CharacterSkin m_skin;
         Head m_head;
         Torso m_torso;
         Legs m_legs;
@@ -87,5 +129,10 @@ namespace arena
 
         bool m_flipX;
 		float aimAngle;
+
+		void fillMap();
+
+		std::map<unsigned, std::string> enumToFileName;
+
     };
 }

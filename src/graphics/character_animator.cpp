@@ -50,6 +50,7 @@ namespace arena
         ARENA_ASSERT(m_legs.m_animation.m_entity != nullptr, "Leg animation hasnt been set");
         m_position = position;
         m_legs.m_animation.setPosition(m_legs.m_relativeOffset + position);
+		m_death.m_animation.setPosition(m_death.m_relativeOffset + position);
     }
 
     CharacterAnimator::CharacterAnimator() :
@@ -57,7 +58,10 @@ namespace arena
         m_animationData(nullptr)
     {
 		aimAngle = 0;
+		m_skin = Bronze;
         m_torso.m_relativeOffset = glm::vec2(-6.f, 37.f);
+		// add death relative offset
+		m_death.m_relativeOffset = glm::vec2(11, 124);
         m_legs.m_relativeOffset = glm::vec2(11, 124);
         m_head.m_helmet.m_position = glm::vec2(-16, -57);
 		m_head.m_crest.m_position = glm::vec2(0,0);
@@ -164,10 +168,35 @@ namespace arena
 
 	void CharacterAnimator::playDeathAnimation(bool hitDirection, float hitPositionY)
 	{
+		int bodyArea, gladiator, hitDirectionInt, upperBodyDirection, lowerBodyDirection;
+
+		gladiator = m_skin; //either 0 (bronze) or 1 (gold), unless more skins are added
+		hitDirectionInt = (int)hitDirection; // either 0 (left) or 1 (right)
+		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
+
+		//0 = head, 1 = body, 2 = legs
+		if (hitPositionY < 10)
+			bodyArea = 0; 
+		else if (hitPositionY < 60)
+			bodyArea = 1;
+		else
+			bodyArea = 2;
+
+		//pi/2 = 1.5707...
+		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
+			upperBodyDirection = 1;
+		else //if aiming left
+			upperBodyDirection = 0;
+
 		m_death.dying = true;
-		hitDirection;
-	    hitPositionY;
-		m_death.m_animation.setCurrentAnimation("2_toBackOfTheHead_left");
+		
+		//there are currently 24 differenct dying animations combined for both characters
+		/*int animation = hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator);
+		m_death.m_animation.setCurrentAnimation(enumToFileName[(DyingAnimations)animation]);
+		std::cout << std::to_string(animation) << std::endl;*/
+		DyingAnimations dyingAnimation = DyingAnimations(hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator));
+		m_death.m_animation.setCurrentAnimation(enumToFileName[dyingAnimation]);
+		printf("animation enum: %d, string : %s\n", dyingAnimation, enumToFileName[dyingAnimation]);
 	}
 
     const glm::vec2& CharacterAnimator::getPosition() const
@@ -179,6 +208,11 @@ namespace arena
     {
         return m_position;
     }
+
+	void CharacterAnimator::setCharacterSkin(CharacterSkin skin)
+	{
+		m_skin = skin;
+	}
 
     void CharacterAnimator::render()
     {
@@ -196,4 +230,31 @@ namespace arena
             m_death.m_animation.render();
         }
     }
+	void CharacterAnimator::fillMap()
+	{
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToForeheadLeft1, "1_toForehead_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToForeheadRight1, "1_toForehead_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackOfTheHeadLeft1, "1_toBackOfTheHead_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackOfTheHeadRight1, "1_toBackOfTheHead_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToChestLeft1, "1_toChest_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToChestRight1, "1_toChest_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLeft1, "1_toBack_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackRight1, "1_toBack_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsLeft1, "1_FrontLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsRight1, "1_FrontLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsLeft1, "1_BackLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsRight1, "1_BackLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToForeheadLeft2, "2_toForehead_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToForeheadRight2, "2_toForehead_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackOfTheHeadLeft2, "2_toBackOfTheHead_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackOfTheHeadRight2, "2_toBackOfTheHead_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToChestLeft2, "2_toChest_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToChestRight2, "2_toChest_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLeft2, "2_toBack_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackRight2, "2_toBack_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsLeft2, "2_FrontLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsRight2, "2_FrontLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsLeft2, "2_BackLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsRight2, "2_BackLegs_right"));
+	}
 }
