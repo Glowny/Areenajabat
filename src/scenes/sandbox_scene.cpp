@@ -265,7 +265,7 @@ namespace arena
                 }
                 case PacketTypes::GameDamagePlayer:
                 {
-                    damagePlayer((GameDamagePlayerPacket*)packet);
+					processDamagePlayer((GameDamagePlayerPacket*)packet);
                     break;
                 }
                 case PacketTypes::GameKillPlayer:
@@ -596,9 +596,16 @@ namespace arena
 		renderer->anchor();
 	}
 
-	void SandboxScene::damagePlayer(GameDamagePlayerPacket* packet)
+	void SandboxScene::processDamagePlayer(GameDamagePlayerPacket* packet)
 	{
-		m_clientIdToGladiatorData[packet->m_targetID]->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
+		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
+		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
+		if (gladiator->m_gladiator->m_hitpoints <= 0)
+		{
+			
+		}
+		// Todo: Set animation blood on hit position. Draw blood on gladiator. Animate death if health < 0.
+
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{

@@ -216,20 +216,34 @@ namespace arena
 			p_Gladiator& shooter	= entry.m_shooter;
 			p_Gladiator& target		= entry.m_target;
 			p_Bullet& bullet		= entry.m_bullet;
+			dt;
+			
 
 			dt;
 			bullet;
 			shooter;
 			// Get target entity instance.
 			Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
+			shooterGladiator;
 			Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
 			shooterGladiator;
-			// TODO: bullet?! what do we do with you..
-			// TODO: vesa, we has player <-> bullet collisions here!
-			//		 reduce target hp, dispose bullet etc.
 
-			// TODO: logic.
+			BulletHit* hit = new BulletHit;
+			hit->m_damageAmount = 10;
+			hit->m_hitPosition =  bullet.hitPosition - *target.gamePosition;
+			b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
+			if (velocity.x < 0)
+				hit->m_hitDirection = 0;
+			else
+				hit->m_hitDirection = 1;
+			hit->m_targetPlayerId = targetGladiator->m_ownerId;
+			
+			targetGladiator->m_hitpoints -= hit->m_damageAmount;
+			if (targetGladiator->m_hitpoints < 0)
+				targetGladiator->m_alive = false;
+
+			m_synchronizationList.push_back(hit);
 
 			// Sync.
 			m_synchronizationList.push_back(targetGladiator);

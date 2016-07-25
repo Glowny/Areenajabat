@@ -181,6 +181,16 @@ namespace arena
 				// weapon switch synch.
 				// Send Weapon data, cast.
 				break;
+
+			case NetworkEntityType::BulletHit:
+			{
+				BulletHit* hit = (BulletHit*)entity;
+				GameDamagePlayerPacket packet;
+				packet.m_damageAmount = hit->m_damageAmount;
+				packet.m_hitPosition = hit->m_hitPosition;
+				packet.m_hitDirection = hit->m_hitDirection;
+				packet.m_targetID = hit->m_targetPlayerId;
+			}
 			case NetworkEntityType::Map:
             {
                
