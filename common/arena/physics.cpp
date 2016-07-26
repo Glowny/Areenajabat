@@ -217,7 +217,7 @@ unsigned Physics::addGladiator(glm::vec2* position)
 	
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
-
+	
 	glad->m_id = uint32_t(m_gladiatorVector.size());
 	m_gladiatorVector.push_back(glad);
 	

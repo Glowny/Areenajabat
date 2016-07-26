@@ -111,7 +111,8 @@ namespace arena
 		gladiator->m_weapon			= new WeaponGladius;
         newPlayer.m_gladiator		= gladiator;
 
-		gladiator->setPhysicsID(m_physics.addGladiator(gladiator->m_position));
+		uint32_t id = m_physics.addGladiator(gladiator->m_position);
+		gladiator->m_physicsId = id;
 
         m_players.add(newPlayer);
 

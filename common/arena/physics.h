@@ -70,7 +70,7 @@ struct p_Platform
 
 struct p_Gladiator
 {
-	unsigned m_id;
+	uint32_t m_id;
 	b2Body* m_body;
 	p_userData* m_userData;
 	glm::vec2* gamePosition;
