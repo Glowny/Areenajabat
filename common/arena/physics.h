@@ -88,6 +88,12 @@ struct p_Bullet
 	p_userData* m_myUserData;
 	glm::vec2* gamePosition;
 	glm::vec2 hitPosition;
+
+	void cleanUp()
+	{
+		delete m_myUserData;
+		m_body->GetWorld()->DestroyBody(m_body);
+	}
 	void startContact(p_userData* contactUserData)
 	{ 
 		m_contact = true; m_contactUserData = contactUserData; 

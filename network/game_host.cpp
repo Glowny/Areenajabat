@@ -258,7 +258,13 @@ namespace arena
 
 			// Sync.
 			m_synchronizationList.push_back(targetGladiator);
-			m_physics.removeBullet(bullet.bulletId);
+			
+			// TODO: Do removal here and properly
+			for (unsigned i = 0; i < m_debugBullets.size(); i++)
+			{ 
+				if (m_debugBullets[i].m_bullet->m_bulletId == bullet.bulletId)
+					m_debugBullets[i].lifeTime = 10.0f;
+			}
 		}
 
 		entries.clear();
