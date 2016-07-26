@@ -2,7 +2,7 @@
 #include "mem\block_allocator.h"
 #include "arena\arena_packet.h"
 #include <stdio.h>
-
+#include <bx/bx.h>
 namespace arena
 {
 	const uint32 InitialSingleBlockSize = 32;
@@ -12,33 +12,35 @@ namespace arena
 
 	static const uint32 s_packetSizes[] 
 	{
-		sizeof(ConnectionRequestPacket),
-		sizeof(ConnectionDeniedPacket),
-		sizeof(ConnectionChallengePacket),
-		sizeof(ConnectionResponsePacket),
-		sizeof(ConnectionKeepAlivePacket),
-		sizeof(ConnectionDisconnectPacket),
-		sizeof(CreateLobbyPacket),
-		sizeof(JoinLobbyPacket),
-		sizeof(ListLobbiesPacket),
-		sizeof(LobbyResultPacket),
-		sizeof(LobbyQueryResultPacket),
-		sizeof(LobbyJoinResultPacket),
-		sizeof(GameSetupPacket),
-		sizeof(GameUpdatePacket),
-		sizeof(GameCreateGladiatorsPacket),
-		sizeof(GamePlatformPacket),
-		sizeof(GameSpawnBulletsPacket),
-		sizeof(GameBulletHitPacket),
-		sizeof(GameDamagePlayerPacket),
-		sizeof(GameKillPlayerPacket),
-		sizeof(GameRespawnPlayerPacket),
-		sizeof(GameUpdateScoreBoardPacket),
-		sizeof(GameInputPacket),
-		sizeof(GameShootPacket),
-		sizeof(GameBulletCurrentPositionPacket),
-		sizeof(GameSetPlayerAmountPacket)
+        sizeof(ConnectionRequestPacket),
+        sizeof(ConnectionDeniedPacket),
+        sizeof(ConnectionChallengePacket),
+        sizeof(ConnectionResponsePacket),
+        sizeof(ConnectionKeepAlivePacket),
+        sizeof(ConnectionDisconnectPacket),
+        sizeof(CreateLobbyPacket),
+        sizeof(JoinLobbyPacket),
+        sizeof(ListLobbiesPacket),
+        sizeof(LobbyResultPacket),
+        sizeof(LobbyQueryResultPacket),
+        sizeof(LobbyJoinResultPacket),
+        sizeof(GameSetupPacket),
+        sizeof(GameUpdatePacket),
+        sizeof(GameCreateGladiatorsPacket),
+        sizeof(GamePlatformPacket),
+        sizeof(GameSpawnBulletsPacket),
+        sizeof(GameBulletHitPacket),
+        sizeof(GameDamagePlayerPacket),
+        sizeof(GameKillPlayerPacket),
+        sizeof(GameRespawnPlayerPacket),
+        sizeof(GameUpdateScoreBoardPacket),
+        sizeof(GameInputPacket),
+        sizeof(GameShootPacket),
+        sizeof(GameBulletCurrentPositionPacket),
+        sizeof(GameSetPlayerAmountPacket),
 	};
+
+    static_assert(BX_COUNTOF(s_packetSizes) == PacketTypes::Count, "Invalid amount of packets");
 
 #if _DEBUG
 	static uint32 createCalls	= 0;
@@ -132,6 +134,7 @@ namespace arena
 			break;
 		case PacketTypes::GameInput:
 			DYNAMIC_NEW_DEFAULT(packet, GameInputPacket);
+            break;
 		case PacketTypes::GameShoot:
 			DYNAMIC_NEW_DEFAULT(packet, GameShootPacket);
 			break;
@@ -318,7 +321,7 @@ namespace arena
 			DYNAMIC_DTOR(static_cast<GameSetPlayerAmountPacket*>(packet), GameSetPlayerAmountPacket);
 			break;
 		default:
-			fprintf(stderr, "Invalid packet type %d", type);
+			ARENA_ASSERT(0, "Invalid packet type %d", type);
 		}
 	}
 }

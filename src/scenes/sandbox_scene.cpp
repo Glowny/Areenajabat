@@ -192,21 +192,21 @@ namespace arena
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
     {
-		s_stamp = gameTime.m_total;
+        s_stamp = gameTime.m_total;
 
         s_client->sendMatchMakingPackets(gameTime.m_total);
         s_client->sendProtocolPackets(gameTime.m_total);
-		
-		if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
-		{
-			sendInput(m_controller);
+        fprintf(stderr, "%.4f\n", sendInputToServerTimer);
+        if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
+        {
+            sendInput(m_controller);
 
             memset(&m_controller.m_input, false, sizeof(PlayerInput));
-			
-			sendInputToServerTimer = 0;
-		}
 
-		s_client->writePackets();
+            sendInputToServerTimer = 0;
+        }
+
+        s_client->writePackets();
         s_client->readPackets();
 
 
@@ -228,10 +228,10 @@ namespace arena
                 {
                 case PacketTypes::GameSetup:
                 {
-					connected = true;
+                    connected = true;
                     GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
-					m_playerId = setupPacket->m_clientIndex;
-					
+                    m_playerId = setupPacket->m_clientIndex;
+
                     for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
                     {
                         m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
@@ -241,13 +241,13 @@ namespace arena
                 case PacketTypes::GameUpdate:
                 {
                     updateGladiators((GameUpdatePacket*)packet);
-		
+
                     break;
                 }
-				case PacketTypes::GameCreateGladiators:
-				{
-					createGladiators((GameCreateGladiatorsPacket*)packet);
-				}
+                case PacketTypes::GameCreateGladiators:
+                {
+                    createGladiators((GameCreateGladiatorsPacket*)packet);
+                }
                 case PacketTypes::GamePlatform:
                 {
                     createPlatform((GamePlatformPacket*)packet);
@@ -265,7 +265,7 @@ namespace arena
                 }
                 case PacketTypes::GameDamagePlayer:
                 {
-					processDamagePlayer((GameDamagePlayerPacket*)packet);
+                    processDamagePlayer((GameDamagePlayerPacket*)packet);
                     break;
                 }
                 case PacketTypes::GameKillPlayer:
@@ -293,62 +293,62 @@ namespace arena
             destroyPacket(packet);
         }
 
-			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-			
-			for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); ++it)
-			{
-				if (it->second.lifeTime += gameTime.m_delta < 2.0f)
-				{ 
-					Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
-					bulletTransform->m_position = *it->second.bullet->m_position;
-				}
-				else
-				{
-					// delete bullet and do stuf fa
-				}
-			}
+        Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 
-			Camera& camera = App::instance().camera();
-			camera.m_position = playerTransform->m_position;
-			camera.calculate();
-			// set views
-			float ortho[16];
-			bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
-			bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
-			bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+        for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); ++it)
+        {
+            if (it->second.lifeTime += gameTime.m_delta < 2.0f)
+            {
+                Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
+                bulletTransform->m_position = *it->second.bullet->m_position;
+            }
+            else
+            {
+                // delete bullet and do stuf fa
+            }
+        }
 
-			bgfx::dbgTextClear();
+        Camera& camera = App::instance().camera();
+        camera.m_position = playerTransform->m_position;
+        camera.calculate();
+        // set views
+        float ortho[16];
+        bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
+        bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
+        bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
 
-			SpriteManager::instance().update(gameTime);
-			AnimatorManager::instance().update(gameTime);
+        bgfx::dbgTextClear();
 
-			const MouseState& mouse = Mouse::getState();
+        SpriteManager::instance().update(gameTime);
+        AnimatorManager::instance().update(gameTime);
 
-			glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-			transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+        const MouseState& mouse = Mouse::getState();
 
-			glm::vec2 dir(mouseLoc - playerTransform->m_position);
-			float a = glm::atan(dir.y, dir.x);
-            m_controller.aimAngle = a;
-			
+        glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+        transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
 
-			for (const auto& elem : m_clientIdToGladiatorData)
-			{
-				elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
-			}
-            m_clientIdToGladiatorData[m_playerId]->m_animator->rotateAimTo(a);
+        glm::vec2 dir(mouseLoc - playerTransform->m_position);
+        float a = glm::atan(dir.y, dir.x);
+        m_controller.aimAngle = a;
 
-            App::instance().spriteBatch()->submit(0);
 
-			bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
-			bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
-			    mouse.m_buttons[MouseButton::Left] ? "down" : "up",
-			    mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
-			    mouse.m_buttons[MouseButton::Right] ? "down" : "up");
-			bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
-			bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
-			bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
-		
+        for (const auto& elem : m_clientIdToGladiatorData)
+        {
+            elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+        }
+        m_clientIdToGladiatorData[m_playerId]->m_animator->rotateAimTo(a);
+
+        App::instance().spriteBatch()->submit(0);
+
+        bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
+        bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
+            mouse.m_buttons[MouseButton::Left] ? "down" : "up",
+            mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
+            mouse.m_buttons[MouseButton::Right] ? "down" : "up");
+        bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
+        bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+        bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
+
     }
 
 	void SandboxScene::onInitialize()

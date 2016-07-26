@@ -32,7 +32,9 @@ namespace arena
 	{
 		assert(block != nullptr);
 
-		for (HeapPage* const page : m_pages) if (page->deallocate(block)) return true;
+		for (HeapPage* const page : m_pages) 
+            if (page->deallocate(block)) 
+                return true;
 		
 		return false;
 	}
