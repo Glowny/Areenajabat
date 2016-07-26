@@ -54,7 +54,8 @@ namespace arena
 
 	};
 
-#define PLATFORM_VERTEX_MAXAMOUNT 50
+	// TODO: Raise this.
+#define PLATFORM_VERTEX_MAXAMOUNT 20
 	struct PlatformData
 	{
 		PlatformData()
@@ -226,7 +227,7 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_uint64(stream, m_clientSalt);
-			serialize_bytes(stream, &uint8_t(m_platform.m_type), 1); // TODO, CHECK HOW TO BYTES
+			serialize_bytes(stream, &uint8_t(m_platform.m_type), 1); 
 			serialize_int(stream, m_platform.m_vertexAmount, 0, PLATFORM_VERTEX_MAXAMOUNT);
 			for (unsigned i = 0; i < m_platform.m_vertexAmount; ++i)
 			{

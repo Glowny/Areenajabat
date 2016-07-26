@@ -3,6 +3,9 @@
 #include <glm\glm.hpp>
 #include <fstream>
 #include <common\network_entity.h>
+#include <assert.h>
+#define MAXVERTEXAMOUNT 20
+
 namespace arena
 {
 
@@ -35,7 +38,7 @@ namespace arena
 		{
 			unsigned type;
 			uint32_t size;
-			std::vector<glm::vec2> points;
+			std::vector<glm::vec2> vertex;
 		};
 	public:
 
@@ -68,14 +71,15 @@ namespace arena
 				{
 					float x;
 					file.read(reinterpret_cast<char*>(&x), sizeof(float));
-					object.points.push_back(glm::vec2(x, 0));
+					object.vertex.push_back(glm::vec2(x, 0));
 				}
 				for (unsigned i = 0; i < object.size; i++)
 				{
 					float y;
 					file.read(reinterpret_cast<char*>(&y), sizeof(float));
-					object.points[i].y = y;
+					object.vertex[i].y = y;
 				}
+				assert(object.vertex.size() < MAXVERTEXAMOUNT);
 				objects.push_back(object);
 			}
 			file.close();
@@ -84,9 +88,9 @@ namespace arena
 			{
 				ArenaPlatform platform;
 				platform.type = (ArenaPlatformType)objects[i].type;
-				for (unsigned j = 0; j < objects[i].points.size(); j++)
+				for (unsigned j = 0; j < objects[i].vertex.size(); j++)
 				{
-					platform.vertices.push_back(objects[i].points[j]);
+					platform.vertices.push_back(objects[i].vertex[j]);
 				}
 				m_platformVector.push_back(platform);
 			}
