@@ -107,6 +107,7 @@ namespace arena
 
 	void Scene::onUpdate(const GameTime& gameTime)
 	{
+        BX_UNUSED(gameTime);
 	}
 	void Scene::onInitialize()
 	{

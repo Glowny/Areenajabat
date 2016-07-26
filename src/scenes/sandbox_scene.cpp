@@ -379,7 +379,6 @@ namespace arena
 
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
-		SpriterEngine::EntityInstance* entity;
 	
 		anim.setStaticContent(
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),

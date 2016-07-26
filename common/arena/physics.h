@@ -1,6 +1,11 @@
 #pragma once
+#include <bx/macros.h>
 
+BX_PRAGMA_DIAGNOSTIC_PUSH()
+BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4265) // class has virtual functions, but destructor is not virtual	
 #include <functional>
+BX_PRAGMA_DIAGNOSTIC_POP()
+
 #include <Box2D\Box2D.h>
 #include <stdarg.h>
 #include <vector>
