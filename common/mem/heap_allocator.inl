@@ -26,7 +26,10 @@ namespace arena
 			if (block != nullptr) return block;
 		}
 
-		return nullptr;
+        HeapPage* const page = new HeapPage(m_pageSize);
+        m_pages.push_back(page);
+
+        return page->allocate(bytes);
 	}
 	bool HeapAllocator::deallocate(const HeapBlock* const block)
 	{

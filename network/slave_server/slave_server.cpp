@@ -101,7 +101,7 @@ namespace arena
 			{
 				GameInputPacket* inputPacket = (GameInputPacket*)packet;
 
-				const uint32 index	= m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
+                const uint32 index = m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
 				m_host.processInput(index, inputPacket->m_input, inputPacket->m_aimAngle);
 			}
 
@@ -226,7 +226,7 @@ namespace arena
 				// send data about gladiators and their ids.
 
 				GameCreateGladiatorsPacket *gladiatorsCreatePacket = (GameCreateGladiatorsPacket*)createPacket(PacketTypes::GameCreateGladiators);
-				gladiatorsCreatePacket->m_playerAmount = players.size();
+                gladiatorsCreatePacket->m_playerAmount = int32_t(players.size());
 				for (unsigned i = 0; i < players.size(); i++)
 				{
 					gladiatorsCreatePacket->m_characterArray[i].m_position = *players[i].m_gladiator->m_position;
