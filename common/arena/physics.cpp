@@ -376,6 +376,16 @@ void Physics::reset()
 void Physics::removeBullet(uint8_t id)
 {
 	// TODO: Do proper removal.
+	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	{
+		if (id == m_bulletVector[i]->bulletId)
+		{ 
+			m_bulletVector[i]->cleanUp();
+			delete m_bulletVector[i];
+			m_bulletVector.erase(m_bulletVector.begin() + i);
+			break;
+		}
+	}
 	assert(id < 256);
 	isIdFree[id] = true;
 }
