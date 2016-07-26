@@ -201,7 +201,7 @@ namespace arena
 
         s_client->sendMatchMakingPackets(gameTime.m_total);
         s_client->sendProtocolPackets(gameTime.m_total);
-        fprintf(stderr, "%.4f\n", sendInputToServerTimer);
+
         if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
         {
             sendInput(m_controller);
@@ -600,7 +600,7 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
 		renderer->anchor();
 	}
 
@@ -612,6 +612,12 @@ namespace arena
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation((bool)packet->m_hitDirection, packet->m_hitPosition.y);
 		}
+
+		Bullet bullet;
+		bullet.m_position->x = packet->m_hitPosition.x;
+		bullet.m_position->y = packet->m_hitPosition.y;
+
+		createBulletHitEntity(bullet);
 
 		
 
