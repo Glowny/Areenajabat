@@ -65,6 +65,8 @@ namespace arena
         {
             uint32_t newSize = std::max(InitialQueueSize, (uint32_t)m_spriteQueue.size() * 2);
             m_spriteQueue.resize(newSize);
+
+            m_sortedSprites.clear();
         }
 
         SpriteInfo* sprite = &m_spriteQueue[m_spriteQueueCount];
