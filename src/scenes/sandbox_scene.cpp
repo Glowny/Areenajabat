@@ -601,9 +601,12 @@ namespace arena
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
-			
+			gladiator->m_animator->m_animator.playDeathAnimation((bool)packet->m_hitDirection, packet->m_hitPosition.y);
 		}
-		// Todo: Set animation blood on hit position. Draw blood on gladiator. Animate death if health < 0.
+
+		
+
+		// Todo: Set animation blood on hit position. Draw blood on gladiator.
 
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
