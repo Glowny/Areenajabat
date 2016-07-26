@@ -1,17 +1,20 @@
 #include "block_allocator.h"
 
 #include <assert.h>
+#include "../debug.h"
 
 namespace arena
 {
 	FixedBlockAllocator::FixedBlockAllocator(const uint32 blockSize, const uint32 initialBlocks) : m_blockSize(blockSize),
-																								   m_allocator(1, blockSize * initialBlocks)
+																								   m_allocator(2, blockSize * initialBlocks)
 	{
 	}
 
 	char* const FixedBlockAllocator::allocate()
 	{
-		return m_allocator.allocate(m_blockSize)->m_handle;	
+        HeapBlock* ptr = m_allocator.allocate(m_blockSize);
+        ARENA_ASSERT(ptr != nullptr, "Allocation failed, out of space?");
+		return ptr->m_handle;	
 	}
 	bool FixedBlockAllocator::deallocate(char* const handle)
 	{
