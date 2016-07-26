@@ -1,17 +1,14 @@
 #pragma once
 
-
+#include <common\event.h>
 #include <common\mem\memory.h>
 #include <common\forward_declare.h>
-#include <common\event.h>
 #include <common\game_vars.h>
 #include <vector>
-
 #include <common/arena/physics.h>
 #include <common/packet.h>
 #include <common/arena/game_map.h>
 #include <common/network_entity.h>
-
 #include <common/arena/weapons.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)

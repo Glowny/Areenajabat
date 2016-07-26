@@ -155,9 +155,9 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	
 	
 
-	unsigned index = m_platformVector.size();
+	unsigned index = uint32_t(m_platformVector.size());
 	m_platformVector.push_back(temp_platform);
-	m_platformVector[index]->m_shape.CreateChain(points, platform.size());
+	m_platformVector[index]->m_shape.CreateChain(points, uint32(platform.size()));
 	m_platformVector[index]->m_bodydef.type = b2_staticBody;
 	m_platformVector[index]->m_bodydef.position.Set(0, 0);
 	m_platformVector[index]->m_body = m_b2DWorld->CreateBody(&m_platformVector[index]->m_bodydef);
@@ -218,7 +218,7 @@ unsigned Physics::addGladiator(glm::vec2* position)
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
 
-	glad->m_id = m_gladiatorVector.size();
+	glad->m_id = uint32_t(m_gladiatorVector.size());
 	m_gladiatorVector.push_back(glad);
 	
 	return glad->m_id;
@@ -302,6 +302,7 @@ glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 }
 void Physics::removeGladiator(unsigned id)
 {
+    BX_UNUSED(id);
 	// TODO: Do proper removal.
 };
 uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID)

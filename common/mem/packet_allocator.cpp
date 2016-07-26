@@ -15,6 +15,6 @@ namespace arena
 	}
 	bool PacketAllocator::deallocate(Packet* const packet)
 	{
-		return m_allocator.deallocate(reinterpret_cast<Char* const>(packet), getMaxPacketSize(packet->getType()));
+		return m_allocator.deallocate(reinterpret_cast<Char* const>(packet), uint32_t(getMaxPacketSize(packet->getType())));
 	}
 }
