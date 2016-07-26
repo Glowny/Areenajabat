@@ -126,6 +126,21 @@ namespace arena
 		anime->m_animator.resetAnimation();
 	}
 
+	static void reload(const void*)
+	{
+		anime->m_animator.playReloadAnimation(0);
+	}
+
+	static void throwAGrenade(const void*)
+	{
+		anime->m_animator.playThrowAnimation(0, 0);
+	}
+
+	static void climb(const void*)
+	{
+		anime->m_animator.playClimbAnimation(0);
+	}
+
     static void connect(const void*)
     {
         if (s_client->isConnected()) return;
@@ -154,6 +169,9 @@ namespace arena
 		{ arena::Key::KeyY, arena::Modifier::None, 0, inputShoot, "shoot" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
+		{ arena::Key::KeyR, arena::Modifier::None, 0, reload, "reload"},
+		{ arena::Key::KeyT, arena::Modifier::None, 0, throwAGrenade, "apple" },
+		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
         INPUT_BINDING_END
     };
 
@@ -201,7 +219,7 @@ namespace arena
 
         s_client->sendMatchMakingPackets(gameTime.m_total);
         s_client->sendProtocolPackets(gameTime.m_total);
-        fprintf(stderr, "%.4f\n", sendInputToServerTimer);
+
         if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
         {
             sendInput(m_controller);
@@ -600,7 +618,7 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet.png"));
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
 		renderer->anchor();
 	}
 
@@ -612,6 +630,12 @@ namespace arena
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection > 0, packet->m_hitPosition.y);
 		}
+
+		Bullet bullet;
+		bullet.m_position->x = packet->m_hitPosition.x;
+		bullet.m_position->y = packet->m_hitPosition.y;
+
+		createBulletHitEntity(bullet);
 
 		
 

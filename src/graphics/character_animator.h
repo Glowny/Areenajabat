@@ -53,14 +53,10 @@ namespace arena
 
 	enum ReloadingAnimations
 	{
-		GladiusLeft1,
-		GladiusRight1,
-		AxeLeft1,
-		AxeRight1,
-		GladiusLeft2,
-		GladiusRight2,
-		AxeLeft2,
-		AxeRight2
+		Left1,
+		Right1,
+		Left2,
+		Right2,
 	};
 	
 	enum ThrowingAnimations
@@ -183,9 +179,9 @@ namespace arena
 
 		void playClimbAnimation(bool direction);
 
-		void playReloadAnimation(bool direction, int weapon);
+		void playReloadAnimation(int weapon);
 
-		void playThrowAnimation(bool direction, int weapon, int weaponSkin);
+		void playThrowAnimation(int weapon, int weaponSkin);
 
 		void resetAnimation();
 
@@ -215,8 +211,12 @@ namespace arena
         bool m_flipX;
 		float aimAngle;
 		void fillMap();
+		bool m_upperBodyDirection;
 
-		std::map<unsigned, std::string> enumToFileName;
+		std::map<unsigned, std::string> ClimbingEnumToFileName;
+		std::map<unsigned, std::string> DyingEnumToFileName;
+		std::map<unsigned, std::string> ReloadingEnumToFileName;
+		std::map<unsigned, std::string> ThrowingEnumToFileName;
 
     };
 }

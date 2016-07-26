@@ -220,26 +220,34 @@ namespace arena
 			dt;
 			
 
-			dt;
-			bullet;
-			shooter;
-			// Get target entity instance.
-			Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
-			shooterGladiator;
-			Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
+			target;
+			
+			// Get target entity instance. Does not seem to work.
+			//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
+			//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
-			shooterGladiator;
-
+		
 			BulletHit* hit = new BulletHit;
 			hit->m_damageAmount = 10;
-			hit->m_hitPosition =  bullet.hitPosition - *target.gamePosition;
+			hit->m_hitPosition = bullet.hitPosition - m_physics.getGladiatorPosition(shooter.m_id);
+
 			b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 			if (velocity.x < 0)
 				hit->m_hitDirection = 0;
 			else
 				hit->m_hitDirection = 1;
-			hit->m_targetPlayerId = targetGladiator->m_ownerId;
-			
+			hit->m_targetPlayerId = shooter.m_id;
+			Gladiator* targetGladiator = nullptr;
+			std::vector<Player> temp = players();
+			for (unsigned i = 0; i < players().size(); i++)
+			{
+				if (hit->m_targetPlayerId == players()[i].m_gladiator->m_physicsId)
+				{
+					targetGladiator = players()[i].m_gladiator;
+					continue;
+				}
+			}
+
 			targetGladiator->m_hitpoints -= hit->m_damageAmount;
 			if (targetGladiator->m_hitpoints < 0)
 				targetGladiator->m_alive = false;
@@ -248,6 +256,7 @@ namespace arena
 
 			// Sync.
 			m_synchronizationList.push_back(targetGladiator);
+			m_physics.removeBullet(bullet.bulletId);
 		}
 
 		entries.clear();
@@ -456,7 +465,7 @@ namespace arena
 
 				// Update physics
 				m_physics.update(m_physics.updateTimer);
-
+				processBulletCollisions(m_physics.updateTimer);
 				// get data from gladiators.
 				for (Player& player : players())
 				{
