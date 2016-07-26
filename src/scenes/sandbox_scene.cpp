@@ -628,6 +628,7 @@ namespace arena
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
+
 			gladiator->m_animator->m_animator.playDeathAnimation((bool)packet->m_hitDirection, packet->m_hitPosition.y);
 		}
 

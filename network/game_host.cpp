@@ -215,12 +215,14 @@ namespace arena
 		for (BulletCollisionEntry& entry : entries) 
 		{
 			p_Gladiator& shooter	= entry.m_shooter;
+			// Target does not work, invalid hits are registered.
 			p_Gladiator& target		= entry.m_target;
 			p_Bullet& bullet		= entry.m_bullet;
 			dt;
 			
-
-			target;
+			//TODO: move this check to physics. Target id is invalid, sometimes, fix pls
+			if (shooter.m_id == target.m_id || target.m_id > 10)
+				continue;
 			
 			// Get target entity instance. Does not seem to work.
 			//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
@@ -229,14 +231,14 @@ namespace arena
 		
 			BulletHit* hit = new BulletHit;
 			hit->m_damageAmount = 10;
-			hit->m_hitPosition = bullet.hitPosition - m_physics.getGladiatorPosition(shooter.m_id);
+			hit->m_hitPosition = bullet.hitPosition - m_physics.getGladiatorPosition(target.m_id);
 
 			b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 			if (velocity.x < 0)
 				hit->m_hitDirection = 0;
 			else
 				hit->m_hitDirection = 1;
-			hit->m_targetPlayerId = shooter.m_id;
+			hit->m_targetPlayerId = target.m_id;
 			Gladiator* targetGladiator = nullptr;
 			std::vector<Player> temp = players();
 			for (unsigned i = 0; i < players().size(); i++)
@@ -480,6 +482,7 @@ namespace arena
 				{
 					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 1.5f)
 					{ 
+						
 						m_synchronizationList.push_back(m_debugBullets[i].m_bullet);
 					}
 					else
