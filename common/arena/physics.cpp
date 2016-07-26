@@ -81,6 +81,12 @@ void Physics::update(float timeStep)
 		*m_gladiatorVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
 	}
 
+	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	{
+		b2Vec2 position = m_bulletVector[i]->m_body->GetPosition();;
+		*m_bulletVector[i]->gamePosition = glm::vec2(position.x* 100, position.y*100);
+	}
+
 	#pragma region Old impl
 	// TODO: old impl, see contact listener.
 	//for (unsigned i = 0; i < m_bulletVector.size(); i++)
