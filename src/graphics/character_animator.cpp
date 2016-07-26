@@ -80,8 +80,10 @@ namespace arena
         m_torso.m_sprite.m_children[AnimationPosition::LeftArm] = nullptr;
     }
 
-    void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso, SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death)
-    {
+    void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
+		SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death, SpriterEngine::EntityInstance* throwing,
+		SpriterEngine::EntityInstance* gladiusReload, SpriterEngine::EntityInstance* axeReload, SpriterEngine::EntityInstance* climb)
+	{
         m_head.m_crest.m_texture = crest;
         m_head.m_helmet.m_texture = helmet;
 
@@ -89,7 +91,10 @@ namespace arena
 
         m_legs.m_animation.m_entity = legs;
 		m_death.m_animation.m_entity = death;
-
+		m_climb.m_animation.m_entity = climb;
+		m_throw.m_animation.m_entity = throwing;
+		m_gladiusReload.m_animation.m_entity = gladiusReload;
+		m_axeReload.m_animation.m_entity = axeReload;
     }
 
     void CharacterAnimator::rotateAimTo(float radians)
@@ -108,6 +113,11 @@ namespace arena
 		{
 			m_death.m_animation.setTimeElapsed(inMillis);
 		}
+		else if (m_climb.m_climbing)
+		{
+			m_climb.m_animation.setTimeElapsed(inMillis);
+		}
+		
 		else
 		{ 
 			m_legs.m_animation.setTimeElapsed(inMillis);
@@ -119,6 +129,20 @@ namespace arena
 
 			m_torso.m_sprite.m_position = m_position + m_torso.m_relativeOffset + offset;
 		}
+		if (m_throw.m_throwing)
+		{
+			m_throw.m_animation.setTimeElapsed(inMillis);
+		}
+		else if (m_axeReload.m_reload)
+		{
+			m_axeReload.m_animation.setTimeElapsed(inMillis);
+		}
+		else if (m_gladiusReload.m_reload)
+		{
+			m_gladiusReload.m_animation.setTimeElapsed(inMillis);
+		}
+
+
     }
 
     void CharacterAnimator::setWeaponAnimation(WeaponAnimationType::Enum type)
@@ -175,29 +199,86 @@ namespace arena
 		hitDirectionInt = (int)hitDirection; // either 0 (left) or 1 (right)
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
 
-		//0 = head, 1 = body, 2 = legs
+		//0 = legs, 1 = body, 2 = head
 		if (hitPositionY < 10)
-			bodyArea = 0; 
+			bodyArea = 2; 
 		else if (hitPositionY < 60)
 			bodyArea = 1;
 		else
-			bodyArea = 2;
+			bodyArea = 0;
 
 		//pi/2 = 1.5707...
 		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
 			upperBodyDirection = 1;
 		else //if aiming left
 			upperBodyDirection = 0;
-
-		m_death.dying = true;
 		
 		//there are currently 24 differenct dying animations combined for both characters
-		/*int animation = hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator);
-		m_death.m_animation.setCurrentAnimation(enumToFileName[(DyingAnimations)animation]);
-		std::cout << std::to_string(animation) << std::endl;*/
+		//with the following calculation we can get 24 different animations with the information provided
+		//hitdir + (2 * uppbodydir) + (4 * hitarea) + ( 12 * gladiator number )
 		DyingAnimations dyingAnimation = DyingAnimations(hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator));
 		m_death.m_animation.setCurrentAnimation(enumToFileName[dyingAnimation]);
 		printf("animation enum: %d, string : %s\n", dyingAnimation, enumToFileName[dyingAnimation].c_str());
+
+		//start updating the animation
+		m_death.dying = true;
+	}
+
+	void CharacterAnimator::playClimbAnimation(bool direction) {
+		
+		int gladiator, directionInt;
+
+		gladiator = m_skin;
+		directionInt = (int)direction;
+
+		ClimbingAnimations animation = ClimbingAnimations(directionInt + 2 * gladiator);
+		m_climb.m_animation.setCurrentAnimation(enumToFileName[animation]);
+		m_climb.m_climbing = true;
+	}
+
+	void CharacterAnimator::playReloadAnimation(bool direction, int weapon) {
+
+		int gladiator, directionInt;
+
+		gladiator = m_skin;
+		directionInt = (int)direction;
+		//weapons: 0 = gladius (ump45), 1 = axe (shotgun)
+
+		ReloadingAnimations animation = ReloadingAnimations(directionInt + 2 * weapon + 4 * gladiator);
+		if (weapon == 0)
+		{
+			m_gladiusReload.m_animation.setCurrentAnimation(enumToFileName[animation]);
+			m_gladiusReload.m_reload = true;
+			m_axeReload.m_reload = false;
+		}
+		else
+		{
+			m_axeReload.m_animation.setCurrentAnimation(enumToFileName[animation]);
+			m_axeReload.m_reload = true;
+			m_gladiusReload.m_reload = false;
+		}
+	}
+
+	void CharacterAnimator::playThrowAnimation(bool direction, int weapon, int weaponSkin) {
+
+		int gladiator, directionInt;
+
+		gladiator = m_skin;
+		directionInt = (int)direction;
+		//26.7.2016 currently there is only 1 grenade
+		//26.7.2016 currently weaponSkin is only used for Gladius (0 = with clip, 1 = without clip), so weapon 1 with weaponSkin 1 should not be used.
+		ReloadingAnimations animation = ReloadingAnimations(directionInt + 2 * weaponSkin + 4 * weapon + 6 * gladiator);
+		m_throw.m_animation.setCurrentAnimation(enumToFileName[animation]);
+		m_throw.m_throwing = true;
+	}
+
+	void  CharacterAnimator::resetAnimation()
+	{
+		m_death.dying = false;
+		m_climb.m_climbing = false;
+		m_gladiusReload.m_reload = false;
+		m_axeReload.m_reload = false;
+		m_throw.m_throwing = false;
 	}
 
     const glm::vec2& CharacterAnimator::getPosition() const
@@ -241,10 +322,10 @@ namespace arena
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToChestRight1, "1_toChest_right"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLeft1, "1_toBack_left"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackRight1, "1_toBack_right"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsLeft1, "1_FrontLegs_left"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsRight1, "1_FrontLegs_right"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsLeft1, "1_BackLegs_left"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsRight1, "1_BackLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsLeft1, "1_toFrontLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsRight1, "1_toFrontLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsLeft1, "1_toBackLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsRight1, "1_toBackLegs_right"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToForeheadLeft2, "2_toForehead_left"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToForeheadRight2, "2_toForehead_right"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackOfTheHeadLeft2, "2_toBackOfTheHead_left"));
@@ -253,9 +334,33 @@ namespace arena
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToChestRight2, "2_toChest_right"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLeft2, "2_toBack_left"));
 		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackRight2, "2_toBack_right"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsLeft2, "2_FrontLegs_left"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsRight2, "2_FrontLegs_right"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsLeft2, "2_BackLegs_left"));
-		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsRight2, "2_BackLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsLeft2, "2_toFrontLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToFrontLegsRight2, "2_toFrontLegs_right"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsLeft2, "2_toBackLegs_left"));
+		enumToFileName.insert(std::pair<DyingAnimations, std::string>(ToBackLegsRight2, "2_toBackLegs_right"));
+		enumToFileName.insert(std::pair<ClimbingAnimations, std::string>(ClimbingLeft1, "1_Climbing_left"));
+		enumToFileName.insert(std::pair<ClimbingAnimations, std::string>(ClimbingRight1, "1_Climbing_right"));
+		enumToFileName.insert(std::pair<ClimbingAnimations, std::string>(ClimbingLeft2, "2_Climbing_left"));
+		enumToFileName.insert(std::pair<ClimbingAnimations, std::string>(ClimbingRight2, "2_Climbing_right"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(GladiusLeft1, "1_Left"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(GladiusRight1, "1_Right"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(GladiusLeft2, "2_Left"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(GladiusRight2, "2_Right"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(AxeLeft1, "1_Left"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(AxeRight1, "1_Right"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(AxeLeft2, "2_Left"));
+		enumToFileName.insert(std::pair<ReloadingAnimations, std::string>(AxeRight2, "2_Right"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusLeft1, "1_Gladius_left"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusRight1, "1_Gladius_right"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusLeft2, "2_Gladius_left"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusRight2, "2_Gladius_right"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusNoClipLeft1, "1_Gladius_left_noclip"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusNoClipRight1, "1_Gladius_right_noclip"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusNoClipLeft2, "2_Gladius_left_noclip"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeGladiusNoClipRight2, "2_Gladius_right_noclip"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeAxeLeft1, "1_Axe_left"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeAxeRight1, "1_Axe_right"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeAxeLeft2, "2_Axe_left"));
+		enumToFileName.insert(std::pair<ThrowingAnimations, std::string>(GrenadeAxeRight2, "2_Axe_right"));
 	}
 }

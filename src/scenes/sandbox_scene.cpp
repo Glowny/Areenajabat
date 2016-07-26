@@ -109,7 +109,6 @@ namespace arena
     static void left(const void*)
     {
 		anime->m_animator.setFlipX(false);
-		
     }
 
     static void right(const void*)
@@ -119,7 +118,12 @@ namespace arena
     
 	static void diefool(const void*)
 	{
-		anime->m_animator.playDeathAnimation(0, 20.0f);
+		anime->m_animator.playDeathAnimation(1, 9.0f);
+	}
+
+	static void respawn(const void*)
+	{
+		anime->m_animator.resetAnimation();
 	}
 
     static void connect(const void*)
@@ -143,6 +147,7 @@ namespace arena
         { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
 		{ arena::Key::KeyS, arena::Modifier::None, 0, diefool, "die" },
+		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "respawn" },
 		{ arena::Key::KeyH, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyK, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyU, arena::Modifier::None, 0, inputMoveUp, "moveup" },
@@ -386,7 +391,11 @@ namespace arena
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0)
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/ThrowingGrenade.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Gladius.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Axe.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Climbing.scml")->getNewEntityInstance(0)
 
 		);
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
