@@ -54,20 +54,26 @@ namespace arena
 
 		void update(const GameTime& gameTime)
 		{
-			for (auto it = m_components.begin(); it != m_components.end(); it++)
+            auto it = m_components.begin();
+			while (it != m_components.end())
 			{
 				T* component = *it;
 
 				if (component->destroyed())
 				{
-					m_components.erase(it);
+                    // erase gives valid next pointer, it may be m_components.end() 
+					it = m_components.erase(it);
 
 					m_allocator.deallocate(component);
 					
 					component->m_owner = nullptr;
 					
 					DYNAMIC_DTOR(component, T);
+                    // this is because if we hit the last element, the ++it call will give us invalid pointer (past the end)
+                    // and the program will crash
+                    continue;
 				}
+                ++it;
 			}
 
 			onUpdate(gameTime);
