@@ -21,6 +21,7 @@
 #	include "../res/texture_resource.h"
 #endif
 
+#include "..\ecs\timer.h"
 #include "..\utils\color.h"
 #include "..\ecs\entity_builder.h"
 #include "../ecs/managers/animator_manager.h"
@@ -625,6 +626,8 @@ namespace arena
 		registerEntity(entity);
 		
 		builder.begin();
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
 		debugBullet.entity = entity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 
