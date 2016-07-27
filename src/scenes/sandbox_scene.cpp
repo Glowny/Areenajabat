@@ -213,6 +213,7 @@ namespace arena
 		glad->m_ownerId = 0;
 		m_playerId = 0;
 		createGladiator(glad);
+		
 	}
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -345,12 +346,19 @@ namespace arena
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 				if (timer->timePassed(gameTime.m_delta))
 				{
-					//TODO: delete entity. Deletion is broken.
+					//TODO: delete entity . Deletion is broken.
 					if (entity->contains(TYPEOF(SpriteRenderer)))
 					{
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->hide();
+						continue;
 					}
+				}
+				if (entity->contains(TYPEOF(SpriteRenderer)))
+				{
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					render->setColor = 
+					continue;
 				}
 			}
 
@@ -625,6 +633,8 @@ namespace arena
 		registerEntity(entity);
 		
 		builder.begin();
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
 		debugBullet.entity = entity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 
@@ -684,12 +694,6 @@ namespace arena
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
 			registerEntity(builder.getResults());
 		}
-
-
-		
-
-
-
 
 	}
 	
