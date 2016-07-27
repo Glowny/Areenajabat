@@ -583,21 +583,38 @@ namespace arena
 
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
-
+		
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
-		if (bullet->m_rotation < 3.142)
+		//if (bullet->m_rotation < 3.142)
 		renderer->setRotation(bullet->m_rotation);
-		else
-		renderer->setRotation(bullet->m_rotation+ 3.142);
+		//else
+		//renderer->setRotation(bullet->m_rotation+ 3.142);
 		
 		renderer->anchor();
 		
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
+
+		EntityBuilder builder2;
+		builder2.begin();
+		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
+
+		transform = builder2.addTransformComponent();
+		renderer = builder2.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
+		Rectf& source = renderer->getSource();
+		source.x = 0; source.y = 0; source.w = 32; source.h = 32;
+		
+		transform->m_position = *bullet->m_position;
+
+		renderer->setRotation(bullet->m_rotation);
+
+		registerEntity(builder2.getResults());
 
 		DebugBullet debugBullet;
 		debugBullet.bullet = bullet;

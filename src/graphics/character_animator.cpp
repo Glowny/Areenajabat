@@ -108,9 +108,15 @@ namespace arena
 
 		//pi/2 = 1.5707...
 		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
+		{
 			m_upperBodyDirection = 1;
+			m_animationData->m_rightHand->setDirection(1);
+		}
 		else //if aiming left
+		{ 
 			m_upperBodyDirection = 0;
+			m_animationData->m_rightHand->setDirection(0);
+		}
 
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
         m_animationData->m_rightHand->rotateTo(radians);
@@ -205,8 +211,8 @@ namespace arena
                 m_torso.m_relativeOffset.x = -4.f;
             }
 
-            m_animationData->m_rightHand->flip();
-            m_animationData->m_leftHand->flip();
+			//m_animationData->m_rightHand->flip();
+			//m_animationData->m_leftHand->flip();
         }
     }
 
@@ -314,7 +320,7 @@ namespace arena
 
 	void CharacterAnimator::render()
 	{
-		SpriteEffects::Enum effects = m_flipX ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
+		SpriteEffects::Enum effects = m_upperBodyDirection ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
 
 		if (!m_death.dying)
 		{
