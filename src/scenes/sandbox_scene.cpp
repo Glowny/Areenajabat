@@ -357,8 +357,7 @@ namespace arena
 				if (entity->contains(TYPEOF(SpriteRenderer)))
 				{
 					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-					render->setColor = 
-					continue;
+					render->setColor(color::toABGR(255, 255, 255, timer->timePassedReverse255()));
 				}
 			}
 
