@@ -320,7 +320,7 @@ namespace arena
 
         for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
         {
-            if ((it->second.lifeTime += gameTime.m_delta) < 3.0f)
+            if ((it->second.lifeTime += gameTime.m_delta) < 1.0f)
             {
                 Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
                 bulletTransform->m_position = *it->second.bullet->m_position;
@@ -549,6 +549,7 @@ namespace arena
 			{
 				// if bullet exists, set position
 				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
+				printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
 				
 			}
 			else
@@ -588,6 +589,11 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
+		if (bullet->m_rotation < 3.142)
+		renderer->setRotation(bullet->m_rotation);
+		else
+		renderer->setRotation(bullet->m_rotation+ 3.142);
+		
 		renderer->anchor();
 		
 		Entity* entity = builder.getResults();
@@ -624,6 +630,7 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
+
 		renderer->setColor(0);
 		renderer->anchor();
 		registerEntity(builder.getResults());
