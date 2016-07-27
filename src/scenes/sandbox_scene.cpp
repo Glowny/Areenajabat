@@ -601,9 +601,7 @@ namespace arena
 
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
-		//initialize random seed
-		srand(time(NULL));
-
+		int spriteX = 0, spriteY = 0;
 		EntityBuilder builder;
 		builder.begin();
 
@@ -638,27 +636,34 @@ namespace arena
 		transform = builder.addTransformComponent();
 		renderer = builder.addSpriteRenderer();
 		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.1f;
+		timer->m_lifeTime = 0.05f;
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
 		Rectf& source = renderer->getSource();
-		source.x = 0; source.y = 0; source.w = 32; source.h = 32;
-		
-		transform->m_position = *bullet->m_position;
 
-		renderer->setRotation(bullet->m_rotation);
+		spriteX = rand() % 2;
+		if (spriteX == 0) {
+			spriteY = rand() % 2;
+		}
+
+		source.x = 0 + spriteX * 32; source.y = 0 + spriteY * 32; source.w = 32; source.h = 32;
+		
+		transform->m_position = glm::vec2(bullet->m_position->x - 16, bullet->m_position->y - 16);
+		glm::vec2& origin = renderer->getOrigin();
+		origin.x = origin.x + 16; origin.y = origin.y + 16;
+		renderer->setRotation(bullet->m_rotation + 3.142);
 
 		registerEntity(builder.getResults());
 		// muzzle flash end.
 
-		// Load gun smoke, randomize rotation and position and transparency on spawn. Delete smoke when transparency reaches zero.
+		// Load gun smoke, randomize rotation and position and transparency on spawn.
 		
 		
 		//
 
 		for (int i = 0; i < rand() % 5 + 3; i++) 
 		{
-			int spriteX = rand() % 4;
+			spriteX = rand() % 4;
 			int rotation = 0;
 			int xOffset = 0, yOffset = 0;
 
@@ -670,7 +675,7 @@ namespace arena
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			uint32_t color = color::toABGR(255, 255, 255, 125);
 			renderer->setColor(color);
-			renderer->setRotation(rand() % 3);
+			//renderer->setRotation(rand() % 7);
 			Rectf& source = renderer->getSource();
 			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
 
@@ -693,7 +698,7 @@ namespace arena
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
 			
 			registerEntity(builder.getResults());
-		}
+		} //gun smoke end
 
 
 		
