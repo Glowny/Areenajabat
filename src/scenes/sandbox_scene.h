@@ -21,7 +21,15 @@ namespace arena
 	{
 		DebugBullet()
 		{
-			lifeTime = 2.0f;
+			lifeTime = 0.0f;
+		}
+		~DebugBullet()
+		{
+			
+		}
+		void destroy()
+		{
+			delete bullet;
 		}
 		Entity* entity;
 		Bullet* bullet;

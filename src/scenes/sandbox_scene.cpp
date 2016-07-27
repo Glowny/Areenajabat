@@ -163,10 +163,10 @@ namespace arena
         { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
 		{ arena::Key::KeyS, arena::Modifier::None, 0, diefool, "die" },
 		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "respawn" },
-		{ arena::Key::KeyH, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
-		{ arena::Key::KeyK, arena::Modifier::None, 0, inputMoveRight, "moveright" },
-		{ arena::Key::KeyU, arena::Modifier::None, 0, inputMoveUp, "moveup" },
-		{ arena::Key::KeyY, arena::Modifier::None, 0, inputShoot, "shoot" },
+		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
+		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
+		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
+		{ arena::Key::Key1, arena::Modifier::None, 0, inputShoot, "shoot" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, reload, "reload"},
@@ -318,16 +318,20 @@ namespace arena
 
         Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 
-        for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); ++it)
+        for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
         {
-            if (it->second.lifeTime += gameTime.m_delta < 2.0f)
+            if ((it->second.lifeTime += gameTime.m_delta) < 3.0f)
             {
                 Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
                 bulletTransform->m_position = *it->second.bullet->m_position;
+				++it;
             }
             else
             {
-                // delete bullet and do stuf fa
+				unregisterEntity(it->second.entity);
+				//it->second.entity->destroy();
+				it->second.destroy();
+				it = m_debugBullets.erase(it);
             }
         }
 
@@ -583,13 +587,15 @@ namespace arena
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
 		renderer->anchor();
+		
+		Entity* entity = builder.getResults();
+		registerEntity(entity);
 
 		DebugBullet debugBullet;
 		debugBullet.bullet = bullet;
-		debugBullet.entity = builder.getResults();
+		debugBullet.entity = entity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 	}
 	
@@ -617,9 +623,10 @@ namespace arena
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
+		renderer->setColor(0);
 		renderer->anchor();
+		registerEntity(builder.getResults());
 	}
 
 	void SandboxScene::processDamagePlayer(GameDamagePlayerPacket* packet)

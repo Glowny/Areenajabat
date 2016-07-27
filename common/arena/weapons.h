@@ -27,10 +27,14 @@ namespace arena
 		{
 			m_type = BulletType(0);
 			m_bulletId = 0;
-			m_position = new glm::vec2(0,0);
+			m_position = new glm::vec2(0, 0);
 			m_impulse = glm::vec2(0, 0);
 			m_rotation = 0;
 			m_creationDelay = 0;
+		}
+		Bullet::~Bullet()
+		{
+			delete m_position;
 		}
 		BulletType m_type;
 		uint8_t m_bulletId;
@@ -110,7 +114,7 @@ namespace arena
 				bullet->m_creationDelay = 0.1f * i;
 				bullet->m_rotation = aimAngle;
 				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-				bullet->m_position->x = position.x + vectorAngle.x * 150; bullet->m_position->y = position.y + vectorAngle.y * 150;
+				bullet->m_position->x = position.x  + vectorAngle.x * 15; bullet->m_position->y = position.y - 32 + vectorAngle.y * 15;
 				bullets.push_back(bullet);
 			}
 			return bullets;

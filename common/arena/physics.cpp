@@ -193,6 +193,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 unsigned Physics::addGladiator(glm::vec2* position)
 {
 	p_Gladiator* glad = new p_Gladiator;
+	glad->m_id = uint32_t(m_gladiatorVector.size());
 	glad->gamePosition = position;
 
 	b2BodyDef bodydef;
@@ -209,6 +210,7 @@ unsigned Physics::addGladiator(glm::vec2* position)
 	fixtureDef.density = 2.5f;
 	fixtureDef.friction = 0.8f;
 	fixtureDef.filter = b2Filters[ci_Gladiator];
+	fixtureDef.filter.groupIndex = -(glad->m_id+1);
 
 	glad->m_body->CreateFixture(&fixtureDef);
 
@@ -224,7 +226,7 @@ unsigned Physics::addGladiator(glm::vec2* position)
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
 	
-	glad->m_id = uint32_t(m_gladiatorVector.size());
+	
 	m_gladiatorVector.push_back(glad);
 	
 	return glad->m_id;
@@ -238,6 +240,7 @@ void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool colli
 	else
 		filter = b2Filters[ci_GladiatorNoCollide];
 
+	filter.groupIndex = -(gladiatorID+1);
 	m_gladiatorVector[gladiatorID]->m_body->GetFixtureList()->SetFilterData(filter);
 }
 
@@ -329,6 +332,7 @@ uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned sho
 	fixtureDef.density = 2.0f;
 	fixtureDef.friction = 0.01f;
 	fixtureDef.filter = b2Filters[ci_Bullet];
+	fixtureDef.filter.groupIndex = -(shooterID+1);
 
 	b2MassData data;
 	data.mass = 0.001f;
