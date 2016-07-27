@@ -339,6 +339,7 @@ namespace arena
 			else if (m_throw.m_throwing)
 			{
 				m_throw.m_animation.render();
+
 			}
 			
 		}
