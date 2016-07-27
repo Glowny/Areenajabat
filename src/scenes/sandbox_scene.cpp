@@ -328,8 +328,7 @@ namespace arena
             }
             else
             {
-				unregisterEntity(it->second.entity);
-				//it->second.entity->destroy();
+				it->second.entity->destroy();
 				it->second.destroy();
 				it = m_debugBullets.erase(it);
             }

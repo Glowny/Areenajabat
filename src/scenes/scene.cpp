@@ -56,11 +56,18 @@ namespace arena
 	{
 		onUpdate(gameTime);
 
-		for (auto it = entititesBegin(); it != entititesEnd(); it++)
+        auto it = entititesBegin();
+        auto end = entititesEnd();
+		while (it != end)
 		{
 			Entity* const entity = *it;
 
-			if (entity->destroyed()) unregisterEntity(entity);
+            if (entity->destroyed())
+            {
+                it = m_entities.erase(it);
+                continue;
+            }
+            ++it;
 		}
 	}
 	
