@@ -337,6 +337,25 @@ namespace arena
             }
         }
 
+		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+		{
+			Entity* entity = *iterator;
+			if (entity->contains(TYPEOF(Timer)))
+			{
+				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+				if (timer->timePassed(gameTime.m_delta))
+				{
+					//TODO: delete entity. Deletion is broken.
+					if (entity->contains(TYPEOF(SpriteRenderer)))
+					{
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						render->hide();
+					}
+				}
+			}
+
+		}
+
         Camera& camera = App::instance().camera();
         camera.m_position = playerTransform->m_position;
         camera.calculate();
@@ -360,6 +379,7 @@ namespace arena
         float a = glm::atan(dir.y, dir.x);
         m_controller.aimAngle = a;
 
+		
 
         for (const auto& elem : m_clientIdToGladiatorData)
         {
@@ -603,9 +623,8 @@ namespace arena
 		
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
-
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
+		
+		builder.begin();
 		debugBullet.entity = entity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 
@@ -615,6 +634,8 @@ namespace arena
 
 		transform = builder.addTransformComponent();
 		renderer = builder.addSpriteRenderer();
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.1f;
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
 		Rectf& source = renderer->getSource();

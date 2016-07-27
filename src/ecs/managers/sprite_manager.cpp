@@ -67,7 +67,8 @@ namespace arena
 					position = ownerPosition + offset;
 				}
 			}
-
+			if (renderer->visible())
+			{ 
 			spriteBatch->draw(
 				renderer->getTexture(),
 				renderer->getSource(),
@@ -78,7 +79,7 @@ namespace arena
 				renderer->getEffects(),
 				renderer->getRotation(),
 				0.0f);
-
+			}
 			it++;
 		}
 	}
