@@ -55,7 +55,7 @@ namespace arena
 	};
 
 	// TODO: Raise this.
-#define PLATFORM_VERTEX_MAXAMOUNT 20
+#define PLATFORM_VERTEX_MAXAMOUNT 30
 	struct PlatformData
 	{
 		PlatformData()

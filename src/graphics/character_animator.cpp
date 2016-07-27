@@ -326,15 +326,25 @@ namespace arena
 	{
 		SpriteEffects::Enum effects = m_upperBodyDirection ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
 
-		if (!m_death.dying)
+		// Render full body animation
+
+		if (m_death.dying)
 		{
-			if (!m_climb.m_climbing) {
-				m_legs.m_animation.render();
-			}
-			else 
-			{
-				m_climb.m_animation.render();
-			}
+			m_death.m_animation.render();
+			return;
+		}
+		else if (m_climb.m_climbing) 
+		{
+			m_climb.m_animation.render();
+			return;
+		}
+		// If no full body animation, render legs.
+		else 
+		{
+			// render legs, hands
+			m_legs.m_animation.render();
+		
+
 			// torso will render head and hands
 			m_torso.m_sprite.render(effects);
 
@@ -349,14 +359,10 @@ namespace arena
 			else if (m_throw.m_throwing)
 			{
 				m_throw.m_animation.render();
-
 			}
-			
 		}
-		else
-		{
-			m_death.m_animation.render();
-		}
+		
+	
 	}
 	void CharacterAnimator::fillMap()
 	{

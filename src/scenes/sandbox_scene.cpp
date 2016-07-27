@@ -504,12 +504,12 @@ namespace arena
 
                 TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
 
-                glm::vec2 scale = glm::vec2(1920.0f / float(textureResource->width), 1080.0f / float(textureResource->height));
+               // glm::vec2 scale = glm::vec2(1920.0f / float(textureResource->width), 1080.0f / float(textureResource->height));
 
                 Transform* transform = builder.addTransformComponent();
 
 				transform->m_position = glm::vec2(x * 1920, y * 1080 );
-                transform->m_scale = scale;
+                //transform->m_scale = scale;
                 renderer->setTexture(textureResource);
 
                 renderer->anchor();
@@ -723,8 +723,8 @@ namespace arena
 			
 			// Movement
 			Movement* movement = builder.addMovement();
-			movement->m_velocity = glm::vec2(1, 1);
-			movement->m_rotationSpeed = 2;
+			movement->m_velocity = glm::vec2(float(xOffset)/100.0f , float(yOffset) / 100.0f);
+			movement->m_rotationSpeed = float(rotation)/100.0f;
 
 			registerEntity(builder.getResults());
 		} //gun smoke end
