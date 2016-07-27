@@ -234,6 +234,10 @@ namespace arena
 		
 		upperBodyDirection = (int)m_upperBodyDirection;
 
+		//if the character is shot to legs, the direction of the character's upper body is the same as the direction of it's legs when dying
+		if (bodyArea == 0 && upperBodyDirection != lowerBodyDirection)
+			upperBodyDirection = abs(upperBodyDirection - 1); // so 1 = 0 and 0 = 1
+
 		//there are currently 24 differenct dying animations combined for both characters
 		//with the following calculation we can get 24 different animations with the information provided
 		//hitdir + (2 * uppbodydir) + (4 * hitarea) + ( 12 * gladiator number )

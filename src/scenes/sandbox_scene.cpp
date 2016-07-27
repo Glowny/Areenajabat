@@ -32,6 +32,7 @@
 #include <common/packet.h>
 #include <common/arena/gladiator.h>
 #include <time.h>
+#include <stdlib.h>
 
 
 namespace arena
@@ -118,7 +119,7 @@ namespace arena
     
 	static void diefool(const void*)
 	{
-		anime->m_animator.playDeathAnimation(1, 9.0f);
+		anime->m_animator.playDeathAnimation(1, 100.0f);
 	}
 
 	static void respawn(const void*)
@@ -549,7 +550,7 @@ namespace arena
 			{
 				// if bullet exists, set position
 				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
-				printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
+				//printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
 				
 			}
 			else
@@ -578,6 +579,9 @@ namespace arena
 
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
+		//initialize random seed
+		srand(time(NULL));
+
 		EntityBuilder builder;
 		builder.begin();
 
@@ -599,12 +603,17 @@ namespace arena
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
 
-		EntityBuilder builder2;
-		builder2.begin();
-		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
+		debugBullet.entity = entity;
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 
-		transform = builder2.addTransformComponent();
-		renderer = builder2.addSpriteRenderer();
+		// effects
+		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
+		builder.begin();
+
+		transform = builder.addTransformComponent();
+		renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
 		Rectf& source = renderer->getSource();
@@ -614,12 +623,52 @@ namespace arena
 
 		renderer->setRotation(bullet->m_rotation);
 
-		registerEntity(builder2.getResults());
+		registerEntity(builder.getResults());
+		// muzzle flash end.
 
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = entity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+		// Load gun smoke, randomize rotation and position and transparency on spawn. Delete smoke when transparency reaches zero.
+		
+		
+		//
+
+		for (int i = 0; i < rand() % 5 + 3; i++) 
+		{
+			int spriteX = rand() % 4, xOffset=0 , yOffset=0;
+
+			builder.begin();
+
+			transform = builder.addTransformComponent();
+			renderer = builder.addSpriteRenderer();
+
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
+			
+			Rectf& source = renderer->getSource();
+			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
+
+			
+			if (rand() % 2 == 1) {
+				xOffset = rand() % 20;
+			} else {
+				xOffset = -(rand() % 20);
+			}
+			if (rand() % 2 == 1) {
+				yOffset = rand() % 10;
+			}
+			else {
+				yOffset = -(rand() % 10);
+			}
+
+			
+			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			registerEntity(builder.getResults());
+		}
+
+
+		
+
+
+
+
 	}
 	
 

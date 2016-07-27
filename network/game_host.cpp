@@ -486,7 +486,7 @@ namespace arena
 
 				for (unsigned i = 0; i < m_debugBullets.size(); ++i)
 				{
-					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 1.5f)
+					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 0.9f)
 					{ 
 						
 						m_synchronizationList.push_back(m_debugBullets[i].m_bullet);
