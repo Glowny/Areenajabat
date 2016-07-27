@@ -599,8 +599,6 @@ namespace arena
 
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
-		//initialize random seed
-		srand(time(NULL));
 
 		EntityBuilder builder;
 		builder.begin();
