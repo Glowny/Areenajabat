@@ -110,6 +110,7 @@ namespace arena
 		gladiator->m_ownerId		= newPlayer.m_clientIndex;
 		gladiator->m_weapon			= new WeaponGladius;
         newPlayer.m_gladiator		= gladiator;
+		*gladiator->m_position =  glm::vec2(600, 200);
 
 		uint32_t id = m_physics.addGladiator(gladiator->m_position);
 		gladiator->m_physicsId = id;

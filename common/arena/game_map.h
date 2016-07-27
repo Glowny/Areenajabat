@@ -4,7 +4,7 @@
 #include <fstream>
 #include <common\network_entity.h>
 #include <assert.h>
-#define MAXVERTEXAMOUNT 20
+#define MAXVERTEXAMOUNT 30
 
 namespace arena
 {
@@ -29,7 +29,7 @@ namespace arena
 		std::vector<ArenaPlatform> m_platformVector;
 		glm::vec2 m_playerSpawnLocations[12]
 		{
-			glm::vec2(100,100),		glm::vec2(200,100),		glm::vec2(300, 100),	glm::vec2(400, 100),	glm::vec2(500, 100),
+			glm::vec2(500,100),		glm::vec2(900,100),		glm::vec2(300, 100),	glm::vec2(400, 100),	glm::vec2(500, 100),
 			glm::vec2(2000, 100),	glm::vec2(2100, 100),	glm::vec2(2200, 100),	glm::vec2(2300, 100),	glm::vec2(2400, 100),
 			glm::vec2(5000, 666),	glm::vec2(5000, 666),
 		};
