@@ -12,6 +12,7 @@
 #include "../graphics/character_animator.h"
 #include "../res/spriter_resource.h"
 #include "../ecs/animator.h"
+#include "..\ecs\movement.h"
 
 #ifdef _DEBUG
 #	include <iostream>
@@ -214,6 +215,7 @@ namespace arena
 		glad->m_ownerId = 0;
 		m_playerId = 0;
 		createGladiator(glad);
+		
 	}
 
     void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -331,8 +333,7 @@ namespace arena
             }
             else
             {
-				unregisterEntity(it->second.entity);
-				//it->second.entity->destroy();
+				it->second.entity->destroy();
 				it->second.destroy();
 				it = m_debugBullets.erase(it);
             }
@@ -346,11 +347,30 @@ namespace arena
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 				if (timer->timePassed(gameTime.m_delta))
 				{
-					//TODO: delete entity. Deletion is broken.
+					//TODO: delete entity . Deletion is broken.
 					if (entity->contains(TYPEOF(SpriteRenderer)))
 					{
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->hide();
+						continue;
+					}
+				}
+				if (entity->contains(TYPEOF(SpriteRenderer)))
+				{
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					render->setColor(color::toABGR(255, 255, 255, timer->timePassedReverse255()));
+				}
+
+				if (entity->contains(TYPEOF(Movement)) && entity->contains(TYPEOF(Transform)) && entity->contains(TYPEOF(SpriteRenderer)))
+				{
+					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					if (timer->m_between > 0.016f)
+					{
+						transform->m_position += movement->m_velocity;
+						render->setRotation(render->getRotation() + movement->m_rotationSpeed);
+						timer->resetBetween();
 					}
 				}
 			}
@@ -669,9 +689,14 @@ namespace arena
 
 			builder.begin();
 
+			// Timer
+			timer = builder.addTimer();
+			timer->m_lifeTime = 1.0f;
+
+			// Drawing stuff
 			transform = builder.addTransformComponent();
 			renderer = builder.addSpriteRenderer();
-
+		
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			uint32_t color = color::toABGR(255, 255, 255, 125);
 			renderer->setColor(color);
@@ -694,17 +719,15 @@ namespace arena
 				yOffset = -(rand() % 10);
 			}
 
-			
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
 			
+			// Movement
+			Movement* movement = builder.addMovement();
+			movement->m_velocity = glm::vec2(1, 1);
+			movement->m_rotationSpeed = 2;
+
 			registerEntity(builder.getResults());
 		} //gun smoke end
-
-
-		
-
-
-
 
 	}
 	

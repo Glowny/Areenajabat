@@ -5,6 +5,7 @@
 #include "..\arena_types.h"
 #include "..\rect.h"
 #include "..\ecs\timer.h"
+#include "..\ecs\movement.h"
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, TextureResource)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteRenderer)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Transform)
@@ -26,6 +27,7 @@ namespace arena
 		SpriteRenderer* const addSpriteRenderer();
         Animator* const addCharacterAnimator();
 		Timer* const addTimer();
+		Movement* const addMovement();
 
 		void addTag(const String& tag);
 		void setTags(const String& tags);

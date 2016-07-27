@@ -56,12 +56,12 @@ namespace arena
 	{
 		onUpdate(gameTime);
 
-		for (auto it = entititesBegin(); it != entititesEnd(); it++)
-		{
-			Entity* const entity = *it;
-
-			if (entity->destroyed()) unregisterEntity(entity);
-		}
+        auto begin = m_entities.begin();
+        for (int32_t i = (int32_t)m_entities.size() - 1; i >= 0; --i)
+        {
+            if (m_entities[i]->destroyed())
+                m_entities.erase(begin + i);
+        }
 	}
 	
 	void Scene::registerEntity(Entity* const entity)
