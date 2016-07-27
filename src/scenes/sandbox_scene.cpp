@@ -320,7 +320,7 @@ namespace arena
 
         for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
         {
-            if ((it->second.lifeTime += gameTime.m_delta) < 3.0f)
+            if ((it->second.lifeTime += gameTime.m_delta) < 1.0f)
             {
                 Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
                 bulletTransform->m_position = *it->second.bullet->m_position;
@@ -549,6 +549,7 @@ namespace arena
 			{
 				// if bullet exists, set position
 				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
+				printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
 				
 			}
 			else
@@ -582,16 +583,38 @@ namespace arena
 
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
-
+		
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
+		//if (bullet->m_rotation < 3.142)
+		renderer->setRotation(bullet->m_rotation);
+		//else
+		//renderer->setRotation(bullet->m_rotation+ 3.142);
+		
 		renderer->anchor();
 		
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
+
+		EntityBuilder builder2;
+		builder2.begin();
+		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
+
+		transform = builder2.addTransformComponent();
+		renderer = builder2.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
+		Rectf& source = renderer->getSource();
+		source.x = 0; source.y = 0; source.w = 32; source.h = 32;
+		
+		transform->m_position = *bullet->m_position;
+
+		renderer->setRotation(bullet->m_rotation);
+
+		registerEntity(builder2.getResults());
 
 		DebugBullet debugBullet;
 		debugBullet.bullet = bullet;
@@ -624,6 +647,7 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
+
 		renderer->setColor(0);
 		renderer->anchor();
 		registerEntity(builder.getResults());
