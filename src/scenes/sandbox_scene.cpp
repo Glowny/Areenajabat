@@ -21,6 +21,7 @@
 #	include "../res/texture_resource.h"
 #endif
 
+#include "..\utils\color.h"
 #include "..\ecs\entity_builder.h"
 #include "../ecs/managers/animator_manager.h"
 #include <bx/fpumath.h>
@@ -633,7 +634,9 @@ namespace arena
 
 		for (int i = 0; i < rand() % 5 + 3; i++) 
 		{
-			int spriteX = rand() % 4, xOffset=0 , yOffset=0;
+			int spriteX = rand() % 4;
+			int rotation = 0;
+			int xOffset = 0, yOffset = 0;
 
 			builder.begin();
 
@@ -641,15 +644,19 @@ namespace arena
 			renderer = builder.addSpriteRenderer();
 
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
-			
+			uint32_t color = color::toABGR(255, 255, 255, 125);
+			renderer->setColor(color);
+			renderer->setRotation(rand() % 3);
 			Rectf& source = renderer->getSource();
 			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
 
 			
 			if (rand() % 2 == 1) {
 				xOffset = rand() % 20;
+				rotation = rand() % 4;
 			} else {
 				xOffset = -(rand() % 20);
+				rotation = -(rand() % 4);
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 10;
@@ -660,6 +667,7 @@ namespace arena
 
 			
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			
 			registerEntity(builder.getResults());
 		}
 
