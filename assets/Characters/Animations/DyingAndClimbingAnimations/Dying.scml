@@ -6097,13 +6097,13 @@
                     <bone x="1.117435" y="28.981072" angle="102.265346" scale_x="1.014284"/>
                 </key>
                 <key id="5" time="800" spin="-1">
-                    <bone x="1.117435" y="28.981072" angle="113.172469" scale_x="1.014284"/>
+                    <bone x="-0.439065" y="28.181102" angle="113.172469" scale_x="1.014284"/>
                 </key>
                 <key id="6" time="900">
-                    <bone x="1.117435" y="28.981072" angle="100.344288" scale_x="1.014284"/>
+                    <bone x="1.117435" y="28.981072" angle="106.12713" scale_x="1.014284"/>
                 </key>
                 <key id="7" time="1000" spin="-1">
-                    <bone x="-1.011536" y="28.984851" angle="114.587546" scale_x="1.014284"/>
+                    <bone x="-1.028464" y="28.647426" angle="114.587546" scale_x="1.014284"/>
                 </key>
             </timeline>
             <timeline id="34" obj="13" name="bone_024" object_type="bone">
@@ -6198,7 +6198,7 @@
                     <bone x="0.941811" y="19.680782" angle="257.662751"/>
                 </key>
                 <key id="8" time="1000" spin="-1">
-                    <bone x="0.941811" y="19.680782" angle="279.392606"/>
+                    <bone x="0.941811" y="19.680782" angle="266.095604"/>
                 </key>
             </timeline>
             <timeline id="38" obj="17" name="bone_028" object_type="bone">
@@ -20087,7 +20087,7 @@
                 </key>
             </timeline>
         </animation>
-        <animation id="20" name="2_toFrontLegs_left" length="1000" interval="100" looping="false">
+        <animation id="20" name="2_toFrontLegs_left_korjaapaa" length="1000" interval="100" looping="false">
             <mainline>
                 <key id="0">
                     <bone_ref id="0" timeline="18" key="0"/>

@@ -85,6 +85,24 @@ namespace arena
             }
         }
 
+		void setDirection(bool direction) override
+		{
+			if(direction)
+			{
+				m_upperArm.m_rotation = glm::radians(-m_upperAngle);
+				m_foreArm.m_rotation = glm::radians(-m_forearmAngle);
+				m_gun.m_rotation = glm::radians(-m_gunAngle);
+				m_foreArm.m_position.x = 9.f;
+			}
+			else
+			{
+				m_upperArm.m_rotation = glm::radians(m_upperAngle);
+				m_foreArm.m_rotation = glm::radians(m_forearmAngle);
+				m_gun.m_rotation = glm::radians(m_gunAngle);
+				m_foreArm.m_position.x = 5.f;
+			}
+		}
+
         CompositeSprite* getParent() override
         {
             return &m_upperArm;
@@ -147,7 +165,6 @@ namespace arena
                 //m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
             }
         }
-
         void flip() override
         {
             m_flipX = !m_flipX;
@@ -165,6 +182,22 @@ namespace arena
                 m_foreArm.m_position.x = 5.f;
             }
         }
+
+		void setDirection(bool direction) override
+		{
+			if (direction)
+			{
+				m_upperArm.m_rotation = glm::radians(-m_upperAngle);
+				m_foreArm.m_rotation = glm::radians(-m_forearmAngle);
+				m_foreArm.m_position.x = 9.f;
+			}
+			else
+			{
+				m_upperArm.m_rotation = glm::radians(m_upperAngle);
+				m_foreArm.m_rotation = glm::radians(m_forearmAngle);
+				m_foreArm.m_position.x = 5.f;
+			}
+		}
 
         CompositeSprite* getParent() override
         {

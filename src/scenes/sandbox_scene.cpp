@@ -21,6 +21,7 @@
 #	include "../res/texture_resource.h"
 #endif
 
+#   include "..\ecs\timer.h"
 #include "..\ecs\entity_builder.h"
 #include "../ecs/managers/animator_manager.h"
 #include <bx/fpumath.h>
@@ -32,6 +33,7 @@
 #include <common/packet.h>
 #include <common/arena/gladiator.h>
 #include <time.h>
+#include <stdlib.h>
 
 
 namespace arena
@@ -118,7 +120,7 @@ namespace arena
     
 	static void diefool(const void*)
 	{
-		anime->m_animator.playDeathAnimation(1, 9.0f);
+		anime->m_animator.playDeathAnimation(1, 100.0f);
 	}
 
 	static void respawn(const void*)
@@ -320,7 +322,7 @@ namespace arena
 
         for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
         {
-            if ((it->second.lifeTime += gameTime.m_delta) < 3.0f)
+            if ((it->second.lifeTime += gameTime.m_delta) < 1.0f)
             {
                 Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
                 bulletTransform->m_position = *it->second.bullet->m_position;
@@ -333,6 +335,25 @@ namespace arena
 				it = m_debugBullets.erase(it);
             }
         }
+
+		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+		{
+			Entity* entity = *iterator;
+			if (entity->contains(TYPEOF(Timer)))
+			{
+				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+				if (timer->timePassed(gameTime.m_delta))
+				{
+					//TODO: delete entity. Deletion is broken.
+					if (entity->contains(TYPEOF(SpriteRenderer)))
+					{
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						render->hide();
+					}
+				}
+			}
+
+		}
 
         Camera& camera = App::instance().camera();
         camera.m_position = playerTransform->m_position;
@@ -357,6 +378,7 @@ namespace arena
         float a = glm::atan(dir.y, dir.x);
         m_controller.aimAngle = a;
 
+		
 
         for (const auto& elem : m_clientIdToGladiatorData)
         {
@@ -548,6 +570,7 @@ namespace arena
 			{
 				// if bullet exists, set position
 				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
+				//printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
 				
 			}
 			else
@@ -576,26 +599,97 @@ namespace arena
 
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
+		//initialize random seed
+		srand(time(NULL));
+
 		EntityBuilder builder;
 		builder.begin();
 
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
-
+		
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
+		//if (bullet->m_rotation < 3.142)
+		renderer->setRotation(bullet->m_rotation);
+		//else
+		//renderer->setRotation(bullet->m_rotation+ 3.142);
+		
 		renderer->anchor();
 		
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
-
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
+		
+		builder.begin();
 		debugBullet.entity = entity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+
+		// effects
+		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
+		builder.begin();
+
+		transform = builder.addTransformComponent();
+		renderer = builder.addSpriteRenderer();
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.1f;
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
+		Rectf& source = renderer->getSource();
+		source.x = 0; source.y = 0; source.w = 32; source.h = 32;
+		
+		transform->m_position = *bullet->m_position;
+
+		renderer->setRotation(bullet->m_rotation);
+
+		registerEntity(builder.getResults());
+		// muzzle flash end.
+
+		// Load gun smoke, randomize rotation and position and transparency on spawn. Delete smoke when transparency reaches zero.
+		
+		
+		//
+
+		for (int i = 0; i < rand() % 5 + 3; i++) 
+		{
+			int spriteX = rand() % 4, xOffset=0 , yOffset=0;
+
+			builder.begin();
+
+			transform = builder.addTransformComponent();
+			renderer = builder.addSpriteRenderer();
+
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
+			
+			Rectf& source = renderer->getSource();
+			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
+
+			
+			if (rand() % 2 == 1) {
+				xOffset = rand() % 20;
+			} else {
+				xOffset = -(rand() % 20);
+			}
+			if (rand() % 2 == 1) {
+				yOffset = rand() % 10;
+			}
+			else {
+				yOffset = -(rand() % 10);
+			}
+
+			
+			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			registerEntity(builder.getResults());
+		}
+
+
+		
+
+
+
+
 	}
 	
 
@@ -623,6 +717,7 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
+
 		renderer->setColor(0);
 		renderer->anchor();
 		registerEntity(builder.getResults());
