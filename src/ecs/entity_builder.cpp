@@ -61,6 +61,13 @@ namespace arena
 		return timer;
 	}
 
+	Movement* const EntityBuilder::addMovement()
+	{
+		Movement* movement = new Movement();
+		m_entity->add(movement);
+		return movement;
+	}
+
 	void EntityBuilder::addTag(const String& tag)
 	{
         ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");

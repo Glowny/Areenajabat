@@ -15,11 +15,14 @@ namespace arena
 	public:
 		float m_lifeTime;
 		float m_currentTime;
+		float m_between;
 		bool timePassed(float time) 
 		{
+			m_between += time;
 			if ((m_currentTime += time) > m_lifeTime)
+			{
 				return true;
-
+			}
 				return false;
 		}
 		float timePassed() // returns value between 0-1, 0 = no time passed.
@@ -42,8 +45,13 @@ namespace arena
 			float time = reverseTimePassed() * 255;
 			return time;
 		}
+
+		float resetBetween()
+		{
+			m_between = 0;
+		}
 		~Timer() = default;
-		Timer() { m_lifeTime = 1; m_currentTime = 0; }
+		Timer() { m_lifeTime = 1; m_currentTime = 0; m_between = 0; }
 	protected:
 	};
 }
