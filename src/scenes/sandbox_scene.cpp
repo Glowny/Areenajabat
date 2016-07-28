@@ -209,6 +209,8 @@ namespace arena
 		sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
 
+		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
+		m_background = 1;
 		createBackground();
 		Gladiator* glad = new Gladiator();
 		*glad->m_position = glm::vec2(200, 200);
@@ -489,36 +491,72 @@ namespace arena
 	}
 	void SandboxScene::createBackground()
 	{
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		EntityBuilder builder;
+
+		// Create back
+		if (m_background >= 2)
+		{ 
 		
-        for (unsigned y = 0; y <= 1; y++)
-        {
-            for (unsigned x = 0; x <= 3; x++)
-            {
-                EntityBuilder builder;
-                builder.begin();
-                ResourceManager* resources = App::instance().resources();
-                (void)resources;
+			for (int y = 0; y <= 3; y++)
+			{
+				for (int x = 0; x <= 5; x++)
+				{
+					builder.begin();
+					Movement* move= builder.addMovement();
+					move->m_velocity = glm::vec2(0, 0);
+					move->m_rotationSpeed = 0;
+					builder.addIdentifier(MapBack);
+					std::string name = "map/B";
+					name += std::to_string(x);
+					name += std::to_string(y);
+					name += ".png";
 
-                SpriteRenderer* renderer = builder.addSpriteRenderer();
+					SpriteRenderer* renderer = builder.addSpriteRenderer();
+					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
+					Transform* transform = builder.addTransformComponent();
 
-                std::string name = "map/";
-                name += std::to_string(x);
-                name += std::to_string(y);
-                name += ".png";
+					transform->m_position = glm::vec2((x-1) * 1920, (y-1) * 1080);
+					renderer->setTexture(textureResource);
 
-                TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
+					renderer->anchor();
+					registerEntity(builder.getResults());
+				}
+			}
+		}
+		
+		// Create front
+		if (m_background == 1 || m_background == 3)
+		{
 
-               // glm::vec2 scale = glm::vec2(1920.0f / float(textureResource->width), 1080.0f / float(textureResource->height));
+			for (unsigned y = 0; y <= 1; y++)
+			{
+				for (unsigned x = 0; x <= 3; x++)
+				{
+					builder.begin();
+					builder.addIdentifier(MapFront);
+					SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-                Transform* transform = builder.addTransformComponent();
+					std::string name = "map/";
+					name += std::to_string(x);
+					name += std::to_string(y);
+					name += ".png";
 
-				transform->m_position = glm::vec2(x * 1920, y * 1080 );
-                //transform->m_scale = scale;
-                renderer->setTexture(textureResource);
+					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
 
-                renderer->anchor();
-            }
-        }
+					Transform* transform = builder.addTransformComponent();
+
+					transform->m_position = glm::vec2(x * 1920, y * 1080);
+
+					renderer->setTexture(textureResource);
+
+					renderer->anchor();
+					registerEntity(builder.getResults());
+				}
+			}
+		}
+				
 	}
 
 	
