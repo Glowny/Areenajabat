@@ -684,7 +684,7 @@ namespace arena
 		for (int i = 0; i < rand() % 5 + 3; i++) 
 		{
 			spriteX = rand() % 4;
-			int rotation = 0;
+			float rotation = 0;
 			int xOffset = 0, yOffset = 0;
 
 			builder.begin();
@@ -706,11 +706,11 @@ namespace arena
 
 			
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 20;
-				rotation = rand() % 4;
+				xOffset = rand() % 10;
+				rotation = (rand() % 3)/100.0f;
 			} else {
-				xOffset = -(rand() % 20);
-				rotation = -(rand() % 4);
+				xOffset = -(rand() % 10);
+				rotation = -(rand() % 3)/100;
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 10;
@@ -724,7 +724,7 @@ namespace arena
 			// Movement
 			Movement* movement = builder.addMovement();
 			movement->m_velocity = glm::vec2(float(xOffset)/100.0f , float(yOffset) / 100.0f);
-			movement->m_rotationSpeed = float(rotation)/100.0f;
+			movement->m_rotationSpeed = rotation;
 
 			registerEntity(builder.getResults());
 		} //gun smoke end
