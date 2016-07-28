@@ -672,6 +672,7 @@ namespace arena
 		glm::vec2& origin = renderer->getOrigin();
 		origin.x = origin.x + 16; origin.y = origin.y + 16;
 		renderer->setRotation(bullet->m_rotation + 3.142);
+		renderer->setLayer(2);
 
 		registerEntity(builder.getResults());
 		// muzzle flash end.
@@ -700,6 +701,7 @@ namespace arena
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			uint32_t color = color::toABGR(255, 255, 255, 125);
 			renderer->setColor(color);
+			renderer->setLayer(1);
 			//renderer->setRotation(rand() % 7);
 			Rectf& source = renderer->getSource();
 			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
