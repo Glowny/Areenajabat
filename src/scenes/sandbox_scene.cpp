@@ -210,7 +210,7 @@ namespace arena
 		m_controller.aimAngle = 0;
 
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
-		m_background = 1;
+		m_background = 3;
 		createBackground();
 		Gladiator* glad = new Gladiator();
 		*glad->m_position = glm::vec2(200, 200);
@@ -372,11 +372,26 @@ namespace arena
 					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
 					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
 					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					
+					
 					if (timer->m_between > 0.016f)
 					{
 						transform->m_position += movement->m_velocity;
 						render->setRotation(render->getRotation() + movement->m_rotationSpeed);
 						timer->resetBetween();
+					}
+				}
+				if (entity->contains(TYPEOF(Id)))
+				{
+					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					
+					Id* id = (Id*)entity->first(TYPEOF(Id));
+					if (id->m_id == MapBack)
+					{
+						// use movement component as offset component.
+						movement->m_velocity = glm::vec2(playerTransform->m_position.x * 0.01, playerTransform->m_position.y * 0.01);
+						transform->m_position = transform->m_position += movement->m_velocity;
 					}
 				}
 			}
