@@ -381,6 +381,9 @@ namespace arena
         bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
         bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
 
+        bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
+        bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+
         bgfx::dbgTextClear();
 
         SpriteManager::instance().update(gameTime);

@@ -165,6 +165,9 @@ namespace arena
                 m_sortedSprites[i] = &m_spriteQueue[i];
             }
 
+#define SPRITEBATCH_SORT_DEFERRED 1
+
+#if !SPRITEBATCH_SORT_DEFERRED
             std::sort(
                 std::begin(m_sortedSprites),
                 std::begin(m_sortedSprites) + m_spriteQueueCount,
@@ -172,6 +175,7 @@ namespace arena
             {
                 return x->depth < y->depth;
             });
+#endif
         }
         
         if (bgfx::checkAvailTransientVertexBuffer(m_spriteQueueCount * 4, m_decl))
@@ -228,5 +232,9 @@ namespace arena
         }
 
         m_spriteQueueCount = 0;
+
+#if !SPRITEBATCH_SORT_DEFERRED
+        m_sortedSprites.clear();
+#endif
     }
 }
