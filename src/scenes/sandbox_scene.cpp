@@ -691,7 +691,7 @@ namespace arena
 
 			// Timer
 			timer = builder.addTimer();
-			timer->m_lifeTime = 1.0f;
+			timer->m_lifeTime = 0.5f;
 
 			// Drawing stuff
 			transform = builder.addTransformComponent();
@@ -700,7 +700,9 @@ namespace arena
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			uint32_t color = color::toABGR(255, 255, 255, 50);
 			renderer->setColor(color);
-			//renderer->setRotation(rand() % 7);
+			glm::vec2& origin = renderer->getOrigin();
+			origin.x = origin.x + 16; origin.y = origin.y + 16;
+			renderer->setRotation(rand() % 7);
 			Rectf& source = renderer->getSource();
 			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
 
