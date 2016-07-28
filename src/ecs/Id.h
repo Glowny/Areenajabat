@@ -13,6 +13,8 @@ namespace arena
 		None,
 		Smoke,
 		MuzzleFlash,
+		MapFront,
+		MapBack,
 
 	};
 
