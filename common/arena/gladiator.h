@@ -14,11 +14,22 @@ namespace arena
 		{ 
 			m_position = new glm::vec2(0,0);
 			m_velocity = new glm::vec2(0, 0);
+			m_respawnTime = 5.0f;
+			m_currentRespawnTime = 0.0f;
 		}
 		~Gladiator()
 		{
 			delete m_position;
 			delete m_velocity;
+		}
+		bool checkRespawn(float64 dt)
+		{
+			if (m_respawnTime < (m_currentRespawnTime += dt))
+			{ 
+				return true;
+				m_currentRespawnTime = 0;
+			}
+			return false;
 		}
 		std::vector<Bullet*> createBullets()
 		{
@@ -36,5 +47,8 @@ namespace arena
 		Weapon*		m_weapon;
 
 		bool		m_alive;
+	private:
+		float64		m_respawnTime;
+		float64		m_currentRespawnTime;
 	};
 }

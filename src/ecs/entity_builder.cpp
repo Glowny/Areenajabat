@@ -68,6 +68,20 @@ namespace arena
 		return movement;
 	}
 
+	Id* const EntityBuilder::addIdentifier()
+	{
+		Id* id = new Id();
+		m_entity->add(id);
+		return id;
+	}
+	Id* const EntityBuilder::addIdentifier(EntityIdentification id)
+	{
+		Id* identification = new Id();
+		identification->m_id = id;
+		m_entity->add(identification);
+		return identification;
+	}
+
 	void EntityBuilder::addTag(const String& tag)
 	{
         ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");

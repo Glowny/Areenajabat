@@ -331,12 +331,12 @@ uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned sho
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
 	fixtureDef.density = 2.0f;
-	fixtureDef.friction = 0.01f;
+	fixtureDef.friction = 1.01f;
 	fixtureDef.filter = b2Filters[ci_Bullet];
 	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.mass = 0.001f;
+	data.mass = 0.01f;
 	data.center = b2Vec2(0.01f, 0.01f);
 
 	body->SetMassData(&data);
