@@ -347,18 +347,13 @@ namespace arena
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 				if (timer->timePassed(gameTime.m_delta))
 				{
-					//TODO: delete entity . Deletion is broken.
-					if (entity->contains(TYPEOF(SpriteRenderer)))
-					{
-						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						render->hide();
-						continue;
-					}
+					entity->destroy();
+					continue;
 				}
 				if (entity->contains(TYPEOF(SpriteRenderer)))
 				{
 					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-					render->setColor(color::toABGR(255, 255, 255, timer->timePassedReverse255()));
+					render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()));
 				}
 
 				if (entity->contains(TYPEOF(Movement)) && entity->contains(TYPEOF(Transform)) && entity->contains(TYPEOF(SpriteRenderer)))
@@ -666,12 +661,15 @@ namespace arena
 			spriteY = rand() % 2;
 		}
 
-		source.x = 0 + spriteX * 32; source.y = 0 + spriteY * 32; source.w = 32; source.h = 32;
+		source.x = 0.0f + (float)spriteX * 32.0f;
+		source.y = 0.0f + (float)spriteY * 32.0f;
+		source.w = 32.0f;
+		source.h = 32.0f;
 		
 		transform->m_position = glm::vec2(bullet->m_position->x - 16, bullet->m_position->y - 16);
 		glm::vec2& origin = renderer->getOrigin();
 		origin.x = origin.x + 16; origin.y = origin.y + 16;
-		renderer->setRotation(bullet->m_rotation + 3.142);
+		renderer->setRotation((float32)bullet->m_rotation + 3.142f);
 		renderer->setLayer(2);
 
 		registerEntity(builder.getResults());
@@ -704,7 +702,7 @@ namespace arena
 			renderer->setLayer(1);
 			//renderer->setRotation(rand() % 7);
 			Rectf& source = renderer->getSource();
-			source.x = 32 * spriteX; source.y = 0; source.w = 32; source.h = 32;
+			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
 
 			
 			if (rand() % 2 == 1) {
@@ -712,7 +710,7 @@ namespace arena
 				rotation = (rand() % 3)/100.0f;
 			} else {
 				xOffset = -(rand() % 15);
-				rotation = -(rand() % 3)/100;
+				rotation = (float)-(rand() % 3)/100.0f;
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 15;
