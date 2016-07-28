@@ -698,7 +698,7 @@ namespace arena
 			renderer = builder.addSpriteRenderer();
 		
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
-			uint32_t color = color::toABGR(255, 255, 255, 125);
+			uint32_t color = color::toABGR(255, 255, 255, 50);
 			renderer->setColor(color);
 			//renderer->setRotation(rand() % 7);
 			Rectf& source = renderer->getSource();
@@ -706,17 +706,17 @@ namespace arena
 
 			
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
+				xOffset = rand() % 15;
 				rotation = (rand() % 3)/100.0f;
 			} else {
-				xOffset = -(rand() % 10);
+				xOffset = -(rand() % 15);
 				rotation = -(rand() % 3)/100;
 			}
 			if (rand() % 2 == 1) {
-				yOffset = rand() % 10;
+				yOffset = rand() % 15;
 			}
 			else {
-				yOffset = -(rand() % 10);
+				yOffset = -(rand() % 15);
 			}
 
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
