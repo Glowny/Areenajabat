@@ -179,9 +179,9 @@ public:
 	Physics();
 	~Physics();
 
-	float64 updateTimer;
+	float32 updateTimer;
 	void reset();
-	void update(float timeStep = 1.0f / 60.0f);
+	void update(float32 timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	unsigned addGladiator(glm::vec2* position);
@@ -208,7 +208,7 @@ private:
 	//ArenaContactListener m_listener;
 
 	std::vector<CollisionCallback> m_callbacks;
-
+	int16 gladiatorIdToGroupId(uint32_t playerId);
 	bool isIdFree[256];
 	void nextUint8_t(uint8_t& current);
 	uint8_t currentFreeId;

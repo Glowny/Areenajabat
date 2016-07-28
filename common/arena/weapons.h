@@ -99,7 +99,7 @@ namespace arena
 		WeaponGladius() : Weapon() 
 		{ 
 			m_type = Gladius; 
-			coolDown = 0.2f;
+			coolDown = 0.05f;
 			coolDownTimer = 0;
 		}
 

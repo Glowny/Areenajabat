@@ -67,7 +67,7 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 };
 Physics::~Physics() {};
 
-void Physics::update(float timeStep)
+void Physics::update(float32 timeStep)
 {
 	const int32 VelocityIterations = 6;
 	const int32 PositionIterations = 2;
@@ -210,7 +210,8 @@ unsigned Physics::addGladiator(glm::vec2* position)
 	fixtureDef.density = 2.5f;
 	fixtureDef.friction = 0.8f;
 	fixtureDef.filter = b2Filters[ci_Gladiator];
-	fixtureDef.filter.groupIndex = -(glad->m_id+1);
+	
+	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(glad->m_id);
 
 	glad->m_body->CreateFixture(&fixtureDef);
 
@@ -240,7 +241,7 @@ void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool colli
 	else
 		filter = b2Filters[ci_GladiatorNoCollide];
 
-	filter.groupIndex = -(gladiatorID+1);
+	filter.groupIndex = gladiatorIdToGroupId(gladiatorID);
 	m_gladiatorVector[gladiatorID]->m_body->GetFixtureList()->SetFilterData(filter);
 }
 
@@ -332,7 +333,7 @@ uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned sho
 	fixtureDef.density = 2.0f;
 	fixtureDef.friction = 0.01f;
 	fixtureDef.filter = b2Filters[ci_Bullet];
-	fixtureDef.filter.groupIndex = -(shooterID+1);
+	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
 	data.mass = 0.001f;
@@ -420,4 +421,9 @@ void Physics::nextUint8_t(uint8_t& current)
 	}
 	// If this happens, there is no free ids left. To add more bullets, use bigger data type
 	assert(false);
+}
+
+int16 Physics::gladiatorIdToGroupId(uint32_t playerId)
+{
+	return -(int16)(playerId + 1);
 }
