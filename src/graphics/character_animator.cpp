@@ -339,27 +339,28 @@ namespace arena
 			return;
 		}
 		// If no full body animation, render legs.
-		else 
-		{
-			// render legs, hands
+        else
+        {
+
+            if (m_gladiusReload.m_reload)
+            {
+                m_gladiusReload.m_animation.render();
+            }
+            else if (m_axeReload.m_reload)
+            {
+                m_axeReload.m_animation.render();
+            }
+            else if (m_throw.m_throwing)
+            {
+                m_throw.m_animation.render();
+            }
+            else
+            {    // torso will render head and hands
+                m_torso.m_sprite.render(effects);
+            }
+
+			// render legs
 			m_legs.m_animation.render();
-		
-
-			// torso will render head and hands
-			m_torso.m_sprite.render(effects);
-
-			if (m_gladiusReload.m_reload)
-			{
-				m_gladiusReload.m_animation.render();
-			}
-			else if (m_axeReload.m_reload)
-			{
-				m_axeReload.m_animation.render();
-			}
-			else if (m_throw.m_throwing)
-			{
-				m_throw.m_animation.render();
-			}
 		}
 		
 	
