@@ -210,7 +210,7 @@ namespace arena
 		m_controller.aimAngle = 0;
 
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
-		m_background = 3;
+		m_background = 1;
 		createBackground();
 		Gladiator* glad = new Gladiator();
 		*glad->m_position = glm::vec2(200, 200);
@@ -381,21 +381,23 @@ namespace arena
 						timer->resetBetween();
 					}
 				}
-				if (entity->contains(TYPEOF(Id)))
+				
+			}
+			if (entity->contains(TYPEOF(Id)))
+			{
+				Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+				Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+
+				Id* id = (Id*)entity->first(TYPEOF(Id));
+				if (id->m_id == MapBack)
 				{
-					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
-					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
-					
-					Id* id = (Id*)entity->first(TYPEOF(Id));
-					if (id->m_id == MapBack)
-					{
-						// use movement component as offset component.
-						movement->m_velocity = glm::vec2(playerTransform->m_position.x * 0.01, playerTransform->m_position.y * 0.01);
-						transform->m_position = transform->m_position += movement->m_velocity;
-					}
+					// Parallex scrolling.
+					// use movement component as offset component.
+					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.2f , playerTransform->m_position.y *1.2f );
+					// HAX: velocity is original position, too lazy to create originalposition-component or something like that
+					transform->m_position = glm::vec2(movement->m_velocity.x+mapOffset.x , movement->m_velocity.y+mapOffset.y);
 				}
 			}
-
 		}
 
         Camera& camera = App::instance().camera();
@@ -521,6 +523,7 @@ namespace arena
 			{
 				for (int x = 0; x <= 5; x++)
 				{
+					// TODO: add offset component.
 					builder.begin();
 					Movement* move= builder.addMovement();
 					move->m_velocity = glm::vec2(0, 0);
@@ -537,7 +540,7 @@ namespace arena
 
 					transform->m_position = glm::vec2((x-1) * 1920, (y-1) * 1080);
 					renderer->setTexture(textureResource);
-
+					move->m_velocity = transform->m_position;
 					renderer->anchor();
 					registerEntity(builder.getResults());
 				}
