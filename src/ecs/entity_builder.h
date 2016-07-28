@@ -6,6 +6,7 @@
 #include "..\rect.h"
 #include "..\ecs\timer.h"
 #include "..\ecs\movement.h"
+#include "..\ecs\id.h"
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, TextureResource)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteRenderer)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Transform)
@@ -28,6 +29,8 @@ namespace arena
         Animator* const addCharacterAnimator();
 		Timer* const addTimer();
 		Movement* const addMovement();
+		Id* const addIdentifier();
+		Id* const addIdentifier(EntityIdentification id);
 
 		void addTag(const String& tag);
 		void setTags(const String& tags);

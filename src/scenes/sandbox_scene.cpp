@@ -344,18 +344,27 @@ namespace arena
 			Entity* entity = *iterator;
 			if (entity->contains(TYPEOF(Timer)))
 			{
+				// Destroy entities that are out of their lifetime.
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 				if (timer->timePassed(gameTime.m_delta))
 				{
 					entity->destroy();
 					continue;
 				}
-				if (entity->contains(TYPEOF(SpriteRenderer)))
+
+				// Fade entities that need to be faded away
+				if (entity->contains(TYPEOF(SpriteRenderer)) && entity->contains(TYPEOF(Id)))
 				{
-					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-					render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()));
+					Id* entityId = (Id*)entity->first(TYPEOF(Id));
+					// If entity is type of smoke, fade it.
+					if (entityId->m_id == Smoke)
+					{ 
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/2));
+					}
 				}
 
+				// Move entities that need to be moved
 				if (entity->contains(TYPEOF(Movement)) && entity->contains(TYPEOF(Transform)) && entity->contains(TYPEOF(SpriteRenderer)))
 				{
 					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
@@ -655,7 +664,7 @@ namespace arena
 		renderer = builder.addSpriteRenderer();
 		Timer* timer = builder.addTimer();
 		timer->m_lifeTime = 0.05f;
-
+		builder.addIdentifier(EntityIdentification::MuzzleFlash);
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
 		Rectf& source = renderer->getSource();
 
@@ -698,7 +707,7 @@ namespace arena
 			// Drawing stuff
 			transform = builder.addTransformComponent();
 			renderer = builder.addSpriteRenderer();
-		
+			builder.addIdentifier(EntityIdentification::Smoke);
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			uint32_t color = color::toABGR(255, 255, 255, 50);
 			renderer->setColor(color);
@@ -710,17 +719,17 @@ namespace arena
 
 			
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 15;
+				xOffset = rand() % 10;
 				rotation = (rand() % 3)/100.0f;
 			} else {
-				xOffset = -(rand() % 15);
+				xOffset = -(rand() % 10);
 				rotation = (float)-(rand() % 3)/100.0f;
 			}
 			if (rand() % 2 == 1) {
-				yOffset = rand() % 15;
+				yOffset = rand() % 10;
 			}
 			else {
-				yOffset = -(rand() % 15);
+				yOffset = -(rand() % 10);
 			}
 
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);

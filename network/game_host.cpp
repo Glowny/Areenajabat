@@ -158,9 +158,14 @@ namespace arena
 		// TODO: add jump and dont let player decide amount of force applied!
 		auto& players = m_players.container();
 
+
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
 			Player& player					= *it;
+			// If player is not alive, do not process input.
+			if (player.m_gladiator->m_alive == false)
+				continue;
+
 			unsigned physicsId				= player.m_gladiator->m_physicsId;
             PlayerInput& input				= player.m_playerController->m_input;
 
@@ -168,7 +173,7 @@ namespace arena
             
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
-			bool check = player.m_gladiator->m_weapon->checkCoolDown(dt);
+			bool check = player.m_gladiator->m_weapon->checkCoolDown((float)dt);
 			if (input.m_shootButtonDown && check)
 			{
 				GladiatorShoot(player.m_gladiator);
@@ -195,8 +200,8 @@ namespace arena
 			{
 				glm::vec2 force;
 
-				force.y = moveDirection.y * -30000.0f * dt;
-				force.x = moveDirection.x * 150000.0f * dt;
+				force.y = moveDirection.y * -30000.0f * (float32)dt;
+				force.x = moveDirection.x * 150000.0f * (float32)dt;
 
 				m_physics.applyForceToGladiator(force, physicsId);
 				
@@ -221,7 +226,7 @@ namespace arena
 			p_Bullet& bullet		= entry.m_bullet;
 			dt;
 			
-			//TODO: move this check to physics. Target id is invalid, sometimes, fix pls
+			//TODO: move this check to physics. Target id is invalid sometimes, fix pls
 			if (shooter.m_id == target.m_id || target.m_id > 10)
 				continue;
 			
@@ -466,7 +471,7 @@ namespace arena
 		{
 			// Do normal updates.
 			
-			if ((m_physics.updateTimer += dt) > TIMESTEP)
+			if ((m_physics.updateTimer += float32(dt)) > TIMESTEP)
 			{
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
@@ -478,10 +483,16 @@ namespace arena
 				// get data from gladiators.
 				for (Player& player : players())
 				{
-					// Updated on physics atm.
-					// player.m_gladiator->m_position = m_physics.getGladiatorPosition(player.m_gladiator->m_physicsId);
-
-					 // update position because gravity - dont update too much
+					if (player.m_gladiator->m_alive == false)
+					{ 
+						if (player.m_gladiator->checkRespawn(m_physics.updateTimer))
+						{
+							player.m_gladiator->m_alive = true;
+							player.m_gladiator->m_hitpoints = 100;
+							m_physics.setGladiatorPosition(player.m_gladiator->getPhysicsID(), glm::vec2(1600,200));
+						}
+					}
+					 // update position because of gravity - dont update too much
 					 m_synchronizationList.push_back(player.m_gladiator);
 				}
 
