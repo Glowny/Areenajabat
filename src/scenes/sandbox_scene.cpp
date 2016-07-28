@@ -628,7 +628,6 @@ namespace arena
 
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
-		int spriteX = 0, spriteY = 0;
 		EntityBuilder builder;
 		builder.begin();
 
@@ -668,13 +667,13 @@ namespace arena
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
 		Rectf& source = renderer->getSource();
 
-		spriteX = rand() % 2;
-		if (spriteX == 0) {
-			spriteY = rand() % 2;
-		}
 
-		source.x = 0.0f + (float)spriteX * 32.0f;
-		source.y = 0.0f + (float)spriteY * 32.0f;
+		if (nextSprite < 3)
+			nextSprite++;
+		else nextSprite = 0;
+
+		source.x = 0.0f + (float)nextSprite * 32.0f;
+		source.y = 0.0f;
 		source.w = 32.0f;
 		source.h = 32.0f;
 		
@@ -694,6 +693,7 @@ namespace arena
 
 		for (int i = 0; i < rand() % 5 + 3; i++) 
 		{
+			int spriteX;
 			spriteX = rand() % 4;
 			float rotation = 0;
 			int xOffset = 0, yOffset = 0;

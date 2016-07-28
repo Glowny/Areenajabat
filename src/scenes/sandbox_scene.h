@@ -111,6 +111,7 @@ namespace arena
 		float sendInputToServerTimer;
 		Scoreboard m_scoreboard;
 		uint8_t m_playerId;
+		int nextSprite = 0; //used to choose the next sprite in muzzle flash spritesheet
 
     public:
         PlayerController m_controller;
