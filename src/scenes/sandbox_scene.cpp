@@ -707,17 +707,17 @@ namespace arena
 
 			
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 15;
+				xOffset = rand() % 10;
 				rotation = (rand() % 3)/100.0f;
 			} else {
-				xOffset = -(rand() % 15);
+				xOffset = -(rand() % 10);
 				rotation = (float)-(rand() % 3)/100.0f;
 			}
 			if (rand() % 2 == 1) {
-				yOffset = rand() % 15;
+				yOffset = rand() % 10;
 			}
 			else {
-				yOffset = -(rand() % 15);
+				yOffset = -(rand() % 10);
 			}
 
 			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
