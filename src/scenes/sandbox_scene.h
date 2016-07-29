@@ -112,7 +112,7 @@ namespace arena
 		Scoreboard m_scoreboard;
 		uint8_t m_playerId;
 		int nextSprite = 0; //used to choose the next sprite in muzzle flash spritesheet
-		int m_background;
+		int m_background; // 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
     public:
         PlayerController m_controller;
 	};

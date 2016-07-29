@@ -362,7 +362,7 @@ namespace arena
 					if (entityId->m_id == Smoke)
 					{ 
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/2));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/10));
 					}
 				}
 
@@ -377,6 +377,8 @@ namespace arena
 					if (timer->m_between > 0.016f)
 					{
 						transform->m_position += movement->m_velocity;
+						movement->m_velocity = glm::vec2(movement->m_velocity.x *0.9, movement->m_velocity.y*0.9);
+
 						render->setRotation(render->getRotation() + movement->m_rotationSpeed);
 						timer->resetBetween();
 					}
@@ -742,7 +744,7 @@ namespace arena
 		registerEntity(builder.getResults());
 		// muzzle flash end.
 
-		// Load gun smoke, randomize rotation and position and transparency on spawn.
+		// Load gun smoke, randomize rotation and position on spawn.
 		
 		
 		//
@@ -788,11 +790,13 @@ namespace arena
 				yOffset = -(rand() % 10);
 			}
 
-			transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			transform->m_position = glm::vec2(bullet->m_position->x - 16, bullet->m_position->y - 16);
 			
 			// Movement
 			Movement* movement = builder.addMovement();
-			movement->m_velocity = glm::vec2(float(xOffset)/100.0f , float(yOffset) / 100.0f);
+			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
+			movement->m_velocity = glm::vec2(cos(bullet->m_rotation) * 2 + float(xOffset) / 5.0f,sin(bullet->m_rotation) * 2 + float(yOffset) / 5.0f);
 			movement->m_rotationSpeed = rotation;
 
 			registerEntity(builder.getResults());
