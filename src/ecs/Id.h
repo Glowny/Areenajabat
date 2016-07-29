@@ -15,6 +15,7 @@ namespace arena
 		MuzzleFlash,
 		MapFront,
 		MapBack,
+		HitBlood,
 
 	};
 
