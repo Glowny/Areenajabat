@@ -362,7 +362,7 @@ namespace arena
 					if (entityId->m_id == Smoke)
 					{ 
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/10));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/8));
 					}
 				}
 

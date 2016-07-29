@@ -223,7 +223,7 @@ namespace arena
 		gladiator = m_skin; //either 0 (bronze) or 1 (gold), unless more skins are added
 		hitDirectionInt = (int)hitDirection; // either 0 (left) or 1 (right)
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
-
+		
 		//0 = legs, 1 = body, 2 = head
 		if (hitPositionY < 10)
 			bodyArea = 2; 

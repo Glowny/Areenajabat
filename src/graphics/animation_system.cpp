@@ -54,7 +54,7 @@ namespace arena
         }
 
         void rotateTo(float radians) override
-        {
+		{
             if (m_flipX)
             {
                 m_upperArm.m_rotation = m_gunAngle + radians;
@@ -125,6 +125,7 @@ namespace arena
         GladiusLeftArm() :
             m_upperAngle(17.f),
             m_forearmAngle(125.f),
+			m_gunAngle(4.1f),
             m_flipX(false),
             m_upperArm(nullptr),
             m_foreArm(nullptr)
@@ -158,11 +159,11 @@ namespace arena
             (void)radians;
             if (m_flipX)
             {
-                //m_upperArm.m_rotation = m_gunAngle + radians;
+                m_upperArm.m_rotation = m_gunAngle + radians;
             }
             else
             {
-                //m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
+                m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
             }
         }
         void flip() override
@@ -179,6 +180,7 @@ namespace arena
             {
                 m_upperArm.m_rotation = glm::radians(m_upperAngle);
                 m_foreArm.m_rotation = glm::radians(m_forearmAngle);
+				
                 m_foreArm.m_position.x = 5.f;
             }
         }
@@ -210,6 +212,7 @@ namespace arena
 
         CompositeSprite m_upperArm;
         CompositeSprite m_foreArm;
+		float m_gunAngle;
 
         bool m_flipX;
     };
