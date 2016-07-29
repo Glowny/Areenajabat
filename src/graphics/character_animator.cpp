@@ -113,11 +113,13 @@ namespace arena
 			weaponAim += 0.5;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
+			m_animationData->m_leftHand->setDirection(1);
 		}
 		else //if aiming left
 		{ 
 			m_upperBodyDirection = 0;
 			m_animationData->m_rightHand->setDirection(0);
+			m_animationData->m_leftHand->setDirection(0);
 		}
 
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
@@ -196,27 +198,24 @@ namespace arena
 
     void CharacterAnimator::setFlipX(bool flip)
     {
-        if (flip != m_flipX)
+     
+        ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
+
+        m_flipX = flip;
+
+        if (flip)
         {
-            ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
-
-            m_flipX = flip;
-
-            if (flip)
-            {
-                m_legs.m_animation.setCurrentAnimation("1_Right_Running");
-                m_torso.m_relativeOffset.x = -8.f;
-            }
-            else
-            {
-                m_legs.m_animation.setCurrentAnimation("1_Left_Running");
-                m_torso.m_relativeOffset.x = -4.f;
-            }
-
-			//m_animationData->m_rightHand->flip();
-			//m_animationData->m_leftHand->flip();
+            m_legs.m_animation.setCurrentAnimation("1_Right_Running");
+            m_torso.m_relativeOffset.x = -8.f;
         }
+        else
+        {
+            m_legs.m_animation.setCurrentAnimation("1_Left_Running");
+            m_torso.m_relativeOffset.x = -4.f;
+        }
+
     }
+    
 
 	void CharacterAnimator::playDeathAnimation(bool hitDirection, float hitPositionY)
 	{
@@ -225,7 +224,7 @@ namespace arena
 		gladiator = m_skin; //either 0 (bronze) or 1 (gold), unless more skins are added
 		hitDirectionInt = (int)hitDirection; // either 0 (left) or 1 (right)
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
-
+		
 		//0 = legs, 1 = body, 2 = head
 		if (hitPositionY < 10)
 			bodyArea = 2; 

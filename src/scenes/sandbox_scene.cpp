@@ -363,7 +363,7 @@ namespace arena
 					if (entityId->m_id == Smoke)
 					{ 
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/10));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/8));
 					}
 				}
 
@@ -428,7 +428,8 @@ namespace arena
         glm::vec2 dir(mouseLoc - playerTransform->m_position);
         float a = glm::atan(dir.y, dir.x);
         m_controller.aimAngle = a;
-
+		// Update own gladiator aim
+		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 		
 
         for (const auto& elem : m_clientIdToGladiatorData)

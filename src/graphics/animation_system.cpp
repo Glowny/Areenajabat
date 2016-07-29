@@ -54,7 +54,7 @@ namespace arena
         }
 
         void rotateTo(float radians) override
-        {
+		{
             if (m_flipX)
             {
                 m_upperArm.m_rotation = m_gunAngle + radians;
@@ -87,6 +87,7 @@ namespace arena
 
 		void setDirection(bool direction) override
 		{
+			m_flipX = direction;
 			if(direction)
 			{
 				m_upperArm.m_rotation = glm::radians(-m_upperAngle);
@@ -123,7 +124,8 @@ namespace arena
     struct GladiusLeftArm : public IHandAnimation
     {
         GladiusLeftArm() :
-            m_upperAngle(17.f),
+           // m_upperAngle(3.7f),
+			m_upperAngle(330.f),
             m_forearmAngle(125.f),
             m_flipX(false),
             m_upperArm(nullptr),
@@ -158,11 +160,11 @@ namespace arena
             (void)radians;
             if (m_flipX)
             {
-                //m_upperArm.m_rotation = m_gunAngle + radians;
+                m_upperArm.m_rotation = glm::radians(m_upperAngle) + radians;
             }
             else
             {
-                //m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
+                m_upperArm.m_rotation = glm::radians(m_upperAngle) + radians + glm::radians(240.f);
             }
         }
         void flip() override
@@ -179,12 +181,14 @@ namespace arena
             {
                 m_upperArm.m_rotation = glm::radians(m_upperAngle);
                 m_foreArm.m_rotation = glm::radians(m_forearmAngle);
+				
                 m_foreArm.m_position.x = 5.f;
             }
         }
 
 		void setDirection(bool direction) override
 		{
+			m_flipX = direction;
 			if (direction)
 			{
 				m_upperArm.m_rotation = glm::radians(-m_upperAngle);
