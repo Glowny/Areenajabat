@@ -727,11 +727,11 @@ namespace arena
 		Rectf& source = renderer->getSource();
 
 
-		if (nextSprite < 3)
-			nextSprite++;
-		else nextSprite = 0;
+		if (m_nextSprite < 3)
+			m_nextSprite++;
+		else m_nextSprite = 0;
 
-		source.x = 0.0f + (float)nextSprite * 32.0f;
+		source.x = 0.0f + (float)m_nextSprite * 32.0f;
 		source.y = 0.0f;
 		source.w = 32.0f;
 		source.h = 32.0f;

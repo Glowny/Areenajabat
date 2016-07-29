@@ -159,7 +159,9 @@ namespace arena
     {
     public:
         CharacterAnimator();
-        
+
+		float calculateTorsoRotation(float radians, bool direction);
+
         void update(float dt);
 
         void setPosition(const glm::vec2& position);
@@ -208,8 +210,10 @@ namespace arena
 
         glm::vec2 m_position;
 
+		float m_torsoMaxAngle = 0;
+		float m_torsoMinAngle = 0;
         bool m_flipX;
-		float aimAngle;
+		float m_aimAngle;
 		void fillMap();
 		bool m_upperBodyDirection;
 

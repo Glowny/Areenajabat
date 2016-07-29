@@ -45,6 +45,32 @@ namespace arena
         return lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
     }
 
+	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
+	{
+		if (direction) {
+			if (radians < m_torsoMinAngle) {
+				return radians;
+			}
+			else return m_torsoMinAngle;
+		
+			if (radians > m_torsoMaxAngle) {
+				return radians;
+			}
+			else return m_torsoMaxAngle;
+		} else
+		{
+			if (radians < m_torsoMaxAngle) {
+			return radians;
+		}
+		else return m_torsoMaxAngle;
+
+		if (radians > m_torsoMinAngle) {
+			return radians;
+		}
+		else return m_torsoMinAngle;
+	}
+	}
+
     void CharacterAnimator::setPosition(const glm::vec2& position)
     {
         ARENA_ASSERT(m_legs.m_animation.m_entity != nullptr, "Leg animation hasnt been set");
@@ -58,10 +84,13 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
+		m_torsoMaxAngle = 0.524f;
+		m_torsoMinAngle = 5.760f;
 		fillMap();
-		aimAngle = 0;
+		m_aimAngle = 0;
 		m_skin = Bronze;
-        m_torso.m_relativeOffset = glm::vec2(-6.f, 37.f);
+		m_torso.m_sprite.m_origin = glm::vec2(18.f, 32.f);
+        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 37.f + 32.f);
 		// add death relative offset
 		m_death.m_relativeOffset = glm::vec2(11, 124);
 		m_gladiusReload.m_relativeOffset = glm::vec2(10, 45);
@@ -104,11 +133,11 @@ namespace arena
 
     void CharacterAnimator::rotateAimTo(float radians)
     {
-		aimAngle = radians;
-		float weaponAim = aimAngle;
+		m_aimAngle = radians;
+		float weaponAim = m_aimAngle;
 
 		//pi/2 = 1.5707...
-		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
+		if (m_aimAngle < 1.571 && m_aimAngle > -1.571) //if aiming right
 		{
 			weaponAim -= 0.1;
 			m_upperBodyDirection = 1;
@@ -126,6 +155,9 @@ namespace arena
 		m_animationData->m_rightHand->rotateTo(weaponAim);
         m_animationData->m_leftHand->rotateTo(weaponAim);
 
+		//calculate torso rotation
+		m_torso.m_sprite.m_rotation = 0.0f;//calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
+
     }
 
     void CharacterAnimator::update(float dt)
@@ -136,6 +168,7 @@ namespace arena
 			0.f,
 			calculateTorsoOffsetY(uint32_t(m_legs.m_animation.getCurrentTime()))
 		);
+		
 
 		if (m_death.dying)
 		{
