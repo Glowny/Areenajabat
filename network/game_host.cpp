@@ -247,7 +247,7 @@ namespace arena
 
 			BulletHit* hit = new BulletHit;
 			hit->m_damageAmount = 10;
-			hit->m_hitPosition = bullet.hitPosition - m_physics.getGladiatorPosition(target.m_id);
+			hit->m_hitPosition = bullet.hitPosition;
 
 			b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 			if (velocity.x < 0)

@@ -341,7 +341,7 @@ namespace arena
 				it = m_debugBullets.erase(it);
             }
         }
-
+		// TODO: clean this up
 		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
 		{
 			Entity* entity = *iterator;
@@ -388,18 +388,75 @@ namespace arena
 			}
 			if (entity->contains(TYPEOF(Id)))
 			{
-				Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
-				Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+
 
 				Id* id = (Id*)entity->first(TYPEOF(Id));
 				if (id->m_id == MapBack)
 				{
+					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
 					// Parallex scrolling.
 					// use movement component as offset component.
-					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.2f , playerTransform->m_position.y *1.2f );
+					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.2f, playerTransform->m_position.y *1.2f);
 					// HAX: velocity is original position, too lazy to create originalposition-component or something like that
-					transform->m_position = glm::vec2(movement->m_velocity.x+mapOffset.x , movement->m_velocity.y+mapOffset.y);
+					transform->m_position = glm::vec2(movement->m_velocity.x + mapOffset.x, movement->m_velocity.y + mapOffset.y);
 				}
+				else if (id->m_id == HitBlood)
+				{
+					//Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+//					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+
+					if (timer->timePassed(gameTime.m_delta))
+					{ 
+						entity->destroy();
+						continue;
+					} 
+					// TODO: Remake this.
+					float time = timer->timePassed();
+					
+					int multipler = 0;
+
+					if (time < 0.10f)
+					{
+						multipler = 0;
+					}
+					else if (time < 0.25)
+					{
+						multipler = 1;
+					}
+					else if (time < 0.45)
+					{
+						multipler = 2;
+					}
+					else if (time < 0.55)
+					{
+						multipler = 3;
+					}
+					else if (time < 0.75)
+					{
+						multipler = 4;
+					}
+					
+					else if (time < 0.85)
+					{
+						multipler = 5;
+					}
+
+					else if (time < 0.90)
+					{
+						multipler = 6;
+					}
+
+					Rectf rectangle = render->getSource();
+					rectangle.x = 128.0f * multipler;
+					rectangle.y = 0.0f;
+					rectangle.w = 128.0f * (multipler+1);
+					rectangle.h = 32.0f;
+					printf("%f, %f, %f, %f\n", rectangle.x, rectangle.y, rectangle.w, rectangle.h);
+				};
+				
 			}
 		}
 
@@ -800,6 +857,7 @@ namespace arena
 			movement->m_velocity = glm::vec2(cos(bullet->m_rotation) * 2 + float(xOffset) / 5.0f,sin(bullet->m_rotation) * 2 + float(yOffset) / 5.0f);
 			movement->m_rotationSpeed = rotation;
 
+			renderer->anchor();
 			registerEntity(builder.getResults());
 		} //gun smoke end
 
@@ -824,15 +882,25 @@ namespace arena
 
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet.m_position;
-
+		
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder3.png"));
-
-		renderer->setColor(0);
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
+		Rectf rect = renderer->getSource();
+		renderer->setSize(128, 32);
+		rect.x = 0; rect.y = 0;
+		rect.w = 128; rect.h = 32;
 		renderer->anchor();
+
+		Timer* timer =builder.addTimer();
+		timer->m_lifeTime = 2.0f;
+
+		Movement* move = builder.addMovement();
+		move->m_velocity = glm::vec2(0, 0);
+
+		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
 	}
 
@@ -846,8 +914,8 @@ namespace arena
 		}
 
 		Bullet bullet;
-		bullet.m_position->x = packet->m_hitPosition.x;
-		bullet.m_position->y = packet->m_hitPosition.y;
+		bullet.m_position->x = gladiator->m_gladiator->m_position->x + packet->m_hitPosition.x;
+		bullet.m_position->y = gladiator->m_gladiator->m_position->y + packet->m_hitPosition.y;
 
 		createBulletHitEntity(bullet);
 
