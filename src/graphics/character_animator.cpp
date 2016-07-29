@@ -111,15 +111,18 @@ namespace arena
 		{
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
+			m_animationData->m_leftHand->setDirection(1);
 		}
 		else //if aiming left
 		{ 
 			m_upperBodyDirection = 0;
 			m_animationData->m_rightHand->setDirection(0);
+			m_animationData->m_leftHand->setDirection(0);
 		}
 
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
-        m_animationData->m_rightHand->rotateTo(radians);
+    
+		m_animationData->m_rightHand->rotateTo(radians);
         m_animationData->m_leftHand->rotateTo(radians);
 
     }
@@ -194,27 +197,24 @@ namespace arena
 
     void CharacterAnimator::setFlipX(bool flip)
     {
-        if (flip != m_flipX)
+     
+        ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
+
+        m_flipX = flip;
+
+        if (flip)
         {
-            ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
-
-            m_flipX = flip;
-
-            if (flip)
-            {
-                m_legs.m_animation.setCurrentAnimation("1_Right_Running");
-                m_torso.m_relativeOffset.x = -8.f;
-            }
-            else
-            {
-                m_legs.m_animation.setCurrentAnimation("1_Left_Running");
-                m_torso.m_relativeOffset.x = -4.f;
-            }
-
-			//m_animationData->m_rightHand->flip();
-			//m_animationData->m_leftHand->flip();
+            m_legs.m_animation.setCurrentAnimation("1_Right_Running");
+            m_torso.m_relativeOffset.x = -8.f;
         }
+        else
+        {
+            m_legs.m_animation.setCurrentAnimation("1_Left_Running");
+            m_torso.m_relativeOffset.x = -4.f;
+        }
+
     }
+    
 
 	void CharacterAnimator::playDeathAnimation(bool hitDirection, float hitPositionY)
 	{
