@@ -39,8 +39,8 @@ namespace arena
 		}
 
 		NetworkEntity() = delete;
-	private:
 		uint32				m_physicsID	{ 0 };
+	private:
 		
 		NetworkEntityType	m_type;
 	};

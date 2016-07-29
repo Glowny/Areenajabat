@@ -113,10 +113,10 @@ namespace arena
 		*gladiator->m_position =  glm::vec2(600, 200);
 
 		uint32_t id = m_physics.addGladiator(gladiator->m_position);
-		gladiator->m_physicsId = id;
+		gladiator->setPhysicsID(id);
 
         m_players.add(newPlayer);
-
+		
 		registerEntity(&m_players.back());
 	}
 	void GameHost::unregisterPlayer(const uint32 clientIndex)
@@ -166,7 +166,7 @@ namespace arena
 			if (player.m_gladiator->m_alive == false)
 				continue;
 
-			unsigned physicsId				= player.m_gladiator->m_physicsId;
+			unsigned physicsID				= player.m_gladiator->getPhysicsID();
             PlayerInput& input				= player.m_playerController->m_input;
 
 			player.m_gladiator->m_aimAngle  = player.m_playerController->aimAngle;
@@ -194,7 +194,7 @@ namespace arena
 
             glm::ivec2 moveDirection(x, y);
       
-			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsId);
+			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsID);
 
 			if (int32(currentVelocity.x) < 200 && int32(currentVelocity.x) > -200)
 			{
@@ -203,7 +203,7 @@ namespace arena
 				force.y = moveDirection.y * -30000.0f * (float32)dt;
 				force.x = moveDirection.x * 150000.0f * (float32)dt;
 
-				m_physics.applyForceToGladiator(force, physicsId);
+				m_physics.applyForceToGladiator(force, physicsID);
 				
 			}
 
@@ -214,27 +214,37 @@ namespace arena
 	}
 	void GameHost::processBulletCollisions(const float64 dt)
 	{
+		dt;
 		std::vector<BulletCollisionEntry>& entries = m_physics.m_ContactListener.m_bulletCollisionEntries;
 
 		if (entries.empty()) return;
 
 		for (BulletCollisionEntry& entry : entries) 
 		{
-			p_Gladiator& shooter	= entry.m_shooter;
-			// Target does not work, invalid hits are registered.
+			//p_Gladiator& shooter	= entry.m_shooter;
+			// TODO: wall hits are also registered here, do some checks.
 			p_Gladiator& target		= entry.m_target;
-			p_Bullet& bullet		= entry.m_bullet;
-			dt;
-			
-			//TODO: move this check to physics. Target id is invalid sometimes, fix pls
-			if (shooter.m_id == target.m_id || target.m_id > 10)
+			if (target.m_id > 10)
 				continue;
-			
+
+			p_Bullet& bullet		= entry.m_bullet;
+			Gladiator* targetGladiator = nullptr;
+			for (unsigned i = 0; i < players().size(); i++)
+			{
+				if (target.m_id == players()[i].m_gladiator->getPhysicsID())
+				{
+					targetGladiator = players()[i].m_gladiator;
+					break;
+				}
+			}
+			// if target is not alive, do not register hit.
+			// TODO: set dead player to ignore bullets on physics.
+			if (targetGladiator->m_alive == false)
+				continue;
 			// Get target entity instance. Does not seem to work.
 			//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
 			//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
-		
 			BulletHit* hit = new BulletHit;
 			hit->m_damageAmount = 10;
 			hit->m_hitPosition = bullet.hitPosition - m_physics.getGladiatorPosition(target.m_id);
@@ -245,21 +255,12 @@ namespace arena
 			else
 				hit->m_hitDirection = 1;
 			hit->m_targetPlayerId = target.m_id;
-			Gladiator* targetGladiator = nullptr;
-			std::vector<Player> temp = players();
-			for (unsigned i = 0; i < players().size(); i++)
-			{
-				if (hit->m_targetPlayerId == players()[i].m_gladiator->m_physicsId)
-				{
-					targetGladiator = players()[i].m_gladiator;
-					continue;
-				}
-			}
 
 			targetGladiator->m_hitpoints -= hit->m_damageAmount;
-			if (targetGladiator->m_hitpoints < 0)
+			if (targetGladiator->m_hitpoints <= 0)
+			{ 
 				targetGladiator->m_alive = false;
-
+			}
 			m_synchronizationList.push_back(hit);
 
 			// Sync.
@@ -333,7 +334,7 @@ namespace arena
 		
 		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
-			bullets[i]->m_bulletId = m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->m_physicsId);
+			bullets[i]->m_bulletId = m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getPhysicsID());
 			
 			m_synchronizationList.push_back(bullets[i]);
 			DebugBullet dBullet;
@@ -485,11 +486,12 @@ namespace arena
 				{
 					if (player.m_gladiator->m_alive == false)
 					{ 
-						if (player.m_gladiator->checkRespawn(m_physics.updateTimer))
+						if (player.m_gladiator->checkRespawn(m_physics.updateTimer)) 
 						{
 							player.m_gladiator->m_alive = true;
-							player.m_gladiator->m_hitpoints = 100;
+							player.m_gladiator->m_hitpoints = 100.0f;
 							m_physics.setGladiatorPosition(player.m_gladiator->getPhysicsID(), glm::vec2(1600,200));
+							printf("Respawned player %d\n", player.m_gladiator->getPhysicsID());
 						}
 					}
 					 // update position because of gravity - dont update too much

@@ -314,6 +314,7 @@ namespace arena
         m_entity->setTimeElapsed(milliseconds);
     }
 
+
     void SpriterAnimationPlayer::render()
     {
         m_entity->render();
@@ -334,6 +335,11 @@ namespace arena
         m_entity->setCurrentAnimation(anim);
     }
 
+
+	void SpriterAnimationPlayer::setCurrentTime(double milliseconds)
+	{
+		m_entity->setCurrentTime(milliseconds);
+	}
     double SpriterAnimationPlayer::getCurrentTime() const
     {
         return m_entity->getCurrentTime();

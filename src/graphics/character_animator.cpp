@@ -105,10 +105,12 @@ namespace arena
     void CharacterAnimator::rotateAimTo(float radians)
     {
 		aimAngle = radians;
+		float weaponAim = aimAngle;
 
 		//pi/2 = 1.5707...
 		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
 		{
+			weaponAim += 0.5;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
 			m_animationData->m_leftHand->setDirection(1);
@@ -121,9 +123,8 @@ namespace arena
 		}
 
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
-    
-		m_animationData->m_rightHand->rotateTo(radians);
-        m_animationData->m_leftHand->rotateTo(radians);
+		m_animationData->m_rightHand->rotateTo(weaponAim);
+        m_animationData->m_leftHand->rotateTo(weaponAim);
 
     }
 
@@ -243,6 +244,7 @@ namespace arena
 		//hitdir + (2 * uppbodydir) + (4 * hitarea) + ( 12 * gladiator number )
 		DyingAnimations dyingAnimation = DyingAnimations(hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator));
 		m_death.m_animation.setCurrentAnimation(DyingEnumToFileName[dyingAnimation]);
+		m_death.m_animation.setCurrentTime(0);
 		//printf("animation enum: %d, string : %s\n", dyingAnimation, dyingEnumToFileName[dyingAnimation].c_str());
 
 		//start updating the animation
@@ -258,6 +260,7 @@ namespace arena
 
 		ClimbingAnimations animation = ClimbingAnimations(directionInt + 2 * gladiator);
 		m_climb.m_animation.setCurrentAnimation(ClimbingEnumToFileName[animation]);
+		m_climb.m_animation.setCurrentTime(0);
 		m_climb.m_climbing = true;
 	}
 
@@ -275,13 +278,16 @@ namespace arena
 			m_gladiusReload.m_animation.setCurrentAnimation(ReloadingEnumToFileName[animation]);
 			m_gladiusReload.m_reload = true;
 			m_axeReload.m_reload = false;
+			m_gladiusReload.m_animation.setCurrentTime(0);
 		}
 		else
 		{
 			m_axeReload.m_animation.setCurrentAnimation(ReloadingEnumToFileName[animation]);
 			m_axeReload.m_reload = true;
 			m_gladiusReload.m_reload = false;
+			m_axeReload.m_animation.setCurrentTime(0);
 		}
+		
 	}
 
 	void CharacterAnimator::playThrowAnimation(int weapon, int weaponSkin) {
@@ -295,6 +301,7 @@ namespace arena
 		ThrowingAnimations animation = (ThrowingAnimations)(direction + 2 * weaponSkin + 4 * weapon + 6 * gladiator);
 		m_throw.m_animation.setCurrentAnimation(ThrowingEnumToFileName[animation]);
 		m_throw.m_throwing = true;
+		m_throw.m_animation.setCurrentTime(0);
 		printf("animation enum: %d, string : %s\n",animation, ThrowingEnumToFileName[animation].c_str());
 	}
 
