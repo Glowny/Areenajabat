@@ -864,6 +864,7 @@ namespace arena
 	{
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 100;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = true;
+		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.resetAnimation();
 	}
 	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
