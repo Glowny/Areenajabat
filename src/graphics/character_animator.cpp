@@ -239,12 +239,12 @@ namespace arena
         if (flip)
         {
             m_legs.m_animation.setCurrentAnimation("1_Right_Running");
-            m_torso.m_relativeOffset.x = -8.f;
+            m_torso.m_relativeOffset.x = -8.f + 18.f;
         }
         else
         {
             m_legs.m_animation.setCurrentAnimation("1_Left_Running");
-            m_torso.m_relativeOffset.x = -4.f;
+            m_torso.m_relativeOffset.x = -4.f + 17.f;
         }
 
     }
