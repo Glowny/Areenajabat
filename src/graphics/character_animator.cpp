@@ -105,10 +105,12 @@ namespace arena
     void CharacterAnimator::rotateAimTo(float radians)
     {
 		aimAngle = radians;
+		float weaponAim = aimAngle;
 
 		//pi/2 = 1.5707...
 		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
 		{
+			weaponAim += 0.5;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
 		}
@@ -119,8 +121,8 @@ namespace arena
 		}
 
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
-        m_animationData->m_rightHand->rotateTo(radians);
-        m_animationData->m_leftHand->rotateTo(radians);
+		m_animationData->m_rightHand->rotateTo(weaponAim);
+        m_animationData->m_leftHand->rotateTo(weaponAim);
 
     }
 

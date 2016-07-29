@@ -220,16 +220,14 @@ namespace arena
 
 		for (BulletCollisionEntry& entry : entries) 
 		{
-			p_Gladiator& shooter	= entry.m_shooter;
-			// Target does not work, invalid hits are registered.
+			//p_Gladiator& shooter	= entry.m_shooter;
+			// TODO: wall hits are also registered here, do some checks.
 			p_Gladiator& target		= entry.m_target;
 			p_Bullet& bullet		= entry.m_bullet;
 			dt;
 			
-			//TODO: move this check to physics. Target id is invalid sometimes, fix pls
-			if (shooter.m_id == target.m_id || target.m_id > 10)
+			if (target.m_id > 10)
 				continue;
-			
 			// Get target entity instance. Does not seem to work.
 			//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
 			//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
@@ -247,6 +245,7 @@ namespace arena
 			hit->m_targetPlayerId = target.m_id;
 			Gladiator* targetGladiator = nullptr;
 			std::vector<Player> temp = players();
+
 			for (unsigned i = 0; i < players().size(); i++)
 			{
 				if (hit->m_targetPlayerId == players()[i].m_gladiator->m_physicsId)
@@ -258,8 +257,10 @@ namespace arena
 
 			targetGladiator->m_hitpoints -= hit->m_damageAmount;
 			if (targetGladiator->m_hitpoints < 0)
+			{ 
 				targetGladiator->m_alive = false;
-
+				printf("Killed player %d\n", targetGladiator->getPhysicsID());
+			}
 			m_synchronizationList.push_back(hit);
 
 			// Sync.
@@ -485,11 +486,12 @@ namespace arena
 				{
 					if (player.m_gladiator->m_alive == false)
 					{ 
-						if (player.m_gladiator->checkRespawn(m_physics.updateTimer))
+						if (player.m_gladiator->checkRespawn(m_physics.updateTimer)) 
 						{
 							player.m_gladiator->m_alive = true;
-							player.m_gladiator->m_hitpoints = 100;
+							player.m_gladiator->m_hitpoints = 100.0f;
 							m_physics.setGladiatorPosition(player.m_gladiator->getPhysicsID(), glm::vec2(1600,200));
+							printf("Respawned player %d\n", player.m_gladiator->getPhysicsID());
 						}
 					}
 					 // update position because of gravity - dont update too much
