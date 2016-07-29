@@ -149,7 +149,7 @@ namespace arena
     {
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
-
+		// 172.31.16.46
         s_client->connect("localhost", uint16_t(8088), s_stamp);
         s_client->queryLobbies(s_stamp);
     }
@@ -849,8 +849,6 @@ namespace arena
 		bullet.m_position->y = packet->m_hitPosition.y;
 
 		createBulletHitEntity(bullet);
-
-		
 
 		// Todo: Set animation blood on hit position. Draw blood on gladiator.
 

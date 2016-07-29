@@ -37,6 +37,7 @@ namespace arena
 		
     }
 
+
     SlaveServer::SlaveServer(const char* const gamemodeName) :
 		m_startTime(0),
 		m_totalTime(0.0),
@@ -49,6 +50,8 @@ namespace arena
         m_server.addClientListener(&m_clientListener);
         m_host.startSession();
         m_host.e_gameStart += onGameStart;
+		// Make pretty way to communicate to slave about respawn messages
+		//m_host.e_respawn += [](unsigned id) { respawnPlayer(id); };
 	}
 
 	void SlaveServer::queueIncoming(Packet* packet, ENetPeer* from)
@@ -244,6 +247,14 @@ namespace arena
        
                 break;
             }
+
+			case NetworkEntityType::RespawnPlayer:
+			{
+				GameRespawnPlayerPacket* packet = (GameRespawnPlayerPacket*)createPacket(PacketTypes::GameRespawnPlayer);
+				packet->m_playerID = (uint8_t)entity->getPhysicsID();
+				broadcast(packet);
+			}
+
 			case NetworkEntityType::Null:
 			default:
 				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!");

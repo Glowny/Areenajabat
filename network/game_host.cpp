@@ -488,10 +488,17 @@ namespace arena
 					{ 
 						if (player.m_gladiator->checkRespawn(m_physics.updateTimer)) 
 						{
+					
 							player.m_gladiator->m_alive = true;
 							player.m_gladiator->m_hitpoints = 100.0f;
 							m_physics.setGladiatorPosition(player.m_gladiator->getPhysicsID(), glm::vec2(1600,200));
+							m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getPhysicsID());
 							printf("Respawned player %d\n", player.m_gladiator->getPhysicsID());
+							// HAX, USE EVENTHANDLER
+							NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
+							entity->setPhysicsID(player.m_gladiator->getPhysicsID());
+							m_synchronizationList.push_back(entity);
+							// No delete because this needs to be removed.
 						}
 					}
 					 // update position because of gravity - dont update too much

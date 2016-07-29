@@ -24,10 +24,11 @@ namespace arena
 		}
 		bool checkRespawn(float64 dt)
 		{
+
 			if (m_respawnTime < (m_currentRespawnTime += dt))
 			{ 
-				return true;
 				m_currentRespawnTime = 0;
+				return true;
 			}
 			return false;
 		}

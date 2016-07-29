@@ -13,6 +13,7 @@ namespace arena
 		Gladiator,
 		Map,
 		BulletHit,
+		RespawnPlayer,
 	};
 
 	class NetworkEntity
@@ -33,6 +34,11 @@ namespace arena
 		}
 
 		virtual ~NetworkEntity() = default;
+		// Remove hax when not drunk
+		NetworkEntity(const NetworkEntityType HAXtype, bool haxhax) : m_type(HAXtype)
+		{
+			haxhax;
+		}
 	protected:
 		NetworkEntity(const NetworkEntityType type) : m_type(type)
 		{

@@ -19,6 +19,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, PlayerInput)
 
 #define TIMESTEP 0.016f
 
+
 namespace arena
 {
 	enum class GameState : uint8 
