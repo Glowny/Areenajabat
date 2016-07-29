@@ -424,8 +424,8 @@ namespace arena
 
         glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
         transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
-
-        glm::vec2 dir(mouseLoc - playerTransform->m_position);
+		glm::vec2 weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 8 , playerTransform->m_position.y + 28);
+        glm::vec2 dir(mouseLoc - weaponRotationPoint);
         float a = glm::atan(dir.y, dir.x);
         m_controller.aimAngle = a;
 		// Update own gladiator aim

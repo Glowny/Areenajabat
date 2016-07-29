@@ -110,7 +110,7 @@ namespace arena
 		//pi/2 = 1.5707...
 		if (aimAngle < 1.571 && aimAngle > -1.571) //if aiming right
 		{
-			weaponAim += 0.5;
+			weaponAim -= 0.1;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
 			m_animationData->m_leftHand->setDirection(1);
