@@ -217,6 +217,7 @@ namespace arena
 		glad->m_ownerId = 0;
 		m_playerId = 0;
 		createGladiator(glad);
+		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 		
 	}
 
@@ -508,8 +509,6 @@ namespace arena
 		
 		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
 
-		// TODO: do animation stuff better
-		anime = m_clientIdToGladiatorData[gladiator->m_ownerId]->m_animator;
 	}
 	void SandboxScene::createBackground()
 	{
@@ -600,6 +599,7 @@ namespace arena
 			gladiator->m_weapon = weapon;
 			createGladiator(gladiator);
 		}
+		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
