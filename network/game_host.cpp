@@ -228,6 +228,7 @@ namespace arena
 				continue;
 
 			p_Bullet& bullet		= entry.m_bullet;
+			
 			Gladiator* targetGladiator = nullptr;
 			for (unsigned i = 0; i < players().size(); i++)
 			{
@@ -246,8 +247,8 @@ namespace arena
 			//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
 			BulletHit* hit = new BulletHit;
-			hit->m_damageAmount = 10;
-			hit->m_hitPosition = bullet.hitPosition;
+			hit->m_damageAmount = 5;
+			hit->m_hitPosition = *bullet.gamePosition;
 
 			b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 			if (velocity.x < 0)

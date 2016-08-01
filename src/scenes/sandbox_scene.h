@@ -67,6 +67,14 @@ namespace arena
 		virtual void onDestroy() final override;
 	private:
 
+
+		void receivePackets(const GameTime& gameTime);
+		void receivePacket(Packet* packet);
+
+		void updateEntities(const GameTime& gameTime);
+		void updateCameraPosition();
+		void rotatePlayerAim();
+		void setDrawText(const GameTime& gameTime);
 		void createBackground();
 		void createGladiators(GameCreateGladiatorsPacket* packet);
 		void createPlatform(GamePlatformPacket* packet);
@@ -85,6 +93,8 @@ namespace arena
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
 		void createBulletEntity(Bullet* bullet);
+		void createMuzzleFlashEntity(const Bullet& bullet);
+		void createSmokeEntity(const Bullet& bullet);
 
 		// Create real hits (debugging & adjusting)
 		void createBulletHit(BulletData& data);
@@ -105,10 +115,11 @@ namespace arena
 		std::vector<ArenaPlatform> m_platformVector;
 		std::vector<Bullet> m_bulletHitVector;
 
+		void updateDebugBullets(const GameTime& gameTime);
 		std::map<uint8_t, DebugBullet> m_debugBullets;
 		bool connected;
 
-		float sendInputToServerTimer;
+		float m_sendInputToServerTimer;
 		Scoreboard m_scoreboard;
 		uint8_t m_playerId;
 		int m_nextSprite = 0; //used to choose the next sprite in muzzle flash spritesheet

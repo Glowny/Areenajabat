@@ -206,7 +206,7 @@ namespace arena
 	{
 		sandbox = this;
 		connected = false;
-		sendInputToServerTimer = 0;
+		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
 
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
@@ -220,292 +220,135 @@ namespace arena
 		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 		
 	}
-
-    void SandboxScene::onUpdate(const GameTime& gameTime)
-    {
-        s_stamp = gameTime.m_total;
-
-        s_client->sendMatchMakingPackets(gameTime.m_total);
-        s_client->sendProtocolPackets(gameTime.m_total);
-
-        if ((sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
-        {
-            sendInput(m_controller);
-
-            memset(&m_controller.m_input, false, sizeof(PlayerInput));
-
-            sendInputToServerTimer = 0;
-        }
-
-        s_client->writePackets();
-        s_client->readPackets();
-
-
-
-        Packet* packet = nullptr;
-        ENetPeer* from;
-        while ((packet = s_client->receivePacket(from)) != nullptr)
-        {
-            // "protocol" messages
-            if (packet->getType() <= PacketTypes::Disconnect)
-            {
-                s_client->processClientSidePackets(packet, from, gameTime.m_total);
-            }
-            else
-            {
-                s_client->processMatchmakingPackets(packet, from, gameTime.m_total);
-
-                switch (packet->getType())
-                {
-                case PacketTypes::GameSetup:
-                {
-                    connected = true;
-                    GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
-                    m_playerId = setupPacket->m_clientIndex;
-
-                    for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
-                    {
-                        m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
-                    }
-                    break;
-                }
-                case PacketTypes::GameUpdate:
-                {
-                    updateGladiators((GameUpdatePacket*)packet);
-
-                    break;
-                }
-                case PacketTypes::GameCreateGladiators:
-                {
-                    createGladiators((GameCreateGladiatorsPacket*)packet);
-                }
-                case PacketTypes::GamePlatform:
-                {
-                    createPlatform((GamePlatformPacket*)packet);
-                    break;
-                }
-                case PacketTypes::GameSpawnBullets:
-                {
-                    spawnBullets((GameSpawnBulletsPacket*)packet);
-                    break;
-                }
-                case PacketTypes::GameBulletHit:
-                {
-                    spawnBulletHits((GameBulletHitPacket*)packet);
-                    break;
-                }
-                case PacketTypes::GameDamagePlayer:
-                {
-                    processDamagePlayer((GameDamagePlayerPacket*)packet);
-                    break;
-                }
-                case PacketTypes::GameKillPlayer:
-                {
-                    killPlayer((GameKillPlayerPacket*)packet);
-                    break;
-                }
-                case PacketTypes::GameRespawnPlayer:
-                {
-                    respawnPlayer((GameRespawnPlayerPacket*)packet);
-                    break;
-                }
-                case PacketTypes::GameUpdateScoreBoard:
-                {
-                    GameUpdateScoreBoard((GameUpdateScoreBoardPacket*)packet);
-                    break;
-                }
-                default:
-                {
-                    printf("Unknown packet type received on sandbox_scene, id: %d\n", packet->getType());
-                }
-                }
-            }
-
-            destroyPacket(packet);
-        }
-
-        Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-
-        for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
-        {
-            if ((it->second.lifeTime += gameTime.m_delta) < 1.0f)
-            {
-                Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
-                bulletTransform->m_position = *it->second.bullet->m_position;
-				++it;
-            }
-            else
-            {
-				it->second.entity->destroy();
-				it->second.destroy();
-				it = m_debugBullets.erase(it);
-            }
-        }
-		// TODO: clean this up
-		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+	void SandboxScene::receivePackets(const GameTime& gameTime)
+	{
+		Packet* packet = nullptr;
+		ENetPeer* from;
+		while ((packet = s_client->receivePacket(from)) != nullptr)
 		{
-			Entity* entity = *iterator;
-			if (entity->contains(TYPEOF(Timer)))
+			// "protocol" messages
+			if (packet->getType() <= PacketTypes::Disconnect)
 			{
-				// Destroy entities that are out of their lifetime.
-				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
-				if (timer->timePassed(gameTime.m_delta))
-				{
-					entity->destroy();
-					continue;
-				}
-
-				// Fade entities that need to be faded away
-				if (entity->contains(TYPEOF(SpriteRenderer)) && entity->contains(TYPEOF(Id)))
-				{
-					Id* entityId = (Id*)entity->first(TYPEOF(Id));
-					// If entity is type of smoke, fade it.
-					if (entityId->m_id == Smoke)
-					{ 
-						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255()/8));
-					}
-				}
-
-				// Move entities that need to be moved
-				if (entity->contains(TYPEOF(Movement)) && entity->contains(TYPEOF(Transform)) && entity->contains(TYPEOF(SpriteRenderer)))
-				{
-					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
-					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
-					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-					
-					
-					if (timer->m_between > 0.016f)
-					{
-						transform->m_position += movement->m_velocity;
-						movement->m_velocity = glm::vec2(movement->m_velocity.x *0.9, movement->m_velocity.y*0.9);
-
-						render->setRotation(render->getRotation() + movement->m_rotationSpeed);
-						timer->resetBetween();
-					}
-				}
-				
+				s_client->processClientSidePackets(packet, from, gameTime.m_total);
 			}
-			if (entity->contains(TYPEOF(Id)))
+			else
 			{
-
-
-				Id* id = (Id*)entity->first(TYPEOF(Id));
-				if (id->m_id == MapBack)
-				{
-					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
-					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
-					// Parallex scrolling.
-					// use movement component as offset component.
-					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.2f, playerTransform->m_position.y *1.2f);
-					// HAX: velocity is original position, too lazy to create originalposition-component or something like that
-					transform->m_position = glm::vec2(movement->m_velocity.x + mapOffset.x, movement->m_velocity.y + mapOffset.y);
-				}
-				else if (id->m_id == HitBlood)
-				{
-					//Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
-//					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
-					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-					Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
-
-					if (timer->timePassed(gameTime.m_delta))
-					{ 
-						entity->destroy();
-						continue;
-					} 
-					// TODO: Remake this.
-					float time = timer->timePassed();
-					
-					int multipler = 0;
-
-					if (time < 0.10f)
-					{
-						multipler = 0;
-					}
-					else if (time < 0.25)
-					{
-						multipler = 1;
-					}
-					else if (time < 0.45)
-					{
-						multipler = 2;
-					}
-					else if (time < 0.55)
-					{
-						multipler = 3;
-					}
-					else if (time < 0.75)
-					{
-						multipler = 4;
-					}
-					
-					else if (time < 0.85)
-					{
-						multipler = 5;
-					}
-
-					else if (time < 0.90)
-					{
-						multipler = 6;
-					}
-
-					Rectf rectangle = render->getSource();
-					rectangle.x = 128.0f * multipler;
-					rectangle.y = 0.0f;
-					rectangle.w = 128.0f * (multipler+1);
-					rectangle.h = 32.0f;
-					printf("%f, %f, %f, %f\n", rectangle.x, rectangle.y, rectangle.w, rectangle.h);
-				};
-				
+				s_client->processMatchmakingPackets(packet, from, gameTime.m_total);
 			}
+		receivePacket(packet);
+		destroyPacket(packet);
+		}
+	}
+
+	void SandboxScene::receivePacket(Packet* packet)
+	{
+		switch (packet->getType())
+		{
+		case PacketTypes::GameSetup:
+		{
+			connected = true;
+			GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
+			m_playerId = setupPacket->m_clientIndex;
+
+			for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
+			{
+				m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
+			}
+			break;
+		}
+		case PacketTypes::GameUpdate:
+		{
+			updateGladiators((GameUpdatePacket*)packet);
+
+			break;
+		}
+		case PacketTypes::GameCreateGladiators:
+		{
+			createGladiators((GameCreateGladiatorsPacket*)packet);
+		}
+		case PacketTypes::GamePlatform:
+		{
+			createPlatform((GamePlatformPacket*)packet);
+			break;
+		}
+		case PacketTypes::GameSpawnBullets:
+		{
+			spawnBullets((GameSpawnBulletsPacket*)packet);
+			break;
+		}
+		case PacketTypes::GameBulletHit:
+		{
+			spawnBulletHits((GameBulletHitPacket*)packet);
+			break;
+		}
+		case PacketTypes::GameDamagePlayer:
+		{
+			processDamagePlayer((GameDamagePlayerPacket*)packet);
+			break;
+		}
+		case PacketTypes::GameKillPlayer:
+		{
+			killPlayer((GameKillPlayerPacket*)packet);
+			break;
+		}
+		case PacketTypes::GameRespawnPlayer:
+		{
+			respawnPlayer((GameRespawnPlayerPacket*)packet);
+			break;
+		}
+		case PacketTypes::GameUpdateScoreBoard:
+		{
+			GameUpdateScoreBoard((GameUpdateScoreBoardPacket*)packet);
+			break;
+		}
+		default:
+		{
+			printf("Unknown packet type received on sandbox_scene, id: %d\n", packet->getType());
+		}
+		}
+	}
+
+	void SandboxScene::onUpdate(const GameTime& gameTime)
+	{
+		s_stamp = gameTime.m_total;
+
+		s_client->sendMatchMakingPackets(gameTime.m_total);
+		s_client->sendProtocolPackets(gameTime.m_total);
+
+		if ((m_sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
+		{
+			sendInput(m_controller);
+			m_sendInputToServerTimer = 0;
 		}
 
-        Camera& camera = App::instance().camera();
-        camera.m_position = playerTransform->m_position;
-        camera.calculate();
-        // set views
-        float ortho[16];
-        bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
-        bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
-        bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+		s_client->writePackets();
+		s_client->readPackets();
 
-        bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
-        bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+		// Receive packets send by server 
+		receivePackets(gameTime);
 
-        bgfx::dbgTextClear();
+		// Update transform component of debug bullets and delete old bullets.
+		updateDebugBullets(gameTime);
+		// TODO: clean this up
 
-        SpriteManager::instance().update(gameTime);
-        AnimatorManager::instance().update(gameTime);
+		updateEntities(gameTime);
+		updateCameraPosition();
+		bgfx::dbgTextClear();
 
-        const MouseState& mouse = Mouse::getState();
-
-        glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-        transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
-		glm::vec2 weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 8 , playerTransform->m_position.y + 28);
-        glm::vec2 dir(mouseLoc - weaponRotationPoint);
-        float a = glm::atan(dir.y, dir.x);
-        m_controller.aimAngle = a;
-		// Update own gladiator aim
-		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
+		SpriteManager::instance().update(gameTime);
+		AnimatorManager::instance().update(gameTime);
 		
+		// set m_controller aim angle of the player characther.
+		rotatePlayerAim();
 
+		// rotate gladiators aim.
         for (const auto& elem : m_clientIdToGladiatorData)
         {
             elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
         }
-        m_clientIdToGladiatorData[m_playerId]->m_animator->rotateAimTo(a);
 
         App::instance().spriteBatch()->submit(0);
-
-        bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
-        bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
-            mouse.m_buttons[MouseButton::Left] ? "down" : "up",
-            mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
-            mouse.m_buttons[MouseButton::Right] ? "down" : "up");
-        bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
-        bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
-        bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", a, glm::degrees(a));
-
+		setDrawText(gameTime);
     }
 
 	void SandboxScene::onInitialize()
@@ -515,7 +358,6 @@ namespace arena
         s_client->m_lobbyListener = &s_lobbyListener;
 		m_playerId = 0;
 
-		
         inputAddBindings("player", s_bindings);
 	}
 	void SandboxScene::onDestroy()
@@ -558,7 +400,6 @@ namespace arena
 
 		registerEntity(entity_gladiator);
 
-		// TODO: should use entities.
 		GladiatorDrawData* data = new GladiatorDrawData;
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
@@ -575,7 +416,7 @@ namespace arena
 		EntityBuilder builder;
 
 		// Create back
-		if (m_background >= 2)
+		if (m_background > 1)
 		{ 
 		
 			for (int y = 0; y <= 3; y++)
@@ -742,6 +583,111 @@ namespace arena
 		createBulletEntity(bullet);
 	}
 
+	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+		Transform* transform = builder.addTransformComponent();
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+
+		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
+		
+
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.05f;
+		builder.addIdentifier(EntityIdentification::MuzzleFlash);
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
+		Rectf& source = renderer->getSource();
+
+
+		if (m_nextSprite < 3)
+			m_nextSprite++;
+		else m_nextSprite = 0;
+
+		source.x = 0.0f + (float)m_nextSprite * 32.0f;
+		source.y = 0.0f;
+		source.w = 32.0f;
+		source.h = 32.0f;
+
+		transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+		glm::vec2& origin = renderer->getOrigin();
+		origin.x = origin.x + 16; origin.y = origin.y + 16;
+		renderer->setRotation((float32)bullet.m_rotation + 3.142f);
+		renderer->setLayer(2);
+		renderer->anchor();
+		registerEntity(builder.getResults());
+	}
+	void SandboxScene::createSmokeEntity(const Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+
+		Timer* timer = builder.addTimer();
+
+		// Load gun smoke, randomize rotation and position on spawn.
+
+		for (int i = 0; i < rand() % 5 + 3; i++)
+		{
+			int spriteX = rand() % 4;
+			
+			float rotation = 0;
+			int xOffset = 0, yOffset = 0;
+
+			builder.begin();
+
+			builder.addIdentifier(EntityIdentification::Smoke);
+			// Timer
+			timer = builder.addTimer();
+			timer->m_lifeTime = 0.5f;
+
+			// Drawing stuff
+			Transform* transform = builder.addTransformComponent();
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
+			//uint32_t color = color::toABGR(255, 255, 255, 50);
+			//renderer->setColor(color);
+			glm::vec2& origin = renderer->getOrigin();
+			origin.x = origin.x + 16; origin.y = origin.y + 16;
+			renderer->setRotation(rand() % 7);
+			Rectf& source = renderer->getSource();
+			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
+
+
+			if (rand() % 2 == 1) {
+				xOffset = rand() % 10;
+				rotation = (rand() % 3) / 100.0f;
+			}
+			else {
+				xOffset = -(rand() % 10);
+				rotation = (float)-(rand() % 3) / 100.0f;
+			}
+			if (rand() % 2 == 1) {
+				yOffset = rand() % 10;
+			}
+			else {
+				yOffset = -(rand() % 10);
+			}
+
+			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+
+			// Movement
+			Movement* movement = builder.addMovement();
+			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
+			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 5.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 5.0f);
+			movement->m_rotationSpeed = rotation;
+
+			renderer->anchor();
+			registerEntity(builder.getResults());
+		} 
+
+	}
+
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
 		EntityBuilder builder;
@@ -770,96 +716,11 @@ namespace arena
 		debugBullet.bullet = bullet;
 		debugBullet.entity = entity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
-
+		
 		// effects
-		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
-		builder.begin();
-
-		transform = builder.addTransformComponent();
-		renderer = builder.addSpriteRenderer();
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.05f;
-		builder.addIdentifier(EntityIdentification::MuzzleFlash);
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
-		Rectf& source = renderer->getSource();
-
-
-		if (m_nextSprite < 3)
-			m_nextSprite++;
-		else m_nextSprite = 0;
-
-		source.x = 0.0f + (float)m_nextSprite * 32.0f;
-		source.y = 0.0f;
-		source.w = 32.0f;
-		source.h = 32.0f;
 		
-		transform->m_position = glm::vec2(bullet->m_position->x - 16, bullet->m_position->y - 16);
-		glm::vec2& origin = renderer->getOrigin();
-		origin.x = origin.x + 16; origin.y = origin.y + 16;
-		renderer->setRotation((float32)bullet->m_rotation + 3.142f);
-		renderer->setLayer(2);
-
-		registerEntity(builder.getResults());
-		// muzzle flash end.
-
-		// Load gun smoke, randomize rotation and position on spawn.
-		
-		
-		//
-
-		for (int i = 0; i < rand() % 5 + 3; i++) 
-		{
-			int spriteX;
-			spriteX = rand() % 4;
-			float rotation = 0;
-			int xOffset = 0, yOffset = 0;
-
-			builder.begin();
-
-			// Timer
-			timer = builder.addTimer();
-			timer->m_lifeTime = 0.5f;
-
-			// Drawing stuff
-			transform = builder.addTransformComponent();
-			renderer = builder.addSpriteRenderer();
-			builder.addIdentifier(EntityIdentification::Smoke);
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
-			uint32_t color = color::toABGR(255, 255, 255, 50);
-			renderer->setColor(color);
-			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 16; origin.y = origin.y + 16;
-			renderer->setRotation(rand() % 7);
-			Rectf& source = renderer->getSource();
-			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
-
-			
-			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
-				rotation = (rand() % 3)/100.0f;
-			} else {
-				xOffset = -(rand() % 10);
-				rotation = (float)-(rand() % 3)/100.0f;
-			}
-			if (rand() % 2 == 1) {
-				yOffset = rand() % 10;
-			}
-			else {
-				yOffset = -(rand() % 10);
-			}
-
-			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet->m_position->x - 16, bullet->m_position->y - 16);
-			
-			// Movement
-			Movement* movement = builder.addMovement();
-			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-			movement->m_velocity = glm::vec2(cos(bullet->m_rotation) * 2 + float(xOffset) / 5.0f,sin(bullet->m_rotation) * 2 + float(yOffset) / 5.0f);
-			movement->m_rotationSpeed = rotation;
-
-			renderer->anchor();
-			registerEntity(builder.getResults());
-		} //gun smoke end
+		createMuzzleFlashEntity(*bullet);
+		createSmokeEntity(*bullet);
 
 	}
 	
@@ -868,6 +729,7 @@ namespace arena
 	{
 		Bullet bullet;
 		*bullet.m_position = data.m_position;
+		printf("Bullet position: %f, %f\n", data.m_position.x, data.m_position.y);
 		bullet.m_type = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
 		m_bulletHitVector.push_back(bullet);
@@ -881,8 +743,9 @@ namespace arena
 		builder.begin();
 
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet.m_position;
-		
+		transform->m_position = *bullet.m_position + bullet.m_rotation;
+	
+
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
@@ -895,10 +758,10 @@ namespace arena
 		renderer->anchor();
 
 		Timer* timer =builder.addTimer();
-		timer->m_lifeTime = 2.0f;
+		timer->m_lifeTime = 0.5f;
 
 		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(0, 0);
+		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
 
 		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
@@ -914,8 +777,8 @@ namespace arena
 		}
 
 		Bullet bullet;
-		bullet.m_position->x = gladiator->m_gladiator->m_position->x + packet->m_hitPosition.x;
-		bullet.m_position->y = gladiator->m_gladiator->m_position->y + packet->m_hitPosition.y;
+		bullet.m_position->x = packet->m_hitPosition.x;
+		bullet.m_position->y = packet->m_hitPosition.y;
 
 		createBulletHitEntity(bullet);
 
@@ -953,6 +816,191 @@ namespace arena
         packet->m_challengeSalt = s_client->m_challengeSalt;
 
 		s_client->sendPacketToServer(packet, s_stamp);
+		memset(&m_controller.m_input, false, sizeof(PlayerInput));
 	}
 
+	void SandboxScene::updateEntities(const GameTime& gameTime)
+	{
+		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+		{
+			Entity* entity = *iterator;
+			if (entity->contains(TYPEOF(Timer)))
+			{
+				// Destroy entities that are out of their lifetime.
+				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+				if (timer->timePassed(gameTime.m_delta))
+				{
+					entity->destroy();
+					continue;
+				}
+
+				// Fade entities that need to be faded away
+				if (entity->contains(TYPEOF(SpriteRenderer)) && entity->contains(TYPEOF(Id)))
+				{
+					Id* entityId = (Id*)entity->first(TYPEOF(Id));
+					// If entity is type of smoke, fade it.
+					if (entityId->m_id == Smoke)
+					{
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
+					}
+				}
+
+				// Move entities that need to be moved
+				if (entity->contains(TYPEOF(Movement)) && entity->contains(TYPEOF(Transform)) && entity->contains(TYPEOF(SpriteRenderer)))
+				{
+					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+
+
+					if (timer->m_between > 0.016f)
+					{
+						transform->m_position += movement->m_velocity;
+						movement->m_velocity = glm::vec2(movement->m_velocity.x *0.9, movement->m_velocity.y*0.9);
+
+						render->setRotation(render->getRotation() + movement->m_rotationSpeed);
+						timer->resetBetween();
+					}
+				}
+
+			}
+			if (entity->contains(TYPEOF(Id)))
+			{
+
+
+				Id* id = (Id*)entity->first(TYPEOF(Id));
+				if (id->m_id == MapBack)
+				{
+					Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					// Parallex scrolling.
+					// use movement component as offset component.
+					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.2f, playerTransform->m_position.y *1.2f);
+					// HAX: velocity is original position, too lazy to create originalposition-component or something like that
+					transform->m_position = glm::vec2(movement->m_velocity.x + mapOffset.x, movement->m_velocity.y + mapOffset.y);
+				}
+				else if (id->m_id == HitBlood)
+				{
+					//Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					//					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+
+					// TODO: Remake this.
+					float time = timer->timePassed();
+
+					int multipler = 0;
+
+					if (time < 0.10f)
+					{
+						multipler = 0;
+					}
+					else if (time < 0.25)
+					{
+						multipler = 1;
+					}
+					else if (time < 0.45)
+					{
+						multipler = 2;
+					}
+					else if (time < 0.55)
+					{
+						multipler = 3;
+					}
+					else if (time < 0.75)
+					{
+						multipler = 4;
+					}
+
+					else if (time < 0.85)
+					{
+						multipler = 5;
+					}
+
+					else if (time < 0.90)
+					{
+						multipler = 6;
+					}
+
+					Rectf& rectangle = render->getSource();
+					rectangle.x = 128.0f * multipler;
+					rectangle.y = 0.0f;
+					rectangle.w = 128.0f * (multipler + 1);
+					rectangle.h = 32.0f;
+					
+					rectangle = render->getSource();
+
+				};
+
+			}
+		}
+	}
+
+	void SandboxScene::updateDebugBullets(const GameTime& gameTime)
+	{
+		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
+		{
+			if ((it->second.lifeTime += gameTime.m_delta) < 1.0f)
+			{
+				Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
+				bulletTransform->m_position = *it->second.bullet->m_position;
+				++it;
+			}
+			else
+			{
+				// Todo: Do destruction when server calls it.
+				it->second.entity->destroy();
+				it->second.destroy();
+				it = m_debugBullets.erase(it);
+			}
+		}
+	}
+	void SandboxScene::updateCameraPosition()
+	{
+		Camera& camera = App::instance().camera();
+		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+		camera.m_position = playerTransform->m_position;
+		camera.calculate();
+		// set views
+		float ortho[16];
+		bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
+		bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
+		bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+
+		bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
+		bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+	}
+
+	void SandboxScene::rotatePlayerAim()
+	{
+
+		const MouseState& mouse = Mouse::getState();
+
+		glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+		Camera& camera = App::instance().camera();
+		transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+		glm::vec2 weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 8, playerTransform->m_position.y + 28);
+		glm::vec2 dir(mouseLoc - weaponRotationPoint);
+		float a = glm::atan(dir.y, dir.x);
+		m_controller.aimAngle = a;
+		// Update own gladiator aim
+		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
+	}
+
+	void SandboxScene::setDrawText(const GameTime& gameTime)
+	{
+		const MouseState& mouse = Mouse::getState();
+		glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+		bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
+		bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
+			mouse.m_buttons[MouseButton::Left] ? "down" : "up",
+			mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
+			mouse.m_buttons[MouseButton::Right] ? "down" : "up");
+		bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
+		bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+		bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", m_controller.aimAngle, glm::degrees(m_controller.aimAngle));
+	}
 }

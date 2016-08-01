@@ -194,6 +194,7 @@ namespace arena
 			{
 				BulletHit* hit = (BulletHit*)entity;
 				GameDamagePlayerPacket* packet = (GameDamagePlayerPacket*)createPacket(PacketTypes::GameDamagePlayer);
+				printf("Bullet position x: %f, y: %f\n", hit->m_hitPosition.x, hit->m_hitPosition.y);
 				packet->m_damageAmount = hit->m_damageAmount;
 				packet->m_hitPosition = hit->m_hitPosition;
 				packet->m_hitDirection = hit->m_hitDirection;
