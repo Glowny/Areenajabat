@@ -1,12 +1,12 @@
 #pragma once
-#include <glm\vec2.hpp>
+#include <glm/vec2.hpp>
 #include "weapons.h"
 
 namespace arena
 {
     struct PlayerInput
     { 
-		PlayerInput& PlayerInput::operator=(PlayerInput input)
+		PlayerInput& operator=(const PlayerInput& input)
 		{
 			m_leftButtonDown = input.m_leftButtonDown;
 			m_rightButtonDown = input.m_rightButtonDown;

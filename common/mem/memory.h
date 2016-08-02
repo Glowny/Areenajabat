@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include "../types.h"
+#include <string.h> // memset
 
 const uint32 Mem1K		= 1024;
 const uint32 Mem2K		= Mem1K * 2;
