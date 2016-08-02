@@ -79,11 +79,11 @@ namespace arena
 			onUpdate(gameTime);
 		}
 
-		decltype(auto) begin()
+        typename std::vector<T*>::iterator begin()
 		{
 			return m_components.begin();
 		}
-		decltype(auto) end()
+        typename std::vector<T*>::iterator end()
 		{
 			return m_components.end();
 		}
