@@ -1,45 +1,53 @@
-#include "../net/network_client.h"
 #include "sandbox_scene.h"
-#include "..\res\resource_manager.h"
-#include "..\app.h"
+#include "../app.h"
+#include "../game_time.h"
 
-#include "..\ecs\entity.h"
-#include "..\ecs\sprite_renderer.h"
-#include "..\ecs\managers\sprite_manager.h"
+#include "../ecs/timer.h"
+#include "../ecs/movement.h"
+#include "../ecs/transform.h"
+#include "../ecs/animator.h"
+#include "../ecs/sprite_renderer.h"
+#include "../ecs/entity.h"
+#include "../ecs/entity_builder.h"
+#include "../ecs/managers/sprite_manager.h"
+#include "../ecs/managers/animator_manager.h"
 
-#include "..\game_time.h"
+#include "../res/resource_manager.h"
+#include "../res/texture_resource.h"
+#include "../res/spriter_resource.h"
+
+#include "../net/network_client.h"
 
 #include "../graphics/character_animator.h"
-#include "../res/spriter_resource.h"
-#include "../ecs/animator.h"
-#include "..\ecs\movement.h"
+#include "../graphics/spritebatch.h"
 
-#ifdef _DEBUG
-#	include <iostream>
-#   include "..\rtti\rtti_define.h"
-#   include "..\ecs\transform.h"
-#   include "..\ecs\sprite_renderer.h"
-#	include "../res/texture_resource.h"
-#endif
+#include "../utils/color.h"
+#include "../utils/math.h"
 
-#include "..\ecs\timer.h"
-#include "..\utils\color.h"
-#include "..\ecs\entity_builder.h"
-#include "../ecs/managers/animator_manager.h"
+#include "../input/event.h"
+
+#include <common/arena/gladiator.h>
+#include <common/packet.h>
 #include <bx/fpumath.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "../graphics/spritebatch.h"
-#include "../input/event.h"
-#include "../utils/math.h"
 #include <glm/gtc/matrix_inverse.hpp>
-#include <common/packet.h>
-#include <common/arena/gladiator.h>
+
 #include <time.h>
 #include <stdlib.h>
 
+#ifdef _DEBUG
+#	include <iostream>
+#   include "../rtti/rtti_define.h"
+#endif
 
 namespace arena
 {
+	void GladiatorDrawData::destroy()
+	{
+		m_entity->destroy();
+		delete m_gladiator;
+	}
+
 	SandboxScene* sandbox;
     static double s_stamp = 0.0;
 
@@ -105,11 +113,10 @@ namespace arena
         }
     };
 
-
     static NetworkClient* s_client;
     static DebugLobbyListener s_lobbyListener;
-
 	static Animator* anime;
+
     static void left(const void*)
     {
 		anime->m_animator.setFlipX(false);
@@ -149,7 +156,6 @@ namespace arena
     {
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
-		// 172.31.16.46
         s_client->connect("localhost", uint16_t(8088), s_stamp);
         s_client->queryLobbies(s_stamp);
     }
@@ -201,17 +207,20 @@ namespace arena
 		m_controller.aimAngle = angle;
 	}
 
-
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
+		// Pointer to scene for input to use.
 		sandbox = this;
 		connected = false;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
 
-		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
+		// Set background. This is to reduce loading time when debugging.
+		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
 		m_background = 1;
 		createBackground();
+
+		// Create gladiator for graphics debugging. This is to debug graphics without connecting to the server.
 		Gladiator* glad = new Gladiator();
 		*glad->m_position = glm::vec2(200, 200);
 		glad->m_ownerId = 0;
@@ -220,7 +229,7 @@ namespace arena
 		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 		
 	}
-	void SandboxScene::receivePackets(const GameTime& gameTime)
+	void SandboxScene::processAllPackets(const GameTime& gameTime)
 	{
 		Packet* packet = nullptr;
 		ENetPeer* from;
@@ -231,16 +240,18 @@ namespace arena
 			{
 				s_client->processClientSidePackets(packet, from, gameTime.m_total);
 			}
-			else
+			else if (packet->getType() <= PacketTypes::LobbyJoinResult)
 			{
 				s_client->processMatchmakingPackets(packet, from, gameTime.m_total);
 			}
-		receivePacket(packet);
-		destroyPacket(packet);
+			else
+				processPacket(packet);
+		
+			destroyPacket(packet);
 		}
 	}
 
-	void SandboxScene::receivePacket(Packet* packet)
+	void SandboxScene::processPacket(Packet* packet)
 	{
 		switch (packet->getType())
 		{
@@ -248,6 +259,9 @@ namespace arena
 		{
 			connected = true;
 			GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
+			// Destroy the graphics debug gladiator.
+			//m_clientIdToGladiatorData[m_playerId]->destroy();
+			m_clientIdToGladiatorData.clear();
 			m_playerId = setupPacket->m_clientIndex;
 
 			for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
@@ -312,43 +326,49 @@ namespace arena
 	{
 		s_stamp = gameTime.m_total;
 
+		// Send packets related to finding match.
 		s_client->sendMatchMakingPackets(gameTime.m_total);
+		// Send packets related to connection upkeep.
 		s_client->sendProtocolPackets(gameTime.m_total);
 
+		// Send player input to server if 1/60 of a second has passed.
 		if ((m_sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
 		{
 			sendInput(m_controller);
 			m_sendInputToServerTimer = 0;
 		}
 
+		// Write current packets to network.
 		s_client->writePackets();
+		// Get packets form network.
 		s_client->readPackets();
-
-		// Receive packets send by server 
-		receivePackets(gameTime);
+		// Process packets stored in s_client.
+		processAllPackets(gameTime);
 
 		// Update transform component of debug bullets and delete old bullets.
 		updateDebugBullets(gameTime);
-		// TODO: clean this up
-
+		// Update all game entities.
 		updateEntities(gameTime);
+
+		// set m_controller aim angle of the player character.
+		rotatePlayerAim();
+
+		// rotate all gladiators aim for draw.
+		for (const auto& elem : m_clientIdToGladiatorData)
+		{
+			elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+		}
+
 		updateCameraPosition();
 		bgfx::dbgTextClear();
 
 		SpriteManager::instance().update(gameTime);
 		AnimatorManager::instance().update(gameTime);
 		
-		// set m_controller aim angle of the player characther.
-		rotatePlayerAim();
-
-		// rotate gladiators aim.
-        for (const auto& elem : m_clientIdToGladiatorData)
-        {
-            elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
-        }
+		// Set current debug draw text.
+		setDrawText(gameTime);
 
         App::instance().spriteBatch()->submit(0);
-		setDrawText(gameTime);
     }
 
 	void SandboxScene::onInitialize()
@@ -393,9 +413,6 @@ namespace arena
 		);
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
 		
-		
-		//anim.setPosition(glm::vec2(0, 0));
-
 		entity_gladiator = builder.getResults();
 
 		registerEntity(entity_gladiator);
@@ -483,7 +500,6 @@ namespace arena
 	
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
-		// This differs from updatePacket by setting the ownerId.
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData* characterData = &packet->m_characterArray[i];
@@ -960,17 +976,20 @@ namespace arena
 	void SandboxScene::updateCameraPosition()
 	{
 		Camera& camera = App::instance().camera();
-		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-		camera.m_position = playerTransform->m_position;
-		camera.calculate();
-		// set views
-		float ortho[16];
-		bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
-		bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+		if(m_clientIdToGladiatorData.at(m_playerId) != nullptr)
+		{ 
+			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+			camera.m_position = playerTransform->m_position;
+			camera.calculate();
+			// set views
+			float ortho[16];
+			bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
+			bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
+			bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
 
-		bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
-		bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+			bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
+			bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+		}
 	}
 
 	void SandboxScene::rotatePlayerAim()

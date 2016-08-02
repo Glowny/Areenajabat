@@ -10,26 +10,28 @@ namespace arena
     {
         enum Enum
         {
+			// Connection upkeep packets.
             ConnectionRequest,
             ConnectionDenied,
             ConnectionChallenge,
             ConnectionResponse,
             KeepAlive,
-            Disconnect, 
+            Disconnect, // Keep "Disconnect" as last connection upkeep packet.
+			// Connection upkeep end.
 
+			// Lobby finding packets.
             // Client --> server
             MasterCreateLobby,
-            // Client --> server
             MasterJoinLobby,
-            // Client --> server
             MasterListLobbies,
+
             // Server --> Client
             LobbyResultPacket,
-            // Server --> Client
             LobbyQueryResultPacket,
-            // Server --> Client
-            LobbyJoinResult,
-			// Game packets.
+            LobbyJoinResult, // Keep "LobbyJoinResult" as last lobby finding-related packet.
+			// Lobby finding end.
+
+			// Game related packets.
 			// Server --> Client.
 			GameSetup,
 			GameUpdate,

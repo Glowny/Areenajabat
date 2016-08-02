@@ -3,9 +3,9 @@
 #include "entity.h"
 #include "transform.h"
 #include "sprite_renderer.h"
-#include "..\res\texture_resource.h"
-#include "managers\transform_manager.h"
-#include "managers\sprite_manager.h"
+#include "../res/texture_resource.h"
+#include "managers/transform_manager.h"
+#include "managers/sprite_manager.h"
 #include "managers/animator_manager.h"
 #include <cassert>
 #include <common/debug.h>

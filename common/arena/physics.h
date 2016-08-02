@@ -6,12 +6,12 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4265) // class has virtual functions, but dest
 #include <functional>
 BX_PRAGMA_DIAGNOSTIC_POP()
 
-#include <Box2D\Box2D.h>
+#include <Box2D/Box2D.h>
 #include <stdarg.h>
 #include <vector>
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <typeinfo>
-#include "..\network_entity.h"
+#include "../network_entity.h"
 
 // TODO: platform has extra stuff that could be removed.
 

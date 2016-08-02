@@ -9,7 +9,7 @@
 #include "../client_listener.h"
 #include "common/forward_declare.h"
 #include "common/types.h"
-#include "..\game_host.h"
+#include "../game_host.h"
 
 FORWARD_DECLARE(FORWARD_DECLARE_TYPE_CLASS, Server)
 

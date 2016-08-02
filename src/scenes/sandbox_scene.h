@@ -47,6 +47,7 @@ namespace arena
 			m_animator = NULL;
 			m_gladiator = NULL;
 		}
+		void destroy();
 		Entity* m_entity;
 		Transform* m_transform;
 		Animator* m_animator;
@@ -59,17 +60,15 @@ namespace arena
 		SandboxScene();
 		~SandboxScene() = default;
 		
-		void setShoot();
 		void setAimAngle(float angle);
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
 		virtual void onDestroy() final override;
+
 	private:
-
-
-		void receivePackets(const GameTime& gameTime);
-		void receivePacket(Packet* packet);
+		void processAllPackets(const GameTime& gameTime);
+		void processPacket(Packet* packet);
 
 		void updateEntities(const GameTime& gameTime);
 		void updateCameraPosition();
@@ -108,10 +107,8 @@ namespace arena
 		// Fake death or not?
 		void clientSideGladiatorDeath(unsigned id);
 
-		std::map<uint8_t, GladiatorDrawData*> m_clientIdToGladiatorData;
-	
 		// TODO: should use entities
-
+		std::map<uint8_t, GladiatorDrawData*> m_clientIdToGladiatorData;
 		std::vector<ArenaPlatform> m_platformVector;
 		std::vector<Bullet> m_bulletHitVector;
 
