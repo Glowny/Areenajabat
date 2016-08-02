@@ -2,7 +2,7 @@
 
 #include "entity.h"
 #include "component.h"
-
+#include <algorithm>
 namespace arena
 {
 	/*

@@ -6,7 +6,7 @@
 #include "../rect.h"
 #include "../ecs/timer.h"
 #include "../ecs/movement.h"
-#include "../ecs/id.h"
+#include "../ecs/Id.h"
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, TextureResource)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteRenderer)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Transform)
