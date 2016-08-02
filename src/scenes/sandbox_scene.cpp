@@ -49,8 +49,8 @@ namespace arena
 	}
 
 	SandboxScene* sandbox;
+	static NetworkClient* s_client;
     static double s_stamp = 0.0;
-
     struct DebugLobbyListener : public LobbyListener
     {
         ~DebugLobbyListener() override {}
@@ -112,21 +112,11 @@ namespace arena
             }
         }
     };
-
-    static NetworkClient* s_client;
-    static DebugLobbyListener s_lobbyListener;
+	static DebugLobbyListener s_lobbyListener;
 	static Animator* anime;
 
-    static void left(const void*)
-    {
-		anime->m_animator.setFlipX(false);
-    }
 
-    static void right(const void*)
-    {
-		anime->m_animator.setFlipX(true);
-    }
-    
+	// Functions for debugging animations.
 	static void diefool(const void*)
 	{
 		anime->m_animator.playDeathAnimation(1, 100.0f);
@@ -169,8 +159,6 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-        { arena::Key::KeyA, arena::Modifier::None, 0, left, "left" },
-        { arena::Key::KeyD, arena::Modifier::None, 0, right, "right" },
 		{ arena::Key::KeyS, arena::Modifier::None, 0, diefool, "die" },
 		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "respawn" },
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
@@ -187,10 +175,12 @@ namespace arena
 
 	static void inputMoveLeft(const void*)
 	{
+		anime->m_animator.setFlipX(false);
 		sandbox->m_controller.m_input.m_leftButtonDown = true;
 	}
 	static void inputMoveRight(const void*)
 	{
+		anime->m_animator.setFlipX(true);
         sandbox->m_controller.m_input.m_rightButtonDown = true;
 	}
 	static void inputMoveUp(const void*)
@@ -202,22 +192,16 @@ namespace arena
         sandbox->m_controller.m_input.m_shootButtonDown = true;
 	}
 
-	void SandboxScene::setAimAngle(float angle)
-	{
-		m_controller.aimAngle = angle;
-	}
-
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 		// Pointer to scene for input to use.
 		sandbox = this;
-		connected = false;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
 
 		// Set background. This is to reduce loading time when debugging.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
-		m_background = 1;
+		m_backgroundSetting = 1;
 		createBackground();
 
 		// Create gladiator for graphics debugging. This is to debug graphics without connecting to the server.
@@ -228,6 +212,81 @@ namespace arena
 		createGladiator(glad);
 		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 		
+	}
+
+	void SandboxScene::onUpdate(const GameTime& gameTime)
+	{
+		s_stamp = gameTime.m_total;
+
+		// Send packets related to finding match.
+		s_client->sendMatchMakingPackets(gameTime.m_total);
+		// Send packets related to connection upkeep.
+		s_client->sendProtocolPackets(gameTime.m_total);
+
+		// Send player input to server if 1/60 of a second has passed.
+		if ((m_sendInputToServerTimer += gameTime.m_delta) > 0.016f && s_client->isConnected())
+		{
+			sendInput(m_controller);
+			m_sendInputToServerTimer = 0;
+		}
+
+		// Write current packets to network.
+		s_client->writePackets();
+		// Get packets form network.
+		s_client->readPackets();
+		// Process packets stored in s_client.
+		processAllPackets(gameTime);
+
+		// Update transform component of debug bullets and delete old bullets.
+		updateDebugBullets(gameTime);
+		// Update all game entities.
+		updateEntities(gameTime);
+
+		// set m_controller aim angle of the player character.
+		rotatePlayerAim();
+
+		// rotate all gladiators aim for draw.
+		for (const auto& elem : m_clientIdToGladiatorData)
+		{
+			elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+		}
+
+		updateCameraPosition();
+		bgfx::dbgTextClear();
+
+		SpriteManager::instance().update(gameTime);
+		AnimatorManager::instance().update(gameTime);
+		
+		// Set current debug draw text.
+		setDrawText(gameTime);
+
+        App::instance().spriteBatch()->submit(0);
+    }
+	void SandboxScene::onInitialize()
+	{
+        srand((uint32_t)time(NULL));
+        s_client = new NetworkClient();
+        s_client->m_lobbyListener = &s_lobbyListener;
+		m_playerId = 0;
+
+        inputAddBindings("player", s_bindings);
+	}
+	void SandboxScene::onDestroy()
+	{
+		inputRemoveBindings("player");
+	}
+	
+	void SandboxScene::sendInput(PlayerController &controller)
+	{
+        GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
+		packet->m_aimAngle = controller.aimAngle;
+        packet->m_input = controller.m_input;
+
+		packet->m_clientSalt = s_client->m_clientSalt;
+        packet->m_challengeSalt = s_client->m_challengeSalt;
+
+		s_client->sendPacketToServer(packet, s_stamp);
+		memset(&m_controller.m_input, false, sizeof(PlayerInput));
 	}
 	void SandboxScene::processAllPackets(const GameTime& gameTime)
 	{
@@ -250,14 +309,12 @@ namespace arena
 			destroyPacket(packet);
 		}
 	}
-
 	void SandboxScene::processPacket(Packet* packet)
 	{
 		switch (packet->getType())
 		{
 		case PacketTypes::GameSetup:
 		{
-			connected = true;
 			GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
 			// Destroy the graphics debug gladiator.
 			//m_clientIdToGladiatorData[m_playerId]->destroy();
@@ -312,7 +369,7 @@ namespace arena
 		}
 		case PacketTypes::GameUpdateScoreBoard:
 		{
-			GameUpdateScoreBoard((GameUpdateScoreBoardPacket*)packet);
+			updateScoreBoard((GameUpdateScoreBoardPacket*)packet);
 			break;
 		}
 		default:
@@ -322,182 +379,6 @@ namespace arena
 		}
 	}
 
-	void SandboxScene::onUpdate(const GameTime& gameTime)
-	{
-		s_stamp = gameTime.m_total;
-
-		// Send packets related to finding match.
-		s_client->sendMatchMakingPackets(gameTime.m_total);
-		// Send packets related to connection upkeep.
-		s_client->sendProtocolPackets(gameTime.m_total);
-
-		// Send player input to server if 1/60 of a second has passed.
-		if ((m_sendInputToServerTimer += gameTime.m_delta) > 0.016f && connected)
-		{
-			sendInput(m_controller);
-			m_sendInputToServerTimer = 0;
-		}
-
-		// Write current packets to network.
-		s_client->writePackets();
-		// Get packets form network.
-		s_client->readPackets();
-		// Process packets stored in s_client.
-		processAllPackets(gameTime);
-
-		// Update transform component of debug bullets and delete old bullets.
-		updateDebugBullets(gameTime);
-		// Update all game entities.
-		updateEntities(gameTime);
-
-		// set m_controller aim angle of the player character.
-		rotatePlayerAim();
-
-		// rotate all gladiators aim for draw.
-		for (const auto& elem : m_clientIdToGladiatorData)
-		{
-			elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
-		}
-
-		updateCameraPosition();
-		bgfx::dbgTextClear();
-
-		SpriteManager::instance().update(gameTime);
-		AnimatorManager::instance().update(gameTime);
-		
-		// Set current debug draw text.
-		setDrawText(gameTime);
-
-        App::instance().spriteBatch()->submit(0);
-    }
-
-	void SandboxScene::onInitialize()
-	{
-        srand((uint32_t)time(NULL));
-        s_client = new NetworkClient();
-        s_client->m_lobbyListener = &s_lobbyListener;
-		m_playerId = 0;
-
-        inputAddBindings("player", s_bindings);
-	}
-	void SandboxScene::onDestroy()
-	{
-		inputRemoveBindings("player");
-	}
-	
-	void SandboxScene::createGladiator(Gladiator* gladiator)
-	{
-		Entity* entity_gladiator;
-		EntityBuilder builder;
-		builder.begin();
-
-		ResourceManager* resources = App::instance().resources();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *gladiator->m_position;
-
-		Animator* animator = builder.addCharacterAnimator();
-		CharacterAnimator& anim = animator->m_animator;
-	
-		anim.setStaticContent(
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/ThrowingGrenade.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Gladius.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Axe.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Climbing.scml")->getNewEntityInstance(0)
-
-		);
-		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
-		
-		entity_gladiator = builder.getResults();
-
-		registerEntity(entity_gladiator);
-
-		GladiatorDrawData* data = new GladiatorDrawData;
-		data->m_entity = entity_gladiator;
-		data->m_animator = animator;
-		data->m_transform = transform;
-		data->m_gladiator = new Gladiator();
-		
-		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
-
-	}
-	void SandboxScene::createBackground()
-	{
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		EntityBuilder builder;
-
-		// Create back
-		if (m_background > 1)
-		{ 
-		
-			for (int y = 0; y <= 3; y++)
-			{
-				for (int x = 0; x <= 5; x++)
-				{
-					// TODO: add offset component.
-					builder.begin();
-					Movement* move= builder.addMovement();
-					move->m_velocity = glm::vec2(0, 0);
-					move->m_rotationSpeed = 0;
-					builder.addIdentifier(MapBack);
-					std::string name = "map/B";
-					name += std::to_string(x);
-					name += std::to_string(y);
-					name += ".png";
-
-					SpriteRenderer* renderer = builder.addSpriteRenderer();
-					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
-					Transform* transform = builder.addTransformComponent();
-
-					transform->m_position = glm::vec2((x-1) * 1920, (y-1) * 1080);
-					renderer->setTexture(textureResource);
-					move->m_velocity = transform->m_position;
-					renderer->anchor();
-					registerEntity(builder.getResults());
-				}
-			}
-		}
-		
-		// Create front
-		if (m_background == 1 || m_background == 3)
-		{
-
-			for (unsigned y = 0; y <= 1; y++)
-			{
-				for (unsigned x = 0; x <= 3; x++)
-				{
-					builder.begin();
-					builder.addIdentifier(MapFront);
-					SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-					std::string name = "map/";
-					name += std::to_string(x);
-					name += std::to_string(y);
-					name += ".png";
-
-					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
-
-					Transform* transform = builder.addTransformComponent();
-
-					transform->m_position = glm::vec2(x * 1920, y * 1080);
-
-					renderer->setTexture(textureResource);
-
-					renderer->anchor();
-					registerEntity(builder.getResults());
-				}
-			}
-		}
-				
-	}
-
-	
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
@@ -525,25 +406,6 @@ namespace arena
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
-		// TODO: Make proper physics platform drawing for debugging.
-		// This draw only draws sprites.
-		/*
-		EntityBuilder builder;
-		builder.begin();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = platform.vertices[0];
-		
-
-		ResourceManager* resources = App::instance().resources();
-        (void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-		
-		
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "perkele.png"));
-		
-		renderer->anchor();
-		*/
 		m_platformVector.push_back(platform);
 
 	}
@@ -587,202 +449,6 @@ namespace arena
 		}
 
 	}
-	void SandboxScene::createBullet(BulletData &data)
-	{
-		Bullet* bullet = new Bullet;
-		*bullet->m_position = data.m_position;
-		bullet->m_bulletId = data.m_id;
-		bullet->m_type = (BulletType)data.m_type;
-		bullet->m_creationDelay = data.m_creationDelay;
-		bullet->m_rotation = data.m_rotation;
-
-		createBulletEntity(bullet);
-	}
-
-	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)
-	{
-		EntityBuilder builder;
-		builder.begin();
-		Transform* transform = builder.addTransformComponent();
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-
-		// Load muzzle flash, set rotation and position on spawn. Delete flash when finished.
-		
-
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.05f;
-		builder.addIdentifier(EntityIdentification::MuzzleFlash);
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
-		Rectf& source = renderer->getSource();
-
-
-		if (m_nextSprite < 3)
-			m_nextSprite++;
-		else m_nextSprite = 0;
-
-		source.x = 0.0f + (float)m_nextSprite * 32.0f;
-		source.y = 0.0f;
-		source.w = 32.0f;
-		source.h = 32.0f;
-
-		transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
-		glm::vec2& origin = renderer->getOrigin();
-		origin.x = origin.x + 16; origin.y = origin.y + 16;
-		renderer->setRotation((float32)bullet.m_rotation + 3.142f);
-		renderer->setLayer(2);
-		renderer->anchor();
-		registerEntity(builder.getResults());
-	}
-	void SandboxScene::createSmokeEntity(const Bullet& bullet)
-	{
-		EntityBuilder builder;
-		builder.begin();
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-
-		Timer* timer = builder.addTimer();
-
-		// Load gun smoke, randomize rotation and position on spawn.
-
-		for (int i = 0; i < rand() % 5 + 3; i++)
-		{
-			int spriteX = rand() % 4;
-			
-			float rotation = 0;
-			int xOffset = 0, yOffset = 0;
-
-			builder.begin();
-
-			builder.addIdentifier(EntityIdentification::Smoke);
-			// Timer
-			timer = builder.addTimer();
-			timer->m_lifeTime = 0.5f;
-
-			// Drawing stuff
-			Transform* transform = builder.addTransformComponent();
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
-			//uint32_t color = color::toABGR(255, 255, 255, 50);
-			//renderer->setColor(color);
-			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 16; origin.y = origin.y + 16;
-			renderer->setRotation(rand() % 7);
-			Rectf& source = renderer->getSource();
-			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
-
-
-			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
-				rotation = (rand() % 3) / 100.0f;
-			}
-			else {
-				xOffset = -(rand() % 10);
-				rotation = (float)-(rand() % 3) / 100.0f;
-			}
-			if (rand() % 2 == 1) {
-				yOffset = rand() % 10;
-			}
-			else {
-				yOffset = -(rand() % 10);
-			}
-
-			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
-
-			// Movement
-			Movement* movement = builder.addMovement();
-			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 5.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 5.0f);
-			movement->m_rotationSpeed = rotation;
-
-			renderer->anchor();
-			registerEntity(builder.getResults());
-		} 
-
-	}
-
-	void SandboxScene::createBulletEntity(Bullet* bullet)
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet->m_position;
-		
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
-		//if (bullet->m_rotation < 3.142)
-		renderer->setRotation(bullet->m_rotation);
-		//else
-		//renderer->setRotation(bullet->m_rotation+ 3.142);
-		
-		renderer->anchor();
-		
-		Entity* entity = builder.getResults();
-		registerEntity(entity);
-		
-		builder.begin();
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = entity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
-		
-		// effects
-		
-		createMuzzleFlashEntity(*bullet);
-		createSmokeEntity(*bullet);
-
-	}
-	
-
-	void SandboxScene::createBulletHit(BulletData& data)
-	{
-		Bullet bullet;
-		*bullet.m_position = data.m_position;
-		printf("Bullet position: %f, %f\n", data.m_position.x, data.m_position.y);
-		bullet.m_type = (BulletType)data.m_type;
-		bullet.m_rotation = data.m_rotation;
-		m_bulletHitVector.push_back(bullet);
-
-		createBulletHitEntity(bullet);
-	}
-
-	void SandboxScene::createBulletHitEntity(Bullet& bullet)
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet.m_position + bullet.m_rotation;
-	
-
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
-		Rectf rect = renderer->getSource();
-		renderer->setSize(128, 32);
-		rect.x = 0; rect.y = 0;
-		rect.w = 128; rect.h = 32;
-		renderer->anchor();
-
-		Timer* timer =builder.addTimer();
-		timer->m_lifeTime = 0.5f;
-
-		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
-
-		builder.addIdentifier(EntityIdentification::HitBlood);
-		registerEntity(builder.getResults());
-	}
-
 	void SandboxScene::processDamagePlayer(GameDamagePlayerPacket* packet)
 	{
 		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
@@ -812,7 +478,7 @@ namespace arena
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = true;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.resetAnimation();
 	}
-	void SandboxScene::GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet)
+	void SandboxScene::updateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
 		m_scoreboard.m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
 		for (unsigned i = 0; i < packet->m_playerAmount; i++)
@@ -820,19 +486,6 @@ namespace arena
 			m_scoreboard.m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
 			m_scoreboard.m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
 		}
-	}
-	
-	void SandboxScene::sendInput(PlayerController &controller)
-	{
-        GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
-		packet->m_aimAngle = controller.aimAngle;
-        packet->m_input = controller.m_input;
-
-		packet->m_clientSalt = s_client->m_clientSalt;
-        packet->m_challengeSalt = s_client->m_challengeSalt;
-
-		s_client->sendPacketToServer(packet, s_stamp);
-		memset(&m_controller.m_input, false, sizeof(PlayerInput));
 	}
 
 	void SandboxScene::updateEntities(const GameTime& gameTime)
@@ -843,7 +496,7 @@ namespace arena
 			Entity* entity = *iterator;
 			if (entity->contains(TYPEOF(Timer)))
 			{
-				// Destroy entities that are out of their lifetime.
+				// Update timer and destroy entities that are out of their lifetime.
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 				if (timer->timePassed(gameTime.m_delta))
 				{
@@ -953,7 +606,6 @@ namespace arena
 			}
 		}
 	}
-
 	void SandboxScene::updateDebugBullets(const GameTime& gameTime)
 	{
 		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
@@ -973,6 +625,232 @@ namespace arena
 			}
 		}
 	}
+	
+	void SandboxScene::createGladiator(Gladiator* gladiator)
+	{
+		Entity* entity_gladiator;
+		EntityBuilder builder;
+		builder.begin();
+
+		ResourceManager* resources = App::instance().resources();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = *gladiator->m_position;
+
+		Animator* animator = builder.addCharacterAnimator();
+		CharacterAnimator& anim = animator->m_animator;
+	
+		anim.setStaticContent(
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
+			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/ThrowingGrenade.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Gladius.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Axe.scml")->getNewEntityInstance(0),
+			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Climbing.scml")->getNewEntityInstance(0)
+
+		);
+		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
+		
+		entity_gladiator = builder.getResults();
+
+		registerEntity(entity_gladiator);
+
+		GladiatorDrawData* data = new GladiatorDrawData;
+		data->m_entity = entity_gladiator;
+		data->m_animator = animator;
+		data->m_transform = transform;
+		data->m_gladiator = new Gladiator();
+		
+		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
+
+	}
+	void SandboxScene::createBullet(BulletData &data)
+	{
+		Bullet* bullet = new Bullet;
+		*bullet->m_position = data.m_position;
+		bullet->m_bulletId = data.m_id;
+		bullet->m_type = (BulletType)data.m_type;
+		bullet->m_creationDelay = data.m_creationDelay;
+		bullet->m_rotation = data.m_rotation;
+
+		createBulletEntity(bullet);
+	}
+	void SandboxScene::createBulletEntity(Bullet* bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = *bullet->m_position;
+		
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
+		//if (bullet->m_rotation < 3.142)
+		renderer->setRotation(bullet->m_rotation);
+		//else
+		//renderer->setRotation(bullet->m_rotation+ 3.142);
+		
+		renderer->anchor();
+		
+		Entity* entity = builder.getResults();
+		registerEntity(entity);
+		
+		builder.begin();
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
+		debugBullet.entity = entity;
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+		
+		// effects
+		
+		createMuzzleFlashEntity(*bullet);
+		createSmokeEntity(*bullet);
+
+	}
+	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+		Transform* transform = builder.addTransformComponent();
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.05f;
+		builder.addIdentifier(EntityIdentification::MuzzleFlash);
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
+		Rectf& source = renderer->getSource();
+
+		if (m_nextSprite < 3)
+			m_nextSprite++;
+		else m_nextSprite = 0;
+
+		source.x = 0.0f + (float)m_nextSprite * 32.0f;
+		source.y = 0.0f;
+		source.w = 32.0f;
+		source.h = 32.0f;
+
+		transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+		glm::vec2& origin = renderer->getOrigin();
+		origin.x = origin.x + 16; origin.y = origin.y + 16;
+		renderer->setRotation((float32)bullet.m_rotation + 3.142f);
+		renderer->setLayer(2);
+		renderer->anchor();
+		registerEntity(builder.getResults());
+	}
+	void SandboxScene::createSmokeEntity(const Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+
+		Timer* timer = builder.addTimer();
+
+		// Load gun smoke, randomize rotation and position on spawn.
+
+		for (int i = 0; i < rand() % 5 + 3; i++)
+		{
+			int spriteX = rand() % 4;
+			
+			float rotation = 0;
+			int xOffset = 0, yOffset = 0;
+
+			builder.begin();
+
+			builder.addIdentifier(EntityIdentification::Smoke);
+			// Timer
+			timer = builder.addTimer();
+			timer->m_lifeTime = 0.5f;
+
+			// Drawing stuff
+			Transform* transform = builder.addTransformComponent();
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
+			//uint32_t color = color::toABGR(255, 255, 255, 50);
+			//renderer->setColor(color);
+			glm::vec2& origin = renderer->getOrigin();
+			origin.x = origin.x + 16; origin.y = origin.y + 16;
+			renderer->setRotation(float32(rand() % 7));
+			Rectf& source = renderer->getSource();
+			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
+
+
+			if (rand() % 2 == 1) {
+				xOffset = rand() % 10;
+				rotation = (rand() % 3) / 100.0f;
+			}
+			else {
+				xOffset = -(rand() % 10);
+				rotation = (float)-(rand() % 3) / 100.0f;
+			}
+			if (rand() % 2 == 1) {
+				yOffset = rand() % 10;
+			}
+			else {
+				yOffset = -(rand() % 10);
+			}
+
+			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+
+			// Movement
+			Movement* movement = builder.addMovement();
+			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
+			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 5.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 5.0f);
+			movement->m_rotationSpeed = rotation;
+
+			renderer->anchor();
+			registerEntity(builder.getResults());
+		} 
+
+	}
+
+	void SandboxScene::createBulletHit(BulletData& data)
+	{
+		Bullet bullet;
+		*bullet.m_position = data.m_position;
+		printf("Bullet position: %f, %f\n", data.m_position.x, data.m_position.y);
+		bullet.m_type = (BulletType)data.m_type;
+		bullet.m_rotation = data.m_rotation;
+		createBulletHitEntity(bullet);
+	}
+	void SandboxScene::createBulletHitEntity(Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = *bullet.m_position + bullet.m_rotation;
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
+		Rectf rect = renderer->getSource();
+		renderer->setSize(128, 32);
+		rect.x = 0; rect.y = 0;
+		rect.w = 128; rect.h = 32;
+		renderer->anchor();
+
+		Timer* timer =builder.addTimer();
+		timer->m_lifeTime = 0.5f;
+
+		Movement* move = builder.addMovement();
+		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
+		
+		builder.addIdentifier(EntityIdentification::HitBlood);
+		registerEntity(builder.getResults());
+	}
+
 	void SandboxScene::updateCameraPosition()
 	{
 		Camera& camera = App::instance().camera();
@@ -991,10 +869,8 @@ namespace arena
 			bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
 		}
 	}
-
 	void SandboxScene::rotatePlayerAim()
 	{
-
 		const MouseState& mouse = Mouse::getState();
 
 		glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
@@ -1008,7 +884,6 @@ namespace arena
 		// Update own gladiator aim
 		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 	}
-
 	void SandboxScene::setDrawText(const GameTime& gameTime)
 	{
 		const MouseState& mouse = Mouse::getState();
@@ -1021,5 +896,75 @@ namespace arena
 		bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
 		bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 		bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", m_controller.aimAngle, glm::degrees(m_controller.aimAngle));
+	}
+	void SandboxScene::createBackground()
+	{
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		EntityBuilder builder;
+
+		// Create back
+		if (m_backgroundSetting > 1)
+		{ 
+		
+			for (int y = 0; y <= 3; y++)
+			{
+				for (int x = 0; x <= 5; x++)
+				{
+					// TODO: add offset component.
+					builder.begin();
+					Movement* move= builder.addMovement();
+					move->m_velocity = glm::vec2(0, 0);
+					move->m_rotationSpeed = 0;
+					builder.addIdentifier(MapBack);
+					std::string name = "map/B";
+					name += std::to_string(x);
+					name += std::to_string(y);
+					name += ".png";
+
+					SpriteRenderer* renderer = builder.addSpriteRenderer();
+					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
+					Transform* transform = builder.addTransformComponent();
+
+					transform->m_position = glm::vec2((x-1) * 1920, (y-1) * 1080);
+					renderer->setTexture(textureResource);
+					move->m_velocity = transform->m_position;
+					renderer->anchor();
+					registerEntity(builder.getResults());
+				}
+			}
+		}
+		
+		// Create front
+		if (m_backgroundSetting == 1 || m_backgroundSetting == 3)
+		{
+
+			for (unsigned y = 0; y <= 1; y++)
+			{
+				for (unsigned x = 0; x <= 3; x++)
+				{
+					builder.begin();
+					builder.addIdentifier(MapFront);
+					SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+					std::string name = "map/";
+					name += std::to_string(x);
+					name += std::to_string(y);
+					name += ".png";
+
+					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
+
+					Transform* transform = builder.addTransformComponent();
+
+					transform->m_position = glm::vec2(x * 1920, y * 1080);
+
+					renderer->setTexture(textureResource);
+
+					renderer->anchor();
+					registerEntity(builder.getResults());
+				}
+			}
+		}
+				
 	}
 }

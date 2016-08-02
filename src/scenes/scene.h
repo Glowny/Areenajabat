@@ -1,9 +1,9 @@
 #pragma once
 
-#include "..\ecs\entity.h"
-#include "..\forward_declare.h"
-#include "..\arena_types.h"
-#include "..\functional.h"
+#include "../ecs/entity.h"
+#include "../forward_declare.h"
+#include "../arena_types.h"
+#include "../functional.h"
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, GameTime)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)

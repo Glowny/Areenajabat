@@ -1,4 +1,4 @@
-#include "..\ecs\entity.h"
+#include "../ecs/entity.h"
 #include "scene.h"
 
 #include <algorithm>

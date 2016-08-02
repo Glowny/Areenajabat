@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <vector>
 #include "sprite_effects.h"
-#include "..\rect.h"
+#include "../rect.h"
 
 namespace arena
 {

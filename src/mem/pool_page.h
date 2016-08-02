@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\arena_types.h"
+#include "../arena_types.h"
 
 #include <assert.h>
 #include <stack>

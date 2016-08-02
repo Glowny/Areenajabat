@@ -1,7 +1,7 @@
 #pragma once
 #include "../packet.h"
-#include <glm\glm.hpp>
-#include "..\types.h"
+#include <glm/glm.hpp>
+#include "../types.h"
 #include "playerController.h"
 
 namespace arena

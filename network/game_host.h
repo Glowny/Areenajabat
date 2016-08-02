@@ -1,9 +1,9 @@
 #pragma once
 
-#include <common\event.h>
-#include <common\mem\memory.h>
-#include <common\forward_declare.h>
-#include <common\game_vars.h>
+#include <common/event.h>
+#include <common/mem/memory.h>
+#include <common/forward_declare.h>
+#include <common/game_vars.h>
 #include <vector>
 #include <common/arena/physics.h>
 #include <common/packet.h>

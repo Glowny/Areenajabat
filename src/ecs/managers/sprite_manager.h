@@ -2,13 +2,13 @@
 
 #include "component_manager.h"
 
-#include "..\sprite_renderer.h"
-#include "..\..\game_time.h"
-#include "..\component.h"
+#include "../sprite_renderer.h"
+#include "../../game_time.h"
+#include "../component.h"
 
-#include "..\..\mem\pool_allocator.h"
+#include "../../mem/pool_allocator.h"
 
-#include "..\..\singleton.h"
+#include "../../singleton.h"
 
 namespace arena
 {

@@ -1,12 +1,12 @@
 #include "sprite_manager.h"
 
-#include "..\transform.h"
-#include "..\..\rtti\rtti_define.h"
-#include "..\..\graphics\spritebatch.h"
-#include "..\..\game_time.h"
-#include "..\component.h"
-#include "..\..\app.h"
-#include "..\entity.h"
+#include "../transform.h"
+#include "../../rtti/rtti_define.h"
+#include "../../graphics/spritebatch.h"
+#include "../../game_time.h"
+#include "../component.h"
+#include "../../app.h"
+#include "../entity.h"
 
 #include <algorithm>
 

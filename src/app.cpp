@@ -1,6 +1,6 @@
 #include <common/network_interface.h>
 #include "game_time.h"
-#include "ecs\managers\sprite_manager.h"
+#include "ecs/managers/sprite_manager.h"
 #include "app.h"
 #include <bgfx/bgfx.h>
 #include "input/input.h"
@@ -19,7 +19,7 @@
 #include "camera.h"
 #include "graphics/composite_sprite.h"
 #include "scenes/scene_manager.h"
-#include "graphics\layers.h"
+#include "graphics/layers.h"
 #include "scenes/sandbox_scene.h"
 #include "graphics/character_animator.h"
 #include "utils/math.h"

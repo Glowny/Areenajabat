@@ -1,9 +1,9 @@
 #include "sprite_renderer.h"
 #include "entity.h"
 
-#include "..\res\texture_resource.h"
+#include "../res/texture_resource.h"
 
-#include "..\rtti\rtti_define.h"
+#include "../rtti/rtti_define.h"
 
 namespace arena
 {

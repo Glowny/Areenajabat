@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\forward_declare.h"
-#include "..\types.h"
+#include "../forward_declare.h"
+#include "../types.h"
 
 #include <vector>
 

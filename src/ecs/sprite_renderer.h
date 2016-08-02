@@ -1,11 +1,11 @@
 #pragma once
 
-#include "..\forward_declare.h"
-#include "..\graphics\sprite.h"
+#include "../forward_declare.h"
+#include "../graphics/sprite.h"
 #include "render_component.h"
-#include "..\graphics\sprite_effects.h"
+#include "../graphics/sprite_effects.h"
 
-#include "..\rect.h"
+#include "../rect.h"
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 

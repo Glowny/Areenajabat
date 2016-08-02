@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <fstream>
-#include <common\network_entity.h>
+#include <common/network_entity.h>
 #include <assert.h>
 #define MAXVERTEXAMOUNT 30
 

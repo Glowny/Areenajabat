@@ -1,4 +1,4 @@
-#include "..\mem\memory.h"
+#include "../mem/memory.h"
 
 #include "entity.h"
 #include "component.h"

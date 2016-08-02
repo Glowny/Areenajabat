@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <glm/vec2.hpp>
-#include <..\common\network_entity.h>
+#include <../common/network_entity.h>
 
 #define GLADIUSIMPULSE 100.0f
 #define SHOTGUNIMPULSE 100.0f

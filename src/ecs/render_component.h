@@ -2,11 +2,11 @@
 
 #include "component.h"
 
-#include "..\forward_declare.h"
-#include "..\arena_types.h"
-#include "..\graphics\layers.h"
-#include "..\graphics\color.h"
-#include "..\3rdparty\glm\vec2.hpp"
+#include "../forward_declare.h"
+#include "../arena_types.h"
+#include "../graphics/layers.h"
+#include "../graphics/color.h"
+#include "../3rdparty/glm/vec2.hpp"
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 

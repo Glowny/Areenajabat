@@ -1,9 +1,9 @@
 #pragma once
 
-#include "..\mem\heap_allocator.h"
-#include "..\forward_declare.h"
-#include "..\rtti\rtti_define.h"
-#include "..\arena_types.h"
+#include "../mem/heap_allocator.h"
+#include "../forward_declare.h"
+#include "../rtti/rtti_define.h"
+#include "../arena_types.h"
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Entity)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteManager)

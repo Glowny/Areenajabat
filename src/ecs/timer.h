@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\rtti\rtti_define.h"
-#include "..\arena_types.h"
+#include "../rtti/rtti_define.h"
+#include "../arena_types.h"
 #include "component.h"
 
 namespace arena

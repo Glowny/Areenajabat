@@ -1,9 +1,9 @@
 #include "game_host.h"
-#include <common\debug.h>
+#include <common/debug.h>
 #include "server.h"
-#include <common\arena\playerController.h>
-#include <common\mem\packet_allocator.h>
-#include <common\arena\gladiator.h>
+#include <common/arena/playerController.h>
+#include <common/mem/packet_allocator.h>
+#include <common/arena/gladiator.h>
 
 namespace arena
 {

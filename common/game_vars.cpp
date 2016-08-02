@@ -1,6 +1,6 @@
-#include "minini\minIni.h"
+#include "minini/minIni.h"
 #include "game_vars.h"
-#include "mem\memory.h"
+#include "mem/memory.h"
 
 #include <map>
 

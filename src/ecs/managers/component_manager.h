@@ -1,8 +1,8 @@
 #pragma once
 
-#include "..\..\mem\pool_allocator.h"
-#include "..\..\mem\memory.h"
-#include "..\..\forward_declare.h"
+#include "../../mem/pool_allocator.h"
+#include "../../mem/memory.h"
+#include "../../forward_declare.h"
 
 #include <cassert>
 #include <iterator>

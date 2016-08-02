@@ -1,7 +1,7 @@
 #pragma once
 #if defined(ARENA_CLIENT)
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <queue>
 #include "GamePackets.h"
 #include "NetworkClient.h"

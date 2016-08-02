@@ -1,8 +1,8 @@
 #pragma once
 
-#include "..\rtti\rtti_define.h"
-#include "..\3rdparty\glm\vec2.hpp"
-#include "..\arena_types.h"
+#include "../rtti/rtti_define.h"
+#include "../3rdparty/glm/vec2.hpp"
+#include "../arena_types.h"
 
 #include "component.h"
 

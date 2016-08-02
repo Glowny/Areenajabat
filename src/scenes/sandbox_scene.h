@@ -3,12 +3,12 @@
 #include "scene.h"
 #include <queue>
 #include <vector>
-#include "common\arena\game_map.h"
-#include "common\arena\playerController.h"
-#include <common\arena\arena_packet.h>
-#include "common\arena\scoreboard.h"
-#include "..\ecs\transform.h"
-#include "common\arena\gladiator.h"
+#include <common/arena/arena_packet.h>
+#include "common/arena/game_map.h"
+#include "common/arena/playerController.h"
+#include "common/arena/gladiator.h"
+#include "common/arena/scoreboard.h"
+#include "../ecs/transform.h"
 #include <map>
 struct Message;
 
@@ -16,7 +16,6 @@ struct Message;
 namespace arena
 {
 	class Animator;
-
 	struct DebugBullet
 	{
 		DebugBullet()
@@ -59,22 +58,18 @@ namespace arena
 	public:
 		SandboxScene();
 		~SandboxScene() = default;
-		
-		void setAimAngle(float angle);
+        PlayerController m_controller;
+	
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
 		virtual void onDestroy() final override;
 
 	private:
+		void sendInput(PlayerController &controller);
 		void processAllPackets(const GameTime& gameTime);
 		void processPacket(Packet* packet);
 
-		void updateEntities(const GameTime& gameTime);
-		void updateCameraPosition();
-		void rotatePlayerAim();
-		void setDrawText(const GameTime& gameTime);
-		void createBackground();
 		void createGladiators(GameCreateGladiatorsPacket* packet);
 		void createPlatform(GamePlatformPacket* packet);
 		void updateGladiators(GameUpdatePacket* packet);
@@ -83,47 +78,51 @@ namespace arena
 		void processDamagePlayer(GameDamagePlayerPacket* packet);
 		void killPlayer(GameKillPlayerPacket* packet);
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
-		void GameUpdateScoreBoard(GameUpdateScoreBoardPacket* packet);
+		void updateScoreBoard(GameUpdateScoreBoardPacket* packet);
+		
+		// Update all entities on ecs.
+		void updateEntities(const GameTime& gameTime);
+		// Update debugbullets.
+		void updateDebugBullets(const GameTime& gameTime);
 
-		void sendInput(PlayerController &controller);
-
+		// Create single gladiator.
 		void createGladiator(Gladiator* gladiator);
-
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
 		void createBulletEntity(Bullet* bullet);
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(const Bullet& bullet);
 
-		// Create real hits (debugging & adjusting)
 		void createBulletHit(BulletData& data);
 		void createBulletHitEntity(Bullet& bullet);
 
-		// Create fake bullets when player shoots.
-		void createClientSideBullet(Bullet bullet);
-		// Create fake hits when bullets hit.
-		void createClientSideHit(Bullet bullet);
+		// Update camera position to player gladiator position.
+		void updateCameraPosition(); 
+		// Rotata player aim according to mouse position.
+		void rotatePlayerAim();
+		// Draw debug text.
+		void setDrawText(const GameTime& gameTime); 
 
-		// Fake death or not?
-		void clientSideGladiatorDeath(unsigned id);
+		// Load background from file.
+		void createBackground(); 
 
 		// TODO: should use entities
 		std::map<uint8_t, GladiatorDrawData*> m_clientIdToGladiatorData;
-		std::vector<ArenaPlatform> m_platformVector;
-		std::vector<Bullet> m_bulletHitVector;
+		// Platform data that is send by server and can be used for clientside physics.
+		std::vector<ArenaPlatform> m_platformVector; 
 
-		void updateDebugBullets(const GameTime& gameTime);
 		std::map<uint8_t, DebugBullet> m_debugBullets;
-		bool connected;
 
 		float m_sendInputToServerTimer;
 		Scoreboard m_scoreboard;
-		uint8_t m_playerId;
-		int m_nextSprite = 0; //used to choose the next sprite in muzzle flash spritesheet
-		int m_background; // 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
-    public:
-        PlayerController m_controller;
-	};
+		// m_playerId is used to see which gladiator player is controlling.
+		uint8_t m_playerId; 
+		// m_nextSprite is used to choose the next sprite in muzzle flash spritesheet. TODO: should be gladiator specific
+		int m_nextSprite = 0; 
+		// m_backgroundSetting is used to set which backgrounds are loaded.
+		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
+		int m_backgroundSetting; 
+    };
 
 	static void inputMoveLeft(const void*);
 	static void inputMoveRight(const void*);

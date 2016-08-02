@@ -1,8 +1,8 @@
 #pragma once
 
-#include "..\forward_declare.h"
-#include "..\arena_types.h"
-#include "..\mem\memory.h"
+#include "../forward_declare.h"
+#include "../arena_types.h"
+#include "../mem/memory.h"
 
 #include "heap_page.h"
 

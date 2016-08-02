@@ -1,5 +1,5 @@
 #include "network_interface.h"
-#include <enet\enet.h>
+#include <enet/enet.h>
 #include "debug.h"
 #include "packet.h"
 #include "write_stream.h"

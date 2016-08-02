@@ -1,6 +1,6 @@
 #include "packet.h"
-#include "mem\block_allocator.h"
-#include "arena\arena_packet.h"
+#include "mem/block_allocator.h"
+#include "arena/arena_packet.h"
 #include <stdio.h>
 #include <bx/bx.h>
 namespace arena

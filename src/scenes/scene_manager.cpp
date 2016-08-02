@@ -1,4 +1,4 @@
-#include "..\game_time.h"
+#include "../game_time.h"
 #include "scene_manager.h"
 #include "scene.h"
 
