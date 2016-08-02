@@ -156,10 +156,10 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	}
 	p_userData* userData = new p_userData;
 	p_Platform* temp_platform = new p_Platform;
+	temp_platform->m_type = B_Platform;
 	userData->m_bodyType = B_Platform;
 	userData->m_object = temp_platform;
-	
-	
+
 
 	unsigned index = uint32_t(m_platformVector.size());
 	m_platformVector.push_back(temp_platform);
@@ -171,7 +171,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	m_platformVector[index]->m_fixtureDef.density = 1.0f;
 	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
 	switch(type)
-	{ 
+	{ B_Gladiator;
 		case 0:
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Platform];
 			break;
@@ -194,6 +194,7 @@ unsigned Physics::addGladiator(glm::vec2* position)
 {
 	p_Gladiator* glad = new p_Gladiator;
 	glad->m_id = uint32_t(m_gladiatorVector.size());
+	glad->m_type = B_Gladiator;
 	glad->gamePosition = position;
 
 	b2BodyDef bodydef;
@@ -346,6 +347,7 @@ uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned sho
 	bullet->bulletId = getFreeBulletId();
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Bullet;
+	bullet->m_type = B_Bullet;
 	userData->m_object = bullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;

@@ -8,6 +8,7 @@ namespace arena
 {
 //TODO: Set size on how many bullet creation events can possibly happen
 #define BULLET_MAX_AMOUNT 30
+	
 	struct BulletData
 	{
 		BulletData()
@@ -15,6 +16,23 @@ namespace arena
 			m_id = 0;
 			m_type = 0;
 			m_position = glm::vec2(0,0);
+			m_rotation = 0;
+			m_creationDelay = 0;
+		}
+		uint8_t m_id;
+		uint8_t m_type;
+		glm::vec2 m_position;
+		float m_rotation;
+		float m_creationDelay; // TODO: Replace with gametime later.
+	}; 
+
+	struct BulletHitData
+	{
+		BulletHitData()
+		{
+			m_id = 0;
+			m_type = 0;
+			m_position = glm::vec2(0, 0);
 			m_rotation = 0;
 			m_creationDelay = 0;
 		}
@@ -302,7 +320,7 @@ namespace arena
 	{
 		uint64_t m_clientSalt;
 		uint8_t m_bulletAmount;
-		BulletData bulletHitArray[BULLET_MAX_AMOUNT];
+		BulletHitData bulletHitArray[BULLET_MAX_AMOUNT];
 		GameBulletHitPacket()
 			: m_clientSalt(0)
 		{

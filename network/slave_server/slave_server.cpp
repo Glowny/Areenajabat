@@ -193,13 +193,29 @@ namespace arena
 			case NetworkEntityType::BulletHit:
 			{
 				BulletHit* hit = (BulletHit*)entity;
-				GameDamagePlayerPacket* packet = (GameDamagePlayerPacket*)createPacket(PacketTypes::GameDamagePlayer);
-				printf("Bullet position x: %f, y: %f\n", hit->m_hitPosition.x, hit->m_hitPosition.y);
-				packet->m_damageAmount = hit->m_damageAmount;
-				packet->m_hitPosition = hit->m_hitPosition;
-				packet->m_hitDirection = hit->m_hitDirection;
-				packet->m_targetID = hit->m_targetPlayerId;
-				broadcast(packet);
+				if (hit->m_hitType == 1)
+				{ 
+					GameDamagePlayerPacket* packet = (GameDamagePlayerPacket*)createPacket(PacketTypes::GameDamagePlayer);
+					printf("Bullet position x: %f, y: %f\n", hit->m_hitPosition.x, hit->m_hitPosition.y);
+					packet->m_damageAmount = hit->m_damageAmount;
+					packet->m_hitPosition = hit->m_hitPosition;
+					packet->m_hitDirection = hit->m_hitDirection;
+					packet->m_targetID = hit->m_targetPlayerId;
+					broadcast(packet);
+				}
+				else
+				{
+					GameBulletHitPacket* packet = (GameBulletHitPacket*)createPacket(PacketTypes::GameBulletHit);
+					packet->bulletHitArray[0].m_id = hit->getPhysicsID();
+					packet->bulletHitArray[0].m_creationDelay = 0.2;
+					packet->bulletHitArray[0].m_position = hit->m_hitPosition;
+					packet->bulletHitArray[0].m_type = hit->m_hitType;
+					packet->m_bulletAmount = 1;
+					broadcast(packet);
+
+				}
+				
+				
 				break;
 			}
 			case NetworkEntityType::Map:

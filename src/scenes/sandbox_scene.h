@@ -93,8 +93,9 @@ namespace arena
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(const Bullet& bullet);
 
-		void createBulletHit(BulletData& data);
-		void createBulletHitEntity(Bullet& bullet);
+		void createBulletHit(BulletHitData& data);
+		void createBloodBulletHitEntity(Bullet& bullet);
+		void createPlatformBulletHitEntity(Bullet& bullet);
 
 		// Update camera position to player gladiator position.
 		void updateCameraPosition(); 

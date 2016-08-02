@@ -44,7 +44,12 @@ enum bodyType
 	B_NONE
 };
 
-struct BulletHit
+struct p_entity
+{
+	bodyType m_type;
+};
+
+struct BulletHit : public p_entity
 {
 	bodyType hitType;
 	glm::vec2 position;
@@ -52,13 +57,15 @@ struct BulletHit
 	unsigned targetPlayerId;
 };
 
+
 struct p_userData
 {
 	bodyType m_bodyType;
-	void* m_object;
+	p_entity* m_object;
 };
 
-struct p_Platform
+
+struct p_Platform :public p_entity
 {
 	b2ChainShape m_shape;
 	b2BodyDef m_bodydef;
@@ -68,7 +75,7 @@ struct p_Platform
 };
 
 
-struct p_Gladiator
+struct p_Gladiator :public p_entity
 {
 	uint32_t m_id;
 	b2Body* m_body;
@@ -77,7 +84,7 @@ struct p_Gladiator
 
 };
 
-struct p_Bullet
+struct p_Bullet :public p_entity
 {
 	unsigned m_shooterID;
 	uint8_t bulletId;
@@ -106,26 +113,26 @@ struct p_Bullet
 struct BulletCollisionEntry final 
 {
 	p_Bullet		m_bullet;
-
 	p_Gladiator		m_shooter;
-	p_Gladiator		m_target;
+	p_entity*		m_target;
 };
 
 class ContactListener : public b2ContactListener
 {
 public:
 	std::vector<BulletCollisionEntry> m_bulletCollisionEntries;
-
-	std::vector<p_Gladiator*>* m_gladiators { nullptr };
+	
+	//std::vector<p_Platform*>* m_platforms{ nullptr };
+	std::vector<p_Gladiator*>* m_gladiators{ nullptr };
 
 	ContactListener(std::vector<p_Gladiator*>* gladiators) : b2ContactListener(),
-															 m_gladiators(gladiators)
+		m_gladiators(gladiators)
 	{
 	}
 
 	~ContactListener() = default;
 private:
-	p_Gladiator* findGladiator(const uint32 id)
+	p_Gladiator* findEntity(const uint32 id)
 	{
 		if (m_gladiators == nullptr) return nullptr;
 		
@@ -142,20 +149,47 @@ private:
 		p_userData* targetUserData = static_cast<p_userData*>(targetBodyUserData);
 		p_userData* bulletUserData = static_cast<p_userData*>(bulletBodyUserData);
 
-		if (targetUserData->m_bodyType == B_Platform || targetUserData->m_bodyType == B_Gladiator)
+		if (bulletUserData->m_bodyType == B_Bullet)
 		{
-			if (bulletUserData->m_bodyType == B_Bullet)
+			switch (targetUserData->m_bodyType)
 			{
-				p_Bullet* bullet =  static_cast<p_Bullet*>(bulletUserData->m_object);
-				bullet->startContact( targetUserData);
+				case B_Platform:
+				{
+					p_Bullet* bullet = static_cast<p_Bullet*>(bulletUserData->m_object);
+					bullet->startContact(targetUserData);
 
-				BulletCollisionEntry entry;
-				entry.m_bullet	= *bullet;
-				entry.m_shooter = *findGladiator(bullet->m_shooterID);
-				entry.m_target	= *static_cast<p_Gladiator*>(targetUserData->m_object);
-				
-				m_bulletCollisionEntries.push_back(entry);
+					BulletCollisionEntry entry;
+					entry.m_bullet = *bullet;
+					entry.m_shooter = *findEntity(bullet->m_shooterID);
+					
+					p_Platform* entryPlatform = new p_Platform;
+					*entryPlatform = *static_cast<p_Platform*>(targetUserData->m_object);
+					entry.m_target = entryPlatform;
+
+					m_bulletCollisionEntries.push_back(entry);
+				}
+				break;
+
+				case B_Gladiator:
+				{
+					p_Bullet* bullet = static_cast<p_Bullet*>(bulletUserData->m_object);
+					bullet->startContact(targetUserData);
+
+					BulletCollisionEntry entry;
+					entry.m_bullet = *bullet;
+					entry.m_shooter = *findEntity(bullet->m_shooterID);
+					 
+					p_Gladiator* entryGladiator = new p_Gladiator;
+					*entryGladiator = *static_cast<p_Gladiator*>(targetUserData->m_object);
+					entry.m_target = entryGladiator;
+
+					m_bulletCollisionEntries.push_back(entry);
+					break;
+				}
+				default:
+					break;
 			}
+
 		}
 
 	}

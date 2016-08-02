@@ -49,10 +49,12 @@ namespace arena
 		BulletHit()
 			: NetworkEntity(NetworkEntityType::BulletHit)
 		{
+			m_hitType = 0;
 			m_damageAmount = 0;
 			m_hitDirection = 0;
 			m_hitPosition = glm::vec2(0, 0);
 		}
+		uint8_t m_hitType;
 		int32 m_damageAmount;
 		uint8_t m_hitDirection;
 		uint8_t m_targetPlayerId;

@@ -4,6 +4,7 @@
 #include <common/arena/playerController.h>
 #include <common/mem/packet_allocator.h>
 #include <common/arena/gladiator.h>
+#include <common/arena/arena_packet.h>
 
 namespace arena
 {
@@ -222,57 +223,90 @@ namespace arena
 		for (BulletCollisionEntry& entry : entries) 
 		{
 			//p_Gladiator& shooter	= entry.m_shooter;
-			// TODO: wall hits are also registered here, do some checks.
-			p_Gladiator& target		= entry.m_target;
-			if (target.m_id > 10)
-				continue;
-
-			p_Bullet& bullet		= entry.m_bullet;
+			// TODO: make target some common type that gladiator and platform are inherited from.
+			p_Bullet& bullet = entry.m_bullet;
 			
-			Gladiator* targetGladiator = nullptr;
-			for (unsigned i = 0; i < players().size(); i++)
+			if (entry.m_target->m_type == B_Platform)
 			{
-				if (target.m_id == players()[i].m_gladiator->getPhysicsID())
-				{
-					targetGladiator = players()[i].m_gladiator;
-					break;
-				}
+				p_Platform& platform = *static_cast<p_Platform*>(entry.m_target);
+				platform;
+
+				BulletHit* hit = new BulletHit;
+				hit->m_hitType = 2;
+				hit->m_damageAmount = 5;
+				hit->m_hitPosition = *bullet.gamePosition;
+				hit->m_targetPlayerId = 0;
+				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
+				if (velocity.x < 0)
+					hit->m_hitDirection = 0;
+				else
+					hit->m_hitDirection = 1;
+
+				m_synchronizationList.push_back(hit);
+
 			}
-			// if target is not alive, do not register hit.
-			// TODO: set dead player to ignore bullets on physics.
-			if (targetGladiator->m_alive == false)
-				continue;
-			// Get target entity instance. Does not seem to work.
-			//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&shooter](NetworkEntity* const e) { return e->getPhysicsID() == shooter.m_id; }));
-			//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
-
-			BulletHit* hit = new BulletHit;
-			hit->m_damageAmount = 5;
-			hit->m_hitPosition = *bullet.gamePosition;
-
-			b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
-			if (velocity.x < 0)
-				hit->m_hitDirection = 0;
 			else
-				hit->m_hitDirection = 1;
-			hit->m_targetPlayerId = target.m_id;
+			{
+				p_Gladiator& target = *static_cast<p_Gladiator*>(entry.m_target);
+				
+				
+				Gladiator* targetGladiator = nullptr;
+				for (unsigned i = 0; i < players().size(); i++)
+				{
+					if (target.m_id == players()[i].m_gladiator->getPhysicsID())
+					{
+						targetGladiator = players()[i].m_gladiator;
+						break;
+					}
+				}
+				// if target is not alive, do not register hit.
+				// TODO: set dead player to ignore bullets on physics.
+				
+				// Get target entity instance. Does not seem to work.
+				//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&entry](NetworkEntity* const e) { return e->getPhysicsID() == entry.m_shooter.m_id; }));
+				//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
-			targetGladiator->m_hitpoints -= hit->m_damageAmount;
-			if (targetGladiator->m_hitpoints <= 0)
-			{ 
-				targetGladiator->m_alive = false;
+				if (targetGladiator->m_alive == false)
+					continue;
+
+				BulletHit* hit = new BulletHit;
+				hit->m_hitType = 1;
+				hit->m_damageAmount = 5;
+				hit->m_hitPosition = *bullet.gamePosition;
+
+				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
+				if (velocity.x < 0)
+					hit->m_hitDirection = 0;
+				else
+					hit->m_hitDirection = 1;
+				hit->m_targetPlayerId = target.m_id;
+
+				targetGladiator->m_hitpoints -= hit->m_damageAmount;
+				if (targetGladiator->m_hitpoints <= 0)
+				{ 
+					targetGladiator->m_alive = false;
+				}
+				m_synchronizationList.push_back(hit);
+
+				// Sync.
+				m_synchronizationList.push_back(targetGladiator);
+				
+				// TODO: Do removal here and properly
+				
+				//	if (m_debugBullets[i].m_bullet->m_bulletId == bullet.bulletId)
+				//		m_debugBullets[i].lifeTime = 10.0f;
+				
+				delete entry.m_target;
 			}
-			m_synchronizationList.push_back(hit);
-
-			// Sync.
-			m_synchronizationList.push_back(targetGladiator);
-			
-			// TODO: Do removal here and properly
 			for (unsigned i = 0; i < m_debugBullets.size(); i++)
-			{ 
 				if (m_debugBullets[i].m_bullet->m_bulletId == bullet.bulletId)
-					m_debugBullets[i].lifeTime = 10.0f;
-			}
+				{
+					m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
+
+					delete m_debugBullets[i].m_bullet;
+
+					m_debugBullets.erase(m_debugBullets.begin() + i);
+				}
 		}
 
 		entries.clear();
@@ -491,7 +525,7 @@ namespace arena
 						{
 					
 							player.m_gladiator->m_alive = true;
-							player.m_gladiator->m_hitpoints = 100.0f;
+							player.m_gladiator->m_hitpoints = 100;
 							m_physics.setGladiatorPosition(player.m_gladiator->getPhysicsID(), glm::vec2(1600,200));
 							m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getPhysicsID());
 							printf("Respawned player %d\n", player.m_gladiator->getPhysicsID());

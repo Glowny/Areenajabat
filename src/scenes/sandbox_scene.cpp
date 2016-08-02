@@ -462,7 +462,7 @@ namespace arena
 		bullet.m_position->x = packet->m_hitPosition.x;
 		bullet.m_position->y = packet->m_hitPosition.y;
 
-		createBulletHitEntity(bullet);
+		createBloodBulletHitEntity(bullet);
 
 		// Todo: Set animation blood on hit position. Draw blood on gladiator.
 
@@ -490,6 +490,7 @@ namespace arena
 
 	void SandboxScene::updateEntities(const GameTime& gameTime)
 	{
+		// TODO: Do own systems for these.
 		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
 		{
@@ -813,16 +814,33 @@ namespace arena
 
 	}
 
-	void SandboxScene::createBulletHit(BulletData& data)
+	void SandboxScene::createBulletHit(BulletHitData& data)
 	{
 		Bullet bullet;
 		*bullet.m_position = data.m_position;
-		printf("Bullet position: %f, %f\n", data.m_position.x, data.m_position.y);
 		bullet.m_type = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
-		createBulletHitEntity(bullet);
+
+		switch (data.m_type)
+		{
+			case 1:
+			{
+				createBloodBulletHitEntity(bullet);
+				break;
+			}
+			case 2:
+			{
+				createPlatformBulletHitEntity(bullet);
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+		
 	}
-	void SandboxScene::createBulletHitEntity(Bullet& bullet)
+	void SandboxScene::createBloodBulletHitEntity(Bullet& bullet)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -847,6 +865,34 @@ namespace arena
 		Movement* move = builder.addMovement();
 		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
 		
+		builder.addIdentifier(EntityIdentification::HitBlood);
+		registerEntity(builder.getResults());
+	}
+	void  SandboxScene::createPlatformBulletHitEntity(Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = *bullet.m_position + bullet.m_rotation;
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
+		Rectf rect = renderer->getSource();
+		renderer->setSize(128, 32);
+		rect.x = 0; rect.y = 0;
+		rect.w = 128; rect.h = 32;
+		renderer->anchor();
+
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.5f;
+
+		Movement* move = builder.addMovement();
+		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
+
 		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
 	}
