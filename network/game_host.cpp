@@ -236,6 +236,7 @@ namespace arena
 				hit->m_damageAmount = 5;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_targetPlayerId = 0;
+				hit->setPhysicsID(bullet.bulletId);
 				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 				if (velocity.x < 0)
 					hit->m_hitDirection = 0;

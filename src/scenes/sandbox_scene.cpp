@@ -611,7 +611,7 @@ namespace arena
 	{
 		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
 		{
-			if ((it->second.lifeTime += gameTime.m_delta) < 1.0f)
+			if ((it->second.lifeTime += gameTime.m_delta) < 10.0f)
 			{
 				Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
 				bulletTransform->m_position = *it->second.bullet->m_position;
@@ -826,6 +826,7 @@ namespace arena
 			case 1:
 			{
 				createBloodBulletHitEntity(bullet);
+				data.m_id;
 				break;
 			}
 			case 2:
@@ -837,6 +838,18 @@ namespace arena
 			{
 				break;
 			}
+		}
+		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
+		{
+			if (it->second.bullet->m_bulletId == data.m_id)
+			{ 
+				it->second.lifeTime = 20;
+				//it->second.entity->destroy();
+				//it->second.destroy();
+				//it = m_debugBullets.erase(it);
+				return;
+			}
+			it++;
 		}
 		
 	}
