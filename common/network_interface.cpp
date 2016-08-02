@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "packet.h"
 #include "write_stream.h"
+#include <stdio.h> // stderr
 
 namespace arena
 {

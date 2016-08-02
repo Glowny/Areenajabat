@@ -32,7 +32,7 @@ namespace arena
 			m_rotation = 0;
 			m_creationDelay = 0;
 		}
-		Bullet::~Bullet()
+		~Bullet()
 		{
 			delete m_position;
 		}

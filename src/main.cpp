@@ -10,7 +10,6 @@
 #endif
 
 #include <bx/bx.h>
-#include <bx/thread.h>
 #include <SDL2/SDL.h>
 
 BX_PRAGMA_DIAGNOSTIC_PUSH_CLANG()
@@ -18,6 +17,7 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG("-Wextern-c-compat")
 #include <SDL2/SDL_syswm.h>
 BX_PRAGMA_DIAGNOSTIC_POP_CLANG()
 
+#include <bx/thread.h>
 #include <bgfx/bgfxplatform.h>
 #if defined(None) // X11 defines this...
 #	undef None

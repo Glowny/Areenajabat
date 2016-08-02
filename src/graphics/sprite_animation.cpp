@@ -1,6 +1,6 @@
 #include "sprite_animation.h"
 #include "../res/texture_resource.h"
-
+#include <string.h> // memset
 namespace arena
 {
     SpriteAnimation::SpriteAnimation(const TextureResource* texture, 

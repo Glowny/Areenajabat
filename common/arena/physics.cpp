@@ -1,4 +1,4 @@
-#include "Physics.h"
+#include "physics.h"
 
 //void ArenaContactListener::BeginContact(b2Contact* contact) {
 //	b2Body* const bodyA = contact->GetFixtureA()->GetBody();

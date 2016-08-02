@@ -95,6 +95,11 @@ project ("arena")
 		"XCOPY \"" .. path.join(ARENA_THIRD_DIR, "lib", "win64_" .. _ACTION) .. "\" \"$(TargetDir)\" /D /K /Y"
 	}
 
+    configuration { "linux*" }
+        buildoptions_cpp {
+            "-std=c++11"
+        }
+
 	configuration {}
 
 project "common"
@@ -111,6 +116,14 @@ project "common"
 		ARENA_THIRD_DIR,
 		path.join(BX_DIR , "include")
 	}
+
+
+    configuration { "linux*" }
+        buildoptions_cpp {
+            "-std=c++11"
+        }
+    
+    configuration { }
 
 	
 project "server"
@@ -136,6 +149,13 @@ project "server"
 		"Box2D",
 		"minini"
 	}
+
+
+    configuration { "linux*" }
+        buildoptions_cpp {
+            "-std=c++11"
+        }
+    
 	
 	configuration {}
 
@@ -160,8 +180,14 @@ project "spriterengine"
 		"/wd4018", --warning C4018: '<': signed/unsigned mismatch
 	}
 
+    configuration { "linux*" }
+        buildoptions_cpp {
+            "-std=c++11"
+        }
+    
+	
 	configuration {}
-
+if os.is("windows") then
 project "enet"
 	kind "StaticLib"
 	language "C"
@@ -184,6 +210,7 @@ project "enet"
 		defines { "_WINSOCK_DEPRECATED_NO_WARNINGS" }
 
 	configuration {}
+end
 
 project "Box2D"
 	kind "StaticLib"

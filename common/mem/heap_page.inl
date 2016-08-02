@@ -3,7 +3,7 @@
 #include "heap_block.h"
 #include "heap_page.h"
 #include "memory.h"
-
+#include <algorithm>
 namespace arena
 {
 	HeapPage::HeapPage(const uint32 size) : m_memory(new char[size]),

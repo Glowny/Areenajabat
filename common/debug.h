@@ -6,7 +6,7 @@ namespace arena
 {
 #if _DEBUG
 #	define DEBUG_PRINT(__str__) fprintf(stderr, __str__)
-#elif
+#else
 #	define DEBUG_PRINT(__str__) 
 #endif
 

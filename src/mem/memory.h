@@ -18,7 +18,7 @@ namespace arena
 		const uint32 Mem512K = Mem256K * 2;
 		const uint32 Mem1024K = Mem512K * 2;
 
-#define DYNAMIC_NEW(ptr, type, ...)		new (ptr)type(##__VA_ARGS__)
+#define DYNAMIC_NEW(ptr, type, ...)		new (ptr)type(__VA_ARGS__)
 
 #define DYNAMIC_NEW_DEFAULT(ptr, type)	new(ptr)type()
 

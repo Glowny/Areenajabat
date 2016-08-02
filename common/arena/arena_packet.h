@@ -245,7 +245,7 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_uint64(stream, m_clientSalt);
-			serialize_bytes(stream, &uint8_t(m_platform.m_type), 1); 
+			serialize_bytes(stream, (uint8_t*)&(m_platform.m_type), 1); 
 			serialize_int(stream, m_platform.m_vertexAmount, 0, PLATFORM_VERTEX_MAXAMOUNT);
 			for (unsigned i = 0; i < m_platform.m_vertexAmount; ++i)
 			{
@@ -291,8 +291,8 @@ namespace arena
 			serialize_int(stream, m_bulletAmount, 0, BULLET_MAX_AMOUNT);
 			for (unsigned i = 0; i < m_bulletAmount; ++i)
 			{
-				serialize_bytes(stream, &(uint8_t)m_bulletSpawnArray[i].m_type, 1);
-				serialize_bytes(stream, &(uint8_t)m_bulletSpawnArray[i].m_id, 1);
+				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_type, 1);
+				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_id, 1);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.x);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.y);
 				serialize_float(stream, m_bulletSpawnArray[i].m_rotation);
