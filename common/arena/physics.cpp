@@ -32,20 +32,20 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
 	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet;
-	filter.groupIndex =0 ;
+	filter.groupIndex = 0 ;
 	b2Filters[ci_Platform] = filter;
 
 	// Light platform collide filter 
 	filter.categoryBits = c_LightPlatform;
 	filter.maskBits =  c_Gladiator;
-	filter.groupIndex =0 ;
+	filter.groupIndex = 0 ;
 	b2Filters[ci_LightPlatform] = filter;
 
 	// ladder
 	filter.categoryBits = c_Ladder;
 	filter.maskBits = c_GladiatorNoCollide |c_Gladiator;
 	filter.groupIndex = 0;
-	b2Filters[c_Ladder] = filter;
+	b2Filters[ci_Ladder] = filter;
 
 	// Gladiator collide filter 
 	filter.categoryBits = c_Gladiator;
@@ -56,7 +56,7 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 	//Gladiator no collide filter
 	filter.categoryBits = c_GladiatorNoCollide;
 	filter.maskBits =  c_Ladder | c_Platform | c_Bullet;
-	filter.groupIndex =0 ;
+	filter.groupIndex = 0 ;
 	b2Filters[ci_GladiatorNoCollide] = filter;
 
 	// Bullet filter. DONE
@@ -146,8 +146,9 @@ void Physics::update(float32 timeStep)
 
 void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 {
-	//TEMP LADDER BREAK THINGS
-	if (type == 2)
+	// If there is only single point, do not create platform
+	// This can happen if editor is retard.
+	if (platform.size() == 1)
 		return;
 	b2Vec2* points = new b2Vec2[platform.size()];
 	for (unsigned i = 0; i < platform.size(); i++)
@@ -157,11 +158,11 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	p_userData* userData = new p_userData;
 	p_Platform* temp_platform = new p_Platform;
 	temp_platform->m_type = B_Platform;
-	userData->m_bodyType = B_Platform;
 	userData->m_object = temp_platform;
 
 
 	unsigned index = uint32_t(m_platformVector.size());
+
 	m_platformVector.push_back(temp_platform);
 	m_platformVector[index]->m_shape.CreateChain(points, uint32(platform.size()));
 	m_platformVector[index]->m_bodydef.type = b2_staticBody;
@@ -170,17 +171,22 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	m_platformVector[index]->m_fixtureDef.shape = &m_platformVector[index]->m_shape;
 	m_platformVector[index]->m_fixtureDef.density = 1.0f;
 	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
+	printf("Type %d\n", type);
 	switch(type)
-	{ B_Gladiator;
+	{ 
+		
 		case 0:
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Platform];
+			userData->m_bodyType = B_Platform;
 			break;
 		case 1:
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_LightPlatform];
+			userData->m_bodyType = B_Platform;
 			break;
 		case 2:
 		{
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Ladder];
+			userData->m_bodyType = B_Ladder;
 			m_platformVector[index]->m_fixtureDef.isSensor = true;
 			break;
 		}
@@ -294,13 +300,14 @@ bool Physics::checkIfGladiatorCollidesLadder(unsigned id)
 {
 	// Is there possibility of multiple edges?
 	b2ContactEdge* edge = m_gladiatorVector[id]->m_body->GetContactList();
-	if (edge == NULL)
-		return false;
-	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
-	if (data->m_bodyType == B_Ladder)
-		return true;
-	else
-		return false;
+	while (edge != NULL)
+	{
+		p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
+		if (data->m_bodyType == B_Ladder)
+			return true;
+		edge = edge->next;
+	}
+	return false;
 }
 
 //void Physics::addCollisionCallback(CollisionCallback callback) 

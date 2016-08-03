@@ -198,6 +198,8 @@ namespace arena
             // TODO: add check for jump that platform is touched.
 			if (input.m_leftButtonDown)	x = -1;
 			else if (input.m_rightButtonDown)	x = 1;
+			if (input.m_upButtonDown) y = -1;
+			if (input.m_downButtonDown) y = 1;
 
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(player.m_gladiator->getPhysicsID())
 				&& (player.m_gladiator->m_jumpCoolDownTimer += (float)dt) > 0.25f)
@@ -219,19 +221,28 @@ namespace arena
 			else
 			{ 
 				// reserve upbutton for ladder climb
+				glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(physicsID);
+				float desiredVelocityX = 300.0f * (float)x;
+				float velocityChangeX = desiredVelocityX - currentVelocity.x;
+				// add more velocity only if climbing ladders.
+				float desiredVelocityY = 0;
+				float velocityChangeY = 0;
+
 				if (input.m_upButtonDown || input.m_downButtonDown)
 				{
 					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.0f;
+					if (m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID()))
+					{
+						desiredVelocityY = 300.0f * (float)y;
+						velocityChangeY = desiredVelocityY - currentVelocity.y;
+					}
+
 				}
 
-				glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsID);
-
-				float desiredVelocity = 300.0f * (float)x;
-				float velocityChange = desiredVelocity - currentVelocity.x;
 				glm::vec2 force;
-				force.y = (float)y;
-				force.x = 1500.0f *velocityChange * (float)dt;
+				force.y = 1500.0f * velocityChangeY * (float)dt;
+				force.x = 1500.0f * velocityChangeX * (float)dt;
 
 				m_physics.applyForceToGladiator(force, physicsID);
 					
