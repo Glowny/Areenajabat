@@ -339,6 +339,7 @@ namespace arena
 	void SpriterAnimationPlayer::setCurrentTime(double milliseconds)
 	{
 		m_entity->setCurrentTime(milliseconds);
+		m_entity->startResumePlayback();
 	}
     double SpriterAnimationPlayer::getCurrentTime() const
     {

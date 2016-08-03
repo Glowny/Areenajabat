@@ -12,8 +12,11 @@ namespace arena
 			m_rightButtonDown = input.m_rightButtonDown;
 			m_upButtonDown = input.m_upButtonDown;
 			m_downButtonDown = input.m_downButtonDown;
-			m_jumpButtonDown = input.m_jumpButtonDown;
-			// if copied without check the shoot messages may be missed.
+			// if copied without check the jump/shoot messages may be missed.
+			if (!m_jumpButtonDown)
+			{
+				m_jumpButtonDown = input.m_jumpButtonDown;
+			}
 			if(!m_shootButtonDown)
 			{ 
 				m_shootButtonDown = input.m_shootButtonDown;

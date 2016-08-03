@@ -171,7 +171,6 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	m_platformVector[index]->m_fixtureDef.shape = &m_platformVector[index]->m_shape;
 	m_platformVector[index]->m_fixtureDef.density = 1.0f;
 	m_platformVector[index]->m_fixtureDef.friction = 0.3f;
-	printf("Type %d\n", type);
 	switch(type)
 	{ 
 		

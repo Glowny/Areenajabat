@@ -176,7 +176,11 @@ namespace arena
 		}
 		else if (m_climb.m_climbing)
 		{
-			m_climb.m_animation.setTimeElapsed(inMillis);
+			m_climb.m_animation.setTimeElapsed(inMillis/2);
+			if (m_climb.m_animation.getCurrentTime() == 300.0f) // this is animation specific.
+			{ 
+				m_climb.m_animation.setCurrentTime(0.0f);
+			}
 		}
 		
 		else
@@ -190,18 +194,36 @@ namespace arena
 			m_throw.m_animation.setTimeElapsed(inMillis);
 			//move throwing arms according to leg movement
 			m_throw.m_animation.setPosition(m_position + m_throw.m_relativeOffset + offset);
+			if (m_throw.m_animation.isFinished())
+			{
+				auto& childrens = m_torso.m_sprite.m_children;
+				childrens[AnimationPosition::RightArm]->m_hide = false;
+				m_throw.m_throwing = false;
+			}
 		}
 		else if (m_axeReload.m_reload)
 		{
 			m_axeReload.m_animation.setTimeElapsed(inMillis);
 			//move reloading arms according to leg movement
 			m_axeReload.m_animation.setPosition(m_position + m_axeReload.m_relativeOffset + offset);
+			if (m_axeReload.m_animation.isFinished())
+			{
+				auto& childrens = m_torso.m_sprite.m_children;
+				childrens[AnimationPosition::RightArm]->m_hide = false;
+				m_axeReload.m_reload = false;
+			}
 		}
 		else if (m_gladiusReload.m_reload)
 		{
 			m_gladiusReload.m_animation.setTimeElapsed(inMillis);
 			//move reloading arms according to leg movement
 			m_gladiusReload.m_animation.setPosition( m_position + m_gladiusReload.m_relativeOffset + offset);
+			if (m_gladiusReload.m_animation.isFinished())
+			{
+				auto& childrens = m_torso.m_sprite.m_children;
+				childrens[AnimationPosition::RightArm]->m_hide = false;
+				m_gladiusReload.m_reload = false;
+			}
 		}
 
 
@@ -286,6 +308,8 @@ namespace arena
 
 	void CharacterAnimator::playClimbAnimation(bool direction) {
 		
+		if (m_climb.m_climbing == true)
+			return;
 		int gladiator, directionInt;
 
 		gladiator = m_skin;
@@ -295,6 +319,11 @@ namespace arena
 		m_climb.m_animation.setCurrentAnimation(ClimbingEnumToFileName[animation]);
 		m_climb.m_animation.setCurrentTime(0);
 		m_climb.m_climbing = true;
+	}
+
+	void CharacterAnimator::endClimbAnimation()
+	{
+		m_climb.m_climbing = false;
 	}
 
 	void CharacterAnimator::playReloadAnimation(int weapon) {
@@ -320,6 +349,10 @@ namespace arena
 			m_gladiusReload.m_reload = false;
 			m_axeReload.m_animation.setCurrentTime(0);
 		}
+		// TODO: The secret for hiding the other hand lies around here.
+		auto& childrens = m_torso.m_sprite.m_children;
+		childrens[AnimationPosition::RightArm]->m_hide = true;
+		
 		
 	}
 
@@ -335,6 +368,11 @@ namespace arena
 		m_throw.m_animation.setCurrentAnimation(ThrowingEnumToFileName[animation]);
 		m_throw.m_throwing = true;
 		m_throw.m_animation.setCurrentTime(0);
+		
+		// TODO: fix other hand.
+		auto& childrens = m_torso.m_sprite.m_children;
+		childrens[AnimationPosition::RightArm]->m_hide = true;
+	
 		printf("animation enum: %d, string : %s\n",animation, ThrowingEnumToFileName[animation].c_str());
 	}
 
@@ -394,10 +432,10 @@ namespace arena
             {
                 m_throw.m_animation.render();
             }
-            else
-            {    // torso will render head and hands
-                m_torso.m_sprite.render(effects);
-            }
+           
+			
+			m_torso.m_sprite.render(effects);
+
 
 			// render legs
 			m_legs.m_animation.render();

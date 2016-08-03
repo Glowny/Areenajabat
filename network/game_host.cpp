@@ -188,7 +188,10 @@ namespace arena
 				input.m_shootButtonDown = false;
 			}
 			if (input.m_reloadButtonDown)
+			{ 
 				player.m_gladiator->m_weapon->startReload();
+				player.m_gladiator->m_reloading = true;
+			}
 			
 			// Do not add forces if there are none.
             if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown || input.m_jumpButtonDown)) continue;
@@ -228,14 +231,16 @@ namespace arena
 				float desiredVelocityY = 0;
 				float velocityChangeY = 0;
 
+				player.m_gladiator->m_climbing = false;
 				if (input.m_upButtonDown || input.m_downButtonDown)
 				{
 					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
-					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.0f;
+					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.25f;
 					if (m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID()))
 					{
 						desiredVelocityY = 300.0f * (float)y;
 						velocityChangeY = desiredVelocityY - currentVelocity.y;
+						player.m_gladiator->m_climbing = true;
 					}
 
 				}
@@ -574,7 +579,7 @@ namespace arena
 							NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
 							entity->setPhysicsID(player.m_gladiator->getPhysicsID());
 							m_synchronizationList.push_back(entity);
-							// No delete because this needs to be removed.
+							// No delete because this needs to be remade.
 						}
 					}
 					 // update position because of gravity - dont update too much

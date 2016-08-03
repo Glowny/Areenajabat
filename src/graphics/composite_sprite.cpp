@@ -6,24 +6,29 @@
 
 namespace arena
 {
-    CompositeSprite::CompositeSprite(TextureResource* texture)
-        : m_texture(texture),
-        m_position(0, 0),
-        m_origin(0, 0),
-        m_scale(1,1),
-        m_rotation(0.f),
-        m_depth(0.f)
+	CompositeSprite::CompositeSprite(TextureResource* texture)
+		: m_texture(texture),
+		m_position(0, 0),
+		m_origin(0, 0),
+		m_scale(1, 1),
+		m_rotation(0.f),
+		m_depth(0.f),
+		m_hide(false)
     {
 
     }
 
     void CompositeSprite::render(uint8_t effect)
     {
-        render(glm::mat4(1.f), effect);
+		if (m_hide)
+			return;
+		render(glm::mat4(1.f), effect);
     }
 
     void CompositeSprite::render(const glm::mat4& parentmtx, uint8_t effect)
     {
+		if (m_hide)
+			return;
         glm::mat4 globalmtx = parentmtx
             * glm::translate(glm::mat4(1.f), glm::vec3(m_position.x, m_position.y, 0.f))
             * glm::rotate(glm::mat4(1.f), m_rotation, glm::vec3(0.f, 0.f, 1.f))

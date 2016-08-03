@@ -22,7 +22,7 @@ namespace arena
         glm::vec2 m_scale;
         float m_rotation;
         float m_depth;
-
+		bool m_hide;
         // after transfroms, HAX
         glm::vec2 m_globalPosition;
 

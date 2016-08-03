@@ -18,6 +18,10 @@ namespace arena
 			m_currentRespawnTime = 0.0f;
 			m_jumpCoolDownTimer = 0;
 			m_ignoreLightPlatformsTimer = 0;
+			m_climbing = false;
+			m_throwing = false;
+			m_reloading = false;
+
 		}
 		~Gladiator()
 		{
@@ -51,6 +55,9 @@ namespace arena
 		bool		m_alive;
 		float		m_jumpCoolDownTimer;
 		float		m_ignoreLightPlatformsTimer;
+		bool		m_climbing;
+		bool		m_throwing;
+		bool		m_reloading;
 	private:
 		float64		m_respawnTime;
 		float64		m_currentRespawnTime;

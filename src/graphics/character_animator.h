@@ -180,6 +180,8 @@ namespace arena
 		void playDeathAnimation(bool hitDirection, float hitPositionY);
 
 		void playClimbAnimation(bool direction);
+		void endClimbAnimation();
+
 
 		void playReloadAnimation(int weapon);
 

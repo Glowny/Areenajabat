@@ -154,7 +154,7 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-		{ arena::Key::KeyS, arena::Modifier::None, 0, diefool, "die" },
+		{ arena::Key::KeyH, arena::Modifier::None, 0, diefool, "die" },
 		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "respawn" },
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
@@ -426,11 +426,28 @@ namespace arena
 		for (int32_t i = 0; i < packet->m_playerAmount; i++)
 		{
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
-			*m_clientIdToGladiatorData[playerId]->m_gladiator->m_position = packet->m_characterArray[i].m_position;
-			m_clientIdToGladiatorData[playerId]->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y-64.0f);
-			*m_clientIdToGladiatorData[playerId]->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			m_clientIdToGladiatorData[playerId]->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
+			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
+			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
+			gladiatorData->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y-64.0f);
+			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
+			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 			//printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
+			if (packet->m_characterArray[i].m_reloading)
+			{
+				gladiatorData->m_animator->m_animator.playReloadAnimation(0);
+			}
+			if (packet->m_characterArray[i].m_throwing)
+			{
+				gladiatorData->m_animator->m_animator.playThrowAnimation(0,0);
+			}
+			if (packet->m_characterArray[i].m_climbing)
+			{
+				gladiatorData->m_animator->m_animator.playClimbAnimation(0);
+			}
+			else
+			{
+				gladiatorData->m_animator->m_animator.endClimbAnimation();
+			}
 		}
 		
 	}
