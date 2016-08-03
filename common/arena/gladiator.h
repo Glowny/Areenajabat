@@ -17,6 +17,7 @@ namespace arena
 			m_respawnTime = 5.0f;
 			m_currentRespawnTime = 0.0f;
 			m_jumpCoolDownTimer = 0;
+			m_ignoreLightPlatformsTimer = 0;
 		}
 		~Gladiator()
 		{
@@ -49,6 +50,7 @@ namespace arena
 
 		bool		m_alive;
 		float		m_jumpCoolDownTimer;
+		float		m_ignoreLightPlatformsTimer;
 	private:
 		float64		m_respawnTime;
 		float64		m_currentRespawnTime;

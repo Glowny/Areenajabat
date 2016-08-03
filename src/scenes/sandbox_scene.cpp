@@ -159,6 +159,7 @@ namespace arena
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
+		{ arena::Key::KeyS, arena::Modifier::None, 0, inputMoveDown, "movedown" },
 		{ arena::Key::Key1, arena::Modifier::None, 0, inputShoot, "shoot" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
@@ -184,6 +185,11 @@ namespace arena
 	{
         sandbox->m_controller.m_input.m_upButtonDown = true;
 	}
+	static void inputMoveDown(const void*)
+	{
+		sandbox->m_controller.m_input.m_downButtonDown = true;
+	}
+
 	static void inputShoot(const void*)
 	{
         sandbox->m_controller.m_input.m_shootButtonDown = true;

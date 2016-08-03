@@ -168,6 +168,12 @@ namespace arena
 			if (player.m_gladiator->m_alive == false)
 				continue;
 
+			// Reset lightplatforms to solid if enought time has passed
+			if ((player.m_gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 1.0f)
+			{
+				m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), true);
+			}
+
 			unsigned physicsID				= player.m_gladiator->getPhysicsID();
             PlayerInput& input				= player.m_playerController->m_input;
 
@@ -185,7 +191,7 @@ namespace arena
 				player.m_gladiator->m_weapon->startReload();
 			
 			// Do not add forces if there are none.
-            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_jumpButtonDown)) continue;
+            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown || input.m_jumpButtonDown)) continue;
                       
             int32 x = 0;
 			int32 y = 0;
@@ -194,7 +200,7 @@ namespace arena
 			else if (input.m_rightButtonDown)	x = 1;
 
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(player.m_gladiator->getPhysicsID())
-				&& (player.m_gladiator->m_jumpCoolDownTimer += dt) > 0.25f)
+				&& (player.m_gladiator->m_jumpCoolDownTimer += (float)dt) > 0.25f)
 			{
 				player.m_gladiator->m_jumpCoolDownTimer = 0;
 				glm::vec2 force;
@@ -213,15 +219,19 @@ namespace arena
 			else
 			{ 
 				// reserve upbutton for ladder climb
-				// if (input.m_upButtonDown) y = 10;
+				if (input.m_upButtonDown || input.m_downButtonDown)
+				{
+					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
+					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.0f;
+				}
 
 				glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsID);
 
-				float desiredVelocity = 300 * x;
+				float desiredVelocity = 300.0f * (float)x;
 				float velocityChange = desiredVelocity - currentVelocity.x;
 				glm::vec2 force;
-				force.y = y;
-				force.x = 1500 *velocityChange * dt;
+				force.y = (float)y;
+				force.x = 1500.0f *velocityChange * (float)dt;
 
 				m_physics.applyForceToGladiator(force, physicsID);
 					

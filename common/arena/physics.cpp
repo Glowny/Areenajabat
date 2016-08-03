@@ -43,19 +43,19 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 
 	// ladder
 	filter.categoryBits = c_Ladder;
-	filter.maskBits = c_Platform;
+	filter.maskBits = c_GladiatorNoCollide |c_Gladiator;
 	filter.groupIndex = 0;
 	b2Filters[c_Ladder] = filter;
 
 	// Gladiator collide filter 
 	filter.categoryBits = c_Gladiator;
-	filter.maskBits = c_Platform | c_LightPlatform | c_Bullet;
+	filter.maskBits = c_Ladder | c_Platform | c_LightPlatform | c_Bullet;
 	filter.groupIndex = 0;
 	b2Filters[ci_Gladiator] = filter;
 
 	//Gladiator no collide filter
 	filter.categoryBits = c_GladiatorNoCollide;
-	filter.maskBits =   c_Platform | c_Bullet;
+	filter.maskBits =  c_Ladder | c_Platform | c_Bullet;
 	filter.groupIndex =0 ;
 	b2Filters[ci_GladiatorNoCollide] = filter;
 
@@ -179,8 +179,11 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_LightPlatform];
 			break;
 		case 2:
+		{
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Ladder];
+			m_platformVector[index]->m_fixtureDef.isSensor = true;
 			break;
+		}
 	}	
 	
 
@@ -276,12 +279,28 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 
 bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 {
+	// Is there possibility of multiple edges?
 	b2ContactEdge* edge =  m_gladiatorVector[id]->m_body->GetContactList();
 	if (edge == NULL)
 		return false;
 	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
 	if (data->m_bodyType == B_Platform)
-	return true;
+		return true;
+	else
+		return false;
+}
+
+bool Physics::checkIfGladiatorCollidesLadder(unsigned id)
+{
+	// Is there possibility of multiple edges?
+	b2ContactEdge* edge = m_gladiatorVector[id]->m_body->GetContactList();
+	if (edge == NULL)
+		return false;
+	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
+	if (data->m_bodyType == B_Ladder)
+		return true;
+	else
+		return false;
 }
 
 //void Physics::addCollisionCallback(CollisionCallback callback) 

@@ -207,7 +207,7 @@ namespace arena
 				{
 					GameBulletHitPacket* packet = (GameBulletHitPacket*)createPacket(PacketTypes::GameBulletHit);
 					packet->bulletHitArray[0].m_id = hit->getPhysicsID();
-					packet->bulletHitArray[0].m_creationDelay = 0.2;
+					packet->bulletHitArray[0].m_creationDelay = 0.2f;
 					packet->bulletHitArray[0].m_position = hit->m_hitPosition;
 					packet->bulletHitArray[0].m_type = hit->m_hitType;
 					packet->m_bulletAmount = 1;

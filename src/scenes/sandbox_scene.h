@@ -128,6 +128,7 @@ namespace arena
 	static void inputMoveLeft(const void*);
 	static void inputMoveRight(const void*);
 	static void inputMoveUp(const void*);
+	static void inputMoveDown(const void*);
 	static void inputShoot(const void*);
 	static void inputReload(const void*);
 	static void inputJump(const void*);
