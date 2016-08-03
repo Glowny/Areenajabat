@@ -78,7 +78,7 @@ namespace arena
 		std::vector<Bullet*> shoot(float aimAngle, glm::vec2 position)
 		{
 			std::vector<Bullet*> bullets = createBullets(aimAngle, position);
-			m_currentBulletAmount -= bullets.size();
+			m_currentBulletAmount -= (unsigned)bullets.size();
 			return bullets;
 		}
 
@@ -100,7 +100,7 @@ namespace arena
 		}
 
 
-		inline int checkIfCanShoot(float deltaTime)
+		inline bool checkIfCanShoot(float deltaTime)
 		{
 			if (m_reloading)
 			{
@@ -108,10 +108,10 @@ namespace arena
 				{
 					m_reloading = false;
 					finishReload();
-					return 1;
+					return true;
 				}
 				else
-					return 0;
+					return false;
 			}
 			if (m_currentBulletAmount == 0)
 			{

@@ -16,6 +16,7 @@ namespace arena
 			m_velocity = new glm::vec2(0, 0);
 			m_respawnTime = 5.0f;
 			m_currentRespawnTime = 0.0f;
+			m_jumpCoolDownTimer = 0;
 		}
 		~Gladiator()
 		{
@@ -47,6 +48,7 @@ namespace arena
 		Weapon*		m_weapon;
 
 		bool		m_alive;
+		float		m_jumpCoolDownTimer;
 	private:
 		float64		m_respawnTime;
 		float64		m_currentRespawnTime;

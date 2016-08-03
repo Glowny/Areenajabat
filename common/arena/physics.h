@@ -223,7 +223,7 @@ public:
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
-	bool CheckIfGladiatorCollidesPlatform(unsigned id);
+	bool checkIfGladiatorCollidesPlatform(unsigned id);
 	//void addCollisionCallback(CollisionCallback callback);
 	//void removeCollisionCallback(CollisionCallback callback);
 
@@ -240,7 +240,7 @@ public:
 private:
 	
 	//ArenaContactListener m_listener;
-
+	
 	std::vector<CollisionCallback> m_callbacks;
 	int16 gladiatorIdToGroupId(uint32_t playerId);
 	bool isIdFree[256];

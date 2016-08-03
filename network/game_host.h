@@ -317,5 +317,7 @@ namespace arena
 
 		bool				m_disposed;
 		bool				m_endCalled;
+
+
 	};
 }

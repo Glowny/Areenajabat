@@ -13,6 +13,7 @@ namespace arena
 											   m_endCalled(false)
 	{
 		m_physics = physics();
+		
 	}
 
 	void GameHost::startSession() 
@@ -192,18 +193,20 @@ namespace arena
 			if (input.m_leftButtonDown)	x = -1;
 			else if (input.m_rightButtonDown)	x = 1;
 
-			if (input.m_jumpButtonDown)
+			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(player.m_gladiator->getPhysicsID())
+				&& (player.m_gladiator->m_jumpCoolDownTimer += dt) > 0.25f)
 			{
+				player.m_gladiator->m_jumpCoolDownTimer = 0;
 				glm::vec2 force;
 				if (x == 0)
 				{
-					force.y = -150.0f;
+					force.y = -400.0f;
 					force.x = 0;
 				}
 				else
 				{
-					force.y = -75.0f;
-					force.x = x *75.0f;
+					force.y = -300.0f;
+					force.x = x * 150.0f;
 				}
 				m_physics.applyImpulseToGladiator(force, physicsID);
 			}
@@ -212,21 +215,18 @@ namespace arena
 				// reserve upbutton for ladder climb
 				// if (input.m_upButtonDown) y = 10;
 
-				glm::ivec2 moveDirection(x, y);
-      
 				glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsID);
 
-				if (int32(currentVelocity.x) < 200 && int32(currentVelocity.x) > -200)
-				{
-					glm::vec2 force;
+				float desiredVelocity = 300 * x;
+				float velocityChange = desiredVelocity - currentVelocity.x;
+				glm::vec2 force;
+				force.y = y;
+				force.x = 1500 *velocityChange * dt;
 
-					force.y = moveDirection.y * -30000.0f * (float32)dt;
-					force.x = moveDirection.x * 150000.0f * (float32)dt;
-
-					m_physics.applyForceToGladiator(force, physicsID);
+				m_physics.applyForceToGladiator(force, physicsID);
 					
 				}
-			}
+			
 			
 			// Set the inputs to zero as they are handled.
             memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));

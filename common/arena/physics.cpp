@@ -274,9 +274,13 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 	return position;
 }
 
-bool Physics::CheckIfGladiatorCollidesPlatform(unsigned id)
+bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 {
-	m_gladiatorVector[id]->m_body->GetPosition();
+	b2ContactEdge* edge =  m_gladiatorVector[id]->m_body->GetContactList();
+	if (edge == NULL)
+		return false;
+	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
+	if (data->m_bodyType == B_Platform)
 	return true;
 }
 
