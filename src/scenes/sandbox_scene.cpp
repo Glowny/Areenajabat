@@ -127,11 +127,6 @@ namespace arena
 		anime->m_animator.resetAnimation();
 	}
 
-	static void reload(const void*)
-	{
-		anime->m_animator.playReloadAnimation(0);
-	}
-
 	static void throwAGrenade(const void*)
 	{
 		anime->m_animator.playThrowAnimation(0, 0);
@@ -167,9 +162,11 @@ namespace arena
 		{ arena::Key::Key1, arena::Modifier::None, 0, inputShoot, "shoot" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
-		{ arena::Key::KeyR, arena::Modifier::None, 0, reload, "reload"},
+		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
 		{ arena::Key::KeyT, arena::Modifier::None, 0, throwAGrenade, "apple" },
 		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
+		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
+
         INPUT_BINDING_END
     };
 
@@ -190,6 +187,15 @@ namespace arena
 	static void inputShoot(const void*)
 	{
         sandbox->m_controller.m_input.m_shootButtonDown = true;
+	}
+	static void inputReload(const void*)
+	{
+		sandbox->m_controller.m_input.m_reloadButtonDown = true;
+		anime->m_animator.playReloadAnimation(0);
+	}
+	static void inputJump(const void*)
+	{
+		sandbox->m_controller.m_input.m_jumpButtonDown = true;
 	}
 
 	SandboxScene::SandboxScene() : Scene("sandbox")
@@ -916,7 +922,11 @@ namespace arena
 		if(m_clientIdToGladiatorData.at(m_playerId) != nullptr)
 		{ 
 			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-			camera.m_position = playerTransform->m_position;
+			const MouseState& mouse = Mouse::getState();
+			glm::vec2 screenSize = glm::vec2(1000, 700);
+			glm::vec2 cameraPositionOnGladiator = glm::vec2(playerTransform->m_position.x - screenSize.x / 1, playerTransform->m_position.y - screenSize.y / 2);
+			glm::vec2 cameraPositionOnMouse = glm::vec2(cameraPositionOnGladiator.x + mouse.m_mx * 2.0f, cameraPositionOnGladiator.y + mouse.m_my * 1.0f);
+			camera.m_position = cameraPositionOnMouse;
 			camera.calculate();
 			// set views
 			float ortho[16];

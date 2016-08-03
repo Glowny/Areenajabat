@@ -174,40 +174,59 @@ namespace arena
             
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
-			bool check = player.m_gladiator->m_weapon->checkCoolDown((float)dt);
+			bool check = player.m_gladiator->m_weapon->checkIfCanShoot((float)dt);
 			if (input.m_shootButtonDown && check)
 			{
 				GladiatorShoot(player.m_gladiator);
 				input.m_shootButtonDown = false;
 			}
-
+			if (input.m_reloadButtonDown)
+				player.m_gladiator->m_weapon->startReload();
 			
 			// Do not add forces if there are none.
-            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown)) continue;
+            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_jumpButtonDown)) continue;
                       
             int32 x = 0;
 			int32 y = 0;
-            
-			if		(input.m_leftButtonDown)	x = -1;
-            else if (input.m_rightButtonDown)	x = 1;
+            // TODO: add check for jump that platform is touched.
+			if (input.m_leftButtonDown)	x = -1;
+			else if (input.m_rightButtonDown)	x = 1;
 
-            if (input.m_upButtonDown) y = 10;
-
-            glm::ivec2 moveDirection(x, y);
-      
-			glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsID);
-
-			if (int32(currentVelocity.x) < 200 && int32(currentVelocity.x) > -200)
+			if (input.m_jumpButtonDown)
 			{
 				glm::vec2 force;
-
-				force.y = moveDirection.y * -30000.0f * (float32)dt;
-				force.x = moveDirection.x * 150000.0f * (float32)dt;
-
-				m_physics.applyForceToGladiator(force, physicsID);
-				
+				if (x == 0)
+				{
+					force.y = -150.0f;
+					force.x = 0;
+				}
+				else
+				{
+					force.y = -75.0f;
+					force.x = x *75.0f;
+				}
+				m_physics.applyImpulseToGladiator(force, physicsID);
 			}
+			else
+			{ 
+				// reserve upbutton for ladder climb
+				// if (input.m_upButtonDown) y = 10;
 
+				glm::ivec2 moveDirection(x, y);
+      
+				glm::vec2 currentVelocity	= m_physics.getGladiatorVelocity(physicsID);
+
+				if (int32(currentVelocity.x) < 200 && int32(currentVelocity.x) > -200)
+				{
+					glm::vec2 force;
+
+					force.y = moveDirection.y * -30000.0f * (float32)dt;
+					force.x = moveDirection.x * 150000.0f * (float32)dt;
+
+					m_physics.applyForceToGladiator(force, physicsID);
+					
+				}
+			}
 			
 			// Set the inputs to zero as they are handled.
             memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
@@ -366,7 +385,7 @@ namespace arena
 		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
 		// Bullets should be deleted after synchronization, should slave delete them?
 		// No, host owns them. Host should delete them.
-		std::vector<Bullet*> bullets = gladiator->createBullets();
+		std::vector<Bullet*> bullets = gladiator->shoot();
 		
 		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
@@ -543,7 +562,7 @@ namespace arena
 
 				for (unsigned i = 0; i < m_debugBullets.size(); ++i)
 				{
-					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 0.9f)
+					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 20.0f)
 					{ 
 						
 						m_synchronizationList.push_back(m_debugBullets[i].m_bullet);

@@ -66,13 +66,22 @@ namespace arena
 	{
 	public:
 		WeaponType m_type;
-		float coolDownTimer;
-		float coolDown;
 		Weapon() : NetworkEntity(NetworkEntityType::Weapon)
 		{
-			coolDownTimer = 0;
+			m_coolDownTimer = 0;
+			m_reloadBulletAmount = 0;
+			m_currentBulletAmount = m_reloadBulletAmount;
+			m_reloadTimer = 0;
+			m_reloading = false;
 		}
 		
+		std::vector<Bullet*> shoot(float aimAngle, glm::vec2 position)
+		{
+			std::vector<Bullet*> bullets = createBullets(aimAngle, position);
+			m_currentBulletAmount -= bullets.size();
+			return bullets;
+		}
+
 		virtual std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position) 
 		{ 
 			aimAngle; 
@@ -80,29 +89,86 @@ namespace arena
 			std::vector<Bullet*> temp; 
 			return temp; 
 		}
+
+		inline void finishReload()
+		{
+			m_currentBulletAmount = m_reloadBulletAmount;
+		}
+		inline void startReload()
+		{
+			m_reloading = true;
+		}
+
+
+		inline int checkIfCanShoot(float deltaTime)
+		{
+			if (m_reloading)
+			{
+				if (checkReload(deltaTime))
+				{
+					m_reloading = false;
+					finishReload();
+					return 1;
+				}
+				else
+					return 0;
+			}
+			if (m_currentBulletAmount == 0)
+			{
+				//m_reloading = true;
+				return false;
+			}
+			if (checkCoolDown(deltaTime))
+				return true;
+			else
+				return false;
+		}
+
 		inline bool checkCoolDown(float deltaTime)
 		{
-			if ((coolDownTimer += deltaTime) > coolDown)
+			if ((m_coolDownTimer += deltaTime) > m_coolDown)
 			{ 
-				coolDownTimer = 0;
+				m_coolDownTimer = 0;
 				return true;
 			}
 			return false;
 		}
+
+		inline bool checkReload(float deltaTime)
+		{
+			if ((m_reloadTimer += deltaTime) > m_reloadTime)
+			{
+				m_reloadTimer = 0;
+				return true;
+			}
+			return false;
+		};
+
 	protected:
 		glm::vec2 radToVec(float r)
 		{
 			return glm::vec2(cos(r), sin(r));
 		}
+		float m_coolDown;
+		float m_reloadTime;
+		bool m_reloading;
+		unsigned m_reloadBulletAmount;
+
+	private:
+		float m_coolDownTimer;
+		float m_reloadTimer;
+		unsigned m_currentBulletAmount;
 	};
+	
 
 	struct WeaponGladius : public Weapon
 	{
 		WeaponGladius() : Weapon() 
 		{ 
 			m_type = Gladius; 
-			coolDown = 0.05f;
-			coolDownTimer = 0;
+			m_coolDown = 0.07f;
+			m_reloadTime = 1.25f;
+			m_reloadBulletAmount = 30;
 		}
 
 		std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position)
@@ -129,8 +195,7 @@ namespace arena
 		WeaponShotgun() : Weapon() 
 		{
 			m_type = Shotgun; 
-			coolDown = 0.4f;
-			coolDownTimer = 0;
+			m_coolDown = 0.4f;
 		}
 
 		std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position)

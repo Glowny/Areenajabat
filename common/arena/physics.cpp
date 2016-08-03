@@ -274,6 +274,12 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 	return position;
 }
 
+bool Physics::CheckIfGladiatorCollidesPlatform(unsigned id)
+{
+	m_gladiatorVector[id]->m_body->GetPosition();
+	return true;
+}
+
 //void Physics::addCollisionCallback(CollisionCallback callback) 
 //{
 //	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); it++) 

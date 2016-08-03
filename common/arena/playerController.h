@@ -19,6 +19,7 @@ namespace arena
 				m_shootButtonDown = input.m_shootButtonDown;
 			}
 			m_grenadeButtonDown = input.m_grenadeButtonDown;
+			m_reloadButtonDown = input.m_reloadButtonDown;
 			m_changeWeaponButtonDown = input.m_changeWeaponButtonDown;
 			return *this;
 		}
@@ -31,7 +32,8 @@ namespace arena
             m_jumpButtonDown(false),
             m_shootButtonDown(false),
             m_grenadeButtonDown(false),
-            m_changeWeaponButtonDown(false)
+            m_changeWeaponButtonDown(false),
+			m_reloadButtonDown(false)
         {
 
         }
@@ -44,6 +46,7 @@ namespace arena
         bool m_shootButtonDown;
         bool m_grenadeButtonDown;
         bool m_changeWeaponButtonDown;
+		bool m_reloadButtonDown;
     };
 
 	struct PlayerController

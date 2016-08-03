@@ -556,6 +556,7 @@ namespace arena
             serialize_bool(stream, m_input.m_shootButtonDown);
             serialize_bool(stream, m_input.m_grenadeButtonDown);
             serialize_bool(stream, m_input.m_changeWeaponButtonDown);
+			serialize_bool(stream, m_input.m_reloadButtonDown);
 			
 			return true;
 		}

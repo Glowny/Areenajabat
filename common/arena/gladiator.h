@@ -32,9 +32,9 @@ namespace arena
 			}
 			return false;
 		}
-		std::vector<Bullet*> createBullets()
+		std::vector<Bullet*> shoot()
 		{
-			return m_weapon->createBullets(m_aimAngle, *m_position);
+			return m_weapon->shoot(m_aimAngle, *m_position);
 		}
 
 		glm::vec2*	m_position;
