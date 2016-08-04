@@ -34,17 +34,33 @@
 
 #include <time.h>
 #include <stdlib.h>
-
+#include <iostream>
+#include <fstream>
 #ifdef _DEBUG
-#	include <iostream>
+
 #   include "../rtti/rtti_define.h"
 #endif
+
 
 namespace arena
 {
 	glm::vec2 radToVec(float r)
 	{
 		return glm::vec2(cos(r), sin(r));
+	}
+
+
+	void loadServerInfoFromFile(std::string& ip, uint16_t& port)
+	{
+		std::ifstream file("assets/ServerInfo.txt");
+		if (file.is_open())
+		{
+			getline(file, ip);
+			std::string tempString;
+			getline(file, tempString);
+			port = std::stoul(tempString, nullptr, 0);
+			
+		}
 	}
 
 	void GladiatorDrawData::destroy()
@@ -146,7 +162,10 @@ namespace arena
     {
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
-        s_client->connect("localhost", uint16_t(8088), s_stamp);
+		std::string ip = "localhost";
+		uint16_t port = 8888;
+		loadServerInfoFromFile(ip, port);
+        s_client->connect(ip.c_str(), port, s_stamp);
         s_client->queryLobbies(s_stamp);
     }
 
