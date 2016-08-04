@@ -49,7 +49,6 @@ namespace arena
 		void resetBetween()
 		{
 			m_between = 0;
-            return 0;
 		}
 		~Timer() = default;
 		Timer() { m_lifeTime = 1; m_currentTime = 0; m_between = 0; }
