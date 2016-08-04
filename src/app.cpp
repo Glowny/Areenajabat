@@ -170,16 +170,6 @@ namespace arena
 
         s_last_time = bx::getHPCounter();
 
-        char workingdir[512];
-
-
-#if _WIN32 || _WIN64
-        // TODODODODODO change dir to folder root
-        bx::chdir("..\\..\\..\\");
-        bx::pwd(workingdir, 512);
-        printf("CWD: %s\n", workingdir);
-#endif
-
         bgfx::reset(width, height, s_reset);
         bgfx::setDebug(BGFX_DEBUG_TEXT);
 

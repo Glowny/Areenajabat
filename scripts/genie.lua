@@ -24,9 +24,9 @@ function copyLib() end
 function strip() end
 
 configuration { "vs*" }
-	includedirs { 
+	includedirs {
 		path.join(BX_DIR, "include/compat/msvc")
-	} 
+	}
 	links { "psapi"}
 
 	buildoptions {
@@ -52,7 +52,7 @@ dofile("toolchain.lua")
 dofile(BGFX_DIR .. "scripts/bgfx.lua")
 toolchain(ARENA_BUILD_DIR, ARENA_THIRD_DIR)
 --os.is("windows") and { "BGFX_CONFIG_RENDERER_DIRECT3D9=1" } or {
-	
+
 project ("arena")
 	kind ("ConsoleApp")
 
@@ -80,10 +80,15 @@ project ("arena")
 	}
 
 	configuration { "vs*"}
-		links { 
+		links {
 			"ws2_32", --winsock
 			"winmm",
 		}
+
+	configuration { "vs*" }
+	postbuildcommands {
+		"XCOPY \"" .. path.join(ARENA_DIR, "assets") .. "\" \"$(TargetDir)assets\\\" /D /K /Y /E"
+	}
 
 	configuration { "vs*" and "x32"}
 	postbuildcommands {
@@ -122,26 +127,26 @@ project "common"
         buildoptions_cpp {
             "-std=c++11"
         }
-    
+
     configuration { }
 
-	
+
 project "server"
 	kind "ConsoleApp"
-	
-	includedirs { 
+
+	includedirs {
 		ARENA_THIRD_DIR,
 		path.join(BX_DIR, "include/"),
 		path.join(ARENA_DIR)
 	}
-	
+
 	files {
 		path.join(ARENA_DIR, "network", "**.cpp"),
 		path.join(ARENA_DIR, "network", "**.h"),
 		path.join(ARENA_DIR, "network", "**.inl")
 	}
-	
-	links { 
+
+	links {
 		"common",
 		"enet",
 		"ws2_32",
@@ -155,8 +160,8 @@ project "server"
         buildoptions_cpp {
             "-std=c++11"
         }
-    
-	
+
+
 	configuration {}
 
 group("libs")
@@ -184,15 +189,15 @@ project "spriterengine"
         buildoptions_cpp {
             "-std=c++11"
         }
-    
-	
+
+
 	configuration {}
 if os.is("windows") then
 project "enet"
 	kind "StaticLib"
 	language "C"
 
-	files { 
+	files {
 		path.join(ARENA_THIRD_DIR, "enet", "*.c")
 	}
 
@@ -214,14 +219,14 @@ end
 
 project "Box2D"
 	kind "StaticLib"
-	files { 
+	files {
 		path.join(ARENA_THIRD_DIR, "Box2D", "**.h"),
 		path.join(ARENA_THIRD_DIR, "Box2D", "**.cpp")
 	}
 	vpaths { [""] = "Box2D" }
-	includedirs { 
-		path.join(ARENA_THIRD_DIR) 
-	}	
+	includedirs {
+		path.join(ARENA_THIRD_DIR)
+	}
 
 project "minini"
 	kind "StaticLib"
