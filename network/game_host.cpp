@@ -239,13 +239,13 @@ namespace arena
 						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
 						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 					}
-					
-					if (m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID()))
+					int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID());
+					if (ladderCollide != 0)
 					{
 						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
 						desiredVelocityY = 300.0f * (float)y;
 						velocityChangeY = desiredVelocityY - currentVelocity.y;
-						player.m_gladiator->m_climbing = true;
+						player.m_gladiator->m_climbing = ladderCollide;
 						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 					}
 					

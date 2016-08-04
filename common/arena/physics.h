@@ -41,7 +41,8 @@ enum bodyType
 	B_Platform,
 	B_Gladiator,
 	B_Bullet,
-	B_Ladder,
+	B_LadderLeft,
+	B_LadderRight,
 	B_NONE
 };
 
@@ -226,7 +227,7 @@ public:
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
 	bool checkIfGladiatorCollidesPlatform(unsigned id);
-	bool checkIfGladiatorCollidesLadder(unsigned id);
+	int checkIfGladiatorCollidesLadder(unsigned id);
 	//void addCollisionCallback(CollisionCallback callback);
 	//void removeCollisionCallback(CollisionCallback callback);
 

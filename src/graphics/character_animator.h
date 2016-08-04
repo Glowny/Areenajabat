@@ -45,10 +45,10 @@ namespace arena
 
 	enum ClimbingAnimations
 	{
-		ClimbingLeft1,
 		ClimbingRight1,
-		ClimbingLeft2,
-		ClimbingRight2
+		ClimbingLeft1,
+		ClimbingRight2,
+		ClimbingLeft2
 	};
 
 	enum ReloadingAnimations
@@ -115,12 +115,14 @@ namespace arena
 	{
 		Climb() : m_animation(nullptr)
 		{
-			m_climbing = false;
-			m_relativeOffset = glm::vec2(0, 0);
+			m_climbing = 0;
+			m_relativeOffsetLeft = glm::vec2(0, 0);
+			m_relativeOffsetRight = glm::vec2(0, 0);
 		}
 		SpriterAnimationPlayer m_animation;
-		glm::vec2 m_relativeOffset;
-		bool m_climbing;
+		glm::vec2 m_relativeOffsetLeft;
+		glm::vec2 m_relativeOffsetRight;
+		int m_climbing;
 	};
 
 	struct Reload
@@ -181,7 +183,7 @@ namespace arena
 
 		void playDeathAnimation(bool hitDirection, float hitPositionY);
 
-		void playClimbAnimation(bool direction);
+		void playClimbAnimation(int direction);
 		void endClimbAnimation();
 
 		void stopRunningAnimation();
