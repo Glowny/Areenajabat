@@ -187,8 +187,17 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 			break;
 		case 2:
 		{
+			// Ladder left.
 			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Ladder];
-			userData->m_bodyType = B_Ladder;
+			userData->m_bodyType = B_LadderLeft;
+			m_platformVector[index]->m_fixtureDef.isSensor = true;
+			break;
+		}
+		case 3:
+		{
+			// Ladder right.
+			m_platformVector[index]->m_fixtureDef.filter = b2Filters[ci_Ladder];
+			userData->m_bodyType = B_LadderRight;
 			m_platformVector[index]->m_fixtureDef.isSensor = true;
 			break;
 		}
@@ -299,15 +308,18 @@ bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 		return false;
 }
 
-bool Physics::checkIfGladiatorCollidesLadder(unsigned id)
+// Returns zero if does not, 1 if left, 2 if right.
+int Physics::checkIfGladiatorCollidesLadder(unsigned id)
 {
 	// Is there possibility of multiple edges?
 	b2ContactEdge* edge = m_gladiatorVector[id]->m_body->GetContactList();
 	while (edge != NULL)
 	{
 		p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
-		if (data->m_bodyType == B_Ladder)
-			return true;
+		if (data->m_bodyType == B_LadderLeft)
+			return 1;
+		else if (data->m_bodyType == B_LadderRight)
+			return 2;
 		edge = edge->next;
 	}
 	return false;

@@ -55,7 +55,7 @@ namespace arena
 		bool		m_alive;
 		float		m_jumpCoolDownTimer;
 		float		m_ignoreLightPlatformsTimer;
-		bool		m_climbing;
+		int8_t		m_climbing;
 		bool		m_throwing;
 		bool		m_reloading;
 	private:

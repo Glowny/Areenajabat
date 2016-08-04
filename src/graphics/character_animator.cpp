@@ -14,7 +14,6 @@ namespace arena
             Helmet, 
             RightArm,
             LeftArm,
-            
             Count
         };
     };
@@ -77,7 +76,14 @@ namespace arena
         m_position = position;
         m_legs.m_animation.setPosition(m_legs.m_relativeOffset + position);
 		m_death.m_animation.setPosition(m_death.m_relativeOffset + position);
-		m_climb.m_animation.setPosition(m_climb.m_relativeOffset + position);
+		if (m_climb.m_climbing == 1) // Left
+		{
+			m_climb.m_animation.setPosition(m_climb.m_relativeOffsetLeft + position);
+		}
+		else if (m_climb.m_climbing == 2) // Right
+		{
+			m_climb.m_animation.setPosition(m_climb.m_relativeOffsetRight + position);
+		}
     }
 
     CharacterAnimator::CharacterAnimator() :
@@ -96,7 +102,8 @@ namespace arena
 		m_gladiusReload.m_relativeOffset = glm::vec2(10, 45);
 		m_axeReload.m_relativeOffset = glm::vec2(10, 45);
 		m_throw.m_relativeOffset = glm::vec2(10, 45);
-		m_climb.m_relativeOffset = glm::vec2(-20, 124);
+		m_climb.m_relativeOffsetLeft = glm::vec2(40, 124);
+		m_climb.m_relativeOffsetRight = glm::vec2(-40, 124);
         m_legs.m_relativeOffset = glm::vec2(11, 124);
         m_head.m_helmet.m_position = glm::vec2(-16, -57);
 		m_head.m_crest.m_position = glm::vec2(0,0);
@@ -331,24 +338,24 @@ namespace arena
 		m_death.dying = true;
 	}
 
-	void CharacterAnimator::playClimbAnimation(bool direction) {
+	void CharacterAnimator::playClimbAnimation(int direction) {
 		
-		if (m_climb.m_climbing == true)
+		if (m_climb.m_climbing != 0)
 			return;
-		int gladiator, directionInt;
-
+		int gladiator;
 		gladiator = m_skin;
-		directionInt = (int)direction;
+	
 
-		ClimbingAnimations animation = ClimbingAnimations(directionInt + 2 * gladiator);
+		// Get the correct animation, climb direction can be 1 (left) or 2 (right).
+		ClimbingAnimations animation = ClimbingAnimations(direction-1 + 2 * gladiator);
 		m_climb.m_animation.setCurrentAnimation(ClimbingEnumToFileName[animation]);
 		m_climb.m_animation.setCurrentTime(0);
-		m_climb.m_climbing = true;
+		m_climb.m_climbing = direction;
 	}
 
 	void CharacterAnimator::endClimbAnimation()
 	{
-		m_climb.m_climbing = false;
+		m_climb.m_climbing = 0;
 	}
 
 	void CharacterAnimator::playReloadAnimation(int weapon) {
@@ -404,7 +411,7 @@ namespace arena
 	void  CharacterAnimator::resetAnimation()
 	{
 		m_death.dying = false;
-		m_climb.m_climbing = false;
+		m_climb.m_climbing = 0;
 		m_gladiusReload.m_reload = false;
 		m_axeReload.m_reload = false;
 		m_throw.m_throwing = false;
@@ -436,7 +443,7 @@ namespace arena
 			m_death.m_animation.render();
 			return;
 		}
-		else if (m_climb.m_climbing) 
+		else if (m_climb.m_climbing != 0) 
 		{
 			m_climb.m_animation.render();
 			return;

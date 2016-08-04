@@ -122,12 +122,12 @@ namespace arena
 
 
 	// Functions for debugging animations.
-	static void diefool(const void*)
+	static void playDeathAnimation(const void*)
 	{
 		anime->m_animator.playDeathAnimation(1, 100.0f);
 	}
 
-	static void respawn(const void*)
+	static void resetAnimations(const void*)
 	{
 		anime->m_animator.resetAnimation();
 	}
@@ -159,8 +159,8 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-		{ arena::Key::KeyH, arena::Modifier::None, 0, diefool, "debugdie" },
-		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "debugrespawn" },
+		{ arena::Key::KeyH, arena::Modifier::None, 0, playDeathAnimation, "debugdie" },
+		{ arena::Key::KeyV, arena::Modifier::None, 0, resetAnimations, "debugAnimationReset" },
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
@@ -439,7 +439,7 @@ namespace arena
 			gladiatorData->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y-64.0f);
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
-			//printf("Received update on gladiator position: %f, %f \n", packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y);
+
 			if (packet->m_characterArray[i].m_reloading)
 			{
 				gladiatorData->m_animator->m_animator.playReloadAnimation(0);
@@ -448,9 +448,9 @@ namespace arena
 			{
 				gladiatorData->m_animator->m_animator.playThrowAnimation(0,0);
 			}
-			if (packet->m_characterArray[i].m_climbing)
+			if (packet->m_characterArray[i].m_climbing != 0)
 			{
-				gladiatorData->m_animator->m_animator.playClimbAnimation(0);
+				gladiatorData->m_animator->m_animator.playClimbAnimation(packet->m_characterArray[i].m_climbing);
 			}
 			else
 			{
@@ -892,7 +892,9 @@ namespace arena
 			}
 			case 2:
 			{
-				createPlatformBulletHitEntity(bullet);
+				// Temporary, change when there is a platform bullet hit animation.
+				createSmokeEntity(bullet);
+				//createPlatformBulletHitEntity(bullet);
 				break;
 			}
 			default:
