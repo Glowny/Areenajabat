@@ -169,7 +169,7 @@ namespace arena
 				continue;
 
 			// Reset lightplatforms to solid if enought time has passed
-			if ((player.m_gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 1.0f)
+			if ((player.m_gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
 			{
 				m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), true);
 			}
@@ -234,15 +234,20 @@ namespace arena
 				player.m_gladiator->m_climbing = false;
 				if (input.m_upButtonDown || input.m_downButtonDown)
 				{
-					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
-					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.25f;
+					
 					if (m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID()))
 					{
+						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
 						desiredVelocityY = 300.0f * (float)y;
 						velocityChangeY = desiredVelocityY - currentVelocity.y;
 						player.m_gladiator->m_climbing = true;
+						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 					}
-
+					if (input.m_downButtonDown)
+					{
+						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
+						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
+					}
 				}
 
 				glm::vec2 force;
