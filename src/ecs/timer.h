@@ -46,7 +46,7 @@ namespace arena
 			return time;
 		}
 
-		float resetBetween()
+		void resetBetween()
 		{
 			m_between = 0;
 		}
