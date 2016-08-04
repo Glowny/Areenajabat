@@ -200,6 +200,8 @@ namespace arena
         void render();
 
         void rotateAimTo(float radians);
+		float aimOffSetLeft = 0;
+		float aimOffSetRight = 0;
     private:
 		CharacterSkin m_skin;
         Head m_head;
@@ -222,6 +224,7 @@ namespace arena
 		float m_aimAngle;
 		void fillMap();
 		bool m_upperBodyDirection;
+	
 
 		std::map<unsigned, std::string> ClimbingEnumToFileName;
 		std::map<unsigned, std::string> DyingEnumToFileName;

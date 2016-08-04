@@ -159,8 +159,8 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-		{ arena::Key::KeyH, arena::Modifier::None, 0, diefool, "die" },
-		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "respawn" },
+		{ arena::Key::KeyH, arena::Modifier::None, 0, diefool, "debugdie" },
+		{ arena::Key::KeyV, arena::Modifier::None, 0, respawn, "debugrespawn" },
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
@@ -175,6 +175,7 @@ namespace arena
 
         INPUT_BINDING_END
     };
+
 
 	static void inputMoveLeft(const void*)
 	{
@@ -472,7 +473,6 @@ namespace arena
 			}
 			else
 			{
-				printf("STOPPED\n");
 				gladiatorData->m_animator->m_animator.stopRunningAnimation();
 			}
 		}
