@@ -309,6 +309,15 @@ namespace arena
         return float(m_entity->getAlpha());
     }
 
+	void SpriterAnimationPlayer::startResumePlayback()
+	{
+		m_entity->startResumePlayback();
+	}
+	void SpriterAnimationPlayer::pausePlayback()
+	{
+		m_entity->pausePlayback();
+	}
+
     void SpriterAnimationPlayer::setTimeElapsed(double milliseconds)
     {
         m_entity->setTimeElapsed(milliseconds);

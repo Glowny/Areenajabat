@@ -81,7 +81,8 @@ struct p_Gladiator :public p_entity
 	uint32_t m_id;
 	b2Body* m_body;
 	p_userData* m_userData;
-	glm::vec2* gamePosition;
+	glm::vec2* m_gamePosition;
+	glm::vec2* m_gamevelocity;
 
 };
 
@@ -219,7 +220,7 @@ public:
 	void update(float32 timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
-	unsigned addGladiator(glm::vec2* position);
+	unsigned addGladiator(glm::vec2* position, glm::vec2* velocity);
 	void applyForceToGladiator(glm::vec2 direction, unsigned id);
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);

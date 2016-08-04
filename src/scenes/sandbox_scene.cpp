@@ -42,6 +42,11 @@
 
 namespace arena
 {
+	glm::vec2 radToVec(float r)
+	{
+		return glm::vec2(cos(r), sin(r));
+	}
+
 	void GladiatorDrawData::destroy()
 	{
 		m_entity->destroy();
@@ -428,6 +433,8 @@ namespace arena
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
 			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
+			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
+			// Maybe move this to entity-update.
 			gladiatorData->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y-64.0f);
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
@@ -447,6 +454,26 @@ namespace arena
 			else
 			{
 				gladiatorData->m_animator->m_animator.endClimbAnimation();
+			}
+
+			// TODO: move this to entity-update.
+			float moveSpeed = packet->m_characterArray[i].m_velocity.x;
+			// Max movement speed is 300.
+			if (moveSpeed < -25.0f)
+			{
+				gladiatorData->m_animator->m_animator.setFlipX(0);
+				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed / 300.0f));
+			}
+			else if (moveSpeed > 25.0f)
+			{ 
+				
+				gladiatorData->m_animator->m_animator.setFlipX(1);
+				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed / 300.0f));
+			}
+			else
+			{
+				printf("STOPPED\n");
+				gladiatorData->m_animator->m_animator.stopRunningAnimation();
 			}
 		}
 		
@@ -767,7 +794,12 @@ namespace arena
 		source.w = 32.0f;
 		source.h = 32.0f;
 
-		transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+		// Bullet entity is updated once before sending, so it's is no in creation position.
+		// This should be fixed later, but for now we need to backtrack the bullet position a bit.
+		glm::vec2 angleAsVector = radToVec(bullet.m_rotation);
+		glm::vec2 backTrackedBulletPosition = glm::vec2(bullet.m_position->x - angleAsVector.x * 25, bullet.m_position->y - angleAsVector.y * 25);
+
+		transform->m_position = glm::vec2(backTrackedBulletPosition.x - 16, backTrackedBulletPosition.y - 16);
 		glm::vec2& origin = renderer->getOrigin();
 		origin.x = origin.x + 16; origin.y = origin.y + 16;
 		renderer->setRotation((float32)bullet.m_rotation + 3.142f);

@@ -181,8 +181,8 @@ namespace arena
 				bullet->m_type = GladiusBullet;
 				bullet->m_creationDelay = 0.1f * i;
 				bullet->m_rotation = aimAngle;
-				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-				bullet->m_position->x = position.x + 10 + vectorAngle.x * 20; bullet->m_position->y = position.y - 16 + vectorAngle.y * 20;
+				bullet->m_impulse.x = vectorAngle.x * 20; bullet->m_impulse.y = vectorAngle.y * 20;
+				bullet->m_position->x = position.x + 10; bullet->m_position->y = position.y - 16;
 				bullets.push_back(bullet);
 			}
 			return bullets;

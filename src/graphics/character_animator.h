@@ -90,10 +90,12 @@ namespace arena
 
     struct Legs
     {
-        Legs() : m_animation(nullptr) {}
+		Legs() : m_animation(nullptr) { running = false; m_playSpeedMultiplier = 1.0f; }
 
         SpriterAnimationPlayer m_animation;
+		bool running;
         glm::vec2 m_relativeOffset;
+		float m_playSpeedMultiplier;
     };
 
 	struct Death
@@ -182,6 +184,8 @@ namespace arena
 		void playClimbAnimation(bool direction);
 		void endClimbAnimation();
 
+		void stopRunningAnimation();
+		void startRunningAnimation(float playSpeedMultiplier);
 
 		void playReloadAnimation(int weapon);
 

@@ -21,6 +21,8 @@ namespace arena
         float getAngle() const;
         float getAlpha() const;
 
+		void startResumePlayback();
+		void pausePlayback();
         void setTimeElapsed(double milliseconds);
 		void setCurrentTime(double milliseconds);
         void render();

@@ -114,7 +114,7 @@ namespace arena
         newPlayer.m_gladiator		= gladiator;
 		*gladiator->m_position =  glm::vec2(600, 200);
 
-		uint32_t id = m_physics.addGladiator(gladiator->m_position);
+		uint32_t id = m_physics.addGladiator(gladiator->m_position, gladiator->m_velocity);
 		gladiator->setPhysicsID(id);
 
         m_players.add(newPlayer);
@@ -234,6 +234,11 @@ namespace arena
 				player.m_gladiator->m_climbing = false;
 				if (input.m_upButtonDown || input.m_downButtonDown)
 				{
+					if (input.m_downButtonDown)
+					{
+						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
+						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
+					}
 					
 					if (m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID()))
 					{
@@ -243,11 +248,7 @@ namespace arena
 						player.m_gladiator->m_climbing = true;
 						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 					}
-					if (input.m_downButtonDown)
-					{
-						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
-						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
-					}
+					
 				}
 
 				glm::vec2 force;

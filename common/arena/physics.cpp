@@ -78,7 +78,10 @@ void Physics::update(float32 timeStep)
 	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
 	{
 		b2Vec2 pos = m_gladiatorVector[i]->m_body->GetPosition();
-		*m_gladiatorVector[i]->gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
+		*m_gladiatorVector[i]->m_gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
+		b2Vec2 velocity = m_gladiatorVector[i]->m_body->GetLinearVelocity();
+		*m_gladiatorVector[i]->m_gamevelocity = glm::vec2(velocity.x * 100.0f, velocity.y * 100.0f);
+	
 	}
 
 	for (unsigned i = 0; i < m_bulletVector.size(); i++)
@@ -198,12 +201,13 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 }
 
 // returns id.
-unsigned Physics::addGladiator(glm::vec2* position)
+unsigned Physics::addGladiator(glm::vec2* position, glm::vec2* velocity)
 {
 	p_Gladiator* glad = new p_Gladiator;
 	glad->m_id = uint32_t(m_gladiatorVector.size());
 	glad->m_type = B_Gladiator;
-	glad->gamePosition = position;
+	glad->m_gamePosition = position;
+	glad->m_gamevelocity = velocity;
 
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;

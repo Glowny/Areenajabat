@@ -185,7 +185,7 @@ namespace arena
 		
 		else
 		{ 
-			m_legs.m_animation.setTimeElapsed(inMillis);
+			m_legs.m_animation.setTimeElapsed(inMillis * m_legs.m_playSpeedMultiplier);
 			//move torso according to leg movement
 			m_torso.m_sprite.m_position = m_position + m_torso.m_relativeOffset + offset;
 		}
@@ -270,7 +270,29 @@ namespace arena
         }
 
     }
-    
+	void CharacterAnimator::stopRunningAnimation()
+	{
+		if (m_flipX)
+		{ 
+			m_legs.m_animation.setCurrentAnimation("1_Right_Standing");
+			m_torso.m_relativeOffset.x = -5.f + 18.f;
+		}
+		else
+		{ 
+			m_legs.m_animation.setCurrentAnimation("1_Left_Standing");
+			m_torso.m_relativeOffset.x = -4.f + 17.f;
+		}
+		m_legs.m_animation.pausePlayback();
+		m_legs.running = false;
+	}
+	void CharacterAnimator::startRunningAnimation(float playSpeedMultiplier)
+	{
+		m_legs.m_playSpeedMultiplier = playSpeedMultiplier;
+		if (m_legs.running == true)
+			return;
+		m_legs.m_animation.startResumePlayback();
+		m_legs.running = true;
+	}
 
 	void CharacterAnimator::playDeathAnimation(bool hitDirection, float hitPositionY)
 	{
