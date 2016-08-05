@@ -269,6 +269,8 @@ namespace arena
 		void registerPlayer(const uint32 clientIndex);
 		void unregisterPlayer(const uint32 clientIndex);
 
+
+
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
 

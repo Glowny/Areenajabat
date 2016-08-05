@@ -16,6 +16,7 @@ namespace arena
 		MapFront,
 		MapBack,
 		HitBlood,
+		MousePointer,
 
 	};
 

@@ -210,7 +210,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 }
 
 // returns id.
-unsigned Physics::addGladiator(glm::vec2* position, glm::vec2* velocity)
+uint32_t Physics::addGladiator(glm::vec2* position, glm::vec2* velocity)
 {
 	p_Gladiator* glad = new p_Gladiator;
 	glad->m_id = uint32_t(m_gladiatorVector.size());

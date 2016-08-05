@@ -115,6 +115,7 @@ namespace arena
 		*gladiator->m_position =  glm::vec2(600, 200);
 
 		uint32_t id = m_physics.addGladiator(gladiator->m_position, gladiator->m_velocity);
+		
 		gladiator->setPhysicsID(id);
 
         m_players.add(newPlayer);
@@ -287,7 +288,7 @@ namespace arena
 				hit->m_damageAmount = 5;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_targetPlayerId = 0;
-				hit->setPhysicsID(bullet.bulletId);
+				hit->m_hitId = bullet.bulletId;
 				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 				if (velocity.x < 0)
 					hit->m_hitDirection = 0;
@@ -297,7 +298,7 @@ namespace arena
 				m_synchronizationList.push_back(hit);
 
 			}
-			else
+			else if (entry.m_target->m_type == B_Gladiator)
 			{
 				p_Gladiator& target = *static_cast<p_Gladiator*>(entry.m_target);
 				
@@ -310,6 +311,11 @@ namespace arena
 						targetGladiator = players()[i].m_gladiator;
 						break;
 					}
+				}
+				if (targetGladiator == NULL)
+				{ 
+					printf("Hit was missed, searched id %d\n", target.m_id);
+					return;
 				}
 				// if target is not alive, do not register hit.
 				// TODO: set dead player to ignore bullets on physics.
@@ -325,6 +331,7 @@ namespace arena
 				hit->m_hitType = 1;
 				hit->m_damageAmount = 5;
 				hit->m_hitPosition = *bullet.gamePosition;
+				hit->m_hitId = bullet.bulletId;
 
 				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 				if (velocity.x < 0)
@@ -345,9 +352,7 @@ namespace arena
 				
 				// TODO: Do removal here and properly
 				
-				//	if (m_debugBullets[i].m_bullet->m_bulletId == bullet.bulletId)
-				//		m_debugBullets[i].lifeTime = 10.0f;
-				
+			
 				delete entry.m_target;
 			}
 			for (unsigned i = 0; i < m_debugBullets.size(); i++)
@@ -411,12 +416,6 @@ namespace arena
 	}
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
 	{
-		// TODO: do proper check.
-		//if (!shouldProcessPlayerInput()) return;
-
-		// Note: Bullets are extremely short-lived. They are not updated to players, and only bullet hits are registered from physics.
-		// Bullets should be deleted after synchronization, should slave delete them?
-		// No, host owns them. Host should delete them.
 		std::vector<Bullet*> bullets = gladiator->shoot();
 		
 		for(uint32 i = 0; i < bullets.size(); i++)
@@ -483,6 +482,14 @@ namespace arena
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
 			}
+
+			for (auto it = m_players.begin(); it != m_players.end(); it++)
+			{
+				Player* player = &*it;
+				uint32 physicsID = player->m_gladiator->getPhysicsID();
+				m_physics.setGladiatorPosition(physicsID, m_map.m_playerSpawnLocations[physicsID]);
+			}
+	
 		}
 	}
 	void GameHost::gameTick(const uint64 dt)

@@ -85,6 +85,7 @@ namespace arena
 		// Update debugbullets.
 		void updateDebugBullets(const GameTime& gameTime);
 
+		Entity* createMousePointerEntity();
 		// Create single gladiator.
 		void createGladiator(Gladiator* gladiator);
 		// Create bullets shot by other players
@@ -96,7 +97,7 @@ namespace arena
 		void createBulletHit(BulletHitData& data);
 		void createBloodBulletHitEntity(Bullet& bullet);
 		void createPlatformBulletHitEntity(Bullet& bullet);
-
+		void destroyBullet(uint8_t bulletId);
 		// Update camera position to player gladiator position.
 		void updateCameraPosition(); 
 		// Rotata player aim according to mouse position.
@@ -123,7 +124,9 @@ namespace arena
 		// m_backgroundSetting is used to set which backgrounds are loaded.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
 		int m_backgroundSetting; 
-
+		Entity* mousePointerEntity;
+		//TODO: remake as component later.
+		glm::vec2 oldMousePos;
 		
     };
 

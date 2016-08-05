@@ -55,6 +55,7 @@ namespace arena
 			m_hitPosition = glm::vec2(0, 0);
 		}
 		uint8_t m_hitType;
+		uint8_t m_hitId;
 		int32 m_damageAmount;
 		uint8_t m_hitDirection;
 		uint8_t m_targetPlayerId;

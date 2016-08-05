@@ -372,6 +372,7 @@ namespace arena
 		uint8_t m_targetID;
 		int32 m_damageAmount;
 		uint8_t m_hitDirection; // Direction where the bullet came from, bool
+		uint8_t m_bulletId;
 		glm::vec2 m_hitPosition;
 
 		GameDamagePlayerPacket()
@@ -387,6 +388,7 @@ namespace arena
 		bool serialize(Stream& stream)
 		{
 			serialize_bytes(stream, &m_targetID, 1);
+			serialize_bytes(stream, &m_bulletId, 1);
 			serialize_bytes(stream, &m_hitDirection, 1);
 			serialize_int(stream, m_damageAmount, 0, 100);
 			serialize_float(stream, m_hitPosition.x);

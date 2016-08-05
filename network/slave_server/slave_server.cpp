@@ -201,17 +201,17 @@ namespace arena
 				if (hit->m_hitType == 1)
 				{ 
 					GameDamagePlayerPacket* packet = (GameDamagePlayerPacket*)createPacket(PacketTypes::GameDamagePlayer);
-					printf("Bullet position x: %f, y: %f\n", hit->m_hitPosition.x, hit->m_hitPosition.y);
 					packet->m_damageAmount = hit->m_damageAmount;
 					packet->m_hitPosition = hit->m_hitPosition;
 					packet->m_hitDirection = hit->m_hitDirection;
 					packet->m_targetID = hit->m_targetPlayerId;
+					packet->m_bulletId = hit->m_hitId;
 					broadcast(packet);
 				}
 				else
 				{
 					GameBulletHitPacket* packet = (GameBulletHitPacket*)createPacket(PacketTypes::GameBulletHit);
-					packet->bulletHitArray[0].m_id = hit->getPhysicsID();
+					packet->bulletHitArray[0].m_id = hit->m_hitId;
 					packet->bulletHitArray[0].m_creationDelay = 0.2f;
 					packet->bulletHitArray[0].m_position = hit->m_hitPosition;
 					packet->bulletHitArray[0].m_type = hit->m_hitType;
@@ -275,11 +275,12 @@ namespace arena
 				GameRespawnPlayerPacket* packet = (GameRespawnPlayerPacket*)createPacket(PacketTypes::GameRespawnPlayer);
 				packet->m_playerID = (uint8_t)entity->getPhysicsID();
 				broadcast(packet);
+				break;
 			}
 
 			case NetworkEntityType::Null:
 			default:
-				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!");
+				DEBUG_PRINT("sync error! trying to sync entity with no type over the network!\n");
 				break;
 			}
 

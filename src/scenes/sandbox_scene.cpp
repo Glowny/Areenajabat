@@ -163,7 +163,7 @@ namespace arena
         if (s_client->isConnected()) return;
         if (s_client->isConnecting()) return;
 		std::string ip = "localhost";
-		uint16_t port = 8888;
+		uint16_t port = 8088;
 		loadServerInfoFromFile(ip, port);
         s_client->connect(ip.c_str(), port, s_stamp);
         s_client->queryLobbies(s_stamp);
@@ -186,7 +186,7 @@ namespace arena
 		{ arena::Key::KeyS, arena::Modifier::None, 0, inputMoveDown, "movedown" },
 		{ arena::Key::Key1, arena::Modifier::None, 0, inputShoot, "shoot" },
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
-        { arena::Key::KeyE, arena::Modifier::None, 0, disconnect, "disconnect" },
+        { arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
 		{ arena::Key::KeyT, arena::Modifier::None, 0, throwAGrenade, "apple" },
 		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
@@ -307,6 +307,7 @@ namespace arena
 		m_playerId = 0;
 
         inputAddBindings("player", s_bindings);
+		mousePointerEntity = createMousePointerEntity();
 	}
 	void SandboxScene::onDestroy()
 	{
@@ -521,6 +522,7 @@ namespace arena
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
 			createBulletHit(packet->bulletHitArray[i]);
+			destroyBullet(packet->bulletHitArray[i].m_id);
 		}
 
 	}
@@ -536,7 +538,7 @@ namespace arena
 		Bullet bullet;
 		bullet.m_position->x = packet->m_hitPosition.x;
 		bullet.m_position->y = packet->m_hitPosition.y;
-
+		destroyBullet(packet->m_bulletId);
 		createBloodBulletHitEntity(bullet);
 
 		// Todo: Set animation blood on hit position. Draw blood on gladiator.
@@ -694,7 +696,7 @@ namespace arena
 			}
 			else
 			{
-				// Todo: Do destruction when server calls it.
+				// If bullets for some reason life longer than ten secounds, destroy them.
 				it->second.entity->destroy();
 				it->second.destroy();
 				it = m_debugBullets.erase(it);
@@ -702,6 +704,45 @@ namespace arena
 		}
 	}
 	
+	Entity* SandboxScene::createMousePointerEntity()
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = glm::vec2(0, 0);
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/crosshair.png"));
+		glm::vec2& origin = renderer->getOrigin();
+		origin.x = 16.0f; origin.y = 16.0f;
+		renderer->anchor();
+
+		builder.addIdentifier(EntityIdentification::MousePointer);
+		Entity* mousePointer = builder.getResults();
+		registerEntity(mousePointer);
+		return mousePointer;
+	}
+
+	void SandboxScene::destroyBullet(uint8_t bulletId)
+	{
+		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
+		{
+			if (it->second.bullet->m_bulletId == bulletId)
+			{
+				it->second.lifeTime = 20;
+				//it->second.entity->destroy();
+				//it->second.destroy();
+				//it = m_debugBullets.erase(it);
+				return;
+			}
+			it++;
+		}
+	}
+
 	void SandboxScene::createGladiator(Gladiator* gladiator)
 	{
 		Entity* entity_gladiator;
@@ -773,7 +814,9 @@ namespace arena
 		//renderer->setRotation(bullet->m_rotation+ 3.142);
 		
 		renderer->anchor();
-		
+		// TODO: add physics for clientside bullets.
+		//Movement* movement = builder.addMovement();
+		//movement->m_velocity = bullet->m_impulse;
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
 		
@@ -921,18 +964,7 @@ namespace arena
 				break;
 			}
 		}
-		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
-		{
-			if (it->second.bullet->m_bulletId == data.m_id)
-			{ 
-				it->second.lifeTime = 20;
-				//it->second.entity->destroy();
-				//it->second.destroy();
-				//it = m_debugBullets.erase(it);
-				return;
-			}
-			it++;
-		}
+		
 		
 	}
 	void SandboxScene::createBloodBulletHitEntity(Bullet& bullet)
@@ -998,11 +1030,18 @@ namespace arena
 		if(m_clientIdToGladiatorData.at(m_playerId) != nullptr)
 		{ 
 			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
 			const MouseState& mouse = Mouse::getState();
-			glm::vec2 screenSize = glm::vec2(1000, 700);
-			glm::vec2 cameraPositionOnGladiator = glm::vec2(playerTransform->m_position.x - screenSize.x / 1, playerTransform->m_position.y - screenSize.y / 2);
-			glm::vec2 cameraPositionOnMouse = glm::vec2(cameraPositionOnGladiator.x + mouse.m_mx * 2.0f, cameraPositionOnGladiator.y + mouse.m_my * 1.0f);
-			camera.m_position = cameraPositionOnMouse;
+			// TODO: get real resolution
+			glm::vec2 screenSize = glm::vec2(1920, 1080);
+			
+			glm::vec2 cameraPositionOnMouse = glm::vec2(-screenSize.x/2 + mouse.m_mx, -screenSize.y/2 + mouse.m_my);
+			glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
+			glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerTransform->m_position.x, oldMousePos.y + movement.y + playerTransform->m_position.y);
+			oldMousePos = cameraPositionOnMouse;
+			// Adjust the aim position where bullets drop.
+			mouseTransform->m_position = cameraPosition + glm::vec2(-16, 36.0f);
+			camera.m_position = cameraPosition;
 			camera.calculate();
 			// set views
 			float ortho[16];
@@ -1026,6 +1065,8 @@ namespace arena
 		glm::vec2 dir(mouseLoc - weaponRotationPoint);
 		float a = glm::atan(dir.y, dir.x);
 		m_controller.aimAngle = a;
+		SpriteRenderer* mouseTransform = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
+		mouseTransform->setRotation(a + 3.14f/2);
 		// Update own gladiator aim
 		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 	}
