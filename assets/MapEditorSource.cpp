@@ -19,7 +19,8 @@ enum PlatformType
 {
 	CollideAll = uint32_t(0),
 	CollideGladiator =uint32_t(1),
-	Ladder = uint32_t(2)
+	LadderLeft = uint32_t(2),
+	LadderRight = uint32_t(3)
 };
 
 enum PlatformMode
@@ -131,7 +132,7 @@ void saveRaw()
 		{
 			object.pointsX.push_back(platforms[i].points[j].x);
 			object.pointsY.push_back(platforms[i].points[j].y);
-		}aaw
+		}
 		myfile.write(reinterpret_cast<char *>(&pointSize), sizeof(uint32_t));
 		myfile.write(reinterpret_cast<char *>(&type), sizeof(uint32_t));
 		myfile.write(reinterpret_cast<char *>(object.pointsX.data()), sizeof(float)*object.pointsX.size());
@@ -307,18 +308,25 @@ int main()
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
 		{
-			currentType = Ladder;
+			currentType = LadderLeft;
 			printf("Platform is ladder\n");
 			mode = Polygon;
 			printf("Platform is polygon\n");
 		}
-
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4))
+		{
+			currentType = LadderRight;
+			printf("Platform is LadderRight\n");
+			mode = Polygon;
+			printf("Platform is polygon\n");
+		}
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
 		{
 			mode = Shapeless;
 			printf("Platform is shapeless\n");
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num6))
 		{
 			mode = Polygon;
 			printf("Platform is polygon\n");
