@@ -10,6 +10,7 @@
 #include <common/arena/game_map.h>
 #include <common/network_entity.h>
 #include <common/arena/weapons.h>
+#include <common/arena/scoreboard.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
@@ -269,8 +270,6 @@ namespace arena
 		void registerPlayer(const uint32 clientIndex);
 		void unregisterPlayer(const uint32 clientIndex);
 
-
-
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
 
@@ -298,6 +297,11 @@ namespace arena
 		void gameTick(const uint64 dt);
 		void worldTick(const float64 dt);
 
+		void addScoreBoard();
+		void resetScoreBoard();
+		void emptyScoreBoard();
+		Scoreboard& getScoreBoard();
+
 		GameMap				m_map;
 		Physics				m_physics;
 
@@ -316,6 +320,7 @@ namespace arena
 
 		GameVariables		m_gameData;
 		SessionVariables	m_sessionData;
+		Scoreboard*			m_scoreBoard;
 
 		bool				m_disposed;
 		bool				m_endCalled;

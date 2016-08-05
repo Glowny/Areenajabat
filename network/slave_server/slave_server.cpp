@@ -219,8 +219,6 @@ namespace arena
 					broadcast(packet);
 
 				}
-				
-				
 				break;
 			}
 			case NetworkEntityType::Map:
@@ -265,11 +263,25 @@ namespace arena
 					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
 				}
 				broadcast(gladiatorsCreatePacket);
-
-       
                 break;
             }
-
+			case NetworkEntityType::Scoreboard:
+			{
+				Scoreboard* ScoreboardEntity = (Scoreboard*)entity;
+				GameUpdateScoreBoardPacket* packet = (GameUpdateScoreBoardPacket*)createPacket(PacketTypes::GameUpdateScoreBoard);
+				packet->m_playerAmount = (uint8_t)ScoreboardEntity->m_playerScoreVector.size();
+				packet->m_scoreBoardData.m_flagHolder = ScoreboardEntity->m_flagHolder;
+				
+				for (unsigned i = 0; i < ScoreboardEntity->m_playerScoreVector.size(); i++)
+				{
+					packet->m_scoreBoardData.m_playerScoreArray[i].m_score = ScoreboardEntity->m_playerScoreVector[i].m_score;
+					packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets = ScoreboardEntity->m_playerScoreVector[i].m_tickets;
+					packet->m_scoreBoardData.m_playerScoreArray[i].m_kills = ScoreboardEntity->m_playerScoreVector[i].m_kills;
+				}
+				broadcast(packet);
+				break;
+			}
+			
 			case NetworkEntityType::RespawnPlayer:
 			{
 				GameRespawnPlayerPacket* packet = (GameRespawnPlayerPacket*)createPacket(PacketTypes::GameRespawnPlayer);

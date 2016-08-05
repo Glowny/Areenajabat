@@ -14,6 +14,7 @@ namespace arena
 		Map,
 		BulletHit,
 		RespawnPlayer,
+		Scoreboard,
 	};
 
 	class NetworkEntity
@@ -24,6 +25,7 @@ namespace arena
 			return m_type;
 		}
 
+		// Not all networkentites have PhysicsID, consider removing these.
 		void setPhysicsID(const uint32 physicsID)
 		{
 			m_physicsID = physicsID;

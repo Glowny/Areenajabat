@@ -65,7 +65,7 @@ namespace arena
 	{
 		int m_score;
 		int m_tickets;
-
+		int m_kills;
 	};
 
 	struct ScoreBoardData
@@ -505,11 +505,12 @@ namespace arena
 		{
 			serialize_uint64(stream, m_clientSalt);
 			serialize_int(stream, m_playerAmount, 0, CHARACTER_MAXAMOUNT);
+			serialize_bytes(stream, &m_scoreBoardData.m_flagHolder, 1);
 			for (unsigned i = 0; i < m_playerAmount; ++i)
 			{
-				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_score, 0, 1000);
-				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_tickets, 0, 1000);
-				serialize_bytes(stream, &m_scoreBoardData.m_flagHolder, 1);
+				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_score, 0, 1023);
+				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_kills, 0, 127);
+				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_tickets, 0, 127);
 			}
 			return true;
 		}

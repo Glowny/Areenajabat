@@ -199,12 +199,12 @@ namespace arena
                       
             int32 x = 0;
 			int32 y = 0;
-            // TODO: add check for jump that platform is touched.
 			if (input.m_leftButtonDown)	x = -1;
 			else if (input.m_rightButtonDown)	x = 1;
 			if (input.m_upButtonDown) y = -1;
-			if (input.m_downButtonDown) y = 1;
+			else if (input.m_downButtonDown) y = 1;
 
+            // TODO: Make a sensor physics object under player that detects platforms.
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(player.m_gladiator->getPhysicsID())
 				&& (player.m_gladiator->m_jumpCoolDownTimer += (float)dt) > 0.25f)
 			{
@@ -285,7 +285,7 @@ namespace arena
 
 				BulletHit* hit = new BulletHit;
 				hit->m_hitType = 2;
-				hit->m_damageAmount = 5;
+				hit->m_damageAmount = 10;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_targetPlayerId = 0;
 				hit->m_hitId = bullet.bulletId;
@@ -302,18 +302,20 @@ namespace arena
 			{
 				p_Gladiator& target = *static_cast<p_Gladiator*>(entry.m_target);
 				
-				
 				Gladiator* targetGladiator = nullptr;
-				for (unsigned i = 0; i < players().size(); i++)
+				
+				for (auto it = m_players.begin(); it != m_players.end(); it++)
 				{
-					if (target.m_id == players()[i].m_gladiator->getPhysicsID())
+					if (it->m_gladiator->getPhysicsID() == target.m_id)
 					{
-						targetGladiator = players()[i].m_gladiator;
+						targetGladiator = it->m_gladiator;
 						break;
 					}
 				}
+
 				if (targetGladiator == NULL)
 				{ 
+					// BUG: Sometimes targetGladiator is not found when there is 8+ players.
 					printf("Hit was missed, searched id %d\n", target.m_id);
 					return;
 				}
@@ -329,7 +331,7 @@ namespace arena
 
 				BulletHit* hit = new BulletHit;
 				hit->m_hitType = 1;
-				hit->m_damageAmount = 5;
+				hit->m_damageAmount = 10;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_hitId = bullet.bulletId;
 
@@ -343,7 +345,29 @@ namespace arena
 				targetGladiator->m_hitpoints -= hit->m_damageAmount;
 				if (targetGladiator->m_hitpoints <= 0)
 				{ 
+					// Search for shooter.
+					unsigned shooterPlayerId = 666;
+					for (auto it = m_players.begin(); it != m_players.end(); it++)
+					{
+						if (it->m_gladiator->getPhysicsID() == entry.m_shooter.m_id)
+						{
+							shooterPlayerId = it->m_gladiator->m_ownerId;
+							break;
+						}
+					}
+					// assert that shooter is found.
+					assert(shooterPlayerId != 666);
+
 					targetGladiator->m_alive = false;
+					PlayerScore &targetScore = m_scoreBoard->getPlayerScore(targetGladiator->m_ownerId);
+					PlayerScore &shooterScore = m_scoreBoard->getPlayerScore(shooterPlayerId);
+
+					if (targetScore.m_tickets > 0)
+						targetScore.m_tickets--;
+					shooterScore.m_kills++;
+					shooterScore.m_score += 10;
+					m_synchronizationList.push_back(m_scoreBoard);
+					
 				}
 				m_synchronizationList.push_back(hit);
 
@@ -442,6 +466,11 @@ namespace arena
 		return true;
 	}
 
+
+	GameHost::~GameHost()
+	{
+	}
+
 	void GameHost::sessionTick(const uint64 dt)
 	{
 		m_sessionData.m_sessionElapsed += dt;
@@ -463,6 +492,7 @@ namespace arena
 			}
 		}
 
+			//TODO: Move this check to slave_server, and start round from there.
 		if (m_players.size() >= m_vars.m_gm_players_required && !m_gameData.m_gameRunning)
 		{
 			m_gameData.m_gameRunning = true;
@@ -477,7 +507,6 @@ namespace arena
 			e_gameStart();
 
             loadMap("coordinatesRawData.dat");
-
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
@@ -489,6 +518,7 @@ namespace arena
 				uint32 physicsID = player->m_gladiator->getPhysicsID();
 				m_physics.setGladiatorPosition(physicsID, m_map.m_playerSpawnLocations[physicsID]);
 			}
+			addScoreBoard();
 	
 		}
 	}
@@ -621,7 +651,42 @@ namespace arena
 		}
 	}
 
-	GameHost::~GameHost()
+	void GameHost::addScoreBoard()
 	{
+		Scoreboard* board = new Scoreboard;
+		for (auto it = m_players.begin(); it != m_players.end(); it++)
+		{
+			Player* player = &*it;
+			PlayerScore score;
+			score.m_kills = 0;
+			score.m_score = 0;
+			//TODO: get the amount of tickets from initilization file.
+			score.m_tickets = 1;
+			score.m_playerID = player->m_clientIndex;
+			board->m_playerScoreVector.push_back(score);
+		}
+		m_scoreBoard = board;
+		registerEntity(board);
+	}
+	void GameHost::resetScoreBoard()
+	{
+		assert(m_scoreBoard != nullptr);
+		for (auto it = m_scoreBoard->m_playerScoreVector.begin(); it != m_scoreBoard->m_playerScoreVector.end(); it++)
+		{
+			it->m_kills = 0;
+			it->m_score = 0;
+			//TODO: get the amount of tickets from initilization file
+			it->m_tickets = 1;
+		}
+	}
+	void GameHost::emptyScoreBoard()
+	{
+		assert(m_scoreBoard != nullptr);
+		m_scoreBoard->m_playerScoreVector.clear();
+	}
+	Scoreboard& GameHost::getScoreBoard()
+	{
+		assert(m_scoreBoard != nullptr);
+		return (*m_scoreBoard);
 	}
 }

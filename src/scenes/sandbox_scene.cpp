@@ -248,6 +248,7 @@ namespace arena
 		m_playerId = 0;
 		createGladiator(glad);
 		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
+		m_scoreboard = nullptr;
 		
 	}
 
@@ -358,11 +359,6 @@ namespace arena
 			//m_clientIdToGladiatorData[m_playerId]->destroy();
 			m_clientIdToGladiatorData.clear();
 			m_playerId = setupPacket->m_clientIndex;
-
-			for (int32_t i = 0; i < setupPacket->m_playerAmount; i++)
-			{
-				m_scoreboard.m_playerScoreVector.push_back(PlayerScore());
-			}
 			break;
 		}
 		case PacketTypes::GameUpdate:
@@ -419,6 +415,7 @@ namespace arena
 
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
+		m_scoreboard = new Scoreboard;
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData* characterData = &packet->m_characterArray[i];
@@ -432,9 +429,15 @@ namespace arena
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
 			createGladiator(gladiator);
+			PlayerScore playerScore;
+			playerScore.m_playerID = gladiator->m_ownerId;
+			playerScore.m_kills = 0;
+			playerScore.m_score = 0;
+			playerScore.m_tickets = 0;
+			m_scoreboard->m_playerScoreVector.push_back(playerScore);
 		}
-		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 
+		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -557,11 +560,12 @@ namespace arena
 	}
 	void SandboxScene::updateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
-		m_scoreboard.m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
+		m_scoreboard->m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
 		for (unsigned i = 0; i < packet->m_playerAmount; i++)
 		{
-			m_scoreboard.m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
-			m_scoreboard.m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+			m_scoreboard->m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
+			m_scoreboard->m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+			m_scoreboard->m_playerScoreVector[i].m_kills = (packet->m_scoreBoardData.m_playerScoreArray[i].m_kills);
 		}
 	}
 
@@ -1024,6 +1028,26 @@ namespace arena
 		registerEntity(builder.getResults());
 	}
 
+	void SandboxScene::checkBounds(glm::vec2& cameraPosition)
+	{
+		if (cameraPosition.x < m_screenSize.x / 2)
+		{
+			cameraPosition.x = m_screenSize.x / 2;
+		}
+		else if (cameraPosition.x > m_screenSize.x * 3.5f)
+		{
+			cameraPosition.x = m_screenSize.x * 3.5f;
+		}
+		if (cameraPosition.y < m_screenSize.y / 2)
+		{
+			cameraPosition.y = m_screenSize.y / 2;
+		}
+		else if (cameraPosition.y > m_screenSize.y * 1.5f )
+		{
+			cameraPosition.y = m_screenSize.y* 1.5f;
+		}
+	}
+
 	void SandboxScene::updateCameraPosition()
 	{
 		Camera& camera = App::instance().camera();
@@ -1033,14 +1057,15 @@ namespace arena
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
 			const MouseState& mouse = Mouse::getState();
 			// TODO: get real resolution
-			glm::vec2 screenSize = glm::vec2(1920, 1080);
 			
-			glm::vec2 cameraPositionOnMouse = glm::vec2(-screenSize.x/2 + mouse.m_mx, -screenSize.y/2 + mouse.m_my);
+			
+			glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x/2 + mouse.m_mx, -m_screenSize.y/2 + mouse.m_my);
 			glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
 			glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerTransform->m_position.x, oldMousePos.y + movement.y + playerTransform->m_position.y);
 			oldMousePos = cameraPositionOnMouse;
 			// Adjust the aim position where bullets drop.
 			mouseTransform->m_position = cameraPosition + glm::vec2(-16, 36.0f);
+			checkBounds(cameraPosition);
 			camera.m_position = cameraPosition;
 			camera.calculate();
 			// set views
@@ -1072,16 +1097,31 @@ namespace arena
 	}
 	void SandboxScene::setDrawText(const GameTime& gameTime)
 	{
-		const MouseState& mouse = Mouse::getState();
-		glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-		bgfx::dbgTextPrintf(0, 1, 0x9f, "Delta time %.10f", gameTime.m_delta);
-		bgfx::dbgTextPrintf(0, 2, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
-			mouse.m_buttons[MouseButton::Left] ? "down" : "up",
-			mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
-			mouse.m_buttons[MouseButton::Right] ? "down" : "up");
-		bgfx::dbgTextPrintf(0, 3, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
-		bgfx::dbgTextPrintf(0, 4, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
-		bgfx::dbgTextPrintf(0, 5, 0x9f, "Angle (%.3f rad) (%.2f deg)", m_controller.aimAngle, glm::degrees(m_controller.aimAngle));
+		unsigned row = 0;
+		gameTime;
+		//const MouseState& mouse = Mouse::getState();
+		//glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+		//bgfx::dbgTextPrintf(0, row, 0x9f, "Delta time %.10f", gameTime.m_delta);
+		//row++;
+		//bgfx::dbgTextPrintf(0, row, 0x8f, "Left btn = %s, Middle btn = %s, Right btn = %s",
+		//row++;
+		//	mouse.m_buttons[MouseButton::Left] ? "down" : "up",
+		//	mouse.m_buttons[MouseButton::Middle] ? "down" : "up",
+		//	mouse.m_buttons[MouseButton::Right] ? "down" : "up");
+		//bgfx::dbgTextPrintf(0, row, 0x6f, "Mouse (screen) x = %d, y = %d, wheel = %d", mouse.m_mx, mouse.m_my, mouse.m_mz);
+		//row++;
+		//bgfx::dbgTextPrintf(0, row, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
+		//row++;
+		//bgfx::dbgTextPrintf(0, row, 0x9f, "Angle (%.3f rad) (%.2f deg)", m_controller.aimAngle, glm::degrees(m_controller.aimAngle));
+		
+		if (m_scoreboard == nullptr)
+			return;
+		for (const auto& elem : m_scoreboard->m_playerScoreVector)
+		{
+			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Score: %d \t Kills: %d \t Tickets %d",
+				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
+			row++;
+		}
 	}
 	void SandboxScene::createBackground()
 	{

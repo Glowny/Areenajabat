@@ -107,7 +107,7 @@ namespace arena
 
 		// Load background from file.
 		void createBackground(); 
-
+		void checkBounds(glm::vec2& cameraPosition);
 		// TODO: should use entities
 		std::map<uint8_t, GladiatorDrawData*> m_clientIdToGladiatorData;
 		// Platform data that is send by server and can be used for clientside physics.
@@ -116,7 +116,7 @@ namespace arena
 		std::map<uint8_t, DebugBullet> m_debugBullets;
 
 		float m_sendInputToServerTimer;
-		Scoreboard m_scoreboard;
+
 		// m_playerId is used to see which gladiator player is controlling.
 		uint8_t m_playerId; 
 		// m_nextSprite is used to choose the next sprite in muzzle flash spritesheet. TODO: should be gladiator specific
@@ -127,7 +127,8 @@ namespace arena
 		Entity* mousePointerEntity;
 		//TODO: remake as component later.
 		glm::vec2 oldMousePos;
-		
+		Scoreboard* m_scoreboard;
+		glm::vec2 m_screenSize = glm::vec2(1920, 1080);
     };
 
 	static void inputMoveLeft(const void*);
