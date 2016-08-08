@@ -103,7 +103,7 @@ namespace arena
 		{
 			aimAngle;
 			position;
-			Bullet* temp;
+			Bullet* temp = new Bullet;
 			return temp;
 		}
 

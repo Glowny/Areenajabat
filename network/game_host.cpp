@@ -449,9 +449,9 @@ namespace arena
 		player->m_playerController->aimAngle = aimAngle;
 	}
 
-	void GameHost::GrenadeShoot(Gladiator* gladiator){
+	void GameHost::GrenadeShoot(Gladiator* gladiator) {
 		Bullet* bullet = gladiator->pitch();
-		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, glm::vec2(20, -20), gladiator->getPhysicsID());
+		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, bullet->m_impulse, gladiator->getPhysicsID());
 
 		m_synchronizationList.push_back(bullet);
 		DebugBullet dBullet;
