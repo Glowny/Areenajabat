@@ -664,7 +664,7 @@ namespace arena
 			score.m_kills = 0;
 			score.m_score = 0;
 			//TODO: get the amount of tickets from initilization file.
-			score.m_tickets = 1;
+			score.m_tickets = 10;
 			score.m_playerID = player->m_clientIndex;
 			board->m_playerScoreVector.push_back(score);
 		}
