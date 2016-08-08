@@ -43,6 +43,11 @@ namespace arena
 			return m_weapon->shoot(m_aimAngle, *m_position);
 		}
 
+		Bullet* pitch()
+		{
+			return m_grenadeWeapon->pitch(m_aimAngle, *m_position);
+		}
+
 		glm::vec2*	m_position;
 		glm::vec2*	m_velocity;
 
@@ -51,6 +56,7 @@ namespace arena
 		int32		m_hitpoints;
 		
 		Weapon*		m_weapon;
+		WeaponGrenade* m_grenadeWeapon;
 
 		bool		m_alive;
 		float		m_jumpCoolDownTimer;
