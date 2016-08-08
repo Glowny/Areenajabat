@@ -23,7 +23,7 @@ enum entityCategory
 	c_GladiatorNoCollide=		0x0008,
 	c_Gladiator=				0x0010,
 	c_Bullet=					0x0020,
-
+	c_Grenade=					0x0040
 };
 enum entityIndexes
 {
@@ -33,6 +33,7 @@ enum entityIndexes
 	ci_GladiatorNoCollide = 3,
 	ci_Gladiator = 4,
 	ci_Bullet = 5,
+	ci_Grenade = 6,
 
 };
 
@@ -213,7 +214,7 @@ using CollisionCallback = std::function<void(arena::NetworkEntity* const, arena:
 class Physics
 {
 public:
-	b2Filter b2Filters[6];
+	b2Filter b2Filters[7];
 	Physics();
 	~Physics();
 

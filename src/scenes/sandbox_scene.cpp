@@ -798,7 +798,21 @@ namespace arena
 		bullet->m_creationDelay = data.m_creationDelay;
 		bullet->m_rotation = data.m_rotation;
 
-		createBulletEntity(bullet);
+		switch (bullet->m_type)
+		{
+		case BulletType::GladiusBullet:
+			createBulletEntity(bullet);
+			break;
+		case BulletType::ShotgunBullet:
+			createBulletEntity(bullet);
+			break;
+		case BulletType::Grenade:
+			createGrenadeEntity(bullet);
+			break;
+		default:
+			createBulletEntity(bullet);
+			break;
+		}
 	}
 	void SandboxScene::createBulletEntity(Bullet* bullet)
 	{
@@ -837,6 +851,42 @@ namespace arena
 		createSmokeEntity(*bullet);
 
 	}
+	void SandboxScene::createGrenadeEntity(Bullet* bullet)
+	{
+
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = *bullet->m_position;
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenade.png"));
+		renderer->setRotation(bullet->m_rotation);
+		
+		renderer->anchor();
+		Movement* movement = builder.addMovement();
+		movement->m_velocity = glm::vec2(0, 0);
+		movement->m_rotationSpeed = 0.02f;
+
+		Timer* timer = builder.addTimer();
+		// Let debugBullets/serve decide when grenade is destroyed.
+		timer->m_lifeTime = 70;
+
+		Entity* entity = builder.getResults();
+		registerEntity(entity);
+
+		builder.begin();
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
+		debugBullet.entity = entity;
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+
+	}
+
 	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)
 	{
 		EntityBuilder builder;

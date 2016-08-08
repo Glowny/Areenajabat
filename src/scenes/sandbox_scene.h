@@ -91,6 +91,7 @@ namespace arena
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
 		void createBulletEntity(Bullet* bullet);
+		void createGrenadeEntity(Bullet* bullet);
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(const Bullet& bullet);
 

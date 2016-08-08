@@ -31,7 +31,7 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 	b2Filter filter;
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
-	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet;
+	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet | c_Platform | c_Grenade;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_Platform] = filter;
 
@@ -59,11 +59,17 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 	filter.groupIndex = 0 ;
 	b2Filters[ci_GladiatorNoCollide] = filter;
 
-	// Bullet filter. DONE
+	// Bullet filter.
 	filter.categoryBits = c_Bullet;
 	filter.maskBits = c_Platform | c_GladiatorNoCollide | c_Gladiator;
 	filter.groupIndex = 0;
 	b2Filters[ci_Bullet] = filter;
+
+	// Grenade filter.
+	filter.categoryBits = c_Grenade;
+	filter.maskBits = c_Platform;
+	filter.groupIndex = 0;
+	b2Filters[ci_Grenade] = filter;
 };
 Physics::~Physics() {};
 
@@ -377,18 +383,18 @@ uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned sh
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.02f, 0.02f);
+	dynamicBox.SetAsBox(0.05f, 0.05f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 2.0f;
+	fixtureDef.density = 3.0f;
 	fixtureDef.friction = 1.01f;
-	fixtureDef.filter = b2Filters[ci_Bullet];
-	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+	fixtureDef.filter = b2Filters[ci_Grenade];
+	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.mass = 0.1f;
-	data.center = b2Vec2(0.01f, 0.01f);
+	data.mass = 0.3f;
+	data.center = b2Vec2(0.025f, 0.025f);
 
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);

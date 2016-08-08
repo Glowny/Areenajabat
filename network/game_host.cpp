@@ -450,12 +450,12 @@ namespace arena
 		Bullet* bullet = new Bullet();
 		bullet->m_rotation = gladiator->m_aimAngle;
 		bullet->m_type = BulletType::Grenade;
-		bullet->m_position = gladiator->m_position;
-		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, glm::vec2(100, 100), gladiator->getPhysicsID());
+		*bullet->m_position = glm::vec2(gladiator->m_position->x + 100, gladiator->m_position->y);
+		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, glm::vec2(20, -20), gladiator->getPhysicsID());
 
 		m_synchronizationList.push_back(bullet);
 		DebugBullet dBullet;
-		dBullet.lifeTime = 0;
+		dBullet.lifeTime = 13;
 		dBullet.m_bullet = bullet;
 		m_debugBullets.push_back(dBullet);
 	}
