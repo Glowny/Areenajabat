@@ -367,6 +367,51 @@ void Physics::removeGladiator(unsigned id)
     BX_UNUSED(id);
 	// TODO: Do proper removal.
 };
+uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID)
+{
+	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), vel(velocity.x / 100.0f, velocity.y / 100.0f);
+	b2BodyDef bulletBodyDef;
+	bulletBodyDef.type = b2_dynamicBody;
+	bulletBodyDef.position.Set(pos.x, pos.y);
+	bulletBodyDef.bullet = true;
+	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
+
+	b2PolygonShape dynamicBox;
+	dynamicBox.SetAsBox(0.02f, 0.02f);
+
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &dynamicBox;
+	fixtureDef.density = 2.0f;
+	fixtureDef.friction = 1.01f;
+	fixtureDef.filter = b2Filters[ci_Bullet];
+	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+
+	b2MassData data;
+	data.mass = 0.1f;
+	data.center = b2Vec2(0.01f, 0.01f);
+
+	body->SetMassData(&data);
+	body->CreateFixture(&fixtureDef);
+
+	p_Bullet* bullet = new p_Bullet;
+	bullet->bulletId = getFreeBulletId();
+	p_userData* userData = new p_userData;
+	userData->m_bodyType = B_Grenade;
+	bullet->m_type = B_Grenade;
+	userData->m_object = bullet;
+	bullet->m_myUserData = userData;
+	bullet->m_body = body;
+	bullet->m_contact = false;
+	bullet->m_contactBody = B_NONE;
+	bullet->m_shooterID = shooterID;
+	bullet->gamePosition = position;
+	body->SetUserData(userData);
+	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
+	m_bulletVector.push_back(bullet);
+
+	return bullet->bulletId;
+};
+
 uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID)
 {
 	

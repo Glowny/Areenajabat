@@ -39,6 +39,7 @@ enum entityIndexes
 enum bodyType
 {
 	B_Platform,
+	B_Grenade,
 	B_Gladiator,
 	B_Bullet,
 	B_LadderLeft,
@@ -233,6 +234,7 @@ public:
 
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
+	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
 	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
 	void removeBullet(uint8_t id);
 	ContactListener m_ContactListener;
