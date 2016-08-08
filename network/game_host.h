@@ -274,6 +274,7 @@ namespace arena
 		void unregisterEntity(NetworkEntity* entity);
 
 		void processInput(const uint64 clientIndex, const PlayerInput& input, float32 aimAngle);
+		void GrenadeShoot(Gladiator* gladiator);
 		void GladiatorShoot(Gladiator* gladiator);
 		
 		bool shouldProcessPlayerInput() const;

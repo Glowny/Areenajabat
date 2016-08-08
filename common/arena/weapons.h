@@ -18,6 +18,7 @@ namespace arena
 	{
 		GladiusBullet,
 		ShotgunBullet,
+		Grenade
 	};
 
 	struct Bullet : public NetworkEntity

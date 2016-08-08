@@ -148,11 +148,6 @@ namespace arena
 		anime->m_animator.resetAnimation();
 	}
 
-	static void throwAGrenade(const void*)
-	{
-		anime->m_animator.playThrowAnimation(0, 0);
-	}
-
 	static void climb(const void*)
 	{
 		anime->m_animator.playClimbAnimation(0);
@@ -188,7 +183,7 @@ namespace arena
         { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
         { arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
-		{ arena::Key::KeyT, arena::Modifier::None, 0, throwAGrenade, "apple" },
+		{ arena::Key::KeyT, arena::Modifier::None, 0, inputThrow, "apple" },
 		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 
@@ -227,6 +222,11 @@ namespace arena
 	static void inputJump(const void*)
 	{
 		sandbox->m_controller.m_input.m_jumpButtonDown = true;
+	}
+	static void inputThrow(const void*)
+	{
+		anime->m_animator.playThrowAnimation(0, 0);
+		sandbox->m_controller.m_input.m_grenadeButtonDown = true;
 	}
 
 	SandboxScene::SandboxScene() : Scene("sandbox")

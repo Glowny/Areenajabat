@@ -138,5 +138,6 @@ namespace arena
 	static void inputShoot(const void*);
 	static void inputReload(const void*);
 	static void inputJump(const void*);
+	static void inputThrow(const void*);
 
 }

@@ -192,6 +192,10 @@ namespace arena
 				player.m_gladiator->m_weapon->startReload();
 				player.m_gladiator->m_reloading = true;
 			}
+			if (input.m_grenadeButtonDown)
+			{
+				GrenadeShoot(player.m_gladiator);
+			}
 			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;
 			int32 y = 0;
@@ -441,6 +445,21 @@ namespace arena
         player->m_playerController->m_input = input;
 		player->m_playerController->aimAngle = aimAngle;
 	}
+
+	void GameHost::GrenadeShoot(Gladiator* gladiator){
+		Bullet* bullet = new Bullet();
+		bullet->m_rotation = gladiator->m_aimAngle;
+		bullet->m_type = BulletType::Grenade;
+		bullet->m_position = gladiator->m_position;
+		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, glm::vec2(100, 100), gladiator->getPhysicsID());
+
+		m_synchronizationList.push_back(bullet);
+		DebugBullet dBullet;
+		dBullet.lifeTime = 0;
+		dBullet.m_bullet = bullet;
+		m_debugBullets.push_back(dBullet);
+	}
+
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
 	{
 		std::vector<Bullet*> bullets = gladiator->shoot();
@@ -509,7 +528,7 @@ namespace arena
 
 			e_gameStart();
 
-            loadMap("coordinatesRawData.dat");
+            loadMap("assets/coordinatesRawData.dat");
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
