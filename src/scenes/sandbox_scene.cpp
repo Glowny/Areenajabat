@@ -280,6 +280,8 @@ namespace arena
 		// Update all game entities.
 		updateEntities(gameTime);
 
+		updatePhysics(gameTime);
+
 		// set m_controller aim angle of the player character.
 		rotatePlayerAim();
 
@@ -709,6 +711,11 @@ namespace arena
 		}
 	}
 	
+	void SandboxScene::updatePhysics(const GameTime& gameTime)
+	{
+		m_physics.update(gameTime.m_delta);
+	}
+
 	Entity* SandboxScene::createMousePointerEntity()
 	{
 		EntityBuilder builder;
@@ -798,23 +805,34 @@ namespace arena
 		bullet->m_creationDelay = data.m_creationDelay;
 		bullet->m_rotation = data.m_rotation;
 
+		// Create bullet entity that is updated by server. (DEBUG)
+		Entity* entity = nullptr;
 		switch (bullet->m_type)
 		{
 		case BulletType::GladiusBullet:
-			createBulletEntity(bullet);
+			entity = createBulletEntity(bullet);
 			break;
 		case BulletType::ShotgunBullet:
-			createBulletEntity(bullet);
+			entity = createBulletEntity(bullet);
 			break;
 		case BulletType::Grenade:
-			createGrenadeEntity(bullet);
+			entity = createGrenadeEntity(bullet);
 			break;
 		default:
-			createBulletEntity(bullet);
+			entity = createBulletEntity(bullet);
 			break;
 		}
+		assert(entity != nullptr);
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
+		debugBullet.entity = entity;
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+		
+		// Create bullet entity that is updated by clientside physics
+
+
 	}
-	void SandboxScene::createBulletEntity(Bullet* bullet)
+	Entity* SandboxScene::createBulletEntity(Bullet* bullet)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -838,20 +856,13 @@ namespace arena
 		//movement->m_velocity = bullet->m_impulse;
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
-		
-		builder.begin();
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = entity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
-		
-		// effects
-		
+	
+		// effects		
 		createMuzzleFlashEntity(*bullet);
 		createSmokeEntity(*bullet);
-
+		return entity;
 	}
-	void SandboxScene::createGrenadeEntity(Bullet* bullet)
+	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet)
 	{
 
 		EntityBuilder builder;
@@ -879,12 +890,7 @@ namespace arena
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
 
-		builder.begin();
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = entity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
-
+		return entity;
 	}
 
 	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)

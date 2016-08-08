@@ -10,6 +10,7 @@
 #include "common/arena/scoreboard.h"
 #include "../ecs/transform.h"
 #include <map>
+#include <common/arena/physics.h>
 struct Message;
 
 
@@ -85,13 +86,16 @@ namespace arena
 		// Update debugbullets.
 		void updateDebugBullets(const GameTime& gameTime);
 
+		// Update clientside physics
+		void updatePhysics(const GameTime& gameTime);
+
 		Entity* createMousePointerEntity();
 		// Create single gladiator.
 		void createGladiator(Gladiator* gladiator);
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
-		void createBulletEntity(Bullet* bullet);
-		void createGrenadeEntity(Bullet* bullet);
+		Entity* createBulletEntity(Bullet* bullet);
+		Entity* createGrenadeEntity(Bullet* bullet);
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(const Bullet& bullet);
 
@@ -126,6 +130,7 @@ namespace arena
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
 		int m_backgroundSetting; 
 		Entity* mousePointerEntity;
+		Physics m_physics;
 		//TODO: remake as component later.
 		glm::vec2 oldMousePos;
 		Scoreboard* m_scoreboard;
