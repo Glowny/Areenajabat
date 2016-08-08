@@ -81,6 +81,13 @@ namespace arena
 		m_entity->add(identification);
 		return identification;
 	}
+	Projectile* const EntityBuilder::addProjectile()
+	{
+		Projectile* projectile = new Projectile();
+		m_entity->add(projectile);
+		return projectile;
+	}
+
 
 	void EntityBuilder::addTag(const String& tag)
 	{
