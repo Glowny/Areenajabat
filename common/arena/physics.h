@@ -237,6 +237,9 @@ public:
 	void removeGladiator(unsigned id);
 	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
 	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
+	// Add bullet which physics ID is selected and does not need to generated.
+	// Client needs this to have same bullet id as server.
+	void addClientSideBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
 	void removeBullet(uint8_t id);
 	ContactListener m_ContactListener;
 

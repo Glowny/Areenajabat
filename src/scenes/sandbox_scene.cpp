@@ -2,6 +2,7 @@
 #include "../app.h"
 #include "../game_time.h"
 
+#include "../ecs/projectile.h"
 #include "../ecs/timer.h"
 #include "../ecs/movement.h"
 #include "../ecs/transform.h"
@@ -279,6 +280,8 @@ namespace arena
 		updateDebugBullets(gameTime);
 		// Update all game entities.
 		updateEntities(gameTime);
+
+		updatePhysics(gameTime);
 
 		// set m_controller aim angle of the player character.
 		rotatePlayerAim();
@@ -709,6 +712,11 @@ namespace arena
 		}
 	}
 	
+	void SandboxScene::updatePhysics(const GameTime& gameTime)
+	{
+		m_physics.update(gameTime.m_delta);
+	}
+
 	Entity* SandboxScene::createMousePointerEntity()
 	{
 		EntityBuilder builder;
@@ -791,6 +799,9 @@ namespace arena
 	}
 	void SandboxScene::createBullet(BulletData &data)
 	{
+		// TODO: add some identifier (Color?) on bullets, to see clientside/serverside difference.
+
+		// Create bullet entity that is updated by server. (DEBUG)
 		Bullet* bullet = new Bullet;
 		*bullet->m_position = data.m_position;
 		bullet->m_bulletId = data.m_id;
@@ -798,34 +809,74 @@ namespace arena
 		bullet->m_creationDelay = data.m_creationDelay;
 		bullet->m_rotation = data.m_rotation;
 
+		Entity* serverEntity = nullptr;
 		switch (bullet->m_type)
 		{
 		case BulletType::GladiusBullet:
-			createBulletEntity(bullet);
+			serverEntity = createBulletEntity(bullet);
 			break;
 		case BulletType::ShotgunBullet:
-			createBulletEntity(bullet);
+			serverEntity = createBulletEntity(bullet);
 			break;
 		case BulletType::Grenade:
-			createGrenadeEntity(bullet);
+			serverEntity = createGrenadeEntity(bullet);
 			break;
 		default:
-			createBulletEntity(bullet);
+			serverEntity = createBulletEntity(bullet);
 			break;
 		}
+		assert(serverEntity != nullptr);
+		DebugBullet debugBullet;
+		debugBullet.bullet = bullet;
+		debugBullet.entity = serverEntity;
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+		
+
+
+		// Create bullet entity that is updated by clientside physics
+		Entity* clientEntity = nullptr;
+		switch (bullet->m_type)
+		{
+		case BulletType::GladiusBullet:
+			clientEntity = createBulletEntity(bullet);
+			break;
+		case BulletType::ShotgunBullet:
+			clientEntity = createBulletEntity(bullet);
+			break;
+		case BulletType::Grenade:
+			clientEntity = createGrenadeEntity(bullet);
+			break;
+		default:
+			clientEntity = createBulletEntity(bullet);
+			break;
+		}
+		assert(clientEntity != nullptr);
+
+		Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
+		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
+		projectile->m_bulletId = bullet->m_bulletId;
+		projectile->m_bulletType = bullet->m_type;
+		glm::vec2 force = radToVec(bullet->m_rotation);
+		// TODO: Get real player id for client-side collisions. If bullets get removed after being shot by
+		// any other player than 0, it's because of this.
+		m_physics.addClientSideBullet(&transform->m_position, glm::vec2(force.x*20.0f, force.y * 20.0f), 0, bullet->m_bulletId);
+		
+		// TODO: Update clientside bullet on updateEntities();
 	}
-	void SandboxScene::createBulletEntity(Bullet* bullet)
+	Entity* SandboxScene::createBulletEntity(Bullet* bullet)
 	{
 		EntityBuilder builder;
 		builder.begin();
 
+		// Debugbullet does not need projectile, but clientside physics needs it 
+		// for the projectile to be deleted by server.
+		builder.addProjectile();
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 		
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
 		//if (bullet->m_rotation < 3.142)
 		renderer->setRotation(bullet->m_rotation);
@@ -839,24 +890,17 @@ namespace arena
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
 		
-		builder.begin();
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = entity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
-		
-		// effects
-		
+		// effects		
 		createMuzzleFlashEntity(*bullet);
 		createSmokeEntity(*bullet);
-
+		return entity;
 	}
-	void SandboxScene::createGrenadeEntity(Bullet* bullet)
+	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet)
 	{
 
 		EntityBuilder builder;
 		builder.begin();
-
+		builder.addProjectile();
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 
@@ -879,12 +923,7 @@ namespace arena
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
 
-		builder.begin();
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = entity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
-
+		return entity;
 	}
 
 	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)
