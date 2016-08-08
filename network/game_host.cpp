@@ -158,7 +158,6 @@ namespace arena
 
 	void GameHost::applyPlayerInputs(const float64 dt)
 	{
-		// TODO: add jump and dont let player decide amount of force applied!
 		auto& players = m_players.container();
 
 
@@ -193,22 +192,17 @@ namespace arena
 				player.m_gladiator->m_weapon->startReload();
 				player.m_gladiator->m_reloading = true;
 			}
-			
-			// Do not add forces if there are none.
-            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown || input.m_jumpButtonDown)) continue;
-                      
-            int32 x = 0;
+			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
+			int32 x = 0;
 			int32 y = 0;
-			if (input.m_leftButtonDown)	x = -1;
-			else if (input.m_rightButtonDown)	x = 1;
-			if (input.m_upButtonDown) y = -1;
-			else if (input.m_downButtonDown) y = 1;
 
-            // TODO: Make a sensor physics object under player that detects platforms.
+			// TODO: Make a sensor physics object under player that detects platforms.
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(player.m_gladiator->getPhysicsID())
-				&& (player.m_gladiator->m_jumpCoolDownTimer += (float)dt) > 0.25f)
+				&& (player.m_gladiator->m_jumpCoolDownTimer > 0.25f))
 			{
+				input.m_jumpButtonDown = false;
 				player.m_gladiator->m_jumpCoolDownTimer = 0;
+
 				glm::vec2 force;
 				if (x == 0)
 				{
@@ -222,43 +216,52 @@ namespace arena
 				}
 				m_physics.applyImpulseToGladiator(force, physicsID);
 			}
-			else
-			{ 
+
+			// Do not add forces if there are none.
+            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown ))
+				continue;
+                      
+          
+			if (input.m_leftButtonDown)	x = -1;
+			else if (input.m_rightButtonDown)	x = 1;
+			if (input.m_upButtonDown) y = -1;
+			else if (input.m_downButtonDown) y = 1;
+ 
 				// reserve upbutton for ladder climb
-				glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(physicsID);
-				float desiredVelocityX = 300.0f * (float)x;
-				float velocityChangeX = desiredVelocityX - currentVelocity.x;
-				// add more velocity only if climbing ladders.
-				float desiredVelocityY = 0;
-				float velocityChangeY = 0;
+			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(physicsID);
+			float desiredVelocityX = 300.0f * (float)x;
+			float velocityChangeX = desiredVelocityX - currentVelocity.x;
+			// add more velocity only if climbing ladders.
+			float desiredVelocityY = 0;
+			float velocityChangeY = 0;
 
-				player.m_gladiator->m_climbing = false;
-				if (input.m_upButtonDown || input.m_downButtonDown)
+			player.m_gladiator->m_climbing = false;
+			if (input.m_upButtonDown || input.m_downButtonDown)
+			{
+				if (input.m_downButtonDown)
 				{
-					if (input.m_downButtonDown)
-					{
-						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
-						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
-					}
-					int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID());
-					if (ladderCollide != 0)
-					{
-						player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
-						desiredVelocityY = 300.0f * (float)y;
-						velocityChangeY = desiredVelocityY - currentVelocity.y;
-						player.m_gladiator->m_climbing = ladderCollide;
-						m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
-					}
-					
+					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
+					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 				}
-
-				glm::vec2 force;
-				force.y = 1500.0f * velocityChangeY * (float)dt;
-				force.x = 1500.0f * velocityChangeX * (float)dt;
-
-				m_physics.applyForceToGladiator(force, physicsID);
-					
+				int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID());
+				if (ladderCollide != 0)
+				{
+					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
+					desiredVelocityY = 300.0f * (float)y;
+					velocityChangeY = desiredVelocityY - currentVelocity.y;
+					player.m_gladiator->m_climbing = ladderCollide;
+					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
 				}
+				
+			}
+
+			glm::vec2 force;
+			force.y = 1500.0f * velocityChangeY * (float)dt;
+			force.x = 1500.0f * velocityChangeX * (float)dt;
+
+			m_physics.applyForceToGladiator(force, physicsID);
+				
+			
 			
 			
 			// Set the inputs to zero as they are handled.
@@ -667,6 +670,7 @@ namespace arena
 		}
 		m_scoreBoard = board;
 		registerEntity(board);
+		m_synchronizationList.push_back(m_scoreBoard);
 	}
 	void GameHost::resetScoreBoard()
 	{

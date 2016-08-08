@@ -326,6 +326,7 @@ namespace arena
 
 		s_client->sendPacketToServer(packet, s_stamp);
 		memset(&m_controller.m_input, false, sizeof(PlayerInput));
+		
 	}
 	void SandboxScene::processAllPackets(const GameTime& gameTime)
 	{
@@ -1065,7 +1066,7 @@ namespace arena
 			oldMousePos = cameraPositionOnMouse;
 			// Adjust the aim position where bullets drop.
 			mouseTransform->m_position = cameraPosition + glm::vec2(-16, 36.0f);
-			checkBounds(cameraPosition);
+			//checkBounds(cameraPosition);
 			camera.m_position = cameraPosition;
 			camera.calculate();
 			// set views
