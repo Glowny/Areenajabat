@@ -196,6 +196,7 @@ namespace arena
 			}
 
 			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
+
 			if (input.m_grenadeButtonDown && checkGrenade)
 			{
 				GrenadeShoot(player.m_gladiator);

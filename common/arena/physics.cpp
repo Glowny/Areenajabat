@@ -470,22 +470,23 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.05f, 0.1f);
+	dynamicBox.SetAsBox(0.1f, 0.2f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 3.0f;
-	fixtureDef.friction = 2.01f;
-	fixtureDef.restitution = 0.01f;
+	fixtureDef.density = 1.5f;
+	fixtureDef.friction = 3.01f;
+	fixtureDef.restitution = 0.0f;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.mass = 0.5f;
-	data.center = b2Vec2(0.025f, 0.05f);
-
+	data.mass = 0.10f;
+	data.center = b2Vec2(0.05f, 0.1f);
+	
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
+	body->SetAngularDamping(4.0f);
 
 	p_Bullet* bullet = new p_Bullet;
 	bullet->bulletId = bulletID;

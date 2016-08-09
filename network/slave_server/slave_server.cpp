@@ -175,7 +175,8 @@ namespace arena
 				{
 					spawnBulletsPacket = (GameSpawnBulletsPacket*)createPacket(PacketTypes::GameSpawnBullets);
 					spawnBulletsPacket->m_bulletAmount = 0;
-			}
+
+				}
 				if (spawnBulletsPacket->m_bulletAmount >= BULLET_MAX_AMOUNT)
 				{
 					printf("WARNING: Too many bullets synchronized, not sending any more bullets\n");
