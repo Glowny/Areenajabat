@@ -279,7 +279,7 @@ namespace arena
 		updateEntities(gameTime);
 
 		updatePhysics(gameTime);
-
+		
 		// set m_controller aim angle of the player character.
 		rotatePlayerAim();
 
@@ -717,6 +717,7 @@ namespace arena
 	void SandboxScene::updatePhysics(const GameTime& gameTime)
 	{
 		m_physics.update(gameTime.m_delta);
+		
 	}
 
 	Entity* SandboxScene::createMousePointerEntity()
@@ -829,6 +830,12 @@ namespace arena
 			break;
 		}
 		assert(serverEntity != nullptr);
+
+		// Set color of server side entities to green.
+		SpriteRenderer* renderer = (SpriteRenderer*)serverEntity->first(TYPEOF(SpriteRenderer));
+		uint32_t color = color::toABGR(0, 255, 0, 255);
+		renderer->setColor(color);
+
 		DebugBullet debugBullet;
 		debugBullet.bullet = bullet;
 		debugBullet.entity = serverEntity;
