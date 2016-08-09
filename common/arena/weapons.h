@@ -53,10 +53,13 @@ namespace arena
 			: Bullet()
 		{
 			m_timer = 0;
-			m_timerEnd = 2;
+			m_explosionTime = 1.8f;
+			m_endTime = 2;
 		}
 		float m_timer;
-		float m_timerEnd;
+		float m_explosionTime;
+		float m_endTime;
+		uint8_t m_explosionId;
 
 	};
 
