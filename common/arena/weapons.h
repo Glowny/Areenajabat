@@ -249,7 +249,7 @@ namespace arena
 			bullet->m_creationDelay = 0;
 			bullet->m_rotation = aimAngle;
 			bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
-			bullet->m_position->x = position.x + 100 + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
+			bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 			return bullet;
 		}
 	};

@@ -192,12 +192,14 @@ namespace arena
 			{ 
 				player.m_gladiator->m_weapon->startReload();
 				player.m_gladiator->m_reloading = true;
+				input.m_reloadButtonDown = false;
 			}
 
 			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
 			if (input.m_grenadeButtonDown && checkGrenade)
 			{
 				GrenadeShoot(player.m_gladiator);
+				input.m_grenadeButtonDown = false;
 			}
 			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;
