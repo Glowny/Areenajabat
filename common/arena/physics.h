@@ -12,6 +12,7 @@ BX_PRAGMA_DIAGNOSTIC_POP()
 #include <glm/glm.hpp>
 #include <typeinfo>
 #include "../network_entity.h"
+#include "weapons.h"
 
 // TODO: platform has extra stuff that could be removed.
 
@@ -94,12 +95,14 @@ struct p_Gladiator :public p_entity
 
 };
 
+
 struct p_Bullet :public p_entity
 {
 	unsigned m_shooterID;
 	uint8_t bulletId;
 	bool m_contact;
 	bodyType m_contactBody;
+	arena::BulletType m_bulletType;
 	p_userData* m_contactUserData;
 	b2Body* m_body;
 	p_userData* m_myUserData;
@@ -159,7 +162,7 @@ private:
 		p_userData* targetUserData = static_cast<p_userData*>(targetBodyUserData);
 		p_userData* bulletUserData = static_cast<p_userData*>(bulletBodyUserData);
 
-		if (bulletUserData->m_bodyType == B_Bullet)
+		if (bulletUserData->m_bodyType == B_Bullet || bulletUserData->m_bodyType == B_Explosion)
 		{
 			switch (targetUserData->m_bodyType)
 			{
@@ -171,7 +174,7 @@ private:
 					BulletCollisionEntry entry;
 					entry.m_bullet = *bullet;
 					entry.m_shooter = *findEntity(bullet->m_shooterID);
-					
+
 					p_Platform* entryPlatform = new p_Platform;
 					*entryPlatform = *static_cast<p_Platform*>(targetUserData->m_object);
 					entry.m_target = entryPlatform;
@@ -187,6 +190,7 @@ private:
 
 					BulletCollisionEntry entry;
 					entry.m_bullet = *bullet;
+					entry.m_bullet.m_bulletType;
 					entry.m_shooter = *findEntity(bullet->m_shooterID);
 					 
 					p_Gladiator* entryGladiator = new p_Gladiator;

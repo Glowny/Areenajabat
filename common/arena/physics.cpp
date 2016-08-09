@@ -439,6 +439,7 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned 
 	userData->m_bodyType = B_Bullet;
 	bullet->m_type = B_Bullet;
 	userData->m_object = bullet;
+	bullet->m_bulletType = arena::BulletType::GladiusBullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;
 	bullet->m_contact = false;
@@ -490,6 +491,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Grenade;
 	bullet->m_type = B_Grenade;
+	bullet->m_bulletType = arena::BulletType::GrenadeBullet;
 	userData->m_object = bullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;
@@ -537,6 +539,7 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	userData->m_bodyType = B_Explosion;
 	bullet->m_type = B_Explosion;
 	userData->m_object = bullet;
+	bullet->m_bulletType = arena::BulletType::GrenadeBullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;
 	bullet->m_contact = false;
