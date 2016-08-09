@@ -22,18 +22,22 @@ enum entityCategory
 	c_Ladder =					0x0004,
 	c_GladiatorNoCollide=		0x0008,
 	c_Gladiator=				0x0010,
-	c_Bullet=					0x0020,
-	c_Grenade=					0x0040
+	c_JumpSensor=				0x0020,
+	c_Bullet =					0x0040,
+	c_BulletSensor =			0x0080,
+	c_Grenade=					0x0100,
 };
 enum entityIndexes
 {
-	ci_Platform = 0,
-	ci_LightPlatform = 1,
-	ci_Ladder = 2,
-	ci_GladiatorNoCollide = 3,
-	ci_Gladiator = 4,
-	ci_Bullet = 5,
-	ci_Grenade = 6,
+	ci_Platform					= 0,
+	ci_LightPlatform			= 1,
+	ci_Ladder					= 2,
+	ci_GladiatorNoCollide		= 3,
+	ci_Gladiator				= 4,
+	ci_JumpSensor				= 5,
+	ci_Bullet					= 6,
+	ci_BulletSensor				= 7,
+	ci_Grenade					= 8,
 
 };
 
@@ -41,6 +45,7 @@ enum bodyType
 {
 	B_Platform,
 	B_Grenade,
+	B_Explosion,
 	B_Gladiator,
 	B_Bullet,
 	B_LadderLeft,
@@ -214,7 +219,7 @@ using CollisionCallback = std::function<void(arena::NetworkEntity* const, arena:
 class Physics
 {
 public:
-	b2Filter b2Filters[7];
+	b2Filter b2Filters[9];
 	Physics();
 	~Physics();
 
@@ -223,7 +228,8 @@ public:
 	void update(float32 timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
-	uint32_t addGladiator(glm::vec2* position, glm::vec2* velocity);
+	uint32_t addGladiator(glm::vec2* position, glm::vec2* velocity, bool generateID = true, uint32_t id = 0);
+	void addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint32_t id);
 	void applyForceToGladiator(glm::vec2 direction, unsigned id);
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
@@ -235,12 +241,17 @@ public:
 
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
-	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
-	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID);
-	// Add bullet which physics ID is selected and does not need to generated.
-	// Client needs this to have same bullet id as server.
-	void addClientSideBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
+	
+	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID = true, uint8_t id = 0);
+	void addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
+	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID = true, uint8_t id = 0);
+	void addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
+	uint8_t addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID = true, uint8_t id = 0);
+	void addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID);
+	
+	// TODO: Rename this to removeEntity. Use the same system to remove bullets, grenades and explosions.
 	void removeBullet(uint8_t id);
+
 	ContactListener m_ContactListener;
 
 	std::vector<BulletHit> hitVector;

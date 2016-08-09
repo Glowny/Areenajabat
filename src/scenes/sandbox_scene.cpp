@@ -241,14 +241,7 @@ namespace arena
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
 		m_backgroundSetting = 1;
 		createBackground();
-
-		// Create gladiator for graphics debugging. This is to debug graphics without connecting to the server.
-		Gladiator* glad = new Gladiator();
-		*glad->m_position = glm::vec2(200, 200);
-		glad->m_ownerId = 0;
-		m_playerId = 0;
-		createGladiator(glad);
-		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
+		anime = nullptr;
 		m_scoreboard = nullptr;
 		
 	}
@@ -275,6 +268,10 @@ namespace arena
 		s_client->readPackets();
 		// Process packets stored in s_client.
 		processAllPackets(gameTime);
+
+		//TEMP: if game has not started, do not update.
+		if (m_clientIdToGladiatorData.size() == 0)
+			return;
 
 		// Update transform component of debug bullets and delete old bullets.
 		updateDebugBullets(gameTime);
@@ -432,6 +429,7 @@ namespace arena
 			gladiator->m_velocity = &characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
+			gladiator->setPhysicsID(characterData->m_id);
 			createGladiator(gladiator);
 			PlayerScore playerScore;
 			playerScore.m_playerID = gladiator->m_ownerId;
@@ -452,7 +450,11 @@ namespace arena
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
 		m_platformVector.push_back(platform);
-
+		// TODO: There is a bug that receives empty platform.
+		if (platform.vertices.size() >= 2)
+		{ 
+			m_physics.createPlatform(platform.vertices, platform.type);
+		}
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
@@ -788,6 +790,7 @@ namespace arena
 
 		registerEntity(entity_gladiator);
 
+		m_physics.addGladiator(gladiator->m_position, gladiator->m_velocity, false, gladiator->getPhysicsID());
 		GladiatorDrawData* data = new GladiatorDrawData;
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
@@ -859,7 +862,7 @@ namespace arena
 		glm::vec2 force = radToVec(bullet->m_rotation);
 		// TODO: Get real player id for client-side collisions. If bullets get removed after being shot by
 		// any other player than 0, it's because of this.
-		m_physics.addClientSideBullet(&transform->m_position, glm::vec2(force.x*20.0f, force.y * 20.0f), 0, bullet->m_bulletId);
+		m_physics.addBullet(&transform->m_position, glm::vec2(force.x*20.0f, force.y * 20.0f), 0, false, bullet->m_bulletId);
 		
 		// TODO: Update clientside bullet on updateEntities();
 	}

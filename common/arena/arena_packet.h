@@ -13,12 +13,14 @@ namespace arena
 	{
 		BulletData()
 		{
+			m_ownerId = 0;
 			m_id = 0;
 			m_type = 0;
 			m_position = glm::vec2(0,0);
 			m_rotation = 0;
 			m_creationDelay = 0;
 		}
+		uint8_t m_ownerId;
 		uint8_t m_id;
 		uint8_t m_type;
 		glm::vec2 m_position;
@@ -26,6 +28,7 @@ namespace arena
 		float m_creationDelay; // TODO: Replace with gametime later.
 	}; 
 
+	// TODO: Remove unused variables when clientside physics is done.
 	struct BulletHitData
 	{
 		BulletHitData()
@@ -52,6 +55,7 @@ namespace arena
 			m_velocity = glm::vec2(0, 0);
 			m_aimAngle = 0;
 		}
+		uint32_t m_id;
 		glm::vec2 m_position;
 		glm::vec2 m_velocity;
 		float m_aimAngle;
@@ -206,6 +210,7 @@ namespace arena
 			{
 
 				serialize_bytes(stream, &m_characterArray[i].m_ownerId, 1);
+				serialize_uint32(stream, m_characterArray[i].m_id);
 				serialize_float(stream, m_characterArray[i].m_position.x);
 				serialize_float(stream, m_characterArray[i].m_position.y);
 				serialize_float(stream, m_characterArray[i].m_velocity.x);
@@ -298,6 +303,7 @@ namespace arena
 			{
 				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_type, 1);
 				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_id, 1);
+				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_ownerId, 1);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.x);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.y);
 				serialize_float(stream, m_bulletSpawnArray[i].m_rotation);

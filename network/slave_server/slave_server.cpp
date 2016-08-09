@@ -155,9 +155,9 @@ namespace arena
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_aimAngle = gladiator->m_aimAngle;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_reloading = gladiator->m_reloading;
-				gladiator->m_reloading = false; // Dont spam reload. TODO: move this to somewhere on game_host.
+				//gladiator->m_reloading = false; // Dont spam reload. TODO: move this to somewhere on game_host.
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_throwing = gladiator->m_throwing;
-				gladiator->m_throwing = false; // Dont spam throwing. TODO: move this to somewhere on game_host.
+				//gladiator->m_throwing = false; // Dont spam throwing. TODO: move this to somewhere on game_host.
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_climbing = gladiator->m_climbing;
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
@@ -223,9 +223,8 @@ namespace arena
 			}
 			case NetworkEntityType::Map:
             {
-               
                 GameMap* mapEntity = (GameMap*)entity;
-
+				
                 for (auto platform : mapEntity->m_platformVector)
                 {
                     // Send map data. This data is only send once per game.
@@ -236,8 +235,7 @@ namespace arena
                     {
                         packet->m_platform.m_vertexArray[i] = platform.vertices[i];
                     }
-
-                    broadcast(packet);
+				   broadcast(packet);
                 }
 				
 				// send data about player amount and clients id.
@@ -261,6 +259,7 @@ namespace arena
 					gladiatorsCreatePacket->m_characterArray[i].m_velocity = *players[i].m_gladiator->m_velocity;
 					gladiatorsCreatePacket->m_characterArray[i].m_aimAngle = players[i].m_gladiator->m_aimAngle;
 					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
+					gladiatorsCreatePacket->m_characterArray[i].m_id = players[i].m_gladiator->getPhysicsID();
 				}
 				broadcast(gladiatorsCreatePacket);
                 break;

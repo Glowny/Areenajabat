@@ -31,7 +31,7 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 	b2Filter filter;
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
-	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet | c_Platform | c_Grenade;
+	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet | c_BulletSensor | c_Platform | c_Grenade;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_Platform] = filter;
 
@@ -49,21 +49,30 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 
 	// Gladiator collide filter 
 	filter.categoryBits = c_Gladiator;
-	filter.maskBits = c_Ladder | c_Platform | c_LightPlatform | c_Bullet;
+	filter.maskBits = c_Ladder | c_Platform | c_LightPlatform | c_Bullet | c_BulletSensor;
 	filter.groupIndex = 0;
 	b2Filters[ci_Gladiator] = filter;
 
 	//Gladiator no collide filter
 	filter.categoryBits = c_GladiatorNoCollide;
-	filter.maskBits =  c_Ladder | c_Platform | c_Bullet;
+	filter.maskBits =  c_Ladder | c_Platform | c_Bullet | c_BulletSensor;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_GladiatorNoCollide] = filter;
 
 	// Bullet filter.
+	// Bullet only collides with platforms. 
+	// It passes gladiators, and hits to gladiators are registered by bullet sensor.
+	
 	filter.categoryBits = c_Bullet;
-	filter.maskBits = c_Platform | c_GladiatorNoCollide | c_Gladiator;
+	filter.maskBits = c_Platform;
 	filter.groupIndex = 0;
 	b2Filters[ci_Bullet] = filter;
+
+	// Bullet sensor filter.
+	filter.categoryBits = c_BulletSensor;
+	filter.maskBits = c_Platform | c_GladiatorNoCollide | c_Gladiator;
+	filter.groupIndex = 0;
+	b2Filters[ci_BulletSensor] = filter;
 
 	// Grenade filter.
 	filter.categoryBits = c_Grenade;
@@ -216,10 +225,17 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 }
 
 // returns id.
-uint32_t Physics::addGladiator(glm::vec2* position, glm::vec2* velocity)
+uint32_t Physics::addGladiator(glm::vec2* position, glm::vec2* velocity, bool generateID, uint32_t id)
+{
+	if (generateID)
+		id = m_gladiatorVector.size();
+	addGladiatorWithID(position, velocity, id);
+	return id;
+}
+void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint32_t id)
 {
 	p_Gladiator* glad = new p_Gladiator;
-	glad->m_id = uint32_t(m_gladiatorVector.size());
+	glad->m_id = id;
 	glad->m_type = B_Gladiator;
 	glad->m_gamePosition = position;
 	glad->m_gamevelocity = velocity;
@@ -255,10 +271,7 @@ uint32_t Physics::addGladiator(glm::vec2* position, glm::vec2* velocity)
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
 	
-	
 	m_gladiatorVector.push_back(glad);
-	
-	return glad->m_id;
 };
 
 void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide)
@@ -373,7 +386,80 @@ void Physics::removeGladiator(unsigned id)
     BX_UNUSED(id);
 	// TODO: Do proper removal.
 };
-uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID)
+//TODO: at the moment bullet, grenade and explosions are handled by same system. 
+// Rename the system or make separate ones if needed.
+
+uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID, uint8_t id)
+{
+	if (generateID)
+		id = getFreeBulletId();
+	addBulletWithID(position, velocity, shooterID, id);
+	return id;
+}
+
+void Physics::addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID)
+{
+
+	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), vel(velocity.x / 100.0f, velocity.y / 100.0f);
+	b2BodyDef bulletBodyDef;
+	bulletBodyDef.type = b2_dynamicBody;
+	bulletBodyDef.position.Set(pos.x, pos.y);
+	bulletBodyDef.bullet = true;
+	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
+
+	b2PolygonShape dynamicBox;
+	dynamicBox.SetAsBox(0.02f, 0.02f);
+
+	// Fixture definiton for collisions on platforms or other similiar objects.
+	b2FixtureDef physicalFixtureDef;
+	physicalFixtureDef.shape = &dynamicBox;
+	physicalFixtureDef.density = 2.0f;
+	physicalFixtureDef.friction = 1.01f;
+	physicalFixtureDef.filter = b2Filters[ci_Bullet];
+	// TODO: Remove this as it is not needed any more (Bullets do not collide with players).
+	physicalFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+
+	// Fixture definition for collisions on players (sensor).
+	b2FixtureDef sensorFixtureDef;
+	sensorFixtureDef.shape = &dynamicBox;
+	sensorFixtureDef.isSensor = true;
+	sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
+	sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+
+	b2MassData data;
+	data.mass = 0.01f;
+	data.center = b2Vec2(0.01f, 0.01f);
+
+	body->SetMassData(&data);
+	body->CreateFixture(&physicalFixtureDef);
+	body->CreateFixture(&sensorFixtureDef);
+	p_Bullet* bullet = new p_Bullet;
+	bullet->bulletId = bulletID;
+	p_userData* userData = new p_userData;
+	userData->m_bodyType = B_Bullet;
+	bullet->m_type = B_Bullet;
+	userData->m_object = bullet;
+	bullet->m_myUserData = userData;
+	bullet->m_body = body;
+	bullet->m_contact = false;
+	bullet->m_contactBody = B_NONE;
+	bullet->m_shooterID = shooterID;
+	bullet->gamePosition = position;
+	body->SetUserData(userData);
+	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
+	m_bulletVector.push_back(bullet);
+
+};
+
+uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID, uint8_t id)
+{
+	if (generateID)
+		id = getFreeBulletId();
+	addGrenadeWithID(position, velocity, shooterID, id);
+	return id;
+}
+
+void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID)
 {
 	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), vel(velocity.x / 100.0f, velocity.y / 100.0f);
 	b2BodyDef bulletBodyDef;
@@ -400,7 +486,7 @@ uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned sh
 	body->CreateFixture(&fixtureDef);
 
 	p_Bullet* bullet = new p_Bullet;
-	bullet->bulletId = getFreeBulletId();
+	bullet->bulletId = bulletID;
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Grenade;
 	bullet->m_type = B_Grenade;
@@ -414,88 +500,42 @@ uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned sh
 	body->SetUserData(userData);
 	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
 	m_bulletVector.push_back(bullet);
-
-	return bullet->bulletId;
 };
 
-uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID)
+uint8_t Physics::addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID, uint8_t id)
 {
-	
-	b2Vec2 pos(position->x/100.0f, position->y/100.0f), vel(velocity.x/100.0f, velocity.y/100.0f);
+	if (generateID)
+		id = getFreeBulletId();
+	addExplosionWithID(position, radius, shooterID, id);
+	return id;
+}
+void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID)
+{
+	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f);
 	b2BodyDef bulletBodyDef;
-	bulletBodyDef.type = b2_dynamicBody;
+	bulletBodyDef.type = b2_staticBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
 	bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.02f, 0.02f);
+	b2CircleShape circle;
+	circle.m_radius = radius;
 
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 2.0f;
-	fixtureDef.friction = 1.01f;
-	fixtureDef.filter = b2Filters[ci_Bullet];
-	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+	// Fixture definition for collisions on players (sensor).
+	b2FixtureDef sensorFixtureDef;
+	sensorFixtureDef.shape = &circle;
+	sensorFixtureDef.isSensor = true;
+	// We can use the bullet sensor as it reports all collides with gladiators.
+	sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
+	sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
-	b2MassData data;
-	data.mass = 0.01f;
-	data.center = b2Vec2(0.01f, 0.01f);
-
-	body->SetMassData(&data);
-	body->CreateFixture(&fixtureDef);
-
-	p_Bullet* bullet = new p_Bullet;
-	bullet->bulletId = getFreeBulletId();
-	p_userData* userData = new p_userData;
-	userData->m_bodyType = B_Bullet;
-	bullet->m_type = B_Bullet;
-	userData->m_object = bullet;
-	bullet->m_myUserData = userData;
-	bullet->m_body = body;
-	bullet->m_contact = false;
-	bullet->m_contactBody = B_NONE;
-	bullet->m_shooterID = shooterID;
-	bullet->gamePosition = position;
-	body->SetUserData(userData);
-	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1,1), true);
-	m_bulletVector.push_back(bullet);
-	
-	return bullet->bulletId;
-};
-
-void Physics::addClientSideBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID)
-{
-
-	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), vel(velocity.x / 100.0f, velocity.y / 100.0f);
-	b2BodyDef bulletBodyDef;
-	bulletBodyDef.type = b2_dynamicBody;
-	bulletBodyDef.position.Set(pos.x, pos.y);
-	bulletBodyDef.bullet = true;
-	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
-
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.02f, 0.02f);
-
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 2.0f;
-	fixtureDef.friction = 1.01f;
-	fixtureDef.filter = b2Filters[ci_Bullet];
-	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
-
-	b2MassData data;
-	data.mass = 0.01f;
-	data.center = b2Vec2(0.01f, 0.01f);
-
-	body->SetMassData(&data);
-	body->CreateFixture(&fixtureDef);
+	body->CreateFixture(&sensorFixtureDef);
 
 	p_Bullet* bullet = new p_Bullet;
 	bullet->bulletId = bulletID;
 	p_userData* userData = new p_userData;
-	userData->m_bodyType = B_Bullet;
-	bullet->m_type = B_Bullet;
+	userData->m_bodyType = B_Explosion;
+	bullet->m_type = B_Explosion;
 	userData->m_object = bullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;
@@ -504,11 +544,10 @@ void Physics::addClientSideBullet(glm::vec2* position, glm::vec2 velocity, unsig
 	bullet->m_shooterID = shooterID;
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
-	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
+
 	m_bulletVector.push_back(bullet);
 
-};
-
+}
 
 
 void Physics::reset()
