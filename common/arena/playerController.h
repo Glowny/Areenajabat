@@ -21,8 +21,14 @@ namespace arena
 			{ 
 				m_shootButtonDown = input.m_shootButtonDown;
 			}
-			m_grenadeButtonDown = input.m_grenadeButtonDown;
-			m_reloadButtonDown = input.m_reloadButtonDown;
+			if (!m_grenadeButtonDown)
+			{
+				m_grenadeButtonDown = input.m_grenadeButtonDown;
+			}
+			if (!m_reloadButtonDown)
+			{
+				m_reloadButtonDown = input.m_reloadButtonDown;
+			}
 			m_changeWeaponButtonDown = input.m_changeWeaponButtonDown;
 			return *this;
 		}

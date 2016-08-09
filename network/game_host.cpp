@@ -111,6 +111,7 @@ namespace arena
         Gladiator* gladiator		= new Gladiator;
 		gladiator->m_ownerId		= newPlayer.m_clientIndex;
 		gladiator->m_weapon			= new WeaponGladius;
+		gladiator->m_grenadeWeapon  = new WeaponGrenade;
         newPlayer.m_gladiator		= gladiator;
 		*gladiator->m_position =  glm::vec2(600, 200);
 
@@ -191,10 +192,14 @@ namespace arena
 			{ 
 				player.m_gladiator->m_weapon->startReload();
 				player.m_gladiator->m_reloading = true;
+				input.m_reloadButtonDown = false;
 			}
-			if (input.m_grenadeButtonDown)
+
+			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
+			if (input.m_grenadeButtonDown && checkGrenade)
 			{
 				GrenadeShoot(player.m_gladiator);
+				input.m_grenadeButtonDown = false;
 			}
 			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;
@@ -446,12 +451,9 @@ namespace arena
 		player->m_playerController->aimAngle = aimAngle;
 	}
 
-	void GameHost::GrenadeShoot(Gladiator* gladiator){
-		Bullet* bullet = new Bullet();
-		bullet->m_rotation = gladiator->m_aimAngle;
-		bullet->m_type = BulletType::Grenade;
-		*bullet->m_position = glm::vec2(gladiator->m_position->x + 100, gladiator->m_position->y);
-		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, glm::vec2(20, -20), gladiator->getPhysicsID());
+	void GameHost::GrenadeShoot(Gladiator* gladiator) {
+		Bullet* bullet = gladiator->pitch();
+		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, bullet->m_impulse, gladiator->getPhysicsID());
 
 		m_synchronizationList.push_back(bullet);
 		DebugBullet dBullet;

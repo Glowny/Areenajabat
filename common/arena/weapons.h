@@ -12,13 +12,14 @@ namespace arena
 	{
 		Gladius,
 		Shotgun,
+		Gernade
 	};
 
 	enum BulletType :uint8_t
 	{
 		GladiusBullet,
 		ShotgunBullet,
-		Grenade
+		GrenadeBullet
 	};
 
 	struct Bullet : public NetworkEntity
@@ -84,12 +85,26 @@ namespace arena
 			return bullets;
 		}
 
+		Bullet* pitch(float aimAngle, glm::vec2 position)
+		{
+			Bullet* bullet = createBullet(aimAngle, position);
+			return bullet;
+		}
+
 		virtual std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position) 
 		{ 
 			aimAngle; 
 			position; 
 			std::vector<Bullet*> temp; 
 			return temp; 
+		}
+
+		virtual Bullet* createBullet(float aimAngle, glm::vec2 position)
+		{
+			aimAngle;
+			position;
+			Bullet* temp = new Bullet;
+			return temp;
 		}
 
 		inline void finishReload()
@@ -215,6 +230,27 @@ namespace arena
 				bullets.push_back(bullet);
 			}
 			return bullets;
+		}
+	};
+
+	struct WeaponGrenade : public Weapon
+	{
+		WeaponGrenade() : Weapon()
+		{
+			m_type = Gernade;
+			m_coolDown = 0.4f;
+		}
+
+		Bullet* createBullet(float aimAngle, glm::vec2 position)
+		{
+			glm::vec2 vectorAngle = radToVec(aimAngle);
+			Bullet* bullet = new Bullet;
+			bullet->m_type = GrenadeBullet;
+			bullet->m_creationDelay = 0;
+			bullet->m_rotation = aimAngle;
+			bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
+			bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
+			return bullet;
 		}
 	};
 }

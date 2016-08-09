@@ -821,7 +821,7 @@ namespace arena
 		case BulletType::ShotgunBullet:
 			serverEntity = createBulletEntity(bullet);
 			break;
-		case BulletType::Grenade:
+		case BulletType::GrenadeBullet:
 			serverEntity = createGrenadeEntity(bullet);
 			break;
 		default:
@@ -846,7 +846,7 @@ namespace arena
 		case BulletType::ShotgunBullet:
 			clientEntity = createBulletEntity(bullet);
 			break;
-		case BulletType::Grenade:
+		case BulletType::GrenadeBullet:
 			clientEntity = createGrenadeEntity(bullet);
 			break;
 		default:
