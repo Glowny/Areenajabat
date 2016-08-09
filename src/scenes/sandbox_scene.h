@@ -87,7 +87,7 @@ namespace arena
 		void updateDebugBullets(const GameTime& gameTime);
 
 		// Update clientside physics
-		void updatePhysics(const GameTime& gameTime);
+		void updatePhysics(float64 timeStep);
 
 		Entity* createMousePointerEntity();
 		// Create single gladiator.
@@ -120,7 +120,7 @@ namespace arena
 
 		std::map<uint8_t, DebugBullet> m_debugBullets;
 
-		float m_sendInputToServerTimer;
+		float64 m_sendInputToServerTimer;
 
 		// m_playerId is used to see which gladiator player is controlling.
 		uint8_t m_playerId; 

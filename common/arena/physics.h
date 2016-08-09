@@ -13,6 +13,8 @@ BX_PRAGMA_DIAGNOSTIC_POP()
 #include <typeinfo>
 #include "../network_entity.h"
 
+#define PHYSICS_TIMESTEP 0.016f
+
 // TODO: platform has extra stuff that could be removed.
 
 enum entityCategory
@@ -225,7 +227,7 @@ public:
 
 	float32 updateTimer;
 	void reset();
-	void update(float32 timeStep = 1.0f / 60.0f);
+	void update(float64 timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	uint32_t addGladiator(glm::vec2* position, glm::vec2* velocity, bool generateID = true, uint32_t id = 0);
@@ -242,10 +244,10 @@ public:
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
 	
-	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, uint32_t shooterID, bool generateID = true, uint8_t id = 0);
-	void addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
-	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID = true, uint8_t id = 0);
-	void addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
+	uint8_t addBullet(glm::vec2* position, glm::vec2 impulse, uint32_t shooterID, bool generateID = true, uint8_t id = 0);
+	void addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
+	uint8_t addGrenade(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, bool generateID = true, uint8_t id = 0);
+	void addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
 	float32 getEntityRotation(unsigned id);
 	uint8_t addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID = true, uint8_t id = 0);
 	void addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID);

@@ -256,10 +256,12 @@ namespace arena
 		s_client->sendProtocolPackets(gameTime.m_total);
 
 		// Send player input to server if 1/60 of a second has passed.
-		if ((m_sendInputToServerTimer += gameTime.m_delta) > 0.016f && s_client->isConnected())
+		if ((m_sendInputToServerTimer += gameTime.m_delta) >= PHYSICS_TIMESTEP && s_client->isConnected())
 		{
+			updatePhysics(m_sendInputToServerTimer);
 			sendInput(m_controller);
 			m_sendInputToServerTimer = 0;
+			
 		}
 
 		// Write current packets to network.
@@ -278,7 +280,7 @@ namespace arena
 		// Update all game entities.
 		updateEntities(gameTime);
 
-		updatePhysics(gameTime);
+		
 		
 		// set m_controller aim angle of the player character.
 		rotatePlayerAim();
@@ -520,10 +522,11 @@ namespace arena
 				// if bullet exists, set position
 				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
 				//printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
-				
 			}
 			else
+			{ 
 				createBullet(packet->m_bulletSpawnArray[i]);
+			}
 		}
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
@@ -724,10 +727,10 @@ namespace arena
 		}
 	}
 	
-	void SandboxScene::updatePhysics(const GameTime& gameTime)
+	void SandboxScene::updatePhysics(float64 timeStep)
 	{
-		m_physics.update(gameTime.m_delta);
-		
+		//m_physics.update(gameTime.m_delta);
+		m_physics.update(timeStep);
 	}
 
 	Entity* SandboxScene::createMousePointerEntity()

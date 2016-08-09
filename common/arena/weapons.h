@@ -47,6 +47,19 @@ namespace arena
 		float m_creationDelay;
 	};
 
+	struct Grenade : public Bullet
+	{
+		Grenade()
+			: Bullet()
+		{
+			m_timer = 0;
+			m_timerEnd = 2;
+		}
+		float m_timer;
+		float m_timerEnd;
+
+	};
+
 	struct BulletHit : public NetworkEntity
 	{
 		BulletHit()
@@ -239,13 +252,13 @@ namespace arena
 		WeaponGrenade() : Weapon()
 		{
 			m_type = Gernade;
-			m_coolDown = 0.4f;
+			m_coolDown = 2.0f;
 		}
 
-		Bullet* createBullet(float aimAngle, glm::vec2 position)
+		Grenade* createBullet(float aimAngle, glm::vec2 position)
 		{
 			glm::vec2 vectorAngle = radToVec(aimAngle);
-			Bullet* bullet = new Bullet;
+			Grenade* bullet = new Grenade;
 			bullet->m_type = GrenadeBullet;
 			bullet->m_creationDelay = 0;
 			bullet->m_rotation = aimAngle;

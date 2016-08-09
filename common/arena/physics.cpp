@@ -82,7 +82,7 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 };
 Physics::~Physics() {};
 
-void Physics::update(float32 timeStep)
+void Physics::update(float64 timeStep)
 {
 	const int32 VelocityIterations = 6;
 	const int32 PositionIterations = 2;
@@ -389,18 +389,18 @@ void Physics::removeGladiator(unsigned id)
 //TODO: at the moment bullet, grenade and explosions are handled by same system. 
 // Rename the system or make separate ones if needed.
 
-uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, uint32_t shooterID, bool generateID, uint8_t id)
+uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 impulse, uint32_t shooterID, bool generateID, uint8_t id)
 {
 	if (generateID)
 		id = getFreeBulletId();
-	addBulletWithID(position, velocity, shooterID, id);
+	addBulletWithID(position, impulse, shooterID, id);
 	return id;
 }
 
-void Physics::addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID)
+void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID)
 {
 
-	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), vel(velocity.x / 100.0f, velocity.y / 100.0f);
+	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), imp(impulse.x / 100.0f, impulse.y / 100.0f);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
@@ -446,22 +446,22 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned 
 	bullet->m_shooterID = shooterID;
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
-	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
+	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
 	m_bulletVector.push_back(bullet);
 
 };
 
-uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID, uint8_t id)
+uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, bool generateID, uint8_t id)
 {
 	if (generateID)
 		id = getFreeBulletId();
-	addGrenadeWithID(position, velocity, shooterID, id);
+	addGrenadeWithID(position, impulse, shooterID, id);
 	return id;
 }
 
-void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID)
+void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID)
 {
-	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), vel(velocity.x / 100.0f, velocity.y / 100.0f);
+	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), imp(impulse.x / 100.0f, impulse.y / 100.0f);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
@@ -475,11 +475,12 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned
 	fixtureDef.shape = &dynamicBox;
 	fixtureDef.density = 3.0f;
 	fixtureDef.friction = 2.01f;
+	fixtureDef.restitution = 0.01f;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.mass = 0.3f;
+	data.mass = 0.5f;
 	data.center = b2Vec2(0.025f, 0.05f);
 
 	body->SetMassData(&data);
@@ -498,7 +499,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned
 	bullet->m_shooterID = shooterID;
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
-	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
+	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
 	m_bulletVector.push_back(bullet);
 };
 float32 Physics::getEntityRotation(unsigned id)

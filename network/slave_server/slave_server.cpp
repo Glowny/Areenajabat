@@ -175,12 +175,12 @@ namespace arena
 				{
 					spawnBulletsPacket = (GameSpawnBulletsPacket*)createPacket(PacketTypes::GameSpawnBullets);
 					spawnBulletsPacket->m_bulletAmount = 0;
-				}
+			}
 				if (spawnBulletsPacket->m_bulletAmount >= BULLET_MAX_AMOUNT)
 				{
 					printf("WARNING: Too many bullets synchronized, not sending any more bullets\n");
 					continue;
-				}
+				}			
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_position = *bulletSpawn->m_position;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_rotation = bulletSpawn->m_rotation;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_type = bulletSpawn->m_type;

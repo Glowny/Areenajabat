@@ -620,14 +620,13 @@ namespace arena
 		{
 			// Do normal updates.
 			
-			if ((m_physics.updateTimer += float32(dt)) > TIMESTEP)
+			if ((m_physics.updateTimer += dt) >= PHYSICS_TIMESTEP)
 			{
+				// Update physics
+				m_physics.update(m_physics.updateTimer);
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
 				applyPlayerInputs(m_physics.updateTimer);
-
-				// Update physics
-				m_physics.update(m_physics.updateTimer);
 				processBulletCollisions(m_physics.updateTimer);
 				// get data from gladiators.
 				for (Player& player : players())
@@ -667,6 +666,14 @@ namespace arena
 						delete m_debugBullets[i].m_bullet;
 						
 						m_debugBullets.erase(m_debugBullets.begin() + i);
+					}
+					if (m_debugBullets[i].m_bullet->m_type == GrenadeBullet)
+					{
+						Grenade* grenade = static_cast<Grenade*>(m_debugBullets[i].m_bullet);
+						if ((grenade->m_timer += m_physics.updateTimer) > grenade->m_timerEnd)
+						{
+							printf("Explosion\n");
+						}
 					}
 					
 				}
