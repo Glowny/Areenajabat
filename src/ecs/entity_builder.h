@@ -8,6 +8,7 @@
 #include "../ecs/movement.h"
 #include "../ecs/Id.h"
 #include "../ecs/projectile.h"
+#include "../ecs/physics_rotation.h"
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, TextureResource)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteRenderer)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Transform)
@@ -33,7 +34,7 @@ namespace arena
 		Id* const addIdentifier();
 		Id* const addIdentifier(EntityIdentification id);
 		Projectile* const addProjectile();
-
+		PhysicsRotation* const addPhysicsRotation();
 		void addTag(const String& tag);
 		void setTags(const String& tags);
 

@@ -470,18 +470,18 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.05f, 0.05f);
+	dynamicBox.SetAsBox(0.05f, 0.1f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
 	fixtureDef.density = 3.0f;
-	fixtureDef.friction = 1.01f;
+	fixtureDef.friction = 2.01f;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
 	data.mass = 0.3f;
-	data.center = b2Vec2(0.025f, 0.025f);
+	data.center = b2Vec2(0.025f, 0.05f);
 
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
@@ -503,7 +503,14 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned
 	bullet->m_body->ApplyLinearImpulse(vel, b2Vec2(1, 1), true);
 	m_bulletVector.push_back(bullet);
 };
-
+float32 Physics::getEntityRotation(unsigned id)
+{
+	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	{
+		if (id == m_bulletVector[i]->bulletId)
+			return m_bulletVector[i]->m_body->GetAngle();
+	}
+}
 uint8_t Physics::addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID, uint8_t id)
 {
 	if (generateID)

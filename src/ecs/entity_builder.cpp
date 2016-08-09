@@ -87,7 +87,14 @@ namespace arena
 		m_entity->add(projectile);
 		return projectile;
 	}
+	PhysicsRotation* const EntityBuilder::addPhysicsRotation()
+	{
+		ARENA_ASSERT(m_entity->contains(TYPEOF(SpriteRenderer)), "Entity needs to have sprite to rotate.");
 
+		PhysicsRotation* rotation = new PhysicsRotation();
+		m_entity->add(rotation);
+		return rotation;
+	}
 
 	void EntityBuilder::addTag(const String& tag)
 	{
