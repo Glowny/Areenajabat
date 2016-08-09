@@ -343,9 +343,23 @@ namespace arena
 
 				BulletHit* hit = new BulletHit;
 				hit->m_hitType = 1;
-				hit->m_damageAmount = 10;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_hitId = bullet.bulletId;
+
+				switch (bullet.m_bulletType)
+				{
+				case BulletType::GladiusBullet:
+					hit->m_damageAmount = 10;
+					break;
+				case BulletType::ShotgunBullet:
+					hit->m_damageAmount = 20;
+					break;
+				case BulletType::GrenadeBullet:
+					hit->m_damageAmount = 30;
+					break;
+				default:
+					break;
+				}
 
 				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 				if (velocity.x < 0)
