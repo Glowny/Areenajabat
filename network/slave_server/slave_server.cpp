@@ -155,9 +155,9 @@ namespace arena
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_aimAngle = gladiator->m_aimAngle;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_reloading = gladiator->m_reloading;
-				//gladiator->m_reloading = false; // Dont spam reload. TODO: move this to somewhere on game_host.
+				gladiator->m_reloading = false; // Dont spam reload. TODO: move this to somewhere on game_host.
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_throwing = gladiator->m_throwing;
-				//gladiator->m_throwing = false; // Dont spam throwing. TODO: move this to somewhere on game_host.
+				gladiator->m_throwing = false; // Dont spam throwing. TODO: move this to somewhere on game_host.
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_climbing = gladiator->m_climbing;
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
