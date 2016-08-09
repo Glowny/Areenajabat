@@ -4,7 +4,7 @@
 #include "../app.h"
 #include "../res/resource_manager.h"
 #include "../res/spriter_animation_player.h"
-//this is a test, DELETE THIS
+
 namespace arena
 {
     struct GladiusRightArm : public IHandAnimation
