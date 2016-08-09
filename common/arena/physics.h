@@ -242,7 +242,7 @@ public:
 	void setGladiatorPosition(unsigned id, glm::vec2 position);
 	void removeGladiator(unsigned id);
 	
-	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID = true, uint8_t id = 0);
+	uint8_t addBullet(glm::vec2* position, glm::vec2 velocity, uint32_t shooterID, bool generateID = true, uint8_t id = 0);
 	void addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
 	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID = true, uint8_t id = 0);
 	void addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);

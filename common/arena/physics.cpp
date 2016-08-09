@@ -389,7 +389,7 @@ void Physics::removeGladiator(unsigned id)
 //TODO: at the moment bullet, grenade and explosions are handled by same system. 
 // Rename the system or make separate ones if needed.
 
-uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID, uint8_t id)
+uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 velocity, uint32_t shooterID, bool generateID, uint8_t id)
 {
 	if (generateID)
 		id = getFreeBulletId();

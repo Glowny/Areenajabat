@@ -809,27 +809,57 @@ namespace arena
 		Bullet* bullet = new Bullet;
 		*bullet->m_position = data.m_position;
 		bullet->m_bulletId = data.m_id;
+		bullet->m_ownerId = data.m_ownerId;
 		bullet->m_type = (BulletType)data.m_type;
 		bullet->m_creationDelay = data.m_creationDelay;
 		bullet->m_rotation = data.m_rotation;
+		glm::vec2 vectorAngle = radToVec(bullet->m_rotation);
 
 		Entity* serverEntity = nullptr;
+		Entity* clientEntity = nullptr;
+		// TODO: Get these from weapons?
+		// Create bullet entity that is updated by clientside physics and entity that is updated by serverside physics.
 		switch (bullet->m_type)
 		{
+			// GLADIUS-, SHOTGUN- and GRENADEIMPULSE are defined on weapons.h and shared on both server and client.
 		case BulletType::GladiusBullet:
+		{
+			bullet->m_impulse = glm::vec2(vectorAngle.x * GLADIUSIMPULSE, vectorAngle.y * GLADIUSIMPULSE);
 			serverEntity = createBulletEntity(bullet);
-			break;
-		case BulletType::ShotgunBullet:
-			serverEntity = createBulletEntity(bullet);
-			break;
-		case BulletType::GrenadeBullet:
-			serverEntity = createGrenadeEntity(bullet);
-			break;
-		default:
-			serverEntity = createBulletEntity(bullet);
+			clientEntity = createBulletEntity(bullet);
+			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
+			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
 			break;
 		}
+		case BulletType::ShotgunBullet:
+		{
+			bullet->m_impulse = glm::vec2(vectorAngle.x * SHOTGUNIMPULSE, vectorAngle.y * SHOTGUNIMPULSE);
+			serverEntity = createBulletEntity(bullet);
+			clientEntity = createBulletEntity(bullet);
+			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
+			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			break;
+		}
+		case BulletType::GrenadeBullet:
+		{
+			bullet->m_impulse = glm::vec2(vectorAngle.x * GRENADEIMPULSE, vectorAngle.y * GRENADEIMPULSE);
+			serverEntity = createGrenadeEntity(bullet);
+			clientEntity = createGrenadeEntity(bullet);
+			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
+			m_physics.addGrenade(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			break;
+		}
+		default:
+		{
+			serverEntity = createBulletEntity(bullet);
+			clientEntity = createBulletEntity(bullet);
+			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
+			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			break;
+		}
+		}
 		assert(serverEntity != nullptr);
+		assert(clientEntity != nullptr);
 
 		// Set color of server side entities to green.
 		SpriteRenderer* renderer = (SpriteRenderer*)serverEntity->first(TYPEOF(SpriteRenderer));
@@ -841,36 +871,9 @@ namespace arena
 		debugBullet.entity = serverEntity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
 		
-
-
-		// Create bullet entity that is updated by clientside physics
-		Entity* clientEntity = nullptr;
-		switch (bullet->m_type)
-		{
-		case BulletType::GladiusBullet:
-			clientEntity = createBulletEntity(bullet);
-			break;
-		case BulletType::ShotgunBullet:
-			clientEntity = createBulletEntity(bullet);
-			break;
-		case BulletType::GrenadeBullet:
-			clientEntity = createGrenadeEntity(bullet);
-			break;
-		default:
-			clientEntity = createBulletEntity(bullet);
-			break;
-		}
-		assert(clientEntity != nullptr);
-
-		Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
 		projectile->m_bulletId = bullet->m_bulletId;
 		projectile->m_bulletType = bullet->m_type;
-		glm::vec2 force = radToVec(bullet->m_rotation);
-		// TODO: Get real player id for client-side collisions. If bullets get removed after being shot by
-		// any other player than 0, it's because of this.
-		m_physics.addBullet(&transform->m_position, glm::vec2(force.x*20.0f, force.y * 20.0f), 0, false, bullet->m_bulletId);
-		
 		// TODO: Update clientside bullet on updateEntities();
 	}
 	Entity* SandboxScene::createBulletEntity(Bullet* bullet)

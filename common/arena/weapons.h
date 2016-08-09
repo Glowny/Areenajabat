@@ -3,9 +3,9 @@
 #include <glm/vec2.hpp>
 #include <../common/network_entity.h>
 
-#define GLADIUSIMPULSE 100.0f
-#define SHOTGUNIMPULSE 100.0f
-
+#define GLADIUSIMPULSE 10.0f
+#define SHOTGUNIMPULSE 10.0f
+#define GRENADEIMPULSE 10.0f
 namespace arena
 {
 	enum WeaponType :uint8_t
@@ -39,6 +39,7 @@ namespace arena
 			delete m_position;
 		}
 		BulletType m_type;
+		uint32_t m_ownerId;
 		uint8_t m_bulletId;
 		glm::vec2* m_position;
 		glm::vec2 m_impulse;
@@ -198,7 +199,7 @@ namespace arena
 				bullet->m_type = GladiusBullet;
 				bullet->m_creationDelay = 0.1f * i;
 				bullet->m_rotation = aimAngle;
-				bullet->m_impulse.x = vectorAngle.x * 20; bullet->m_impulse.y = vectorAngle.y * 20;
+				bullet->m_impulse.x = vectorAngle.x * GLADIUSIMPULSE; bullet->m_impulse.y = vectorAngle.y * GLADIUSIMPULSE;
 				bullet->m_position->x = position.x + 10; bullet->m_position->y = position.y - 16;
 				bullets.push_back(bullet);
 			}
@@ -225,7 +226,7 @@ namespace arena
 				bullet->m_type = ShotgunBullet;
 				bullet->m_creationDelay = 0;
 				bullet->m_rotation = aimAngle; 
-				bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
+				bullet->m_impulse.x = vectorAngle.x * SHOTGUNIMPULSE; bullet->m_impulse.y = vectorAngle.y * SHOTGUNIMPULSE;
 				bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 				bullets.push_back(bullet);
 			}
@@ -248,7 +249,7 @@ namespace arena
 			bullet->m_type = GrenadeBullet;
 			bullet->m_creationDelay = 0;
 			bullet->m_rotation = aimAngle;
-			bullet->m_impulse.x = vectorAngle.x * 10; bullet->m_impulse.y = vectorAngle.y * 10;
+			bullet->m_impulse.x = vectorAngle.x * GRENADEIMPULSE; bullet->m_impulse.y = vectorAngle.y * GRENADEIMPULSE;
 			bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 			return bullet;
 		}
