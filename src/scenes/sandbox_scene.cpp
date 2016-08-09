@@ -623,6 +623,16 @@ namespace arena
 				}
 
 			}
+
+			if (entity->contains(TYPEOF(PhysicsRotation)))
+			{
+				PhysicsRotation* rotation = (PhysicsRotation*)entity->first(TYPEOF(PhysicsRotation));
+				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+
+				rotation->m_rotation = m_physics.getEntityRotation(rotation->m_physicsId);
+				renderer->setRotation(rotation->m_rotation);
+			}
+
 			if (entity->contains(TYPEOF(Id)))
 			{
 
@@ -883,6 +893,7 @@ namespace arena
 
 		// Debugbullet does not need projectile, but clientside physics needs it 
 		// for the projectile to be deleted by server.
+
 		builder.addProjectile();
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
@@ -891,15 +902,10 @@ namespace arena
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
-		//if (bullet->m_rotation < 3.142)
+
 		renderer->setRotation(bullet->m_rotation);
-		//else
-		//renderer->setRotation(bullet->m_rotation+ 3.142);
-		
 		renderer->anchor();
-		// TODO: add physics for clientside bullets.
-		//Movement* movement = builder.addMovement();
-		//movement->m_velocity = bullet->m_impulse;
+		
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
 		
@@ -910,9 +916,9 @@ namespace arena
 	}
 	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet)
 	{
-
 		EntityBuilder builder;
 		builder.begin();
+
 		builder.addProjectile();
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
@@ -925,13 +931,10 @@ namespace arena
 		renderer->setRotation(bullet->m_rotation);
 		
 		renderer->anchor();
-		Movement* movement = builder.addMovement();
-		movement->m_velocity = glm::vec2(0, 0);
-		movement->m_rotationSpeed = 0.02f;
 
-		Timer* timer = builder.addTimer();
-		// Let debugBullets/serve decide when grenade is destroyed.
-		timer->m_lifeTime = 70;
+		PhysicsRotation* rotation = builder.addPhysicsRotation();
+		rotation->m_rotation = bullet->m_rotation;
+		rotation->m_physicsId = bullet->m_bulletId;
 
 		Entity* entity = builder.getResults();
 		registerEntity(entity);

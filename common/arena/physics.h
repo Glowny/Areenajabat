@@ -246,6 +246,7 @@ public:
 	void addBulletWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
 	uint8_t addGrenade(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, bool generateID = true, uint8_t id = 0);
 	void addGrenadeWithID(glm::vec2* position, glm::vec2 velocity, unsigned shooterID, uint8_t bulletID);
+	float32 getEntityRotation(unsigned id);
 	uint8_t addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID = true, uint8_t id = 0);
 	void addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID);
 	
