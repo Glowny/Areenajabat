@@ -760,6 +760,7 @@ namespace arena
 
 	void SandboxScene::destroyBullet(uint8_t bulletId)
 	{
+
 		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
 		{
 			if (it->second.bullet->m_bulletId == bulletId)
