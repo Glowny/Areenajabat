@@ -311,6 +311,7 @@ namespace arena
 			{ 
                 broadcast(gladiatorUpdatePacket);
 			}
+			m_host.destroyEntities();
 
 	}
 

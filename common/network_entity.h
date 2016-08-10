@@ -35,12 +35,23 @@ namespace arena
 			return m_physicsID;
 		}
 
+		void destroy()
+		{
+			m_remove = true;
+		}
+
+		bool getDestroy()
+		{
+			return m_remove;
+		}
+
 		virtual ~NetworkEntity() = default;
 		// Remove hax when not drunk
 		NetworkEntity(const NetworkEntityType HAXtype, bool haxhax) : m_type(HAXtype)
 		{
 			haxhax;
 		}
+		bool				m_hasPhysics = false;
 	protected:
 		NetworkEntity(const NetworkEntityType type) : m_type(type)
 		{
@@ -48,6 +59,8 @@ namespace arena
 
 		NetworkEntity() = delete;
 		uint32				m_physicsID	{ 666 };
+		bool				m_remove = false;
+
 	private:
 		
 		NetworkEntityType	m_type;

@@ -303,6 +303,7 @@ namespace arena
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_targetPlayerId = 0;
 				hit->m_hitId = bullet.bulletId;
+				hit->setPhysicsID(bullet.bulletId);
 				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 				if (velocity.x < 0)
 					hit->m_hitDirection = 0;
@@ -347,6 +348,7 @@ namespace arena
 				hit->m_hitType = 1;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_hitId = bullet.bulletId;
+				hit->setPhysicsID(bullet.bulletId);
 
 				switch (bullet.m_bulletType)
 				{
@@ -403,23 +405,22 @@ namespace arena
 					
 				}
 				m_synchronizationList.push_back(hit);
+				hit->destroy();
 
 				// Sync.
 				m_synchronizationList.push_back(targetGladiator);
 				
-				// TODO: Do removal here and properly
-				
-			
+				// TODO: Do removal here and properly		
 				delete entry.m_target;
 			}
 			for (unsigned i = 0; i < m_debugBullets.size(); i++)
 				if (m_debugBullets[i].m_bullet->m_bulletId == bullet.bulletId)
 				{
-					m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
+					//m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
 
-					delete m_debugBullets[i].m_bullet;
-
+					m_debugBullets[i].m_bullet->destroy();
 					m_debugBullets.erase(m_debugBullets.begin() + i);
+					//delete m_debugBullets[i].m_bullet;
 				}
 		}
 
@@ -477,6 +478,7 @@ namespace arena
 		bullet->m_shooterId = gladiator->getPhysicsID();
 		gladiator->getPhysicsID();
 		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, bullet->m_impulse, gladiator->getPhysicsID());
+		bullet->setPhysicsID(bullet->m_bulletId);
 
 		m_synchronizationList.push_back(bullet);
 		DebugBullet dBullet;
@@ -492,7 +494,7 @@ namespace arena
 		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
 			bullets[i]->m_bulletId = m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getPhysicsID());
-			
+			bullets[i]->setPhysicsID(bullets[i]->m_bulletId);
 			m_synchronizationList.push_back(bullets[i]);
 			DebugBullet dBullet;
 			dBullet.lifeTime = 0;
@@ -686,7 +688,7 @@ namespace arena
 					{
 						m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
 
-						delete m_debugBullets[i].m_bullet;
+						m_debugBullets[i].m_bullet->destroy();
 						
 						m_debugBullets.erase(m_debugBullets.begin() + i);
 					}
@@ -698,9 +700,7 @@ namespace arena
 						{
 							//printf("Delete explosion and grenade\n");
 							// Remove explosion and grenade created below.
-							m_physics.removeBullet(grenade->m_explosionId);
-							m_physics.removeBullet(grenade->m_bulletId);
-							delete m_debugBullets[i].m_bullet;
+							grenade->destroy();
 							m_debugBullets.erase(m_debugBullets.begin() + i);
 						}
 				
@@ -711,10 +711,11 @@ namespace arena
 							grenade->isExplosion = true;
 							grenade->m_explosionId = m_physics.addExplosion(grenade->m_position, 200, grenade->m_shooterId);
 							BulletHit* hit = new BulletHit;
-							hit->m_hitId = grenade->m_explosionId;
+							hit->m_hitId = grenade->getPhysicsID();
 							hit->m_hitPosition = *grenade->m_position;
 							hit->m_hitType = 3;
 							m_synchronizationList.push_back(hit);
+							hit->destroy();
 
 						}
 					}
@@ -763,5 +764,20 @@ namespace arena
 	{
 		assert(m_scoreBoard != nullptr);
 		return (*m_scoreBoard);
+	}
+	void GameHost::destroyEntities()
+	{
+		auto& entities = m_entities.container();
+		for (auto it = entities.begin(); it != entities.end(); it++)
+		{
+			NetworkEntity* entity= *it;
+			if(entity->getDestroy())
+			{
+				if (entity->m_hasPhysics)
+					m_physics.removeBullet(entity->getPhysicsID());
+				unregisterEntity(entity);
+				delete entity;
+			}
+		}
 	}
 }
