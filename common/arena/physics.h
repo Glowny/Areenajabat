@@ -170,6 +170,8 @@ private:
 			{
 				case B_Platform:
 				{
+					if (bulletUserData->m_bodyType == B_Explosion)
+						return;
 					p_Bullet* bullet = static_cast<p_Bullet*>(bulletUserData->m_object);
 					bullet->startContact(targetUserData);
 

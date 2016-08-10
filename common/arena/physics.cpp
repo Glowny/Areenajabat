@@ -524,9 +524,9 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 {
 	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f);
 	b2BodyDef bulletBodyDef;
-	bulletBodyDef.type = b2_staticBody;
+	bulletBodyDef.type = b2_kinematicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
-	bulletBodyDef.bullet = true;
+	bulletBodyDef.bullet = false;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2CircleShape circle;
@@ -556,6 +556,7 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	bullet->m_shooterID = shooterID;
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
+	body->SetAwake(true);
 
 	m_bulletVector.push_back(bullet);
 

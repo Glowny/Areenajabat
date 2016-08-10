@@ -405,7 +405,6 @@ namespace arena
 		auto& childrens = m_torso.m_sprite.m_children;
 		childrens[AnimationPosition::RightArm]->m_hide = true;
 	
-		printf("animation enum: %d, string : %s\n",animation, ThrowingEnumToFileName[animation].c_str());
 	}
 
 	void  CharacterAnimator::resetAnimation()
