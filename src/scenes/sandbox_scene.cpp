@@ -243,6 +243,7 @@ namespace arena
 		createBackground();
 		anime = nullptr;
 		m_scoreboard = nullptr;
+		//m_physics = Physics();
 		
 	}
 
@@ -256,14 +257,17 @@ namespace arena
 		s_client->sendProtocolPackets(gameTime.m_total);
 
 		// Send player input to server if 1/60 of a second has passed.
-		if ((m_sendInputToServerTimer += gameTime.m_delta) >= PHYSICS_TIMESTEP && s_client->isConnected())
+		if ((m_physics.updateTimer += gameTime.m_delta) >= PHYSICS_TIMESTEP && s_client->isConnected())
 		{
-			updatePhysics(m_sendInputToServerTimer);
-			sendInput(m_controller);
-			m_sendInputToServerTimer = 0;
-			
+			updatePhysics(m_physics.updateTimer);	
+			m_physics.updateTimer = 0;
 		}
 
+		if ((m_sendInputToServerTimer += gameTime.m_delta) >= 0.016f && s_client->isConnected())
+		{ 
+			sendInput(m_controller);
+			m_sendInputToServerTimer = 0;;
+		}
 		// Write current packets to network.
 		s_client->writePackets();
 		// Get packets form network.
@@ -280,8 +284,6 @@ namespace arena
 		// Update all game entities.
 		updateEntities(gameTime);
 
-		
-		
 		// set m_controller aim angle of the player character.
 		rotatePlayerAim();
 

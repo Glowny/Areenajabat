@@ -687,14 +687,14 @@ namespace arena
 						Grenade* grenade = static_cast<Grenade*>(m_debugBullets[i].m_bullet);
 						if ((grenade->m_timer += m_physics.updateTimer) > grenade->m_endTime)
 						{
-							printf("Delete explosion and grenade\n");
+							//printf("Delete explosion and grenade\n");
 							// Remove explosion and grenade created below.
 						}
 					
 						if ((grenade->m_timer += m_physics.updateTimer) > grenade->m_explosionTime)
 						{
 							// Create explosion and save id on m_explosionId
-							printf("Explosion\n");
+							//                         printf("Explosion\n");
 						}
 					}
 					

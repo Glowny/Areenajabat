@@ -84,8 +84,8 @@ Physics::~Physics() {};
 
 void Physics::update(float64 timeStep)
 {
-	const int32 VelocityIterations = 6;
-	const int32 PositionIterations = 2;
+	const int32 VelocityIterations = 8;
+	const int32 PositionIterations = 3;
 
 	m_b2DWorld->Step(timeStep, VelocityIterations, PositionIterations);
 
@@ -466,27 +466,26 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
-	bulletBodyDef.bullet = true;
+	//bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.1f, 0.2f);
+	dynamicBox.SetAsBox(0.014f, 0.029f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 1.5f;
+	fixtureDef.density = 6.5f;
 	fixtureDef.friction = 3.01f;
 	fixtureDef.restitution = 0.0f;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.mass = 0.10f;
-	data.center = b2Vec2(0.05f, 0.1f);
+	data.center = b2Vec2(0.007f, 0.0145f);
 	
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
-	body->SetAngularDamping(4.0f);
+	body->SetAngularDamping(3.50f);
 
 	p_Bullet* bullet = new p_Bullet;
 	bullet->bulletId = bulletID;
@@ -504,6 +503,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	body->SetUserData(userData);
 	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
 	m_bulletVector.push_back(bullet);
+
 };
 float32 Physics::getEntityRotation(unsigned id)
 {
