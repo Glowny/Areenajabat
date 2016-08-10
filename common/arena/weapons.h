@@ -12,7 +12,7 @@ namespace arena
 	{
 		Gladius,
 		Shotgun,
-		Gernade
+		Grenade
 	};
 
 	enum BulletType :uint8_t
@@ -49,9 +49,9 @@ namespace arena
 		float m_creationDelay;
 	};
 
-	struct Grenade : public Bullet
+	struct GrenadeProjectile : public Bullet
 	{
-		Grenade()
+		GrenadeProjectile()
 			: Bullet()
 		{
 			m_timer = 0;
@@ -257,14 +257,14 @@ namespace arena
 	{
 		WeaponGrenade() : Weapon()
 		{
-			m_type = Gernade;
+			m_type = WeaponType::Grenade;
 			m_coolDown = 2.0f;
 		}
 
-		Grenade* createBullet(float aimAngle, glm::vec2 position)
+		GrenadeProjectile* createBullet(float aimAngle, glm::vec2 position)
 		{
 			glm::vec2 vectorAngle = radToVec(aimAngle);
-			Grenade* bullet = new Grenade;
+			GrenadeProjectile* bullet = new GrenadeProjectile;
 			bullet->m_type = GrenadeBullet;
 			bullet->m_creationDelay = 0;
 			bullet->m_rotation = aimAngle;

@@ -358,6 +358,7 @@ namespace arena
 					break;
 				case BulletType::GrenadeBullet:
 					hit->m_damageAmount = 30;
+
 					break;
 				default:
 					break;
@@ -687,7 +688,7 @@ namespace arena
 					}
 					if (m_debugBullets[i].m_bullet->m_type == GrenadeBullet)
 					{
-						Grenade* grenade = static_cast<Grenade*>(m_debugBullets[i].m_bullet);
+						GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(m_debugBullets[i].m_bullet);
 						grenade->m_timer += m_physics.updateTimer;
 						if (grenade->m_timer > grenade->m_endTime)
 						{

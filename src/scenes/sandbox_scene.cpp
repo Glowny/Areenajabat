@@ -218,7 +218,7 @@ namespace arena
 	static void inputReload(const void*)
 	{
 		sandbox->m_controller.m_input.m_reloadButtonDown = true;
-		anime->m_animator.playReloadAnimation(0);
+		//anime->m_animator.playReloadAnimation(0);
 	}
 	static void inputJump(const void*)
 	{
@@ -226,7 +226,7 @@ namespace arena
 	}
 	static void inputThrow(const void*)
 	{
-		anime->m_animator.playThrowAnimation(0, 0);
+		//anime->m_animator.playThrowAnimation(0, 0);
 		sandbox->m_controller.m_input.m_grenadeButtonDown = true;
 	}
 
@@ -1062,18 +1062,25 @@ namespace arena
 
 		switch (data.m_type)
 		{
-			case 1:
+			// Bullet hits gladiator
+			case 1: 
 			{
 				createBloodBulletHitEntity(bullet);
 				data.m_id;
 				break;
 			}
+			// Bullet hits platform
 			case 2:
 			{
 				// Temporary, change when there is a platform bullet hit animation.
 				createSmokeEntity(bullet);
 				//createPlatformBulletHitEntity(bullet);
 				break;
+			}
+			// Explosion occurs.
+			case 3:
+			{
+				
 			}
 			default:
 			{
