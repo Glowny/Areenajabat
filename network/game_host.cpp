@@ -357,8 +357,13 @@ namespace arena
 					hit->m_damageAmount = 20;
 					break;
 				case BulletType::GrenadeBullet:
+				{
 					hit->m_damageAmount = 30;
+					glm::vec2* origin = &hit->m_hitPosition;
+					glm::vec2* target = targetGladiator->m_position;
+					m_physics.applyGrenadeExplosionToGladiator(origin, target, targetGladiator->getPhysicsID());
 					break;
+				}
 				default:
 					break;
 				}

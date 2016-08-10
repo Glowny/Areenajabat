@@ -286,6 +286,16 @@ void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool colli
 	m_gladiatorVector[gladiatorID]->m_body->GetFixtureList()->SetFilterData(filter);
 }
 
+void Physics::applyExplosionToGladiator(glm::vec2* origin, glm::vec2* target, const float CONSTANT, unsigned id) {
+	glm::vec2 direction = glm::vec2(1 / (target->x - origin->x), 1 / (target->y - origin->y));
+	direction = direction * CONSTANT;
+	applyImpulseToGladiator(direction, id);
+}
+
+void Physics::applyGrenadeExplosionToGladiator(glm::vec2* origin, glm::vec2* target, unsigned id) {
+	applyExplosionToGladiator(origin, target, EXPLOSIONIMPULSE, id);
+}
+
 void Physics::applyForceToGladiator(glm::vec2 direction, unsigned id)
 {
 	m_gladiatorVector[id]->m_body->ApplyForce(b2Vec2(direction.x, direction.y),
