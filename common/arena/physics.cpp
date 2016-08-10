@@ -287,7 +287,11 @@ void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool colli
 }
 
 void Physics::applyExplosionToGladiator(glm::vec2* origin, glm::vec2* target, const float CONSTANT, unsigned id) {
-	glm::vec2 direction = glm::vec2(1 / (target->x - origin->x), 1 / (target->y - origin->y));
+	float x = target->x - origin->x;
+	float y = target->y - origin->y;
+	x = abs(x) / x;
+	y = abs(y) / y;
+	glm::vec2 direction = glm::vec2(x, y);
 	direction = direction * CONSTANT;
 	applyImpulseToGladiator(direction, id);
 }
