@@ -187,6 +187,7 @@ namespace arena
 		{ arena::Key::KeyT, arena::Modifier::None, 0, inputThrow, "apple" },
 		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
+		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
 
         INPUT_BINDING_END
     };
@@ -229,7 +230,11 @@ namespace arena
 		//anime->m_animator.playThrowAnimation(0, 0);
 		sandbox->m_controller.m_input.m_grenadeButtonDown = true;
 	}
-
+	static void toggleKeyBindDraw(const void*)
+	{
+		//anime->m_animator.playThrowAnimation(0, 0);
+		sandbox->m_toggleKeyBindDraw = !sandbox->m_toggleKeyBindDraw;
+	}
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 		// Pointer to scene for input to use.
@@ -243,6 +248,7 @@ namespace arena
 		createBackground();
 		anime = nullptr;
 		m_scoreboard = nullptr;
+		m_toggleKeyBindDraw = true;
 		//m_physics = Physics();
 		
 	}
@@ -276,8 +282,8 @@ namespace arena
 		processAllPackets(gameTime);
 
 		//TEMP: if game has not started, do not update.
-		if (m_clientIdToGladiatorData.size() == 0)
-			return;
+		if (m_clientIdToGladiatorData.size() != 0)
+		{ 
 
 		// Update transform component of debug bullets and delete old bullets.
 		updateDebugBullets(gameTime);
@@ -294,6 +300,7 @@ namespace arena
 		}
 
 		updateCameraPosition();
+		}
 		bgfx::dbgTextClear();
 
 		SpriteManager::instance().update(gameTime);
@@ -1013,6 +1020,76 @@ namespace arena
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
 			SpriteRenderer* renderer = builder.addSpriteRenderer();
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
+			//uint32_t color = color::toABGR(255, 255, 255, 50);
+			//renderer->setColor(color);
+			renderer = builder.addSpriteRenderer();
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeSmoke_ss.png"));
+			glm::vec2& origin = renderer->getOrigin();
+			origin.x = origin.x + 16; origin.y = origin.y + 16;
+			renderer->setRotation(float32(rand() % 7));
+			Rectf& source = renderer->getSource();
+			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
+
+
+			if (rand() % 2 == 1) {
+				xOffset = rand() % 10;
+				rotation = (rand() % 3) / 100.0f;
+			}
+			else {
+				xOffset = -(rand() % 10);
+				rotation = (float)-(rand() % 3) / 100.0f;
+			}
+			if (rand() % 2 == 1) {
+				yOffset = rand() % 10;
+			}
+			else {
+				yOffset = -(rand() % 10);
+			}
+
+			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
+			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+
+			// Movement
+			Movement* movement = builder.addMovement();
+			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
+			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 5.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 5.0f);
+			movement->m_rotationSpeed = rotation;
+
+			renderer->anchor();
+			registerEntity(builder.getResults());
+		} 
+
+	}
+
+	void SandboxScene::createExplosionEntity(const Bullet& bullet)
+	{
+		EntityBuilder builder;
+		builder.begin();
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+
+		Timer* timer = builder.addTimer();
+
+		// Load gun smoke, randomize rotation and position on spawn.
+
+		for (int i = 0; i < rand() % 5 + 3; i++)
+		{
+			int spriteX = rand() % 4;
+
+			float rotation = 0;
+			int xOffset = 0, yOffset = 0;
+
+			builder.begin();
+
+			builder.addIdentifier(EntityIdentification::Smoke);
+			// Timer
+			timer = builder.addTimer();
+			timer->m_lifeTime = 0.5f;
+
+			// Drawing stuff
+			Transform* transform = builder.addTransformComponent();
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			//uint32_t color = color::toABGR(255, 255, 255, 50);
 			//renderer->setColor(color);
@@ -1049,7 +1126,7 @@ namespace arena
 
 			renderer->anchor();
 			registerEntity(builder.getResults());
-		} 
+		}
 
 	}
 
@@ -1232,7 +1309,26 @@ namespace arena
 		//bgfx::dbgTextPrintf(0, row, 0x9f, "Mouse pos (world) x= %.2f, y=%.2f", mouseLoc.x, mouseLoc.y);
 		//row++;
 		//bgfx::dbgTextPrintf(0, row, 0x9f, "Angle (%.3f rad) (%.2f deg)", m_controller.aimAngle, glm::degrees(m_controller.aimAngle));
-		
+		//row++;
+		if(m_toggleKeyBindDraw == true)
+		{ 
+			
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyQ: connect");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Key9: disconnect");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyA: moveleft");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyD: moveright");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyW: moveup");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyS: movedown");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyR: reload");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Key1: shoot");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Space: jump");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyT: apple");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyH: animationdie");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyV: animationReset");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: toggleKeyBindDraw");
+		}
+
+		row++;
 		if (m_scoreboard == nullptr)
 			return;
 		for (const auto& elem : m_scoreboard->m_playerScoreVector)

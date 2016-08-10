@@ -60,7 +60,7 @@ namespace arena
 		SandboxScene();
 		~SandboxScene() = default;
         PlayerController m_controller;
-	
+		bool m_toggleKeyBindDraw;
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
@@ -96,12 +96,16 @@ namespace arena
 		void createBullet(BulletData& data);
 		Entity* createBulletEntity(Bullet* bullet);
 		Entity* createGrenadeEntity(Bullet* bullet);
+
+		// These entities are only graphical.
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(const Bullet& bullet);
-
-		void createBulletHit(BulletHitData& data);
+		void createExplosionEntity(const Bullet& bullet);
 		void createBloodBulletHitEntity(Bullet& bullet);
 		void createPlatformBulletHitEntity(Bullet& bullet);
+		// Graphical entities end.
+
+		void createBulletHit(BulletHitData& data);
 		void destroyBullet(uint8_t bulletId);
 		// Update camera position to player gladiator position.
 		void updateCameraPosition(); 
@@ -132,6 +136,7 @@ namespace arena
 		Entity* mousePointerEntity;
 		Physics m_physics;
 		//TODO: remake as component later.
+		
 		glm::vec2 oldMousePos;
 		Scoreboard* m_scoreboard;
 		glm::vec2 m_screenSize = glm::vec2(1920, 1080);
@@ -145,5 +150,6 @@ namespace arena
 	static void inputReload(const void*);
 	static void inputJump(const void*);
 	static void inputThrow(const void*);
+	static void toggleKeyBindDraw(const void*);
 
 }
