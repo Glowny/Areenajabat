@@ -230,7 +230,7 @@ namespace arena
 			//		 being played
 
 			// TODO: debug
-			const char* const GamemodeName = "dm";
+			const char* const GamemodeName = "assets/ini/dm";
 
             m_gameInstances.push_back(new SlaveServer(GamemodeName));
 

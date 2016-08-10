@@ -27,7 +27,7 @@ Physics::Physics() : m_ContactListener(&m_gladiatorVector)
 	m_b2DWorld->SetContactListener(&m_ContactListener);
 
 	currentFreeId = 0;
-
+	memset(isIdFree, true, 256);
 	b2Filter filter;
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
@@ -622,6 +622,7 @@ void Physics::nextUint8_t(uint8_t& current)
 		current++;
 	}
 	// If this happens, there is no free ids left. To add more bullets, use bigger data type
+	printf("Current bullet id: %d\n", current);
 	assert(false);
 }
 

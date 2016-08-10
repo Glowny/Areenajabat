@@ -273,7 +273,7 @@ private:
 	
 	std::vector<CollisionCallback> m_callbacks;
 	int16 gladiatorIdToGroupId(uint32_t playerId);
-	bool isIdFree[256];
+	bool isIdFree[256]{true};
 	void nextUint8_t(uint8_t& current);
 	uint8_t currentFreeId;
 	b2World* m_b2DWorld;

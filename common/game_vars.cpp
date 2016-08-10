@@ -45,7 +45,8 @@ namespace arena
 
 		m_gm_round_freeze_time	= ini.geti(SECTION_GAMEMODE, GM_ROUND_FREEZE_TIME, DefaultRoundFreezeTime);
 		m_gm_max_players		= ini.geti(SECTION_GAMEMODE, GM_MAX_PLAYERS, 10);
-		m_gm_respawn_type		= Storage::s_RespawnTypeValues[ini.gets(SECTION_GAMEMODE, GM_RESPAWN_TYPE, "teams")];
+		// TEMP: Removed temporarily to avoid release crash. Fix later.
+		//m_gm_respawn_type		= Storage::s_RespawnTypeValues[ini.gets(SECTION_GAMEMODE, GM_RESPAWN_TYPE, "teams")];
 		m_gm_teams				= ini.getbool(SECTION_GAMEMODE, GM_TEAMS, false);
 		m_gm_round_duration		= ini.geti(SECTION_GAMEMODE, GM_ROUND_DURATION, DefaultRoundDuration);
 		m_gm_rounds_count		= ini.geti(SECTION_GAMEMODE, GM_ROUNDS_COUNT, 30);
@@ -55,7 +56,7 @@ namespace arena
 		m_gm_mid_game_restart	= ini.getbool(SECTION_GAMEMODE, GM_MID_GAME_RESTART, false);
 		m_gm_player_wait_time	= ini.geti(SECTION_GAMEMODE, GM_PLAYER_WAIT_TIME, 0);
 		m_gm_shutdown_after_wait = ini.getbool(SECTION_GAMEMODE, GM_SHUTDOWN_AFTER_WAIT, false);
-		m_gm_players_required	= ini.geti(SECTION_GAMEMODE, GM_PLAYERS_REQUIRED, 2);
+		m_gm_players_required	= ini.geti(SECTION_GAMEMODE, GM_PLAYERS_REQUIRED, 1);
 	}
 	
 	GameVars::~GameVars()
