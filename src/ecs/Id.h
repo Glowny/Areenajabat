@@ -12,6 +12,7 @@ namespace arena
 	{
 		None,
 		Smoke,
+		Explosion,
 		MuzzleFlash,
 		MapFront,
 		MapBack,

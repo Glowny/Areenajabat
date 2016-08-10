@@ -706,6 +706,12 @@ namespace arena
 							// Create explosion and save id on m_explosionId
 							grenade->isExplosion = true;
 							grenade->m_explosionId = m_physics.addExplosion(grenade->m_position, 200, grenade->m_shooterId);
+							BulletHit* hit = new BulletHit;
+							hit->m_hitId = grenade->m_explosionId;
+							hit->m_hitPosition = *grenade->m_position;
+							hit->m_hitType = 3;
+							m_synchronizationList.push_back(hit);
+
 						}
 					}
 					

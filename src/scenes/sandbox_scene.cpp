@@ -1012,7 +1012,7 @@ namespace arena
 
 			builder.begin();
 
-			builder.addIdentifier(EntityIdentification::Smoke);
+			builder.addIdentifier(EntityIdentification::Explosion);
 			// Timer
 			timer = builder.addTimer();
 			timer->m_lifeTime = 0.5f;
@@ -1157,7 +1157,7 @@ namespace arena
 			// Explosion occurs.
 			case 3:
 			{
-				
+				createExplosionEntity(bullet);
 			}
 			default:
 			{
