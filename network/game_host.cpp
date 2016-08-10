@@ -467,6 +467,8 @@ namespace arena
 
 	void GameHost::GrenadeShoot(Gladiator* gladiator) {
 		Bullet* bullet = gladiator->pitch();
+		bullet->m_shooterId = gladiator->getPhysicsID();
+		gladiator->getPhysicsID();
 		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, bullet->m_impulse, gladiator->getPhysicsID());
 
 		m_synchronizationList.push_back(bullet);
@@ -684,16 +686,23 @@ namespace arena
 					if (m_debugBullets[i].m_bullet->m_type == GrenadeBullet)
 					{
 						Grenade* grenade = static_cast<Grenade*>(m_debugBullets[i].m_bullet);
-						if ((grenade->m_timer += m_physics.updateTimer) > grenade->m_endTime)
+						grenade->m_timer += m_physics.updateTimer;
+						if (grenade->m_timer > grenade->m_endTime)
 						{
 							printf("Delete explosion and grenade\n");
 							// Remove explosion and grenade created below.
+							m_physics.removeBullet(grenade->m_explosionId);
+							m_physics.removeBullet(grenade->m_bulletId);
+							delete m_debugBullets[i].m_bullet;
+							m_debugBullets.erase(m_debugBullets.begin() + i);
 						}
-					
-						if ((grenade->m_timer += m_physics.updateTimer) > grenade->m_explosionTime)
+				
+						if (grenade->m_timer> grenade->m_explosionTime && !grenade->isExplosion)
 						{
-							// Create explosion and save id on m_explosionId
 							printf("Explosion\n");
+							// Create explosion and save id on m_explosionId
+							grenade->isExplosion = true;
+							grenade->m_explosionId = m_physics.addExplosion(grenade->m_position, 200, grenade->m_shooterId);
 						}
 					}
 					

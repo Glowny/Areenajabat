@@ -33,6 +33,7 @@ namespace arena
 			m_impulse = glm::vec2(0, 0);
 			m_rotation = 0;
 			m_creationDelay = 0;
+			m_shooterId = 0;
 		}
 		~Bullet()
 		{
@@ -41,6 +42,7 @@ namespace arena
 		BulletType m_type;
 		uint32_t m_ownerId;
 		uint8_t m_bulletId;
+		unsigned m_shooterId;
 		glm::vec2* m_position;
 		glm::vec2 m_impulse;
 		float m_rotation;
@@ -54,13 +56,14 @@ namespace arena
 		{
 			m_timer = 0;
 			m_explosionTime = 1.8f;
-			m_endTime = 2;
+			m_endTime = 5.5f;
+			isExplosion = false;
 		}
 		float m_timer;
 		float m_explosionTime;
+		bool isExplosion;
 		float m_endTime;
 		uint8_t m_explosionId;
-
 	};
 
 	struct BulletHit : public NetworkEntity
