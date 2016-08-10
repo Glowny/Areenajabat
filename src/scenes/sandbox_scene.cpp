@@ -992,7 +992,7 @@ namespace arena
 		renderer->anchor();
 		registerEntity(builder.getResults());
 	}
-	void SandboxScene::createSmokeEntity(const Bullet& bullet)
+	void SandboxScene::createExplosionEntity(const Bullet& bullet)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -1062,7 +1062,7 @@ namespace arena
 
 	}
 
-	void SandboxScene::createExplosionEntity(const Bullet& bullet)
+	void SandboxScene::createSmokeEntity(const Bullet& bullet)
 	{
 		EntityBuilder builder;
 		builder.begin();
