@@ -143,12 +143,18 @@ namespace arena
 			{
 			case NetworkEntityType::Gladiator:
 			{
+				
 				Gladiator* gladiator = (Gladiator*)entity;
 				// TODO: Pack all the gladiator data on one packet.
 				if (gladiatorUpdatePacket == NULL)
 				{
 					gladiatorUpdatePacket = (GameUpdatePacket*)createPacket(PacketTypes::GameUpdate);
 					gladiatorUpdatePacket->m_playerAmount = 0;
+				}
+				if (gladiatorUpdatePacket->m_playerAmount >= CHARACTER_MAXAMOUNT)
+				{
+					printf("Tried to synchronized more characters than maxAmount, fix this \n");
+					return;
 				}
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = *gladiator->m_position;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = *gladiator->m_velocity;
@@ -175,7 +181,8 @@ namespace arena
 				{
 					spawnBulletsPacket = (GameSpawnBulletsPacket*)createPacket(PacketTypes::GameSpawnBullets);
 					spawnBulletsPacket->m_bulletAmount = 0;
-			}
+
+				}
 				if (spawnBulletsPacket->m_bulletAmount >= BULLET_MAX_AMOUNT)
 				{
 					printf("WARNING: Too many bullets synchronized, not sending any more bullets\n");

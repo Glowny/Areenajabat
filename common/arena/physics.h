@@ -14,8 +14,8 @@ BX_PRAGMA_DIAGNOSTIC_POP()
 #include "../network_entity.h"
 #include "weapons.h"
 
-#define PHYSICS_TIMESTEP 0.016f
 
+#define PHYSICS_TIMESTEP 0.016f
 // TODO: platform has extra stuff that could be removed.
 
 enum entityCategory
@@ -229,7 +229,7 @@ public:
 	Physics();
 	~Physics();
 
-	float32 updateTimer;
+	float64 updateTimer;
 	void reset();
 	void update(float64 timeStep = 1.0f / 60.0f);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);

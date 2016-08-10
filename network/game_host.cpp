@@ -196,6 +196,7 @@ namespace arena
 			}
 
 			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
+
 			if (input.m_grenadeButtonDown && checkGrenade)
 			{
 				GrenadeShoot(player.m_gladiator);
@@ -689,7 +690,7 @@ namespace arena
 						grenade->m_timer += m_physics.updateTimer;
 						if (grenade->m_timer > grenade->m_endTime)
 						{
-							printf("Delete explosion and grenade\n");
+							//printf("Delete explosion and grenade\n");
 							// Remove explosion and grenade created below.
 							m_physics.removeBullet(grenade->m_explosionId);
 							m_physics.removeBullet(grenade->m_bulletId);
@@ -699,7 +700,7 @@ namespace arena
 				
 						if (grenade->m_timer> grenade->m_explosionTime && !grenade->isExplosion)
 						{
-							printf("Explosion\n");
+							//                         printf("Explosion\n");
 							// Create explosion and save id on m_explosionId
 							grenade->isExplosion = true;
 							grenade->m_explosionId = m_physics.addExplosion(grenade->m_position, 200, grenade->m_shooterId);

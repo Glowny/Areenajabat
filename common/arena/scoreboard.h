@@ -27,6 +27,7 @@ namespace arena
 				if (it->m_playerID == playerID)
 					return *it;
 			}
+			return m_playerScoreVector[0];
 		}
 		std::vector<PlayerScore> m_playerScoreVector;
 	};
