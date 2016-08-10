@@ -103,7 +103,8 @@ namespace arena
     struct Context
     {
         Context()
-            : m_mx(0), m_my(0), m_mz(0), m_window(NULL), m_width(1920), m_height(1080)
+            : m_mx(0), m_my(0), m_mz(0), m_window(NULL), m_width(1920), m_height(900)
+			//											 m_width(1920), m_height(1080)
 			//											 m_width(1280), m_height(720)
         {
             memset(s_translateKey, 0, sizeof(s_translateKey));

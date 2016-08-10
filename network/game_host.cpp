@@ -692,7 +692,7 @@ namespace arena
 					}
 					if (m_debugBullets[i].m_bullet->m_type == GrenadeBullet)
 					{
-						Grenade* grenade = static_cast<Grenade*>(m_debugBullets[i].m_bullet);
+						GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(m_debugBullets[i].m_bullet);
 						grenade->m_timer += m_physics.updateTimer;
 						if (grenade->m_timer > grenade->m_endTime)
 						{
@@ -710,6 +710,12 @@ namespace arena
 							// Create explosion and save id on m_explosionId
 							grenade->isExplosion = true;
 							grenade->m_explosionId = m_physics.addExplosion(grenade->m_position, 200, grenade->m_shooterId);
+							BulletHit* hit = new BulletHit;
+							hit->m_hitId = grenade->m_explosionId;
+							hit->m_hitPosition = *grenade->m_position;
+							hit->m_hitType = 3;
+							m_synchronizationList.push_back(hit);
+
 						}
 					}
 					
