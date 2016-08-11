@@ -85,9 +85,9 @@ namespace arena
 		int64_t currentTime = bx::getHPCounter();
 		const int64_t time = currentTime - m_startTime;
 		m_startTime = currentTime;
-		const double frequency = (double)bx::getHPFrequency();
+		const float64 frequency = bx::getHPFrequency();
 		// seconds
-		float lastDeltaTime = float(time * (1.0f / frequency));
+		float64 lastDeltaTime = float64(time * (1.0f / frequency));
 		m_totalTime += lastDeltaTime;
 
 		// incoming packets

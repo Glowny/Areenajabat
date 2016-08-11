@@ -233,7 +233,7 @@ public:
 
 	float64 updateTimer;
 	void reset();
-	void update(float64 timeStep = 1.0f / 60.0f);
+	void update(float64 timeStep = PHYSICS_TIMESTEP);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	uint32_t addGladiator(glm::vec2* position, glm::vec2* velocity, bool generateID = true, uint32_t id = 0);

@@ -12,9 +12,7 @@ namespace arena
 											   m_disposed(false),
 											   m_endCalled(false)
 	{
-		// TODO: check if this is in correct place
-		m_physics = physics();
-		
+
 	}
 
 	void GameHost::startSession() 

@@ -636,13 +636,11 @@ namespace arena
 
 			}
 
-			if (entity->contains(TYPEOF(PhysicsRotation)))
+			if (entity->contains(TYPEOF(PhysicsComponent)))
 			{
-				PhysicsRotation* rotation = (PhysicsRotation*)entity->first(TYPEOF(PhysicsRotation));
+				PhysicsComponent* physicsComponent = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
 				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-
-				rotation->m_rotation = m_physics.getEntityRotation(rotation->m_physicsId);
-				renderer->setRotation(rotation->m_rotation);
+				renderer->setRotation(m_physics.getEntityRotation(physicsComponent->m_physicsId));
 			}
 
 			if (entity->contains(TYPEOF(Id)))
@@ -945,9 +943,8 @@ namespace arena
 		
 		renderer->anchor();
 
-		PhysicsRotation* rotation = builder.addPhysicsRotation();
-		rotation->m_rotation = bullet->m_rotation;
-		rotation->m_physicsId = bullet->m_bulletId;
+		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
+		physicsComponent->m_physicsId = bullet->m_bulletId;
 
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
