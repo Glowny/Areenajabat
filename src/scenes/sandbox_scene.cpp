@@ -50,7 +50,6 @@ namespace arena
 		return glm::vec2(cos(r), sin(r));
 	}
 
-
 	void loadServerInfoFromFile(std::string& ip, uint16_t& port)
 	{
 		std::ifstream file("assets/ServerInfo.txt");
@@ -135,24 +134,7 @@ namespace arena
         }
     };
 	static DebugLobbyListener s_lobbyListener;
-	static Animator* anime;
 
-
-	// Functions for debugging animations.
-	static void playDeathAnimation(const void*)
-	{
-		anime->m_animator.playDeathAnimation(1, 100.0f);
-	}
-
-	static void resetAnimations(const void*)
-	{
-		anime->m_animator.resetAnimation();
-	}
-
-	static void climb(const void*)
-	{
-		anime->m_animator.playClimbAnimation(0);
-	}
 
     static void connect(const void*)
     {
@@ -174,8 +156,6 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-		{ arena::Key::KeyH, arena::Modifier::None, 0, playDeathAnimation, "debugdie" },
-		{ arena::Key::KeyV, arena::Modifier::None, 0, resetAnimations, "debugAnimationReset" },
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
@@ -185,7 +165,6 @@ namespace arena
         { arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
 		{ arena::Key::KeyT, arena::Modifier::None, 0, inputThrow, "apple" },
-		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
 
@@ -195,12 +174,10 @@ namespace arena
 
 	static void inputMoveLeft(const void*)
 	{
-		anime->m_animator.setFlipX(false);
 		sandbox->m_controller.m_input.m_leftButtonDown = true;
 	}
 	static void inputMoveRight(const void*)
 	{
-		anime->m_animator.setFlipX(true);
         sandbox->m_controller.m_input.m_rightButtonDown = true;
 	}
 	static void inputMoveUp(const void*)
@@ -246,7 +223,7 @@ namespace arena
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
 		m_backgroundSetting = 1;
 		createBackground();
-		anime = nullptr;
+
 		m_scoreboard = nullptr;
 		m_toggleKeyBindDraw = true;
 		//m_physics = Physics();
@@ -450,7 +427,6 @@ namespace arena
 			m_scoreboard->m_playerScoreVector.push_back(playerScore);
 		}
 
-		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{

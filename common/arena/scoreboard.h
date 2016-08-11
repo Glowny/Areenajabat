@@ -18,6 +18,7 @@ namespace arena
 		Scoreboard::Scoreboard(): NetworkEntity(NetworkEntityType::Scoreboard) 
 		{
 			m_flagHolder = 666;
+			m_hasPhysics = false;
 		};
 		unsigned m_flagHolder;
 		inline PlayerScore& getPlayerScore(unsigned playerID)

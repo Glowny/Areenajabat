@@ -107,20 +107,21 @@ namespace arena
         Player newPlayer;
 		newPlayer.m_clientIndex		 = clientIndex;
 		newPlayer.m_playerController = new PlayerController();
+		newPlayer.setEntityID(getFreeEntityId());
 
-        Gladiator* gladiator		= new Gladiator;
+        Gladiator* gladiator		= new Gladiator();
 		gladiator->m_ownerId		= newPlayer.m_clientIndex;
 		gladiator->m_weapon			= new WeaponGladius;
 		gladiator->m_grenadeWeapon  = new WeaponGrenade;
         newPlayer.m_gladiator		= gladiator;
 		*gladiator->m_position =  glm::vec2(600, 200);
 		gladiator->setEntityID(getFreeEntityId());
-
+		registerEntity(gladiator);
 		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
 		
         m_players.add(newPlayer);
 		
-		registerEntity(&m_players.back());
+	
 	}
 	void GameHost::unregisterPlayer(const uint32 clientIndex)
 	{
@@ -375,7 +376,8 @@ namespace arena
 					hit->m_hitDirection = 0;
 				else
 					hit->m_hitDirection = 1;
-				hit->m_targetPlayerId = target.m_id;
+				//TODO: use gladiator id, not player id.
+				hit->m_targetPlayerId = targetGladiator->m_ownerId;
 
 				targetGladiator->m_hitpoints -= hit->m_damageAmount;
 				if (targetGladiator->m_hitpoints <= 0)
@@ -476,7 +478,7 @@ namespace arena
 	void GameHost::GrenadeShoot(Gladiator* gladiator) {
 		Bullet* bullet = gladiator->pitch();
 		bullet->m_shooterId = gladiator->getEntityID();
-		
+
 		bullet->setEntityID(getFreeEntityId());
 		m_physics.addGrenadeWithID(bullet->m_position, bullet->m_impulse, gladiator->getEntityID(), bullet->getEntityID());
 		m_synchronizationList.push_back(bullet);
@@ -484,6 +486,7 @@ namespace arena
 		dBullet.lifeTime = 13;
 		dBullet.m_bullet = bullet;
 		m_debugBullets.push_back(dBullet);
+		registerEntity(bullet);
 	}
 
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
@@ -499,6 +502,7 @@ namespace arena
 			dBullet.lifeTime = 0;
 			dBullet.m_bullet = bullets[i];
 			m_debugBullets.push_back(dBullet);
+			registerEntity(bullets[i]);
 		}
 	}
 	
@@ -667,7 +671,7 @@ namespace arena
 							printf("Respawned player %d\n", player.m_gladiator->getEntityID());
 							// HAX, USE EVENTHANDLER
 							NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
-							entity->setEntityID(player.m_gladiator->getEntityID());
+							entity->setEntityID(player.m_clientIndex);
 							m_synchronizationList.push_back(entity);
 							entity->destroy();
 						}
@@ -728,7 +732,7 @@ namespace arena
 
 	void GameHost::addScoreBoard()
 	{
-		Scoreboard* board = new Scoreboard;
+		Scoreboard* board = new Scoreboard();
 		for (auto it = m_players.begin(); it != m_players.end(); it++)
 		{
 			Player* player = &*it;
@@ -740,8 +744,9 @@ namespace arena
 			score.m_playerID = player->m_clientIndex;
 			board->m_playerScoreVector.push_back(score);
 		}
+		board->setEntityID(getFreeEntityId());
 		m_scoreBoard = board;
-		registerEntity(board);
+		registerEntity(m_scoreBoard);
 		m_synchronizationList.push_back(m_scoreBoard);
 	}
 	void GameHost::resetScoreBoard()
@@ -768,10 +773,10 @@ namespace arena
 	void GameHost::destroyEntities()
 	{
 		auto& entities = m_entities.container();
-		for (auto it = entities.begin(); it != entities.end(); it++)
+		for (auto it = entities.begin(); it != entities.end(); )
 		{
 			NetworkEntity* entity= *it;
-			if(entity->getDestroy())
+			if (entity->getDestroy())
 			{
 				if (entity->m_hasPhysics)
 					m_physics.removeEntity(entity->getEntityID());
@@ -779,6 +784,8 @@ namespace arena
 				unregisterEntity(entity);
 				delete entity;
 			}
+			else
+				it++;
 		}
 	}
 	uint8_t GameHost::getFreeEntityId()

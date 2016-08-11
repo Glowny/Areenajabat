@@ -21,7 +21,8 @@ namespace arena
 			m_climbing = false;
 			m_throwing = false;
 			m_reloading = false;
-
+			m_remove = false;
+			m_hasPhysics = true;
 		}
 		~Gladiator()
 		{

@@ -536,6 +536,7 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	sensorFixtureDef.shape = &circle;
 	sensorFixtureDef.isSensor = true;
 	// We can use the bullet sensor as it reports all collides with gladiators.
+
 	sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
 	sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 

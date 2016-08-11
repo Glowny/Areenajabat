@@ -50,11 +50,13 @@ namespace arena
 		NetworkEntity(const NetworkEntityType HAXtype, bool haxhax) : m_type(HAXtype)
 		{
 			haxhax;
+			m_remove = false;
 		}
 		bool				m_hasPhysics = false;
 	protected:
 		NetworkEntity(const NetworkEntityType type) : m_type(type)
 		{
+			m_remove = false;
 		}
 
 		NetworkEntity() = delete;

@@ -55,6 +55,7 @@ namespace arena
 	
 		Player() : NetworkEntity(NetworkEntityType::Player)
 		{
+			m_remove = false;
 		}
 
 		bool operator ==(const Player* const lhs) const
