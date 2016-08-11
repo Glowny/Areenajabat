@@ -11,6 +11,7 @@
 #include "../ecs/transform.h"
 #include <map>
 #include <common/arena/physics.h>
+#include <common/arena/deathmatch.h>
 struct Message;
 
 
@@ -139,6 +140,7 @@ namespace arena
 		
 		glm::vec2 oldMousePos;
 		Scoreboard* m_scoreboard;
+		GameMode* m_gameMode;
 		glm::vec2 m_screenSize = glm::vec2(1920, 1080);
     };
 
