@@ -56,6 +56,7 @@ namespace arena
 	
 		Player() : NetworkEntity(NetworkEntityType::Player)
 		{
+			m_remove = false;
 		}
 
 		bool operator ==(const Player* const lhs) const
@@ -268,16 +269,20 @@ namespace arena
 		void timeOutBegin();
 		void timeoutEnd();
 
+
 		void registerPlayer(const uint32 clientIndex);
 		void unregisterPlayer(const uint32 clientIndex);
 
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
+		// Remove entities set for removal.
+		void destroyEntities();
 
 		void processInput(const uint64 clientIndex, const PlayerInput& input, float32 aimAngle);
 		void GrenadeShoot(Gladiator* gladiator);
 		void GladiatorShoot(Gladiator* gladiator);
 		
+
 		bool shouldProcessPlayerInput() const;
 
 		void applyPlayerInputs(const float64 dt);
@@ -328,6 +333,10 @@ namespace arena
 		bool				m_disposed;
 		bool				m_endCalled;
 
+		uint8_t getFreeEntityId();
+		bool isIdFree[256]{ true };
+		void nextUint8_t(uint8_t& current);
+		uint8_t currentFreeId;
 
 	};
 }

@@ -29,7 +29,6 @@ namespace arena
 			: NetworkEntity(NetworkEntityType::Projectile)
 		{
 			m_type = BulletType(0);
-			m_bulletId = 0;
 			m_position = new glm::vec2(0, 0);
 			m_impulse = glm::vec2(0, 0);
 			m_rotation = 0;
@@ -42,7 +41,6 @@ namespace arena
 		}
 		BulletType m_type;
 		uint32_t m_ownerId;
-		uint8_t m_bulletId;
 		unsigned m_shooterId;
 		glm::vec2* m_position;
 		glm::vec2 m_impulse;

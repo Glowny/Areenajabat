@@ -50,7 +50,6 @@ namespace arena
 		return glm::vec2(cos(r), sin(r));
 	}
 
-
 	void loadServerInfoFromFile(std::string& ip, uint16_t& port)
 	{
 		std::ifstream file("assets/ServerInfo.txt");
@@ -135,24 +134,7 @@ namespace arena
         }
     };
 	static DebugLobbyListener s_lobbyListener;
-	static Animator* anime;
 
-
-	// Functions for debugging animations.
-	static void playDeathAnimation(const void*)
-	{
-		anime->m_animator.playDeathAnimation(1, 100.0f);
-	}
-
-	static void resetAnimations(const void*)
-	{
-		anime->m_animator.resetAnimation();
-	}
-
-	static void climb(const void*)
-	{
-		anime->m_animator.playClimbAnimation(0);
-	}
 
     static void connect(const void*)
     {
@@ -174,8 +156,6 @@ namespace arena
 
     static const InputBinding s_bindings[] =
     {
-		{ arena::Key::KeyH, arena::Modifier::None, 0, playDeathAnimation, "debugdie" },
-		{ arena::Key::KeyV, arena::Modifier::None, 0, resetAnimations, "debugAnimationReset" },
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
@@ -185,7 +165,6 @@ namespace arena
         { arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
 		{ arena::Key::KeyT, arena::Modifier::None, 0, inputThrow, "apple" },
-		{ arena::Key::KeyC, arena::Modifier::None, 0, climb, "climb" },
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
 
@@ -195,12 +174,10 @@ namespace arena
 
 	static void inputMoveLeft(const void*)
 	{
-		anime->m_animator.setFlipX(false);
 		sandbox->m_controller.m_input.m_leftButtonDown = true;
 	}
 	static void inputMoveRight(const void*)
 	{
-		anime->m_animator.setFlipX(true);
         sandbox->m_controller.m_input.m_rightButtonDown = true;
 	}
 	static void inputMoveUp(const void*)
@@ -246,7 +223,7 @@ namespace arena
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
 		m_backgroundSetting = 1;
 		createBackground();
-		anime = nullptr;
+
 		m_scoreboard = nullptr;
 		m_gameMode = nullptr;
 		m_toggleKeyBindDraw = true;
@@ -377,12 +354,12 @@ namespace arena
 		case PacketTypes::GameUpdate:
 		{
 			updateGladiators((GameUpdatePacket*)packet);
-
 			break;
 		}
 		case PacketTypes::GameCreateGladiators:
 		{
 			createGladiators((GameCreateGladiatorsPacket*)packet);
+			break;
 		}
 		case PacketTypes::GamePlatform:
 		{
@@ -441,7 +418,7 @@ namespace arena
 			gladiator->m_velocity = &characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
-			gladiator->setPhysicsID(characterData->m_id);
+			gladiator->setEntityID(characterData->m_id);
 			createGladiator(gladiator);
 			PlayerScore playerScore;
 			playerScore.m_playerID = gladiator->m_ownerId;
@@ -451,7 +428,6 @@ namespace arena
 			m_scoreboard->m_playerScoreVector.push_back(playerScore);
 		}
 
-		anime = m_clientIdToGladiatorData[m_playerId]->m_animator;
 
 		m_gameMode = new DeathMatch(m_scoreboard, 10, 1);
 	}
@@ -639,13 +615,11 @@ namespace arena
 
 			}
 
-			if (entity->contains(TYPEOF(PhysicsRotation)))
+			if (entity->contains(TYPEOF(PhysicsComponent)))
 			{
-				PhysicsRotation* rotation = (PhysicsRotation*)entity->first(TYPEOF(PhysicsRotation));
+				PhysicsComponent* physicsComponent = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
 				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-
-				rotation->m_rotation = m_physics.getEntityRotation(rotation->m_physicsId);
-				renderer->setRotation(rotation->m_rotation);
+				renderer->setRotation(m_physics.getEntityRotation(physicsComponent->m_physicsId));
 			}
 
 			if (entity->contains(TYPEOF(Id)))
@@ -773,7 +747,7 @@ namespace arena
 
 		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
 		{
-			if (it->second.bullet->m_bulletId == bulletId)
+			if (it->second.bullet->getEntityID() == bulletId)
 			{
 				it->second.lifeTime = 20;
 				//it->second.entity->destroy();
@@ -817,7 +791,7 @@ namespace arena
 
 		registerEntity(entity_gladiator);
 
-		m_physics.addGladiator(gladiator->m_position, gladiator->m_velocity, false, gladiator->getPhysicsID());
+		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
 		GladiatorDrawData* data = new GladiatorDrawData;
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
@@ -834,7 +808,7 @@ namespace arena
 		// Create bullet entity that is updated by server. (DEBUG)
 		Bullet* bullet = new Bullet;
 		*bullet->m_position = data.m_position;
-		bullet->m_bulletId = data.m_id;
+		bullet->setEntityID(data.m_id);
 		bullet->m_ownerId = data.m_ownerId;
 		bullet->m_type = (BulletType)data.m_type;
 		bullet->m_creationDelay = data.m_creationDelay;
@@ -854,7 +828,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet);
 			clientEntity = createBulletEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::ShotgunBullet:
@@ -863,7 +837,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet);
 			clientEntity = createBulletEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::GrenadeBullet:
@@ -872,7 +846,7 @@ namespace arena
 			serverEntity = createGrenadeEntity(bullet);
 			clientEntity = createGrenadeEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addGrenade(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addGrenadeWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		default:
@@ -880,7 +854,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet);
 			clientEntity = createBulletEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		}
@@ -895,10 +869,10 @@ namespace arena
 		DebugBullet debugBullet;
 		debugBullet.bullet = bullet;
 		debugBullet.entity = serverEntity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->getEntityID(), debugBullet));
 		
 		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
-		projectile->m_bulletId = bullet->m_bulletId;
+		projectile->m_bulletId = bullet->getEntityID();
 		projectile->m_bulletType = bullet->m_type;
 		// TODO: Update clientside bullet on updateEntities();
 	}
@@ -948,9 +922,8 @@ namespace arena
 		
 		renderer->anchor();
 
-		PhysicsRotation* rotation = builder.addPhysicsRotation();
-		rotation->m_rotation = bullet->m_rotation;
-		rotation->m_physicsId = bullet->m_bulletId;
+		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
+		physicsComponent->m_physicsId = bullet->getEntityID();
 
 		Entity* entity = builder.getResults();
 		registerEntity(entity);

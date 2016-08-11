@@ -20,14 +20,13 @@
 //	return;
 //}
 
-Physics::Physics() : m_ContactListener(&m_gladiatorVector)
+Physics::Physics() : m_ContactListener(&m_entityVector)
 {
 	updateTimer = 0;
 	m_b2DWorld = new b2World(b2Vec2(0.f,9.81f));
 	m_b2DWorld->SetContactListener(&m_ContactListener);
 
-	currentFreeId = 0;
-	memset(isIdFree, true, 256);
+
 	b2Filter filter;
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
@@ -90,19 +89,25 @@ void Physics::update(float64 timeStep)
 	m_b2DWorld->Step(timeStep, VelocityIterations, PositionIterations);
 
 	// Set gladiator positions.
-	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	for (unsigned i = 0; i < m_entityVector.size(); i++)
 	{
-		b2Vec2 pos = m_gladiatorVector[i]->m_body->GetPosition();
-		*m_gladiatorVector[i]->m_gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
-		b2Vec2 velocity = m_gladiatorVector[i]->m_body->GetLinearVelocity();
-		*m_gladiatorVector[i]->m_gamevelocity = glm::vec2(velocity.x * 100.0f, velocity.y * 100.0f);
-	
-	}
+		if (m_entityVector[i]->m_type == bodyType::B_Gladiator)
+		{
+			p_Gladiator* glad = static_cast<p_Gladiator*>(m_entityVector[i]);
+			b2Vec2 pos = glad->m_body->GetPosition();
+			*glad->m_gamePosition = glm::vec2(pos.x * 100.0f, pos.y * 100.0f);
+			b2Vec2 velocity = glad->m_body->GetLinearVelocity();
+			*glad->m_gamevelocity = glm::vec2(velocity.x * 100.0f, velocity.y * 100.0f);
 
-	for (unsigned i = 0; i < m_bulletVector.size(); i++)
-	{
-		b2Vec2 position = m_bulletVector[i]->m_body->GetPosition();;
-		*m_bulletVector[i]->gamePosition = glm::vec2(position.x* 100, position.y*100);
+		}
+		if (m_entityVector[i]->m_type == bodyType::B_Bullet || m_entityVector[i]->m_type == bodyType::B_Grenade)
+		{
+			p_Bullet* bullet = static_cast<p_Bullet*>(m_entityVector[i]);
+			b2Vec2 position = bullet->m_body->GetPosition();
+			*bullet->gamePosition = glm::vec2(position.x * 100, position.y * 100);
+		}
+		
+
 	}
 
 	#pragma region Old impl
@@ -224,14 +229,7 @@ void Physics::createPlatform(std::vector<glm::vec2> platform, unsigned type)
 	temp_platform->m_body->SetUserData(userData);
 }
 
-// returns id.
-uint32_t Physics::addGladiator(glm::vec2* position, glm::vec2* velocity, bool generateID, uint32_t id)
-{
-	if (generateID)
-		id = m_gladiatorVector.size();
-	addGladiatorWithID(position, velocity, id);
-	return id;
-}
+
 void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint32_t id)
 {
 	p_Gladiator* glad = new p_Gladiator;
@@ -271,11 +269,12 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
 	
-	m_gladiatorVector.push_back(glad);
+	m_entityVector.push_back(glad);
 };
 
 void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide)
 {
+	// Note: can be used to set any entity filter data with a body.
 	b2Filter filter;
 	if (collide)
 		filter = b2Filters[ci_Gladiator];
@@ -283,7 +282,7 @@ void Physics::setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool colli
 		filter = b2Filters[ci_GladiatorNoCollide];
 
 	filter.groupIndex = gladiatorIdToGroupId(gladiatorID);
-	m_gladiatorVector[gladiatorID]->m_body->GetFixtureList()->SetFilterData(filter);
+	getEntity(gladiatorID)->m_body->GetFixtureList()->SetFilterData(filter);
 }
 
 void Physics::applyExplosionToGladiator(glm::vec2* origin, glm::vec2* target, const float CONSTANT, unsigned id) {
@@ -302,26 +301,28 @@ void Physics::applyGrenadeExplosionToGladiator(glm::vec2* origin, glm::vec2* tar
 
 void Physics::applyForceToGladiator(glm::vec2 direction, unsigned id)
 {
-	m_gladiatorVector[id]->m_body->ApplyForce(b2Vec2(direction.x, direction.y),
-		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
+	p_entity* entity = getEntity(id);
+	entity->m_body->ApplyForce(b2Vec2(direction.x, direction.y),
+		entity->m_body->GetWorldCenter(), 1);
 }
 
 void Physics::applyImpulseToGladiator(glm::vec2 direction, unsigned id)
 {
-	m_gladiatorVector[id]->m_body->ApplyLinearImpulse(b2Vec2(direction.x, direction.y ),
-		m_gladiatorVector[id]->m_body->GetWorldCenter(), 1);
+	p_entity* entity = getEntity(id);
+	entity->m_body->ApplyLinearImpulse(b2Vec2(direction.x, direction.y ),
+		entity->m_body->GetWorldCenter(), 1);
 }
 
-void Physics::setGladiatorPosition(unsigned id, glm::vec2 position)
+void Physics::setGladiatorPosition(glm::vec2 position, unsigned id )
 {
 	b2Vec2 pos;
 	pos.x = position.x / 100.0f;
 	pos.y = position.y / 100.0f;
-	m_gladiatorVector[id]->m_body->SetTransform(pos, m_gladiatorVector[id]->m_body->GetAngle());
+	getEntity(id)->m_body->SetTransform(pos, getEntity(id)->m_body->GetAngle());
 }
 glm::vec2 Physics::getGladiatorPosition(unsigned id)
 {
-	b2Vec2 pos = m_gladiatorVector[id]->m_body->GetPosition();
+	b2Vec2 pos = getEntity(id)->m_body->GetPosition();
 	glm::vec2 position;
 	position.x = pos.x*100.0f;
 	position.y = pos.y*100.0f;
@@ -331,7 +332,7 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 {
 	// Is there possibility of multiple edges?
-	b2ContactEdge* edge =  m_gladiatorVector[id]->m_body->GetContactList();
+	b2ContactEdge* edge = getEntity(id)->m_body->GetContactList();
 	if (edge == NULL)
 		return false;
 	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
@@ -345,7 +346,7 @@ bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 int Physics::checkIfGladiatorCollidesLadder(unsigned id)
 {
 	// Is there possibility of multiple edges?
-	b2ContactEdge* edge = m_gladiatorVector[id]->m_body->GetContactList();
+	b2ContactEdge* edge = getEntity(id)->m_body->GetContactList();
 	while (edge != NULL)
 	{
 		p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
@@ -389,7 +390,7 @@ int Physics::checkIfGladiatorCollidesLadder(unsigned id)
 
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
-	b2Vec2 vel = m_gladiatorVector[id]->m_body->GetLinearVelocity();
+	b2Vec2 vel = getEntity(id)->m_body->GetLinearVelocity();
 	glm::vec2 velocity;
 	velocity.x = vel.x*100.0f;
 	velocity.y = vel.y*100.0f;
@@ -403,13 +404,6 @@ void Physics::removeGladiator(unsigned id)
 //TODO: at the moment bullet, grenade and explosions are handled by same system. 
 // Rename the system or make separate ones if needed.
 
-uint8_t Physics::addBullet(glm::vec2* position, glm::vec2 impulse, uint32_t shooterID, bool generateID, uint8_t id)
-{
-	if (generateID)
-		id = getFreeBulletId();
-	addBulletWithID(position, impulse, shooterID, id);
-	return id;
-}
 
 void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID)
 {
@@ -448,7 +442,7 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned s
 	body->CreateFixture(&physicalFixtureDef);
 	body->CreateFixture(&sensorFixtureDef);
 	p_Bullet* bullet = new p_Bullet;
-	bullet->bulletId = bulletID;
+	bullet->m_id = bulletID;
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Bullet;
 	bullet->m_type = B_Bullet;
@@ -462,17 +456,10 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned s
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
 	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
-	m_bulletVector.push_back(bullet);
+	m_entityVector.push_back(bullet);
 
 };
 
-uint8_t Physics::addGrenade(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, bool generateID, uint8_t id)
-{
-	if (generateID)
-		id = getFreeBulletId();
-	addGrenadeWithID(position, impulse, shooterID, id);
-	return id;
-}
 
 void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID)
 {
@@ -502,7 +489,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	body->SetAngularDamping(3.50f);
 
 	p_Bullet* bullet = new p_Bullet;
-	bullet->bulletId = bulletID;
+	bullet->m_id = bulletID;
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Grenade;
 	bullet->m_type = B_Grenade;
@@ -516,24 +503,22 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
 	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
-	m_bulletVector.push_back(bullet);
+	m_entityVector.push_back(bullet);
 
 };
 float32 Physics::getEntityRotation(unsigned id)
 {
-	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	for (unsigned i = 0; i < m_entityVector.size(); i++)
 	{
-		if (id == m_bulletVector[i]->bulletId)
-			return m_bulletVector[i]->m_body->GetAngle();
+		if (id == m_entityVector[i]->m_id && m_entityVector[i]->m_body != nullptr)
+		{
+			return m_entityVector[i]->m_body->GetAngle();
+		}
+		printf("Trying to get rotation of entity with no body\n");
+		return 0.0f;
 	}
 }
-uint8_t Physics::addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID, uint8_t id)
-{
-	if (generateID)
-		id = getFreeBulletId();
-	addExplosionWithID(position, radius, shooterID, id);
-	return id;
-}
+
 void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID)
 {
 	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f);
@@ -551,13 +536,14 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	sensorFixtureDef.shape = &circle;
 	sensorFixtureDef.isSensor = true;
 	// We can use the bullet sensor as it reports all collides with gladiators.
+
 	sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
 	sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
 	body->CreateFixture(&sensorFixtureDef);
 
 	p_Bullet* bullet = new p_Bullet;
-	bullet->bulletId = bulletID;
+	bullet->m_id = bulletID;
 	p_userData* userData = new p_userData;
 	userData->m_bodyType = B_Explosion;
 	bullet->m_type = B_Explosion;
@@ -572,75 +558,46 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	body->SetUserData(userData);
 	body->SetAwake(true);
 
-	m_bulletVector.push_back(bullet);
+	m_entityVector.push_back(bullet);
 
 }
 
 
 void Physics::reset()
 {
-	for (unsigned i = 0; i < m_gladiatorVector.size(); i++)
+	for (unsigned i = 0; i < m_entityVector.size(); i++)
 	{
-		m_gladiatorVector[i]->m_body->GetWorld()->DestroyBody(m_gladiatorVector[i]->m_body);
-		free(m_gladiatorVector[i]->m_userData);
+		m_entityVector[i]->cleanUp();
+		delete(m_entityVector[i]);
 	}
-	for (unsigned i = 0; i < m_bulletVector.size(); i++)
-	{
-		m_bulletVector[i]->m_body->GetWorld()->DestroyBody(m_bulletVector[i]->m_body);
-		delete(m_bulletVector[i]->m_myUserData);
-		delete(m_bulletVector[i]);
-
-	}
-	m_gladiatorVector.clear();
-	m_bulletVector.clear();
+	m_entityVector.clear();
 }
-void Physics::removeBullet(uint8_t id)
+void Physics::removeEntity(uint8_t id)
 {
 	// TODO: Do proper removal.
-	for (unsigned i = 0; i < m_bulletVector.size(); i++)
+	for (unsigned i = 0; i < m_entityVector.size(); i++)
 	{
-		if (id == m_bulletVector[i]->bulletId)
+		if (id == m_entityVector[i]->m_id)
 		{ 
-			m_bulletVector[i]->cleanUp();
-			delete m_bulletVector[i];
-			m_bulletVector.erase(m_bulletVector.begin() + i);
+			m_entityVector[i]->cleanUp();
+			delete m_entityVector[i];
+			m_entityVector.erase(m_entityVector.begin() + i);
 			break;
 		}
 	}
-	assert(id < 256);
-	isIdFree[id] = true;
-}
 
-uint8_t Physics::getFreeBulletId()
-{
-	nextUint8_t(currentFreeId);
-	return currentFreeId;
-}
-
-void Physics::nextUint8_t(uint8_t& current)
-{
-	uint8_t old = current;
-	current++;
-
-	// search for id till there is a free one left. Will crash if there is none left.
-	while(current != old)
-	{ 
-		
-		if (current > 255)
-			current = 0;
-		if (isIdFree[current])
-		{
-			isIdFree[current] = false;			
-			return;
-		}
-		current++;
-	}
-	// If this happens, there is no free ids left. To add more bullets, use bigger data type
-	printf("Current bullet id: %d\n", current);
-	assert(false);
 }
 
 int16 Physics::gladiatorIdToGroupId(uint32_t playerId)
 {
 	return -(int16)(playerId + 1);
+}
+
+p_entity* Physics::getEntity(uint8_t id)
+{
+	for (auto entity = m_entityVector.begin(); entity != m_entityVector.end(); entity++)
+	{
+		if((*entity)->m_id == id)
+			return *entity;
+	}
 }
