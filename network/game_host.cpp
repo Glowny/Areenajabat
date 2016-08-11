@@ -313,6 +313,7 @@ namespace arena
 
 				m_synchronizationList.push_back(hit);
 
+
 			}
 			else if (entry.m_target->m_type == B_Gladiator)
 			{
@@ -415,15 +416,15 @@ namespace arena
 				// TODO: Do removal here and properly		
 				delete entry.m_target;
 			}
-			for (unsigned i = 0; i < m_debugBullets.size(); i++)
-				if (m_debugBullets[i].m_bullet->getEntityID() == bullet.m_id)
-				{
-					//m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
-
-					m_debugBullets[i].m_bullet->destroy();
-					m_debugBullets.erase(m_debugBullets.begin() + i);
-					//delete m_debugBullets[i].m_bullet;
+			auto& entities = m_entities.container();
+			for (auto it = entities.begin(); it != entities.end(); ++it)
+			{
+				if ((*it)->getEntityID() == bullet.m_id)
+				{ 
+					(*it)->destroy();
+					break;
 				}
+			}
 		}
 
 		entries.clear();
@@ -482,10 +483,6 @@ namespace arena
 		bullet->setEntityID(getFreeEntityId());
 		m_physics.addGrenadeWithID(bullet->m_position, bullet->m_impulse, gladiator->getEntityID(), bullet->getEntityID());
 		m_synchronizationList.push_back(bullet);
-		DebugBullet dBullet;
-		dBullet.lifeTime = 13;
-		dBullet.m_bullet = bullet;
-		m_debugBullets.push_back(dBullet);
 		registerEntity(bullet);
 	}
 
@@ -498,10 +495,6 @@ namespace arena
 			bullets[i]->setEntityID(getFreeEntityId());
 			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
-			DebugBullet dBullet;
-			dBullet.lifeTime = 0;
-			dBullet.m_bullet = bullets[i];
-			m_debugBullets.push_back(dBullet);
 			registerEntity(bullets[i]);
 		}
 	}
@@ -679,51 +672,43 @@ namespace arena
 					 // update position because of gravity.
 					 m_synchronizationList.push_back(player.m_gladiator);
 				}
-
-				for (unsigned i = 0; i < m_debugBullets.size(); ++i)
+				auto& entities = m_entities.container();
+				for (auto it = entities.begin(); it != entities.end(); ++it)
 				{
-					if ((m_debugBullets[i].lifeTime += m_physics.updateTimer) < 20.0f)
-					{ 
-						
-						m_synchronizationList.push_back(m_debugBullets[i].m_bullet);
-					}
-					else
+					NetworkEntity* entity = *it;
+					if (entity->type() == NetworkEntityType::Projectile)
 					{
-						m_physics.removeEntity(m_debugBullets[i].m_bullet->getEntityID());
+						Bullet* bullet = static_cast<Bullet*>(entity);
 
-						m_debugBullets[i].m_bullet->destroy();
-						
-						m_debugBullets.erase(m_debugBullets.begin() + i);
-					}
-					if (m_debugBullets[i].m_bullet->m_type == GrenadeBullet)
-					{
-						GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(m_debugBullets[i].m_bullet);
-						grenade->m_timer += m_physics.updateTimer;
-						if (grenade->m_timer > grenade->m_endTime)
+						if (bullet->m_bulletType == GrenadeBullet)
 						{
-							//printf("Delete explosion and grenade\n");
-							// Remove explosion and grenade created below.
-							grenade->destroy();
-							m_debugBullets.erase(m_debugBullets.begin() + i);
-						}
-				
-						if (grenade->m_timer> grenade->m_explosionTime && !grenade->isExplosion)
-						{
-							//                         printf("Explosion\n");
-							// Create explosion and save id on m_explosionId
-							grenade->isExplosion = true;
-							grenade->m_explosionId = getFreeEntityId();
-							m_physics.addExplosionWithID(grenade->m_position, 200, grenade->m_shooterId, grenade->m_explosionId);
-							BulletHit* hit = new BulletHit;
-							hit->m_hitId = grenade->getEntityID();
-							hit->m_hitPosition = *grenade->m_position;
-							hit->m_hitType = 3;
-							m_synchronizationList.push_back(hit);
-							hit->destroy();
+							GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(entity);
+							grenade->m_timer += m_physics.updateTimer;
+							if (grenade->m_timer > grenade->m_endTime)
+							{
+								//printf("Delete explosion and grenade\n");
+								// Remove explosion and grenade created below.
+								grenade->destroy();
+							}
 
+							if (grenade->m_timer > grenade->m_explosionTime && !grenade->isExplosion)
+							{
+								//                         printf("Explosion\n");
+								// Create explosion and save id on m_explosionId
+								grenade->isExplosion = true;
+								grenade->m_explosionId = getFreeEntityId();
+								m_physics.addExplosionWithID(grenade->m_position, 200, grenade->m_shooterId, grenade->m_explosionId);
+								BulletHit* hit = new BulletHit;
+								hit->m_hitId = grenade->getEntityID();
+								hit->m_hitPosition = *grenade->m_position;
+								hit->m_hitType = 3;
+								m_synchronizationList.push_back(hit);
+								hit->destroy();
+
+							}
 						}
+						m_synchronizationList.push_back(bullet);
 					}
-					
 				}
 				m_physics.updateTimer = 0;
 			}
@@ -779,7 +764,18 @@ namespace arena
 			if (entity->getDestroy())
 			{
 				if (entity->m_hasPhysics)
+				{ 
 					m_physics.removeEntity(entity->getEntityID());
+					if (entity->type() == NetworkEntityType::Projectile)
+					{
+						Bullet* bullet = static_cast<Bullet*>(entity);
+						if (bullet->m_bulletType == BulletType::GrenadeBullet)
+						{
+							GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(entity);
+							m_physics.removeEntity(grenade->m_explosionId);
+						}
+					}
+				}
 				isIdFree[entity->getEntityID()] = true;
 				unregisterEntity(entity);
 				delete entity;
