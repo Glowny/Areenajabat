@@ -570,7 +570,7 @@ namespace arena
 	{
 		// TODO: Do own systems for these.
 		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+		for (auto iterator = entititesBegin(); iterator != entititesEnd();)
 		{
 			Entity* entity = *iterator;
 			if (entity->contains(TYPEOF(Timer)))
@@ -691,6 +691,7 @@ namespace arena
 				};
 
 			}
+			iterator++;
 		}
 	}
 	void SandboxScene::updateDebugBullets(const GameTime& gameTime)
@@ -744,7 +745,22 @@ namespace arena
 
 	void SandboxScene::destroyBullet(uint8_t bulletId)
 	{
-
+		for (auto it = entititesBegin(); it != entititesEnd(); ++it)
+		{
+			Entity* entity= *it;
+			if(entity->contains(TYPEOF(PhysicsComponent)))
+			{
+				PhysicsComponent *component = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
+				if (component->m_physicsId == bulletId)
+				{
+					m_physics.removeEntity(component->m_physicsId);
+					entity->destroy();
+				//	delete entity;
+					break;
+				}
+			}
+			
+		}
 		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
 		{
 			if (it->second.bullet->getEntityID() == bulletId)
@@ -871,9 +887,8 @@ namespace arena
 		debugBullet.entity = serverEntity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->getEntityID(), debugBullet));
 		
-		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
-		projectile->m_bulletId = bullet->getEntityID();
-		projectile->m_bulletType = bullet->m_bulletType;
+		PhysicsComponent* physicsComponent = (PhysicsComponent*)clientEntity->first(TYPEOF(PhysicsComponent));
+		physicsComponent->m_physicsId = bullet->getEntityID();
 		// TODO: Update clientside bullet on updateEntities();
 	}
 	Entity* SandboxScene::createBulletEntity(Bullet* bullet)
@@ -884,7 +899,7 @@ namespace arena
 		// Debugbullet does not need projectile, but clientside physics needs it 
 		// for the projectile to be deleted by server.
 
-		builder.addProjectile();
+		builder.addPhysicsComponent();
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 		
