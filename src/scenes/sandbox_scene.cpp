@@ -1321,7 +1321,7 @@ namespace arena
 		if (m_gameMode->isEnd())
 			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: TRUE");
 		else
-			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: FLASE");
+			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: FALSE");
 	}
 	void SandboxScene::createBackground()
 	{
