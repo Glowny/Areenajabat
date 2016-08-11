@@ -225,6 +225,7 @@ namespace arena
 		createBackground();
 
 		m_scoreboard = nullptr;
+		m_gameMode = nullptr;
 		m_toggleKeyBindDraw = true;
 		//m_physics = Physics();
 		
@@ -427,6 +428,8 @@ namespace arena
 			m_scoreboard->m_playerScoreVector.push_back(playerScore);
 		}
 
+
+		m_gameMode = new DeathMatch(m_scoreboard, 10, 1);
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -1305,12 +1308,21 @@ namespace arena
 		row++;
 		if (m_scoreboard == nullptr)
 			return;
+
 		for (const auto& elem : m_scoreboard->m_playerScoreVector)
 		{
 			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Score: %d \t Kills: %d \t Tickets %d",
 				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
 			row++;
 		}
+
+		if (m_gameMode == nullptr)
+			return;
+		//show game end
+		if (m_gameMode->isEnd())
+			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: TRUE");
+		else
+			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: FLASE");
 	}
 	void SandboxScene::createBackground()
 	{

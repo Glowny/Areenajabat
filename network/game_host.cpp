@@ -564,6 +564,7 @@ namespace arena
 				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[physicsID], physicsID);
 			}
 			addScoreBoard();
+			m_gameMode = new DeathMatch(m_scoreBoard, 10, 1); //TODO
 	
 		}
 	}
@@ -640,7 +641,10 @@ namespace arena
 		else if (m_gameData.m_state == GameState::RoundRunning)
 		{
 			// Do normal updates.
-			
+			//Check game end
+			if (m_gameMode->isEnd()) {
+				return;
+			}
 			if ((m_physics.updateTimer += dt) >= PHYSICS_TIMESTEP)
 			{
 				// Update physics
@@ -649,6 +653,7 @@ namespace arena
 				//if(shouldProcessPlayerInput())
 				applyPlayerInputs(m_physics.updateTimer);
 				processBulletCollisions(m_physics.updateTimer);
+
 				// get data from gladiators.
 				for (Player& player : players())
 				{

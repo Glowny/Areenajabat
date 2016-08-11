@@ -11,6 +11,7 @@
 #include <common/network_entity.h>
 #include <common/arena/weapons.h>
 #include <common/arena/scoreboard.h>
+#include <common/arena/deathmatch.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
@@ -314,6 +315,7 @@ namespace arena
 		std::vector<const NetworkEntity*>		m_synchronizationList;
 		Container<NetworkEntity*>				m_entities;
 		Container<Player>						m_players;
+		GameMode*								m_gameMode;
 		
 		const GameVars		m_vars;
 
