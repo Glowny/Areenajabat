@@ -5,13 +5,13 @@ namespace arena
 	class DeathMatch : public GameMode
 	{
 	public:
-		DeathMatch(Scoreboard* m_scoreboard, int maxScore, int maxKills);
+		DeathMatch(Scoreboard* m_scoreboard, int maxScore);
 		~DeathMatch();
 
 		bool isEnd();
 
 	private:
 		int maxScore;
-		int maxKills;
+		void generateMessage();
 	};
 }

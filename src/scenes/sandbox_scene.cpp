@@ -59,7 +59,7 @@ namespace arena
 			std::string tempString;
 			getline(file, tempString);
 			port = std::stoul(tempString, nullptr, 0);
-			
+
 		}
 	}
 
@@ -71,105 +71,105 @@ namespace arena
 
 	SandboxScene* sandbox;
 	static NetworkClient* s_client;
-    static double s_stamp = 0.0;
-    struct DebugLobbyListener : public LobbyListener
-    {
-        ~DebugLobbyListener() override {}
+	static double s_stamp = 0.0;
+	struct DebugLobbyListener : public LobbyListener
+	{
+		~DebugLobbyListener() override {}
 
-        virtual void onLobbyList(NetworkClient* sender, LobbyQueryResultPacket* response, double timestamp) override
-        {
-            (void)sender; (void)timestamp;
-            fprintf(stderr, "Lobby count: %d\n", response->m_lobbyCount);
-            for (int32_t i = 0; i < response->m_lobbyCount; ++i)
-            {
-                fprintf(stderr, "\t%s, uid=%" PRIx64 "\n", response->m_lobbynames[i], response->m_lobbySalt[i]);
-            }
+		virtual void onLobbyList(NetworkClient* sender, LobbyQueryResultPacket* response, double timestamp) override
+		{
+			(void)sender; (void)timestamp;
+			fprintf(stderr, "Lobby count: %d\n", response->m_lobbyCount);
+			for (int32_t i = 0; i < response->m_lobbyCount; ++i)
+			{
+				fprintf(stderr, "\t%s, uid=%" PRIx64 "\n", response->m_lobbynames[i], response->m_lobbySalt[i]);
+			}
 
-            if (response->m_lobbyCount == 0)
-            {
-                static const char s_debugLobbyName[] = "perkele";
-                fprintf(stderr, "Requesting to create lobby \"%s\"\n", s_debugLobbyName);
-                sender->requestCreateLobby(s_debugLobbyName, s_stamp);
-            }
-            else
-            {
-                fprintf(stderr, "Trying to join lobby %" PRIx64 "\n", response->m_lobbySalt[0]);
-                // as debug join the first one
-                sender->requestJoinLobby(response->m_lobbySalt[0], timestamp);
-            }
-        }
+			if (response->m_lobbyCount == 0)
+			{
+				static const char s_debugLobbyName[] = "perkele";
+				fprintf(stderr, "Requesting to create lobby \"%s\"\n", s_debugLobbyName);
+				sender->requestCreateLobby(s_debugLobbyName, s_stamp);
+			}
+			else
+			{
+				fprintf(stderr, "Trying to join lobby %" PRIx64 "\n", response->m_lobbySalt[0]);
+				// as debug join the first one
+				sender->requestJoinLobby(response->m_lobbySalt[0], timestamp);
+			}
+		}
 
-        virtual void onLobbyCreationResult(NetworkClient* sender, LobbyResultPacket* response, double timestamp) override
-        {
-            BX_UNUSED(sender, response, timestamp);
-            if (response->m_created)
-            {
-                fprintf(stderr, "Created lobby (salt = %" PRIx64 ")\n", response->m_lobbySalt);
+		virtual void onLobbyCreationResult(NetworkClient* sender, LobbyResultPacket* response, double timestamp) override
+		{
+			BX_UNUSED(sender, response, timestamp);
+			if (response->m_created)
+			{
+				fprintf(stderr, "Created lobby (salt = %" PRIx64 ")\n", response->m_lobbySalt);
 
-                fprintf(stderr, "Trying to join lobby %" PRIx64 "\n", response->m_lobbySalt);
+				fprintf(stderr, "Trying to join lobby %" PRIx64 "\n", response->m_lobbySalt);
 
-                sender->requestJoinLobby(response->m_lobbySalt, timestamp);
-            }
-            else
-            {
-                // TODO reason
-                fprintf(stderr, "Failed to create lobby\n");
-            }
-        }
+				sender->requestJoinLobby(response->m_lobbySalt, timestamp);
+			}
+			else
+			{
+				// TODO reason
+				fprintf(stderr, "Failed to create lobby\n");
+			}
+		}
 
-        virtual void onLobbyJoinResult(NetworkClient* sender, LobbyJoinResultPacket* response, double timestamp) override
-        {
-            BX_UNUSED(sender, response, timestamp);
+		virtual void onLobbyJoinResult(NetworkClient* sender, LobbyJoinResultPacket* response, double timestamp) override
+		{
+			BX_UNUSED(sender, response, timestamp);
 
-            if (response->m_joined)
-            {
-                fprintf(stderr, "Joined lobby\n");
-            } 
-            else
-            {
-                fprintf(stderr, "Failed to join lobby: %s\n", 
-                    (response->m_reason == LobbyJoinResultPacket::LobbyDoesNotExist) 
-                    ? "lobby does not exist" : "already joined");
-            }
-        }
-    };
+			if (response->m_joined)
+			{
+				fprintf(stderr, "Joined lobby\n");
+			}
+			else
+			{
+				fprintf(stderr, "Failed to join lobby: %s\n",
+					(response->m_reason == LobbyJoinResultPacket::LobbyDoesNotExist)
+					? "lobby does not exist" : "already joined");
+			}
+		}
+	};
 	static DebugLobbyListener s_lobbyListener;
 
 
-    static void connect(const void*)
-    {
-        if (s_client->isConnected()) return;
-        if (s_client->isConnecting()) return;
+	static void connect(const void*)
+	{
+		if (s_client->isConnected()) return;
+		if (s_client->isConnecting()) return;
 		std::string ip = "localhost";
 		uint16_t port = 8088;
 		loadServerInfoFromFile(ip, port);
-        s_client->connect(ip.c_str(), port, s_stamp);
-        s_client->queryLobbies(s_stamp);
-    }
+		s_client->connect(ip.c_str(), port, s_stamp);
+		s_client->queryLobbies(s_stamp);
+	}
 
-    static void disconnect(const void*)
-    {
-        if (!s_client->isConnected()) return;
+	static void disconnect(const void*)
+	{
+		if (!s_client->isConnected()) return;
 
-        s_client->disconnect(s_stamp);
-    }
+		s_client->disconnect(s_stamp);
+	}
 
-    static const InputBinding s_bindings[] =
-    {
+	static const InputBinding s_bindings[] =
+	{
 		{ arena::Key::KeyA, arena::Modifier::None, 0, inputMoveLeft, "moveleft" },
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
 		{ arena::Key::KeyS, arena::Modifier::None, 0, inputMoveDown, "movedown" },
 		{ arena::Key::Key1, arena::Modifier::None, 0, inputShoot, "shoot" },
-        { arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
-        { arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
+		{ arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
+		{ arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
 		{ arena::Key::KeyT, arena::Modifier::None, 0, inputThrow, "apple" },
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
 
-        INPUT_BINDING_END
-    };
+		INPUT_BINDING_END
+	};
 
 
 	static void inputMoveLeft(const void*)
@@ -178,11 +178,11 @@ namespace arena
 	}
 	static void inputMoveRight(const void*)
 	{
-        sandbox->m_controller.m_input.m_rightButtonDown = true;
+		sandbox->m_controller.m_input.m_rightButtonDown = true;
 	}
 	static void inputMoveUp(const void*)
 	{
-        sandbox->m_controller.m_input.m_upButtonDown = true;
+		sandbox->m_controller.m_input.m_upButtonDown = true;
 	}
 	static void inputMoveDown(const void*)
 	{
@@ -191,7 +191,7 @@ namespace arena
 
 	static void inputShoot(const void*)
 	{
-        sandbox->m_controller.m_input.m_shootButtonDown = true;
+		sandbox->m_controller.m_input.m_shootButtonDown = true;
 	}
 	static void inputReload(const void*)
 	{
@@ -228,7 +228,7 @@ namespace arena
 		m_gameMode = nullptr;
 		m_toggleKeyBindDraw = true;
 		//m_physics = Physics();
-		
+
 	}
 
 	void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -243,12 +243,12 @@ namespace arena
 		// Send player input to server if 1/60 of a second has passed.
 		if ((m_physics.updateTimer += gameTime.m_delta) >= PHYSICS_TIMESTEP && s_client->isConnected())
 		{
-			updatePhysics(m_physics.updateTimer);	
+			updatePhysics(m_physics.updateTimer);
 			m_physics.updateTimer = 0;
 		}
 
 		if ((m_sendInputToServerTimer += gameTime.m_delta) >= 0.016f && s_client->isConnected())
-		{ 
+		{
 			sendInput(m_controller);
 			m_sendInputToServerTimer = 0;;
 		}
@@ -261,61 +261,61 @@ namespace arena
 
 		//TEMP: if game has not started, do not update.
 		if (m_clientIdToGladiatorData.size() != 0)
-		{ 
-
-		// Update transform component of debug bullets and delete old bullets.
-		updateDebugBullets(gameTime);
-		// Update all game entities.
-		updateEntities(gameTime);
-
-		// set m_controller aim angle of the player character.
-		rotatePlayerAim();
-
-		// rotate all gladiators aim for draw.
-		for (const auto& elem : m_clientIdToGladiatorData)
 		{
-			elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
-		}
 
-		updateCameraPosition();
+			// Update transform component of debug bullets and delete old bullets.
+			updateDebugBullets(gameTime);
+			// Update all game entities.
+			updateEntities(gameTime);
+
+			// set m_controller aim angle of the player character.
+			rotatePlayerAim();
+
+			// rotate all gladiators aim for draw.
+			for (const auto& elem : m_clientIdToGladiatorData)
+			{
+				elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+			}
+
+			updateCameraPosition();
 		}
 		bgfx::dbgTextClear();
 
 		SpriteManager::instance().update(gameTime);
 		AnimatorManager::instance().update(gameTime);
-		
+
 		// Set current debug draw text.
 		setDrawText(gameTime);
 
-        App::instance().spriteBatch()->submit(0);
-    }
+		App::instance().spriteBatch()->submit(0);
+	}
 	void SandboxScene::onInitialize()
 	{
-        srand((uint32_t)time(NULL));
-        s_client = new NetworkClient();
-        s_client->m_lobbyListener = &s_lobbyListener;
+		srand((uint32_t)time(NULL));
+		s_client = new NetworkClient();
+		s_client->m_lobbyListener = &s_lobbyListener;
 		m_playerId = 0;
 
-        inputAddBindings("player", s_bindings);
+		inputAddBindings("player", s_bindings);
 		mousePointerEntity = createMousePointerEntity();
 	}
 	void SandboxScene::onDestroy()
 	{
 		inputRemoveBindings("player");
 	}
-	
+
 	void SandboxScene::sendInput(PlayerController &controller)
 	{
-        GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
+		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
-        packet->m_input = controller.m_input;
+		packet->m_input = controller.m_input;
 
 		packet->m_clientSalt = s_client->m_clientSalt;
-        packet->m_challengeSalt = s_client->m_challengeSalt;
+		packet->m_challengeSalt = s_client->m_challengeSalt;
 
 		s_client->sendPacketToServer(packet, s_stamp);
 		memset(&m_controller.m_input, false, sizeof(PlayerInput));
-		
+
 	}
 	void SandboxScene::processAllPackets(const GameTime& gameTime)
 	{
@@ -334,7 +334,7 @@ namespace arena
 			}
 			else
 				processPacket(packet);
-		
+
 			destroyPacket(packet);
 		}
 	}
@@ -413,7 +413,7 @@ namespace arena
 			gladiator->m_ownerId = characterData->m_ownerId;
 			gladiator->m_alive = true;
 			gladiator->m_hitpoints = 100;
-			gladiator->m_position =  &characterData->m_position;
+			gladiator->m_position = &characterData->m_position;
 			gladiator->m_aimAngle = characterData->m_aimAngle;
 			gladiator->m_velocity = &characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
@@ -429,7 +429,7 @@ namespace arena
 		}
 
 
-		m_gameMode = new DeathMatch(m_scoreboard, 10, 1);
+		m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -442,7 +442,7 @@ namespace arena
 		m_platformVector.push_back(platform);
 		// TODO: There is a bug that receives empty platform.
 		if (platform.vertices.size() >= 2)
-		{ 
+		{
 			m_physics.createPlatform(platform.vertices, platform.type);
 		}
 	}
@@ -455,7 +455,7 @@ namespace arena
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			// Maybe move this to entity-update.
-			gladiatorData->m_transform->m_position= glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y-64.0f);
+			gladiatorData->m_transform->m_position = glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y - 64.0f);
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 
@@ -465,7 +465,7 @@ namespace arena
 			}
 			if (packet->m_characterArray[i].m_throwing)
 			{
-				gladiatorData->m_animator->m_animator.playThrowAnimation(0,0);
+				gladiatorData->m_animator->m_animator.playThrowAnimation(0, 0);
 			}
 			if (packet->m_characterArray[i].m_climbing != 0)
 			{
@@ -485,8 +485,8 @@ namespace arena
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed / 300.0f));
 			}
 			else if (moveSpeed > 25.0f)
-			{ 
-				
+			{
+
 				gladiatorData->m_animator->m_animator.setFlipX(1);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed / 300.0f));
 			}
@@ -495,7 +495,7 @@ namespace arena
 				gladiatorData->m_animator->m_animator.stopRunningAnimation();
 			}
 		}
-		
+
 	}
 	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
 	{
@@ -504,7 +504,7 @@ namespace arena
 			// Check if bullet exists.
 			std::map<uint8_t, DebugBullet>::iterator it;
 			it = m_debugBullets.find(packet->m_bulletSpawnArray[i].m_id);
-	
+
 			if (it != m_debugBullets.end())
 			{
 				// if bullet exists, set position
@@ -512,7 +512,7 @@ namespace arena
 				//printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
 			}
 			else
-			{ 
+			{
 				createBullet(packet->m_bulletSpawnArray[i]);
 			}
 		}
@@ -685,7 +685,7 @@ namespace arena
 					rectangle.y = 0.0f;
 					rectangle.w = 128.0f * (multipler + 1);
 					rectangle.h = 32.0f;
-					
+
 					rectangle = render->getSource();
 
 				};
@@ -712,7 +712,7 @@ namespace arena
 			}
 		}
 	}
-	
+
 	void SandboxScene::updatePhysics(float64 timeStep)
 	{
 		//m_physics.update(gameTime.m_delta);
@@ -772,7 +772,7 @@ namespace arena
 
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
-	
+
 		anim.setStaticContent(
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),
 			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
@@ -786,7 +786,7 @@ namespace arena
 
 		);
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
-		
+
 		entity_gladiator = builder.getResults();
 
 		registerEntity(entity_gladiator);
@@ -797,7 +797,7 @@ namespace arena
 		data->m_animator = animator;
 		data->m_transform = transform;
 		data->m_gladiator = new Gladiator();
-		
+
 		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
 
 	}
@@ -870,7 +870,7 @@ namespace arena
 		debugBullet.bullet = bullet;
 		debugBullet.entity = serverEntity;
 		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->getEntityID(), debugBullet));
-		
+
 		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
 		projectile->m_bulletId = bullet->getEntityID();
 		projectile->m_bulletType = bullet->m_type;
@@ -887,7 +887,7 @@ namespace arena
 		builder.addProjectile();
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
-		
+
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
@@ -895,10 +895,10 @@ namespace arena
 
 		renderer->setRotation(bullet->m_rotation);
 		renderer->anchor();
-		
+
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
-		
+
 		// effects		
 		createMuzzleFlashEntity(*bullet);
 		createSmokeEntity(*bullet);
@@ -919,7 +919,7 @@ namespace arena
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenade.png"));
 		renderer->setRotation(bullet->m_rotation);
-		
+
 		renderer->anchor();
 
 		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
@@ -982,7 +982,7 @@ namespace arena
 		for (int i = 0; i < rand() % 5 + 3; i++)
 		{
 			int spriteX = rand() % 4;
-			
+
 			float rotation = 0;
 			int xOffset = 0, yOffset = 0;
 
@@ -1034,7 +1034,7 @@ namespace arena
 
 			renderer->anchor();
 			registerEntity(builder.getResults());
-		} 
+		}
 
 	}
 
@@ -1116,32 +1116,32 @@ namespace arena
 		switch (data.m_type)
 		{
 			// Bullet hits gladiator
-			case 1: 
-			{
-				createBloodBulletHitEntity(bullet);
-				data.m_id;
-				break;
-			}
-			// Bullet hits platform
-			case 2:
-			{
-				// Temporary, change when there is a platform bullet hit animation.
-				createSmokeEntity(bullet);
-				//createPlatformBulletHitEntity(bullet);
-				break;
-			}
-			// Explosion occurs.
-			case 3:
-			{
-				createExplosionEntity(bullet);
-			}
-			default:
-			{
-				break;
-			}
+		case 1:
+		{
+			createBloodBulletHitEntity(bullet);
+			data.m_id;
+			break;
 		}
-		
-		
+		// Bullet hits platform
+		case 2:
+		{
+			// Temporary, change when there is a platform bullet hit animation.
+			createSmokeEntity(bullet);
+			//createPlatformBulletHitEntity(bullet);
+			break;
+		}
+		// Explosion occurs.
+		case 3:
+		{
+			createExplosionEntity(bullet);
+		}
+		default:
+		{
+			break;
+		}
+		}
+
+
 	}
 	void SandboxScene::createBloodBulletHitEntity(Bullet& bullet)
 	{
@@ -1162,12 +1162,12 @@ namespace arena
 		rect.w = 128; rect.h = 32;
 		renderer->anchor();
 
-		Timer* timer =builder.addTimer();
+		Timer* timer = builder.addTimer();
 		timer->m_lifeTime = 0.5f;
 
 		Movement* move = builder.addMovement();
 		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
-		
+
 		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
 	}
@@ -1214,7 +1214,7 @@ namespace arena
 		{
 			cameraPosition.y = m_screenSize.y / 2;
 		}
-		else if (cameraPosition.y > m_screenSize.y * 1.5f )
+		else if (cameraPosition.y > m_screenSize.y * 1.5f)
 		{
 			cameraPosition.y = m_screenSize.y* 1.5f;
 		}
@@ -1223,15 +1223,15 @@ namespace arena
 	void SandboxScene::updateCameraPosition()
 	{
 		Camera& camera = App::instance().camera();
-		if(m_clientIdToGladiatorData.at(m_playerId) != nullptr)
-		{ 
+		if (m_clientIdToGladiatorData.at(m_playerId) != nullptr)
+		{
 			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
 			const MouseState& mouse = Mouse::getState();
 			// TODO: get real resolution
-			
-			
-			glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x/2 + mouse.m_mx, -m_screenSize.y/2 + mouse.m_my);
+
+
+			glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x / 2 + mouse.m_mx, -m_screenSize.y / 2 + mouse.m_my);
 			glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
 			glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerTransform->m_position.x, oldMousePos.y + movement.y + playerTransform->m_position.y);
 			oldMousePos = cameraPositionOnMouse;
@@ -1263,7 +1263,7 @@ namespace arena
 		float a = glm::atan(dir.y, dir.x);
 		m_controller.aimAngle = a;
 		SpriteRenderer* mouseTransform = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
-		mouseTransform->setRotation(a + 3.14f/2);
+		mouseTransform->setRotation(a + 3.14f / 2);
 		// Update own gladiator aim
 		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 	}
@@ -1286,9 +1286,9 @@ namespace arena
 		//row++;
 		//bgfx::dbgTextPrintf(0, row, 0x9f, "Angle (%.3f rad) (%.2f deg)", m_controller.aimAngle, glm::degrees(m_controller.aimAngle));
 		//row++;
-		if(m_toggleKeyBindDraw == true)
-		{ 
-			
+		if (m_toggleKeyBindDraw == true)
+		{
+
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyQ: connect");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Key9: disconnect");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyA: moveleft");
@@ -1319,7 +1319,19 @@ namespace arena
 			return;
 		//show game end
 		if (m_gameMode->isEnd())
+		{
 			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: TRUE");
+			int col = 20;
+
+			std::vector<std::string> internal;
+			std::stringstream ss(m_gameMode->getEndMessage()); // Turn the string into a stream.
+			std::string tok;
+
+			while (getline(ss, tok,'=')) {
+				internal.push_back(tok);
+				bgfx::dbgTextPrintf(col, row++ + 10, 0x9f, tok.c_str());
+			}
+		}
 		else
 			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: FALSE");
 	}
@@ -1331,15 +1343,15 @@ namespace arena
 
 		// Create back
 		if (m_backgroundSetting > 1)
-		{ 
-		
+		{
+
 			for (int y = 0; y <= 3; y++)
 			{
 				for (int x = 0; x <= 5; x++)
 				{
 					// TODO: add offset component.
 					builder.begin();
-					Movement* move= builder.addMovement();
+					Movement* move = builder.addMovement();
 					move->m_velocity = glm::vec2(0, 0);
 					move->m_rotationSpeed = 0;
 					builder.addIdentifier(MapBack);
@@ -1352,7 +1364,7 @@ namespace arena
 					TextureResource* textureResource = resources->get<TextureResource>(ResourceType::Texture, name);
 					Transform* transform = builder.addTransformComponent();
 
-					transform->m_position = glm::vec2((x-1) * 1920, (y-1) * 1080);
+					transform->m_position = glm::vec2((x - 1) * 1920, (y - 1) * 1080);
 					renderer->setTexture(textureResource);
 					move->m_velocity = transform->m_position;
 					renderer->anchor();
@@ -1360,7 +1372,7 @@ namespace arena
 				}
 			}
 		}
-		
+
 		// Create front
 		if (m_backgroundSetting == 1 || m_backgroundSetting == 3)
 		{
@@ -1391,6 +1403,6 @@ namespace arena
 				}
 			}
 		}
-				
+
 	}
 }
