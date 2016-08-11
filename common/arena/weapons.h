@@ -28,18 +28,19 @@ namespace arena
 		Bullet()
 			: NetworkEntity(NetworkEntityType::Projectile)
 		{
-			m_type = BulletType(0);
+			m_bulletType = BulletType(0);
 			m_position = new glm::vec2(0, 0);
 			m_impulse = glm::vec2(0, 0);
 			m_rotation = 0;
 			m_creationDelay = 0;
 			m_shooterId = 0;
+			m_hasPhysics = true;
 		}
 		~Bullet()
 		{
 			delete m_position;
 		}
-		BulletType m_type;
+		BulletType m_bulletType;
 		uint32_t m_ownerId;
 		unsigned m_shooterId;
 		glm::vec2* m_position;
@@ -57,6 +58,7 @@ namespace arena
 			m_explosionTime = 1.8f;
 			m_endTime = 5.5f;
 			isExplosion = false;
+			m_hasPhysics = true;
 		}
 		float m_timer;
 		float m_explosionTime;
@@ -214,7 +216,7 @@ namespace arena
 			{
 				glm::vec2 vectorAngle = radToVec(aimAngle);
 				Bullet* bullet = new Bullet;
-				bullet->m_type = GladiusBullet;
+				bullet->m_bulletType = GladiusBullet;
 				bullet->m_creationDelay = 0.1f * i;
 				bullet->m_rotation = aimAngle;
 				bullet->m_impulse.x = vectorAngle.x * GLADIUSIMPULSE; bullet->m_impulse.y = vectorAngle.y * GLADIUSIMPULSE;
@@ -241,7 +243,7 @@ namespace arena
 			{
 				glm::vec2 vectorAngle = radToVec(aimAngle);
 				Bullet* bullet = new Bullet;
-				bullet->m_type = ShotgunBullet;
+				bullet->m_bulletType = ShotgunBullet;
 				bullet->m_creationDelay = 0;
 				bullet->m_rotation = aimAngle; 
 				bullet->m_impulse.x = vectorAngle.x * SHOTGUNIMPULSE; bullet->m_impulse.y = vectorAngle.y * SHOTGUNIMPULSE;
@@ -264,7 +266,7 @@ namespace arena
 		{
 			glm::vec2 vectorAngle = radToVec(aimAngle);
 			GrenadeProjectile* bullet = new GrenadeProjectile;
-			bullet->m_type = GrenadeBullet;
+			bullet->m_bulletType = GrenadeBullet;
 			bullet->m_creationDelay = 0;
 			bullet->m_rotation = aimAngle;
 			bullet->m_impulse.x = vectorAngle.x * GRENADEIMPULSE; bullet->m_impulse.y = vectorAngle.y * GRENADEIMPULSE;

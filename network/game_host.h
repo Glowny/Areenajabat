@@ -312,13 +312,6 @@ namespace arena
 		GameMap				m_map;
 		Physics				m_physics;
 
-		struct DebugBullet
-		{
-			Bullet* m_bullet;
-			float lifeTime;
-		};
-
-		std::vector<DebugBullet> m_debugBullets;
 		std::vector<const NetworkEntity*>		m_synchronizationList;
 		Container<NetworkEntity*>				m_entities;
 		Container<Player>						m_players;

@@ -810,7 +810,7 @@ namespace arena
 		*bullet->m_position = data.m_position;
 		bullet->setEntityID(data.m_id);
 		bullet->m_ownerId = data.m_ownerId;
-		bullet->m_type = (BulletType)data.m_type;
+		bullet->m_bulletType = (BulletType)data.m_type;
 		bullet->m_creationDelay = data.m_creationDelay;
 		bullet->m_rotation = data.m_rotation;
 		glm::vec2 vectorAngle = radToVec(bullet->m_rotation);
@@ -819,7 +819,7 @@ namespace arena
 		Entity* clientEntity = nullptr;
 		// TODO: Get these from weapons?
 		// Create bullet entity that is updated by clientside physics and entity that is updated by serverside physics.
-		switch (bullet->m_type)
+		switch (bullet->m_bulletType)
 		{
 			// GLADIUS-, SHOTGUN- and GRENADEIMPULSE are defined on weapons.h and shared on both server and client.
 		case BulletType::GladiusBullet:
@@ -873,7 +873,7 @@ namespace arena
 
 		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
 		projectile->m_bulletId = bullet->getEntityID();
-		projectile->m_bulletType = bullet->m_type;
+		projectile->m_bulletType = bullet->m_bulletType;
 		// TODO: Update clientside bullet on updateEntities();
 	}
 	Entity* SandboxScene::createBulletEntity(Bullet* bullet)
@@ -1110,7 +1110,7 @@ namespace arena
 	{
 		Bullet bullet;
 		*bullet.m_position = data.m_position;
-		bullet.m_type = (BulletType)data.m_type;
+		bullet.m_bulletType = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
 
 		switch (data.m_type)
@@ -1134,6 +1134,7 @@ namespace arena
 		case 3:
 		{
 			createExplosionEntity(bullet);
+				break;
 		}
 		default:
 		{
