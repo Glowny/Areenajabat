@@ -26,13 +26,13 @@ namespace arena
 		}
 
 		// Not all networkentites have PhysicsID, consider removing these.
-		void setPhysicsID(const uint32 physicsID)
+		void setEntityID(const uint32 physicsID)
 		{
-			m_physicsID = physicsID;
+			m_entityID = physicsID;
 		}
-		uint32 getPhysicsID() const
+		uint32 getEntityID() const
 		{
-			return m_physicsID;
+			return m_entityID;
 		}
 
 		void destroy()
@@ -58,7 +58,7 @@ namespace arena
 		}
 
 		NetworkEntity() = delete;
-		uint32				m_physicsID	{ 666 };
+		uint32				m_entityID{ 666 };
 		bool				m_remove = false;
 
 	private:

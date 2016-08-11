@@ -12,7 +12,8 @@ namespace arena
 											   m_disposed(false),
 											   m_endCalled(false)
 	{
-
+		currentFreeId = 0;
+		memset(isIdFree, true, 256);
 	}
 
 	void GameHost::startSession() 
@@ -113,11 +114,10 @@ namespace arena
 		gladiator->m_grenadeWeapon  = new WeaponGrenade;
         newPlayer.m_gladiator		= gladiator;
 		*gladiator->m_position =  glm::vec2(600, 200);
+		gladiator->setEntityID(getFreeEntityId());
 
-		uint32_t id = m_physics.addGladiator(gladiator->m_position, gladiator->m_velocity);
+		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
 		
-		gladiator->setPhysicsID(id);
-
         m_players.add(newPlayer);
 		
 		registerEntity(&m_players.back());
@@ -168,14 +168,14 @@ namespace arena
 			if (player.m_gladiator->m_alive == false)
 				continue;
 
+			uint8_t entityID = player.m_gladiator->getEntityID();
+			PlayerInput& input = player.m_playerController->m_input;
+
 			// Reset lightplatforms to solid if enought time has passed
 			if ((player.m_gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
 			{
-				m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), true);
+				m_physics.setGladiatorCollideLightPlatforms(entityID, true);
 			}
-
-			unsigned physicsID				= player.m_gladiator->getPhysicsID();
-            PlayerInput& input				= player.m_playerController->m_input;
 
 			player.m_gladiator->m_aimAngle  = player.m_playerController->aimAngle;
             
@@ -206,7 +206,7 @@ namespace arena
 			int32 y = 0;
 
 			// TODO: Make a sensor physics object under player that detects platforms.
-			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(player.m_gladiator->getPhysicsID())
+			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(entityID)
 				&& (player.m_gladiator->m_jumpCoolDownTimer > 0.25f))
 			{
 				input.m_jumpButtonDown = false;
@@ -223,7 +223,7 @@ namespace arena
 					force.y = -300.0f;
 					force.x = x * 150.0f;
 				}
-				m_physics.applyImpulseToGladiator(force, physicsID);
+				m_physics.applyImpulseToGladiator(force, entityID);
 			}
 
 			// Do not add forces if there are none.
@@ -237,7 +237,7 @@ namespace arena
 			else if (input.m_downButtonDown) y = 1;
  
 				// reserve upbutton for ladder climb
-			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(physicsID);
+			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(entityID);
 			float desiredVelocityX = 300.0f * (float)x;
 			float velocityChangeX = desiredVelocityX - currentVelocity.x;
 			// add more velocity only if climbing ladders.
@@ -250,16 +250,16 @@ namespace arena
 				if (input.m_downButtonDown)
 				{
 					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
-					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
+					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				}
-				int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(player.m_gladiator->getPhysicsID());
+				int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(entityID);
 				if (ladderCollide != 0)
 				{
 					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
 					desiredVelocityY = 300.0f * (float)y;
 					velocityChangeY = desiredVelocityY - currentVelocity.y;
 					player.m_gladiator->m_climbing = ladderCollide;
-					m_physics.setGladiatorCollideLightPlatforms(player.m_gladiator->getPhysicsID(), false);
+					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				}
 				
 			}
@@ -268,7 +268,7 @@ namespace arena
 			force.y = 1500.0f * velocityChangeY * (float)dt;
 			force.x = 1500.0f * velocityChangeX * (float)dt;
 
-			m_physics.applyForceToGladiator(force, physicsID);
+			m_physics.applyForceToGladiator(force, entityID);
 				
 			
 			
@@ -300,8 +300,10 @@ namespace arena
 				hit->m_damageAmount = 10;
 				hit->m_hitPosition = *bullet.gamePosition;
 				hit->m_targetPlayerId = 0;
-				hit->m_hitId = bullet.bulletId;
-				hit->setPhysicsID(bullet.bulletId);
+				hit->m_hitId = bullet.m_id;
+				// TODO: Check how entityID is used on hit. Should hitID be used on clientside to delete bullet,
+				// and physicsID to delete hit?
+				hit->setEntityID(bullet.m_id);
 				b2Vec2 velocity = bullet.m_body->GetLinearVelocity();
 				if (velocity.x < 0)
 					hit->m_hitDirection = 0;
@@ -319,7 +321,7 @@ namespace arena
 				
 				for (auto it = m_players.begin(); it != m_players.end(); it++)
 				{
-					if (it->m_gladiator->getPhysicsID() == target.m_id)
+					if (it->m_gladiator->getEntityID() == target.m_id)
 					{
 						targetGladiator = it->m_gladiator;
 						break;
@@ -345,8 +347,8 @@ namespace arena
 				BulletHit* hit = new BulletHit;
 				hit->m_hitType = 1;
 				hit->m_hitPosition = *bullet.gamePosition;
-				hit->m_hitId = bullet.bulletId;
-				hit->setPhysicsID(bullet.bulletId);
+				hit->m_hitId = bullet.m_id;
+				hit->setEntityID(bullet.m_id);
 
 				switch (bullet.m_bulletType)
 				{
@@ -361,7 +363,7 @@ namespace arena
 					hit->m_damageAmount = 30;
 					glm::vec2* origin = &hit->m_hitPosition;
 					glm::vec2* target = targetGladiator->m_position;
-					m_physics.applyGrenadeExplosionToGladiator(origin, target, targetGladiator->getPhysicsID());
+					m_physics.applyGrenadeExplosionToGladiator(origin, target, targetGladiator->getEntityID());
 					break;
 				}
 				default:
@@ -382,7 +384,7 @@ namespace arena
 					unsigned shooterPlayerId = 666;
 					for (auto it = m_players.begin(); it != m_players.end(); it++)
 					{
-						if (it->m_gladiator->getPhysicsID() == entry.m_shooter.m_id)
+						if (it->m_gladiator->getEntityID() == entry.m_shooter.m_id)
 						{
 							shooterPlayerId = it->m_gladiator->m_ownerId;
 							break;
@@ -412,7 +414,7 @@ namespace arena
 				delete entry.m_target;
 			}
 			for (unsigned i = 0; i < m_debugBullets.size(); i++)
-				if (m_debugBullets[i].m_bullet->m_bulletId == bullet.bulletId)
+				if (m_debugBullets[i].m_bullet->getEntityID() == bullet.m_id)
 				{
 					//m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
 
@@ -473,11 +475,10 @@ namespace arena
 
 	void GameHost::GrenadeShoot(Gladiator* gladiator) {
 		Bullet* bullet = gladiator->pitch();
-		bullet->m_shooterId = gladiator->getPhysicsID();
-		gladiator->getPhysicsID();
-		bullet->m_bulletId = m_physics.addGrenade(bullet->m_position, bullet->m_impulse, gladiator->getPhysicsID());
-		bullet->setPhysicsID(bullet->m_bulletId);
-
+		bullet->m_shooterId = gladiator->getEntityID();
+		
+		bullet->setEntityID(getFreeEntityId());
+		m_physics.addGrenadeWithID(bullet->m_position, bullet->m_impulse, gladiator->getEntityID(), bullet->getEntityID());
 		m_synchronizationList.push_back(bullet);
 		DebugBullet dBullet;
 		dBullet.lifeTime = 13;
@@ -491,8 +492,8 @@ namespace arena
 		
 		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
-			bullets[i]->m_bulletId = m_physics.addBullet(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getPhysicsID());
-			bullets[i]->setPhysicsID(bullets[i]->m_bulletId);
+			bullets[i]->setEntityID(getFreeEntityId());
+			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
 			DebugBullet dBullet;
 			dBullet.lifeTime = 0;
@@ -562,8 +563,8 @@ namespace arena
 			for (auto it = m_players.begin(); it != m_players.end(); it++)
 			{
 				Player* player = &*it;
-				uint32 physicsID = player->m_gladiator->getPhysicsID();
-				m_physics.setGladiatorPosition(physicsID, m_map.m_playerSpawnLocations[physicsID]);
+				uint8_t physicsID = player->m_gladiator->getEntityID();
+				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[physicsID], physicsID);
 			}
 			addScoreBoard();
 	
@@ -661,17 +662,17 @@ namespace arena
 					
 							player.m_gladiator->m_alive = true;
 							player.m_gladiator->m_hitpoints = 100;
-							m_physics.setGladiatorPosition(player.m_gladiator->getPhysicsID(), glm::vec2(1600,200));
-							m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getPhysicsID());
-							printf("Respawned player %d\n", player.m_gladiator->getPhysicsID());
+							m_physics.setGladiatorPosition(glm::vec2(1600,200), player.m_gladiator->getEntityID());
+							m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
+							printf("Respawned player %d\n", player.m_gladiator->getEntityID());
 							// HAX, USE EVENTHANDLER
 							NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
-							entity->setPhysicsID(player.m_gladiator->getPhysicsID());
+							entity->setEntityID(player.m_gladiator->getEntityID());
 							m_synchronizationList.push_back(entity);
-							// No delete because this needs to be remade.
+							entity->destroy();
 						}
 					}
-					 // update position because of gravity - dont update too much
+					 // update position because of gravity.
 					 m_synchronizationList.push_back(player.m_gladiator);
 				}
 
@@ -684,7 +685,7 @@ namespace arena
 					}
 					else
 					{
-						m_physics.removeBullet(m_debugBullets[i].m_bullet->m_bulletId);
+						m_physics.removeEntity(m_debugBullets[i].m_bullet->getEntityID());
 
 						m_debugBullets[i].m_bullet->destroy();
 						
@@ -707,9 +708,10 @@ namespace arena
 							//                         printf("Explosion\n");
 							// Create explosion and save id on m_explosionId
 							grenade->isExplosion = true;
-							grenade->m_explosionId = m_physics.addExplosion(grenade->m_position, 200, grenade->m_shooterId);
+							grenade->m_explosionId = getFreeEntityId();
+							m_physics.addExplosionWithID(grenade->m_position, 200, grenade->m_shooterId, grenade->m_explosionId);
 							BulletHit* hit = new BulletHit;
-							hit->m_hitId = grenade->getPhysicsID();
+							hit->m_hitId = grenade->getEntityID();
 							hit->m_hitPosition = *grenade->m_position;
 							hit->m_hitType = 3;
 							m_synchronizationList.push_back(hit);
@@ -772,10 +774,39 @@ namespace arena
 			if(entity->getDestroy())
 			{
 				if (entity->m_hasPhysics)
-					m_physics.removeBullet(entity->getPhysicsID());
+					m_physics.removeEntity(entity->getEntityID());
+				isIdFree[entity->getEntityID()] = true;
 				unregisterEntity(entity);
 				delete entity;
 			}
 		}
+	}
+	uint8_t GameHost::getFreeEntityId()
+	{
+		nextUint8_t(currentFreeId);
+		return currentFreeId;
+	}
+
+	void GameHost::nextUint8_t(uint8_t& current)
+	{
+		uint8_t old = current;
+		current++;
+
+		// search for id till there is a free one left. Will crash if there is none left.
+		while (current != old)
+		{
+
+			if (current > 255)
+				current = 0;
+			if (isIdFree[current])
+			{
+				isIdFree[current] = false;
+				return;
+			}
+			current++;
+		}
+		// If this happens, there is no free ids left. To add more bullets, use bigger data type
+		printf("Current bullet id: %d\n", current);
+		assert(false);
 	}
 }

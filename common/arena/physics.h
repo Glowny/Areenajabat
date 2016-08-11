@@ -59,6 +59,10 @@ enum bodyType
 struct p_entity
 {
 	bodyType m_type;
+	uint8_t m_id;
+	virtual void cleanUp() {};
+	virtual ~p_entity() {};
+	b2Body* m_body = nullptr;
 };
 
 struct BulletHit : public p_entity
@@ -74,6 +78,7 @@ struct p_userData
 {
 	bodyType m_bodyType;
 	p_entity* m_object;
+	
 };
 
 
@@ -81,19 +86,27 @@ struct p_Platform :public p_entity
 {
 	b2ChainShape m_shape;
 	b2BodyDef m_bodydef;
-	b2Body* m_body;
 	b2FixtureDef m_fixtureDef;
 	p_userData* m_userData;
+	void cleanUp()
+	{
+		delete m_userData;
+		m_body->GetWorld()->DestroyBody(m_body);
+	}
 };
 
 
 struct p_Gladiator :public p_entity
 {
-	uint32_t m_id;
-	b2Body* m_body;
 	p_userData* m_userData;
 	glm::vec2* m_gamePosition;
 	glm::vec2* m_gamevelocity;
+
+	void cleanUp()
+	{
+		delete m_userData;
+		m_body->GetWorld()->DestroyBody(m_body);
+	}
 
 };
 
@@ -101,12 +114,10 @@ struct p_Gladiator :public p_entity
 struct p_Bullet :public p_entity
 {
 	unsigned m_shooterID;
-	uint8_t bulletId;
 	bool m_contact;
 	bodyType m_contactBody;
 	arena::BulletType m_bulletType;
 	p_userData* m_contactUserData;
-	b2Body* m_body;
 	p_userData* m_myUserData;
 	glm::vec2* gamePosition;
 	glm::vec2 hitPosition;
@@ -138,20 +149,20 @@ public:
 	std::vector<BulletCollisionEntry> m_bulletCollisionEntries;
 	
 	//std::vector<p_Platform*>* m_platforms{ nullptr };
-	std::vector<p_Gladiator*>* m_gladiators{ nullptr };
+	std::vector<p_entity*>* m_entities{ nullptr };
 
-	ContactListener(std::vector<p_Gladiator*>* gladiators) : b2ContactListener(),
-		m_gladiators(gladiators)
+	ContactListener(std::vector<p_entity*>* entities) : b2ContactListener(),
+		m_entities(entities)
 	{
 	}
 
 	~ContactListener() = default;
 private:
-	p_Gladiator* findEntity(const uint32 id)
+	p_entity* findEntity(const uint8_t id)
 	{
-		if (m_gladiators == nullptr) return nullptr;
+		if (m_entities == nullptr) return nullptr;
 		
-		for (p_Gladiator* g : *m_gladiators) if (g->m_id == id) return g;
+		for (p_entity* g : *m_entities) if (g->m_id == id) return g;
 
 		return nullptr;
 	}
@@ -177,7 +188,6 @@ private:
 
 					BulletCollisionEntry entry;
 					entry.m_bullet = *bullet;
-					entry.m_shooter = *findEntity(bullet->m_shooterID);
 
 					p_Platform* entryPlatform = new p_Platform;
 					*entryPlatform = *static_cast<p_Platform*>(targetUserData->m_object);
@@ -195,7 +205,7 @@ private:
 					BulletCollisionEntry entry;
 					entry.m_bullet = *bullet;
 					entry.m_bullet.m_bulletType;
-					entry.m_shooter = *findEntity(bullet->m_shooterID);
+					entry.m_shooter = *static_cast<p_Gladiator*>(findEntity(bullet->m_shooterID));
 					 
 					p_Gladiator* entryGladiator = new p_Gladiator;
 					*entryGladiator = *static_cast<p_Gladiator*>(targetUserData->m_object);
@@ -236,7 +246,6 @@ public:
 	void update(float64 timeStep = PHYSICS_TIMESTEP);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
-	uint32_t addGladiator(glm::vec2* position, glm::vec2* velocity, bool generateID = true, uint32_t id = 0);
 	void addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint32_t id);
 	void applyForceToGladiator(glm::vec2 direction, unsigned id);
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
@@ -249,37 +258,30 @@ public:
 	//void addCollisionCallback(CollisionCallback callback);
 	//void removeCollisionCallback(CollisionCallback callback);
 
-	void setGladiatorPosition(unsigned id, glm::vec2 position);
+	void setGladiatorPosition(glm::vec2 position, unsigned id);
 	void removeGladiator(unsigned id);
 	
-	uint8_t addBullet(glm::vec2* position, glm::vec2 impulse, uint32_t shooterID, bool generateID = true, uint8_t id = 0);
 	void addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
-	uint8_t addGrenade(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, bool generateID = true, uint8_t id = 0);
 	void addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
-	float32 getEntityRotation(unsigned id);
-	uint8_t addExplosion(glm::vec2* position, float radius, unsigned shooterID, bool generateID = true, uint8_t id = 0);
 	void addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID);
+	float32 getEntityRotation(unsigned id);
 	
 	// TODO: Rename this to removeEntity. Use the same system to remove bullets, grenades and explosions.
-	void removeBullet(uint8_t id);
+	void removeEntity(uint8_t id);
 
 	ContactListener m_ContactListener;
 
 	std::vector<BulletHit> hitVector;
-	std::vector<p_Bullet*> m_bulletVector;
+	std::vector<p_entity*> m_entityVector;
 
-	uint8_t getFreeBulletId();
 private:
 	
 	//ArenaContactListener m_listener;
-	
+	p_entity* getEntity(uint8_t id);
 	std::vector<CollisionCallback> m_callbacks;
 	int16 gladiatorIdToGroupId(uint32_t playerId);
-	bool isIdFree[256]{true};
-	void nextUint8_t(uint8_t& current);
-	uint8_t currentFreeId;
+
 	b2World* m_b2DWorld;
-	//TODO: Better way to communicate with server.
-	std::vector<p_Gladiator*> m_gladiatorVector;
+
 	std::vector<p_Platform*> m_platformVector;
 };

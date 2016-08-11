@@ -376,12 +376,12 @@ namespace arena
 		case PacketTypes::GameUpdate:
 		{
 			updateGladiators((GameUpdatePacket*)packet);
-
 			break;
 		}
 		case PacketTypes::GameCreateGladiators:
 		{
 			createGladiators((GameCreateGladiatorsPacket*)packet);
+			break;
 		}
 		case PacketTypes::GamePlatform:
 		{
@@ -440,7 +440,7 @@ namespace arena
 			gladiator->m_velocity = &characterData->m_velocity;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
-			gladiator->setPhysicsID(characterData->m_id);
+			gladiator->setEntityID(characterData->m_id);
 			createGladiator(gladiator);
 			PlayerScore playerScore;
 			playerScore.m_playerID = gladiator->m_ownerId;
@@ -768,7 +768,7 @@ namespace arena
 
 		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
 		{
-			if (it->second.bullet->m_bulletId == bulletId)
+			if (it->second.bullet->getEntityID() == bulletId)
 			{
 				it->second.lifeTime = 20;
 				//it->second.entity->destroy();
@@ -812,7 +812,7 @@ namespace arena
 
 		registerEntity(entity_gladiator);
 
-		m_physics.addGladiator(gladiator->m_position, gladiator->m_velocity, false, gladiator->getPhysicsID());
+		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
 		GladiatorDrawData* data = new GladiatorDrawData;
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
@@ -829,7 +829,7 @@ namespace arena
 		// Create bullet entity that is updated by server. (DEBUG)
 		Bullet* bullet = new Bullet;
 		*bullet->m_position = data.m_position;
-		bullet->m_bulletId = data.m_id;
+		bullet->setEntityID(data.m_id);
 		bullet->m_ownerId = data.m_ownerId;
 		bullet->m_type = (BulletType)data.m_type;
 		bullet->m_creationDelay = data.m_creationDelay;
@@ -849,7 +849,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet);
 			clientEntity = createBulletEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::ShotgunBullet:
@@ -858,7 +858,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet);
 			clientEntity = createBulletEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::GrenadeBullet:
@@ -867,7 +867,7 @@ namespace arena
 			serverEntity = createGrenadeEntity(bullet);
 			clientEntity = createGrenadeEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addGrenade(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addGrenadeWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		default:
@@ -875,7 +875,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet);
 			clientEntity = createBulletEntity(bullet);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBullet(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, false, bullet->m_bulletId);
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		}
@@ -890,10 +890,10 @@ namespace arena
 		DebugBullet debugBullet;
 		debugBullet.bullet = bullet;
 		debugBullet.entity = serverEntity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->m_bulletId, debugBullet));
+		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->getEntityID(), debugBullet));
 		
 		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
-		projectile->m_bulletId = bullet->m_bulletId;
+		projectile->m_bulletId = bullet->getEntityID();
 		projectile->m_bulletType = bullet->m_type;
 		// TODO: Update clientside bullet on updateEntities();
 	}
@@ -944,7 +944,7 @@ namespace arena
 		renderer->anchor();
 
 		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
-		physicsComponent->m_physicsId = bullet->m_bulletId;
+		physicsComponent->m_physicsId = bullet->getEntityID();
 
 		Entity* entity = builder.getResults();
 		registerEntity(entity);

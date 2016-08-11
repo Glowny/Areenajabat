@@ -330,6 +330,10 @@ namespace arena
 		bool				m_disposed;
 		bool				m_endCalled;
 
+		uint8_t getFreeEntityId();
+		bool isIdFree[256]{ true };
+		void nextUint8_t(uint8_t& current);
+		uint8_t currentFreeId;
 
 	};
 }

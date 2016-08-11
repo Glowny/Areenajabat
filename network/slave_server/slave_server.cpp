@@ -191,7 +191,7 @@ namespace arena
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_position = *bulletSpawn->m_position;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_rotation = bulletSpawn->m_rotation;
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_type = bulletSpawn->m_type;
-				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_id = bulletSpawn->m_bulletId;
+				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_id = bulletSpawn->getEntityID();
 				spawnBulletsPacket->m_bulletSpawnArray[spawnBulletsPacket->m_bulletAmount].m_creationDelay = bulletSpawn->m_creationDelay;
 				spawnBulletsPacket->m_bulletAmount++;
 				break;
@@ -231,13 +231,12 @@ namespace arena
 			case NetworkEntityType::Map:
             {
                 GameMap* mapEntity = (GameMap*)entity;
-				
                 for (auto platform : mapEntity->m_platformVector)
                 {
                     // Send map data. This data is only send once per game.
                     GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
                     packet->m_platform.m_type = platform.type;
-                    packet->m_platform.m_vertexAmount = uint8_t(platform.vertices.size());
+                    packet->m_platform.m_vertexAmount = int32_t(platform.vertices.size());
                     for (unsigned i = 0; i < platform.vertices.size(); i++)
                     {
                         packet->m_platform.m_vertexArray[i] = platform.vertices[i];
@@ -266,7 +265,7 @@ namespace arena
 					gladiatorsCreatePacket->m_characterArray[i].m_velocity = *players[i].m_gladiator->m_velocity;
 					gladiatorsCreatePacket->m_characterArray[i].m_aimAngle = players[i].m_gladiator->m_aimAngle;
 					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
-					gladiatorsCreatePacket->m_characterArray[i].m_id = players[i].m_gladiator->getPhysicsID();
+					gladiatorsCreatePacket->m_characterArray[i].m_id = players[i].m_gladiator->getEntityID();
 				}
 				broadcast(gladiatorsCreatePacket);
                 break;
@@ -291,7 +290,7 @@ namespace arena
 			case NetworkEntityType::RespawnPlayer:
 			{
 				GameRespawnPlayerPacket* packet = (GameRespawnPlayerPacket*)createPacket(PacketTypes::GameRespawnPlayer);
-				packet->m_playerID = (uint8_t)entity->getPhysicsID();
+				packet->m_playerID = entity->getEntityID();
 				broadcast(packet);
 				break;
 			}
