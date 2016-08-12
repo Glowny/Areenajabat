@@ -110,7 +110,9 @@ project ("arena")
         }
         links { 
             "dl",
-            "pthread"
+            "pthread",
+            "X11",
+            "GL"
         }
 
 	configuration {}
