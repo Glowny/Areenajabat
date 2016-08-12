@@ -72,7 +72,7 @@ namespace arena
             return NULL;
         }
 
-        static bgfx::ShaderHandle loadShader(bx::FileReaderI* reader, const char* filePath)
+        bgfx::ShaderHandle loadShader(bx::FileReaderI* reader, const char* filePath)
         {
             return bgfx::createShader(loadMem(reader, filePath));
         }
