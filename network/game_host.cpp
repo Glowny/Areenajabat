@@ -493,7 +493,7 @@ namespace arena
 		for (uint32 i = 0; i < bullets.size(); i++)
 		{
 			bullets[i]->setEntityID(getFreeEntityId());
-			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getEntityID(), bullets[i]->getEntityID());
+			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, bullets [i]->m_rotation, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
 			registerEntity(bullets[i]);
 		}
@@ -725,22 +725,26 @@ namespace arena
 								grenade->destroy();
 							}
 
-							if (grenade->m_timer > grenade->m_explosionTime && !grenade->isExplosion)
+							else if (grenade->m_timer > grenade->m_explosionTime)
 							{
+								if (grenade->isExplosion)
+									continue;
 								//                         printf("Explosion\n");
 								// Create explosion and save id on m_explosionId
 								grenade->isExplosion = true;
 								grenade->m_explosionId = getFreeEntityId();
-								m_physics.addExplosionWithID(grenade->m_position, 200, grenade->m_shooterId, grenade->m_explosionId);
+								m_physics.addExplosionWithID(grenade->m_position, 500, grenade->m_shooterId, grenade->m_explosionId);
 								BulletHit* hit = new BulletHit;
 								hit->m_hitId = grenade->getEntityID();
 								hit->m_hitPosition = *grenade->m_position;
 								hit->m_hitType = 3;
 								m_synchronizationList.push_back(hit);
 								hit->destroy();
-
 							}
+							else
+								m_synchronizationList.push_back(bullet);
 						}
+						else
 						m_synchronizationList.push_back(bullet);
 					}
 				}
@@ -806,7 +810,6 @@ namespace arena
 			{
 				if (entity->m_hasPhysics)
 				{
-					m_physics.removeEntity(entity->getEntityID());
 					if (entity->type() == NetworkEntityType::Projectile)
 					{
 						Bullet* bullet = static_cast<Bullet*>(entity);
@@ -816,6 +819,7 @@ namespace arena
 							m_physics.removeEntity(grenade->m_explosionId);
 						}
 					}
+					m_physics.removeEntity(entity->getEntityID());
 				}
 				isIdFree[entity->getEntityID()] = true;
 				unregisterEntity(entity);

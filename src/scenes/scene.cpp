@@ -75,7 +75,7 @@ namespace arena
 			return e == entity;
 		});
 
-		assert(iter == m_entities.end());
+		//assert(iter == m_entities.end());
 #endif
 
 		m_entities.push_back(entity);

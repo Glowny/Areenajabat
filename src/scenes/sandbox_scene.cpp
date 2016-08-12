@@ -12,6 +12,9 @@
 #include "../ecs/entity_builder.h"
 #include "../ecs/managers/sprite_manager.h"
 #include "../ecs/managers/animator_manager.h"
+#include "../ecs/managers/projectile_manager.h"
+#include "../ecs/managers/physics_manager.h"
+
 
 #include "../res/resource_manager.h"
 #include "../res/texture_resource.h"
@@ -218,7 +221,7 @@ namespace arena
 		sandbox = this;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
-
+		PhysicsManager::instance().setPhysics(&m_physics);
 		// Set background. This is to reduce loading time when debugging.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
 		m_backgroundSetting = 1;
@@ -263,8 +266,6 @@ namespace arena
 		if (m_clientIdToGladiatorData.size() != 0)
 		{
 
-			// Update transform component of debug bullets and delete old bullets.
-			updateDebugBullets(gameTime);
 			// Update all game entities.
 			updateEntities(gameTime);
 
@@ -279,7 +280,7 @@ namespace arena
 
 			updateCameraPosition();
 		}
-		bgfx::dbgTextClear();
+		
 
 		SpriteManager::instance().update(gameTime);
 		AnimatorManager::instance().update(gameTime);
@@ -499,23 +500,27 @@ namespace arena
 	}
 	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
 	{
+		// Spawnbullets is used to create and update server side bullets (Projectile).
+		// If no match is found it creates a new bullet. This creates both clientside and serverside bullet.
+		// Clientside bullets are not registered as Projectiles, but as physics entities.
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
+			bool addNew = true;
 			// Check if bullet exists.
-			std::map<uint8_t, DebugBullet>::iterator it;
-			it = m_debugBullets.find(packet->m_bulletSpawnArray[i].m_id);
-
-			if (it != m_debugBullets.end())
+			ProjectileManager& instance = ProjectileManager::instance();
+			for (auto it = instance.begin(); it != instance.end(); it++)
 			{
-				// if bullet exists, set position
-				*it->second.bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
-				//printf("Match found for id:[packet] %d \t[stored id] %d \t [key] %d \n", packet->m_bulletSpawnArray[i].m_id, it->second.bullet->m_bulletId, it->first);
-			}
-			else
-			{
-				createBullet(packet->m_bulletSpawnArray[i]);
-			}
+				if ((*it)->bullet.getEntityID() == packet->m_bulletSpawnArray[i].m_id)
+				{
+					*(*it)->bullet.m_position = packet->m_bulletSpawnArray[i].m_position;
+					addNew = false;
+					break;
+				}
+			}	
+			if (addNew)
+			createBullet(packet->m_bulletSpawnArray[i]);
 		}
+	
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
 	{
@@ -568,9 +573,14 @@ namespace arena
 
 	void SandboxScene::updateEntities(const GameTime& gameTime)
 	{
+
 		// TODO: Do own systems for these.
+		// Like this 
+		updateServerBullets(gameTime);
+		PhysicsManager::instance().update(gameTime);
+
 		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-		for (EntityIterator iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+		for (auto iterator = entititesBegin(); iterator != entititesEnd();)
 		{
 			Entity* entity = *iterator;
 			if (entity->contains(TYPEOF(Timer)))
@@ -691,32 +701,20 @@ namespace arena
 				};
 
 			}
+			iterator++;
 		}
 	}
-	void SandboxScene::updateDebugBullets(const GameTime& gameTime)
+	void SandboxScene::updateServerBullets(const GameTime& gameTime)
 	{
-		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
-		{
-			if ((it->second.lifeTime += gameTime.m_delta) < 10.0f)
-			{
-				Transform* bulletTransform = (Transform* const)it->second.entity->first(TYPEOF(Transform));
-				bulletTransform->m_position = *it->second.bullet->m_position;
-				++it;
-			}
-			else
-			{
-				// If bullets for some reason life longer than ten secounds, destroy them.
-				it->second.entity->destroy();
-				it->second.destroy();
-				it = m_debugBullets.erase(it);
-			}
-		}
+		ProjectileManager& instance = ProjectileManager::instance();
+		instance.update(gameTime);
 	}
 
 	void SandboxScene::updatePhysics(float64 timeStep)
 	{
 		//m_physics.update(gameTime.m_delta);
 		m_physics.update(timeStep);
+	
 	}
 
 	Entity* SandboxScene::createMousePointerEntity()
@@ -744,18 +742,25 @@ namespace arena
 
 	void SandboxScene::destroyBullet(uint8_t bulletId)
 	{
-
-		for (std::map<uint8_t, DebugBullet>::iterator it = m_debugBullets.begin(); it != m_debugBullets.end(); )
+		for (auto it = entititesBegin(); it != entititesEnd(); ++it)
 		{
-			if (it->second.bullet->getEntityID() == bulletId)
+			Entity* entity = *it;
+			if (entity->contains(TYPEOF(PhysicsComponent)))
 			{
-				it->second.lifeTime = 20;
-				//it->second.entity->destroy();
-				//it->second.destroy();
-				//it = m_debugBullets.erase(it);
-				return;
+				PhysicsComponent *component = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
+				if (component->m_physicsId == bulletId)
+				{
+					m_physics.removeEntity(component->m_physicsId);
+					entity->destroy();	
+				}
 			}
-			it++;
+			if (entity->contains(TYPEOF(Projectile)))
+			{
+				Projectile *projectile = (Projectile*)entity->first(TYPEOF(Projectile));
+				if(projectile->bullet.getEntityID() == bulletId)
+					entity->destroy();
+			}
+		
 		}
 	}
 
@@ -791,7 +796,7 @@ namespace arena
 
 		registerEntity(entity_gladiator);
 
-		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
+		//m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
 		GladiatorDrawData* data = new GladiatorDrawData;
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
@@ -825,36 +830,36 @@ namespace arena
 		case BulletType::GladiusBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * GLADIUSIMPULSE, vectorAngle.y * GLADIUSIMPULSE);
-			serverEntity = createBulletEntity(bullet);
-			clientEntity = createBulletEntity(bullet);
+			serverEntity = createBulletEntity(bullet, true);
+			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::ShotgunBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * SHOTGUNIMPULSE, vectorAngle.y * SHOTGUNIMPULSE);
-			serverEntity = createBulletEntity(bullet);
-			clientEntity = createBulletEntity(bullet);
+			serverEntity = createBulletEntity(bullet, true);
+			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::GrenadeBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * GRENADEIMPULSE, vectorAngle.y * GRENADEIMPULSE);
-			serverEntity = createGrenadeEntity(bullet);
-			clientEntity = createGrenadeEntity(bullet);
+			serverEntity = createGrenadeEntity(bullet, true);
+			clientEntity = createGrenadeEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 			m_physics.addGrenadeWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		default:
 		{
-			serverEntity = createBulletEntity(bullet);
-			clientEntity = createBulletEntity(bullet);
+			serverEntity = createBulletEntity(bullet, true);
+			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		}
@@ -865,18 +870,9 @@ namespace arena
 		SpriteRenderer* renderer = (SpriteRenderer*)serverEntity->first(TYPEOF(SpriteRenderer));
 		uint32_t color = color::toABGR(0, 255, 0, 255);
 		renderer->setColor(color);
-
-		DebugBullet debugBullet;
-		debugBullet.bullet = bullet;
-		debugBullet.entity = serverEntity;
-		m_debugBullets.insert(std::pair<uint8_t, DebugBullet>(debugBullet.bullet->getEntityID(), debugBullet));
-
-		Projectile* projectile = (Projectile*)clientEntity->first(TYPEOF(Projectile));
-		projectile->m_bulletId = bullet->getEntityID();
-		projectile->m_bulletType = bullet->m_bulletType;
-		// TODO: Update clientside bullet on updateEntities();
+	
 	}
-	Entity* SandboxScene::createBulletEntity(Bullet* bullet)
+	Entity* SandboxScene::createBulletEntity(Bullet* bullet, bool projectileEntity)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -884,7 +880,16 @@ namespace arena
 		// Debugbullet does not need projectile, but clientside physics needs it 
 		// for the projectile to be deleted by server.
 
-		builder.addProjectile();
+		if (projectileEntity)
+		{ 
+			Projectile* projectile =  builder.addProjectile();
+			projectile->bullet = *bullet;
+		}
+		else
+		{ 
+			PhysicsComponent* component =  builder.addPhysicsComponent();
+			component->m_physicsId = bullet->getEntityID();
+		}
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 
@@ -904,12 +909,22 @@ namespace arena
 		createSmokeEntity(*bullet);
 		return entity;
 	}
-	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet)
+	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet, bool projectileEntity)
 	{
 		EntityBuilder builder;
 		builder.begin();
 
-		builder.addProjectile();
+		if (projectileEntity)
+		{
+			Projectile* projectile = builder.addProjectile();
+			projectile->bullet = *bullet;
+		}
+		else
+		{
+			PhysicsComponent* component = builder.addPhysicsComponent();
+			component->m_physicsId = bullet->getEntityID();
+		}
+		
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 
@@ -1270,6 +1285,7 @@ namespace arena
 	}
 	void SandboxScene::setDrawText(const GameTime& gameTime)
 	{
+		bgfx::dbgTextClear();
 		unsigned row = 0;
 		gameTime;
 		//const MouseState& mouse = Mouse::getState();
@@ -1303,6 +1319,11 @@ namespace arena
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyH: animationdie");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyV: animationReset");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: toggleKeyBindDraw");
+			if (s_client->isConnected())
+				bgfx::dbgTextPrintf(0, row++, 0x56f, "Connected", s_client->isConnected());
+			else
+				bgfx::dbgTextPrintf(0, row++, 0x9f, "Disconnected", s_client->isConnected());
+
 		}
 
 		row++;
@@ -1315,7 +1336,7 @@ namespace arena
 				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
 			row++;
 		}
-
+		
 		if (m_gameMode == nullptr)
 			return;
 		//show game end

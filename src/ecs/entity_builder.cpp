@@ -7,6 +7,8 @@
 #include "managers/transform_manager.h"
 #include "managers/sprite_manager.h"
 #include "managers/animator_manager.h"
+#include "managers/projectile_manager.h"
+#include "managers/physics_manager.h"
 #include <cassert>
 #include <common/debug.h>
 
@@ -83,13 +85,17 @@ namespace arena
 	}
 	Projectile* const EntityBuilder::addProjectile()
 	{
-		Projectile* projectile = new Projectile();
+		ProjectileManager& instance = ProjectileManager::instance();
+		Projectile* const projectile = instance.create();
+		instance.registerComponent(projectile);
 		m_entity->add(projectile);
 		return projectile;
 	}
 	PhysicsComponent* const EntityBuilder::addPhysicsComponent()
 	{
-		PhysicsComponent* component = new PhysicsComponent();
+		PhysicsManager& instance = PhysicsManager::instance();
+		PhysicsComponent* const component = instance.create();
+		instance.registerComponent(component);
 		m_entity->add(component);
 		return component;
 	}

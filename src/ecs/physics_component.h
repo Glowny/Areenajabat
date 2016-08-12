@@ -8,7 +8,7 @@
 
 namespace arena
 {
-	class PhysicsComponent final : public Component
+	class PhysicsComponent : public Component
 	{
 		SET_FRIENDS
 

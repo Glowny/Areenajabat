@@ -405,16 +405,17 @@ void Physics::removeGladiator(unsigned id)
 // Rename the system or make separate ones if needed.
 
 
-void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID)
+void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angle, unsigned shooterID, uint8_t bulletID)
 {
 
 	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), imp(impulse.x / 100.0f, impulse.y / 100.0f);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
 	bulletBodyDef.position.Set(pos.x, pos.y);
+	bulletBodyDef.angle = angle;
 	bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
-
+	body->SetFixedRotation(true);
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.02f, 0.02f);
 
@@ -424,6 +425,7 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned s
 	physicalFixtureDef.density = 2.0f;
 	physicalFixtureDef.friction = 1.01f;
 	physicalFixtureDef.filter = b2Filters[ci_Bullet];
+
 	// TODO: Remove this as it is not needed any more (Bullets do not collide with players).
 	physicalFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
@@ -514,9 +516,9 @@ float32 Physics::getEntityRotation(unsigned id)
 		{
 			return m_entityVector[i]->m_body->GetAngle();
 		}
-		printf("Trying to get rotation of entity with no body\n");
-		return 0.0f;
 	}
+		return 0.0f;
+		printf("Trying to get rotation of entity with no body\n");
 }
 
 void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID)
@@ -529,7 +531,7 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2CircleShape circle;
-	circle.m_radius = radius;
+	circle.m_radius = radius/100;
 
 	// Fixture definition for collisions on players (sensor).
 	b2FixtureDef sensorFixtureDef;
