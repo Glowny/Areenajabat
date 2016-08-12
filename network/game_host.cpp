@@ -562,7 +562,7 @@ namespace arena
 				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[physicsID], physicsID);
 			}
 			addScoreBoard();
-			m_gameMode = new DeathMatch(m_scoreBoard, 10, 1); //TODO
+			m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
 	
 		}
 	}

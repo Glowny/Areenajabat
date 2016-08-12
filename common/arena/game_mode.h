@@ -1,5 +1,6 @@
 #include <string>
 #include "scoreboard.h"
+#include <sstream>
 
 namespace arena
 {
