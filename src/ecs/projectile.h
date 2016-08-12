@@ -4,7 +4,7 @@
 #include "../3rdparty/glm/vec2.hpp"
 #include "../arena_types.h"
 // Weapons include for bullet type.
-#include "common\arena\weapons.h"
+#include "common/arena/weapons.h"
 #include "physics_component.h"
 #include "component.h"
 
