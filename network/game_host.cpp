@@ -702,7 +702,7 @@ namespace arena
 								// Create explosion and save id on m_explosionId
 								grenade->isExplosion = true;
 								grenade->m_explosionId = getFreeEntityId();
-								m_physics.addExplosionWithID(grenade->m_position, 200, grenade->m_shooterId, grenade->m_explosionId);
+								m_physics.addExplosionWithID(grenade->m_position, 500, grenade->m_shooterId, grenade->m_explosionId);
 								BulletHit* hit = new BulletHit;
 								hit->m_hitId = grenade->getEntityID();
 								hit->m_hitPosition = *grenade->m_position;
@@ -772,7 +772,6 @@ namespace arena
 			{
 				if (entity->m_hasPhysics)
 				{ 
-					m_physics.removeEntity(entity->getEntityID());
 					if (entity->type() == NetworkEntityType::Projectile)
 					{
 						Bullet* bullet = static_cast<Bullet*>(entity);
@@ -780,9 +779,9 @@ namespace arena
 						{
 							GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(entity);
 							m_physics.removeEntity(grenade->m_explosionId);
-							m_physics.removeEntity(grenade->getEntityID());
 						}
 					}
+					m_physics.removeEntity(entity->getEntityID());
 				}
 				isIdFree[entity->getEntityID()] = true;
 				unregisterEntity(entity);

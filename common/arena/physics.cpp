@@ -531,7 +531,7 @@ void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned sho
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2CircleShape circle;
-	circle.m_radius = radius;
+	circle.m_radius = radius/100;
 
 	// Fixture definition for collisions on players (sensor).
 	b2FixtureDef sensorFixtureDef;

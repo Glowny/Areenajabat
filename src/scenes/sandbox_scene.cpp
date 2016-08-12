@@ -280,7 +280,7 @@ namespace arena
 
 			updateCameraPosition();
 		}
-		bgfx::dbgTextClear();
+		
 
 		SpriteManager::instance().update(gameTime);
 		AnimatorManager::instance().update(gameTime);
@@ -796,7 +796,7 @@ namespace arena
 
 		registerEntity(entity_gladiator);
 
-		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
+		//m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
 		GladiatorDrawData* data = new GladiatorDrawData;
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
@@ -1285,6 +1285,7 @@ namespace arena
 	}
 	void SandboxScene::setDrawText(const GameTime& gameTime)
 	{
+		bgfx::dbgTextClear();
 		unsigned row = 0;
 		gameTime;
 		//const MouseState& mouse = Mouse::getState();
@@ -1318,6 +1319,11 @@ namespace arena
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyH: animationdie");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyV: animationReset");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: toggleKeyBindDraw");
+			if (s_client->isConnected())
+				bgfx::dbgTextPrintf(0, row++, 0x56f, "Connected", s_client->isConnected());
+			else
+				bgfx::dbgTextPrintf(0, row++, 0x9f, "Disconnected", s_client->isConnected());
+
 		}
 
 		row++;
@@ -1330,7 +1336,7 @@ namespace arena
 				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
 			row++;
 		}
-
+		
 		if (m_gameMode == nullptr)
 			return;
 		//show game end

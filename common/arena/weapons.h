@@ -3,10 +3,10 @@
 #include <glm/vec2.hpp>
 #include <../common/network_entity.h>
 
-#define GLADIUSIMPULSE 30.0f
-#define SHOTGUNIMPULSE 30.0f
+#define GLADIUSIMPULSE 20.0f
+#define SHOTGUNIMPULSE 20.0f
 #define GRENADEIMPULSE 10.0f
-#define EXPLOSIONIMPULSE 200.0f
+#define EXPLOSIONIMPULSE 500.0f
 namespace arena
 {
 	enum WeaponType :uint8_t
