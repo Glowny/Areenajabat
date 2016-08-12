@@ -276,6 +276,7 @@ namespace arena
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
 		// Remove entities set for removal.
+		void removeAllEntites();
 		void destroyEntities();
 
 		void processInput(const uint64 clientIndex, const PlayerInput& input, float32 aimAngle);

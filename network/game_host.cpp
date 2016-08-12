@@ -139,6 +139,8 @@ namespace arena
 				
 				m_players.remove(*it);
 			
+				if (m_players.size() == 0)
+					removeAllEntites();
 				return;
 			}
 		}
@@ -555,11 +557,13 @@ namespace arena
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
 			}
 
+			unsigned spawnID = 0;
 			for (auto it = m_players.begin(); it != m_players.end(); it++)
 			{
 				Player* player = &*it;
 				uint8_t physicsID = player->m_gladiator->getEntityID();
-				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[physicsID], physicsID);
+				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[spawnID], physicsID);
+				spawnID++;
 			}
 			addScoreBoard();
 			m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
@@ -790,6 +794,21 @@ namespace arena
 			else
 				it++;
 		}
+	}
+	void GameHost::removeAllEntites()
+	{
+		m_gameData.m_gameRunning = false;
+		for (auto it = m_entities.begin(); it != m_entities.end(); )
+		{
+			NetworkEntity* entity = (*it);
+			if (entity->m_hasPhysics)
+				m_physics.removeEntity(entity->getEntityID());
+			isIdFree[entity->getEntityID()] = true;
+			unregisterEntity(entity);
+			delete entity;
+		}
+
+
 	}
 	uint8_t GameHost::getFreeEntityId()
 	{
