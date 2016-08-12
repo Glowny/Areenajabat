@@ -63,6 +63,10 @@ project ("arena")
 		path.join(ARENA_THIRD_DIR),
 		ARENA_DIR
 	}
+    
+    defines {
+        "RAPIDXML_NO_EXCEPTIONS=1"
+    }
 
 	links {
 		"bgfx",
