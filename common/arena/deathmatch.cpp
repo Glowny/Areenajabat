@@ -41,9 +41,10 @@ namespace arena
 	{
 		int maxScore = -1;
 		std::stringstream ss;
-		std::sort(m_scoreboard->m_playerScoreVector.begin(), m_scoreboard->m_playerScoreVector.end(), greater_than());
-		maxScore = m_scoreboard->m_playerScoreVector.at(0).m_score;
-		for (auto player = m_scoreboard->m_playerScoreVector.begin(); player != m_scoreboard->m_playerScoreVector.end(); player++)
+		std::vector<PlayerScore> m_playerScoreVector(m_scoreboard->m_playerScoreVector);
+		std::sort(m_playerScoreVector.begin(), m_playerScoreVector.end(), greater_than());
+		maxScore = m_playerScoreVector.at(0).m_score;
+		for (auto player = m_playerScoreVector.begin(); player != m_playerScoreVector.end(); player++)
 		{
 			ss << "Player " << player->m_playerID << ": " << player->m_score;
 			if (player->m_score == maxScore) {
