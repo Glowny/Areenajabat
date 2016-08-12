@@ -71,10 +71,10 @@ project ("arena")
 	links {
 		"bgfx",
 		"SDL2",
+        "common",
 		"Box2D",
 		"spriterengine",
 		"enet",
-		"common"
 	}
 
 	files {
