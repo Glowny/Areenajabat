@@ -159,12 +159,15 @@ project "server"
 	links {
 		"common",
 		"enet",
-		"ws2_32",
-		"winmm",
 		"Box2D",
 		"minini"
 	}
-
+    
+    configuration { "vs*" }
+        links { 
+            "ws2_32",
+            "winmm"
+        }
 
     configuration { "linux*" }
         buildoptions_cpp {
