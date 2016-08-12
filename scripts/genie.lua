@@ -108,6 +108,10 @@ project ("arena")
         buildoptions_cpp {
             "-std=c++11"
         }
+        links { 
+            "dl",
+            "pthread"
+        }
 
 	configuration {}
 
