@@ -44,6 +44,9 @@ namespace arena
 		~SandboxScene() = default;
         PlayerController m_controller;
 		bool m_toggleKeyBindDraw;
+		void requestMap(uint8_t mapID);
+		bool gameRunning;
+		bool hasMap;
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
@@ -51,6 +54,7 @@ namespace arena
 
 	private:
 		void sendInput(PlayerController &controller);
+		
 		void processAllPackets(const GameTime& gameTime);
 		void processPacket(Packet* packet);
 
@@ -64,6 +68,8 @@ namespace arena
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void updateScoreBoard(GameUpdateScoreBoardPacket* packet);
 		
+		void cleanUp();
+
 		// Update all entities on ecs.
 		void updateEntities(const GameTime& gameTime);
 
@@ -116,8 +122,8 @@ namespace arena
 		int m_backgroundSetting; 
 		Entity* mousePointerEntity;
 		Physics m_physics;
+
 		//TODO: remake as component later.
-		
 		glm::vec2 oldMousePos;
 		Scoreboard* m_scoreboard;
 		GameMode* m_gameMode;

@@ -14,6 +14,7 @@ namespace arena
 	{
 		currentFreeId = 0;
 		memset(isIdFree, true, 256);
+		loadMap("assets/coordinatesRawData.dat");
 	}
 
 	void GameHost::startSession()
@@ -553,12 +554,11 @@ namespace arena
 
 			e_gameStart();
 
-			loadMap("assets/coordinatesRawData.dat");
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
 			}
-
+			m_synchronizationList.push_back(&m_map);
 			unsigned spawnID = 0;
 			for (auto it = m_players.begin(); it != m_players.end(); it++)
 			{
@@ -665,7 +665,6 @@ namespace arena
 						player.m_gladiator->m_grenadeWeapon = new WeaponGrenade;
 						m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[player.m_gladiator->getEntityID()], player.m_gladiator->getEntityID());
 						m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
-						printf("Respawned player %d\n", player.m_gladiator->getEntityID());
 						// HAX, USE EVENTHANDLER
 						NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
 						entity->setEntityID(player.m_clientIndex);
@@ -699,7 +698,6 @@ namespace arena
 							player.m_gladiator->m_hitpoints = 100;
 							m_physics.setGladiatorPosition(glm::vec2(1600, 200), player.m_gladiator->getEntityID());
 							m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
-							printf("Respawned player %d\n", player.m_gladiator->getEntityID());
 							// HAX, USE EVENTHANDLER
 							NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
 							entity->setEntityID(player.m_clientIndex);
@@ -873,7 +871,7 @@ namespace arena
 			current++;
 		}
 		// If this happens, there is no free ids left. To add more bullets, use bigger data type
-		printf("Current bullet id: %d\n", current);
+		printf("No more bullet ids id: %d\n", current);
 		assert(false);
 	}
 }

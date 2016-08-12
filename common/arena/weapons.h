@@ -3,8 +3,8 @@
 #include <glm/vec2.hpp>
 #include <../common/network_entity.h>
 
-#define GLADIUSIMPULSE 20.0f
-#define SHOTGUNIMPULSE 20.0f
+#define GLADIUSIMPULSE 13.0f
+#define SHOTGUNIMPULSE 13.0f
 #define GRENADEIMPULSE 10.0f
 #define EXPLOSIONIMPULSE 500.0f
 namespace arena

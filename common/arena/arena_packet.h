@@ -301,9 +301,9 @@ namespace arena
 			serialize_int(stream, m_bulletAmount, 0, BULLET_MAX_AMOUNT);
 			for (unsigned i = 0; i < m_bulletAmount; ++i)
 			{
-				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_type, 1);
-				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_id, 1);
-				serialize_bytes(stream, (uint8_t*)&m_bulletSpawnArray[i].m_ownerId, 1);
+				serialize_bytes(stream, &m_bulletSpawnArray[i].m_type, 1);
+				serialize_bytes(stream, &m_bulletSpawnArray[i].m_id, 1);
+				serialize_bytes(stream, &m_bulletSpawnArray[i].m_ownerId, 1);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.x);
 				serialize_float(stream, m_bulletSpawnArray[i].m_position.y);
 				serialize_float(stream, m_bulletSpawnArray[i].m_rotation);
@@ -631,6 +631,48 @@ namespace arena
 			return serialize(stream);
 		}
 	};
+
+	struct GameRequestMapPacket : public Packet
+	{
+		uint64_t m_clientSalt;
+		uint64_t m_challengeSalt;
+		uint8_t mapID; // Less accurate data could be send (data send is between (0-360)).
+
+		GameRequestMapPacket() :
+			m_clientSalt(0),
+			m_challengeSalt(0),
+			mapID(0)
+		{
+
+		}
+
+		virtual ~GameRequestMapPacket() {}
+
+		template <typename Stream>
+		bool serialize(Stream& stream)
+		{
+			serialize_uint64(stream, m_clientSalt);
+			serialize_uint64(stream, m_challengeSalt);
+			serialize_bytes(stream, &mapID, 1);
+			return true;
+		}
+
+		virtual int32_t getType() const override
+		{
+			return PacketTypes::GameShoot;
+		}
+
+		bool serializeWrite(WriteStream& stream) override
+		{
+			return serialize(stream);
+		}
+
+		bool serializeRead(ReadStream& stream) override
+		{
+			return serialize(stream);
+		}
+	};
+
 
 	struct GameBulletCurrentPositionPacket : public Packet
 	{

@@ -96,23 +96,50 @@ namespace arena
 			Packet* packet = packetEntry.m_packet;
 			ENetPeer* from = packetEntry.m_peer;
 
+			
+
 			if (packet->getType() <= PacketTypes::Disconnect)
 			{
 				m_server.processPacket(packet, from, m_totalTime);
 			}
-			else if (packet->getType() == PacketTypes::GameInput)
-			{
-				GameInputPacket* inputPacket = (GameInputPacket*)packet;
-
-                const uint32 index = m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
-				m_host.processInput(index, inputPacket->m_input, inputPacket->m_aimAngle);
-			}
-
 			else
-			{
-				fprintf(stderr, "Not implemented packets %d\n", packet->getType());
-			}
+				switch (packet->getType())
+				{
+					case PacketTypes::GameInput:
+					{
+						GameInputPacket* inputPacket = (GameInputPacket*)packet;
+						const uint32 index = m_server.findExistingClientIndex(from, inputPacket->m_clientSalt, inputPacket->m_challengeSalt);
 
+						m_host.processInput(index, inputPacket->m_input, inputPacket->m_aimAngle);
+						break;
+					}
+					case PacketTypes::GameRequestMap:
+					{
+						GameRequestMapPacket* mapRequest = (GameRequestMapPacket*)packet;
+						const uint32 index = m_server.findExistingClientIndex(from, mapRequest->m_clientSalt, mapRequest->m_challengeSalt);
+						
+						GameMap* mapEntity = &m_host.map();
+						for (auto platform : mapEntity->m_platformVector)
+						{
+							// Send map data. This data is only send once per game.
+							GamePlatformPacket* platformPacket = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
+							platformPacket->m_platform.m_type = platform.type;
+							platformPacket->m_platform.m_vertexAmount = int32_t(platform.vertices.size());
+							for (unsigned i = 0; i < platform.vertices.size(); i++)
+							{
+								platformPacket->m_platform.m_vertexArray[i] = platform.vertices[i];
+							}
+							m_server.sendPacketToConnectedClient(index, platformPacket, m_totalTime);
+						}
+
+					}
+					default:
+					{
+						fprintf(stderr, "Not implemented packets %d\n", packet->getType());
+						break;
+					}
+				}
+			
 			destroyPacket(packet);
 		}
 
@@ -230,23 +257,23 @@ namespace arena
 			}
 			case NetworkEntityType::Map:
             {
-                GameMap* mapEntity = (GameMap*)entity;
-                for (auto platform : mapEntity->m_platformVector)
-                {
-                    // Send map data. This data is only send once per game.
-                    GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
-                    packet->m_platform.m_type = platform.type;
-                    packet->m_platform.m_vertexAmount = int32_t(platform.vertices.size());
-                    for (unsigned i = 0; i < platform.vertices.size(); i++)
-                    {
-                        packet->m_platform.m_vertexArray[i] = platform.vertices[i];
-                    }
-				   broadcast(packet);
-                }
-				
+                //GameMap* mapEntity = (GameMap*)entity;
+                //for (auto platform : mapEntity->m_platformVector)
+                //{
+                //    // Send map data. This data is only send once per game.
+                //    GamePlatformPacket* packet = (GamePlatformPacket*)createPacket(PacketTypes::GamePlatform);
+                //    packet->m_platform.m_type = platform.type;
+                //    packet->m_platform.m_vertexAmount = int32_t(platform.vertices.size());
+                //    for (unsigned i = 0; i < platform.vertices.size(); i++)
+                //    {
+                //        packet->m_platform.m_vertexArray[i] = platform.vertices[i];
+                //    }
+				//   broadcast(packet);
+                //}
+				//
 				// send data about player amount and clients id.
 				std::vector<Player>& players = m_host.players();
-
+				
 				for (Player& player : players)
 				{
 					GameSetupPacket* setupPacket = (GameSetupPacket*)createPacket(PacketTypes::GameSetup);

@@ -127,6 +127,8 @@ namespace arena
 			if (response->m_joined)
 			{
 				fprintf(stderr, "Joined lobby\n");
+				sandbox->requestMap(0);
+				sandbox->gameRunning = true;
 			}
 			else
 			{
@@ -218,6 +220,8 @@ namespace arena
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 		// Pointer to scene for input to use.
+		gameRunning = false;
+		hasMap = false;
 		sandbox = this;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
@@ -237,7 +241,11 @@ namespace arena
 	void SandboxScene::onUpdate(const GameTime& gameTime)
 	{
 		s_stamp = gameTime.m_total;
-
+		if (!s_client->isConnected() && gameRunning)
+		{ 
+			cleanUp();
+			gameRunning = false;
+		}
 		// Send packets related to finding match.
 		s_client->sendMatchMakingPackets(gameTime.m_total);
 		// Send packets related to connection upkeep.
@@ -269,9 +277,6 @@ namespace arena
 			// Update all game entities.
 			updateEntities(gameTime);
 
-			// set m_controller aim angle of the player character.
-			rotatePlayerAim();
-
 			// rotate all gladiators aim for draw.
 			for (const auto& elem : m_clientIdToGladiatorData)
 			{
@@ -284,11 +289,10 @@ namespace arena
 
 		SpriteManager::instance().update(gameTime);
 		AnimatorManager::instance().update(gameTime);
+		App::instance().spriteBatch()->submit(0);
 
 		// Set current debug draw text.
 		setDrawText(gameTime);
-
-		App::instance().spriteBatch()->submit(0);
 	}
 	void SandboxScene::onInitialize()
 	{
@@ -299,6 +303,7 @@ namespace arena
 
 		inputAddBindings("player", s_bindings);
 		mousePointerEntity = createMousePointerEntity();
+
 	}
 	void SandboxScene::onDestroy()
 	{
@@ -318,6 +323,20 @@ namespace arena
 		memset(&m_controller.m_input, false, sizeof(PlayerInput));
 
 	}
+	void SandboxScene::requestMap(uint8_t mapID)
+	{
+		if (!hasMap)
+			return;
+		hasMap = true;
+		GameRequestMapPacket* packet = (GameRequestMapPacket*)createPacket(PacketTypes::GameRequestMap);
+		packet->mapID = mapID;
+
+		packet->m_clientSalt = s_client->m_clientSalt;
+		packet->m_challengeSalt = s_client->m_challengeSalt;
+
+		s_client->sendPacketToServer(packet, s_stamp);
+	}
+
 	void SandboxScene::processAllPackets(const GameTime& gameTime)
 	{
 		Packet* packet = nullptr;
@@ -328,6 +347,7 @@ namespace arena
 			if (packet->getType() <= PacketTypes::Disconnect)
 			{
 				s_client->processClientSidePackets(packet, from, gameTime.m_total);
+				
 			}
 			else if (packet->getType() <= PacketTypes::LobbyJoinResult)
 			{
@@ -336,6 +356,9 @@ namespace arena
 			else
 				processPacket(packet);
 
+			if (packet->getType() == PacketTypes::Disconnect)
+			{
+			}
 			destroyPacket(packet);
 		}
 	}
@@ -442,15 +465,16 @@ namespace arena
 		}
 		m_platformVector.push_back(platform);
 		// TODO: There is a bug that receives empty platform.
-		if (platform.vertices.size() >= 2)
-		{
+		//if (platform.vertices.size() >= 2)
+		//{
 			m_physics.createPlatform(platform.vertices, platform.type);
-		}
+		//}
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
 		for (int32_t i = 0; i < packet->m_playerAmount; i++)
 		{
+			
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
 			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
@@ -569,6 +593,32 @@ namespace arena
 			m_scoreboard->m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
 			m_scoreboard->m_playerScoreVector[i].m_kills = (packet->m_scoreBoardData.m_playerScoreArray[i].m_kills);
 		}
+	}
+
+	void SandboxScene::cleanUp()
+	{
+		for (auto iterator = entititesBegin(); iterator != entititesEnd(); iterator++)
+		{
+	
+			Entity* entity = (*iterator);
+			if (entity->contains(TYPEOF(Id)))
+			{ 
+				Id* id = (Id*)entity->first(TYPEOF(Id));
+				if (id->m_id == EntityIdentification::MousePointer || id->m_id == EntityIdentification::MapBack || id->m_id == EntityIdentification::MapFront ||
+					id->m_id)
+				{
+					continue;
+				}
+			}
+			entity->destroy();
+		}
+		
+		for (auto iterator = m_clientIdToGladiatorData.begin(); iterator != m_clientIdToGladiatorData.end(); iterator++)
+		{
+			iterator->second->destroy();
+		}
+		m_clientIdToGladiatorData.clear();
+
 	}
 
 	void SandboxScene::updateEntities(const GameTime& gameTime)
@@ -1241,32 +1291,40 @@ namespace arena
 	void SandboxScene::updateCameraPosition()
 	{
 		Camera& camera = App::instance().camera();
+		glm::vec2 playerPosition = glm::vec2(0, 0);
+
 		if (m_clientIdToGladiatorData.at(m_playerId) != nullptr)
 		{
 			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+			playerPosition = playerTransform->m_position;
+		};
+	
+		const MouseState& mouse = Mouse::getState();
+		// TODO: get real resolution
+		rotatePlayerAim();
+
+		glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x / 2 + mouse.m_mx, -m_screenSize.y / 2 + mouse.m_my);
+		glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
+		glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerPosition.x, oldMousePos.y + movement.y + playerPosition.y);
+		oldMousePos = cameraPositionOnMouse;
+		// Adjust the aim position where bullets drop.
+		if (mousePointerEntity != nullptr)
+		{
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
-			const MouseState& mouse = Mouse::getState();
-			// TODO: get real resolution
-
-
-			glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x / 2 + mouse.m_mx, -m_screenSize.y / 2 + mouse.m_my);
-			glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
-			glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerTransform->m_position.x, oldMousePos.y + movement.y + playerTransform->m_position.y);
-			oldMousePos = cameraPositionOnMouse;
-			// Adjust the aim position where bullets drop.
 			mouseTransform->m_position = cameraPosition + glm::vec2(-16, 36.0f);
-			//checkBounds(cameraPosition);
-			camera.m_position = cameraPosition;
-			camera.calculate();
-			// set views
-			float ortho[16];
-			bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
-			bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
-			bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
-
-			bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
-			bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
 		}
+		//checkBounds(cameraPosition);
+		camera.m_position = cameraPosition;
+		camera.calculate();
+		// set views
+		float ortho[16];
+		bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
+		bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
+		bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+
+		bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
+		bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
+		
 	}
 	void SandboxScene::rotatePlayerAim()
 	{
@@ -1280,8 +1338,7 @@ namespace arena
 		glm::vec2 dir(mouseLoc - weaponRotationPoint);
 		float a = glm::atan(dir.y, dir.x);
 		m_controller.aimAngle = a;
-		SpriteRenderer* mouseTransform = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
-		mouseTransform->setRotation(a + 3.14f / 2);
+
 		// Update own gladiator aim
 		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 	}

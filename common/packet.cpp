@@ -36,6 +36,7 @@ namespace arena
         sizeof(GameUpdateScoreBoardPacket),
         sizeof(GameInputPacket),
         sizeof(GameShootPacket),
+		sizeof(GameRequestMapPacket),
         sizeof(GameBulletCurrentPositionPacket),
         sizeof(GameSetPlayerAmountPacket),
 	};
@@ -137,6 +138,9 @@ namespace arena
             break;
 		case PacketTypes::GameShoot:
 			DYNAMIC_NEW_DEFAULT(packet, GameShootPacket);
+			break;
+		case PacketTypes::GameRequestMap:
+			DYNAMIC_NEW_DEFAULT(packet, GameRequestMapPacket);
 			break;
 		case PacketTypes::GameBulletCurrentPosition:
 			DYNAMIC_NEW_DEFAULT(packet, GameBulletCurrentPositionPacket);

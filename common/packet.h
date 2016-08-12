@@ -47,6 +47,7 @@ namespace arena
 			// Client --> Server.
 			GameInput,
 			GameShoot,
+			GameRequestMap,
 
 			// Game debug
 			// Server --> Client.
