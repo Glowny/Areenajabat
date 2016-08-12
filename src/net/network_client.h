@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 #include <stdint.h>
 #include <enet/enet.h>
 #include <common/network_interface.h>
