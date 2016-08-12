@@ -5,20 +5,19 @@
 #include "../arena_types.h"
 // Weapons include for bullet type.
 #include "common\arena\weapons.h"
+#include "physics_component.h"
 #include "component.h"
 
 namespace arena
 {
-	class Projectile final : public Component
+	class Projectile final : public PhysicsComponent
 	{
 	SET_FRIENDS
 
 	DEFINE_RTTI_SUB_TYPE(Projectile)
 	
 	public:
-		BulletType m_bulletType;
-		uint8_t m_bulletId;
-		
+		Bullet* bullet;
 		~Projectile() = default;
 		Projectile() = default;
 	protected:

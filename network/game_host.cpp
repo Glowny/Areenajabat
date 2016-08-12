@@ -272,8 +272,6 @@ namespace arena
 			m_physics.applyForceToGladiator(force, entityID);
 				
 			
-			
-			
 			// Set the inputs to zero as they are handled.
             memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
 		}

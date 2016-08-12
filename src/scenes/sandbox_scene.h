@@ -18,24 +18,6 @@ struct Message;
 namespace arena
 {
 	class Animator;
-	struct DebugBullet
-	{
-		DebugBullet()
-		{
-			lifeTime = 0.0f;
-		}
-		~DebugBullet()
-		{
-			
-		}
-		void destroy()
-		{
-			delete bullet;
-		}
-		Entity* entity;
-		Bullet* bullet;
-		float lifeTime;
-	};
 	struct Weapon;
 	struct Bullet;
 	struct PlayerScore;
@@ -84,19 +66,19 @@ namespace arena
 		
 		// Update all entities on ecs.
 		void updateEntities(const GameTime& gameTime);
-		// Update debugbullets.
-		void updateDebugBullets(const GameTime& gameTime);
 
 		// Update clientside physics
 		void updatePhysics(float64 timeStep);
+
+		void updateServerBullets(const GameTime& gameTime);
 
 		Entity* createMousePointerEntity();
 		// Create single gladiator.
 		void createGladiator(Gladiator* gladiator);
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
-		Entity* createBulletEntity(Bullet* bullet);
-		Entity* createGrenadeEntity(Bullet* bullet);
+		Entity* createBulletEntity(Bullet* bullet, bool projectileEntity = false);
+		Entity* createGrenadeEntity(Bullet* bullet, bool projectileEntity = false);
 
 		// These entities are only graphical.
 		void createMuzzleFlashEntity(const Bullet& bullet);
@@ -122,8 +104,6 @@ namespace arena
 		std::map<uint8_t, GladiatorDrawData*> m_clientIdToGladiatorData;
 		// Platform data that is send by server and can be used for clientside physics.
 		std::vector<ArenaPlatform> m_platformVector; 
-
-		std::map<uint8_t, DebugBullet> m_debugBullets;
 
 		float64 m_sendInputToServerTimer;
 
