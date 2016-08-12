@@ -17,7 +17,7 @@ namespace arena
 	DEFINE_RTTI_SUB_TYPE(Projectile)
 	
 	public:
-		Bullet* bullet;
+		Bullet bullet;
 		~Projectile() = default;
 		Projectile() = default;
 	protected:

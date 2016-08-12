@@ -13,6 +13,8 @@
 #include "../ecs/managers/sprite_manager.h"
 #include "../ecs/managers/animator_manager.h"
 #include "../ecs/managers/projectile_manager.h"
+#include "../ecs/managers/physics_manager.h"
+
 
 #include "../res/resource_manager.h"
 #include "../res/texture_resource.h"
@@ -219,7 +221,7 @@ namespace arena
 		sandbox = this;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
-
+		PhysicsManager::instance().setPhysics(&m_physics);
 		// Set background. This is to reduce loading time when debugging.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
 		m_backgroundSetting = 1;
@@ -508,9 +510,9 @@ namespace arena
 			ProjectileManager& instance = ProjectileManager::instance();
 			for (auto it = instance.begin(); it != instance.end(); it++)
 			{
-				if ((*it)->bullet->getEntityID() == packet->m_bulletSpawnArray[i].m_id)
+				if ((*it)->bullet.getEntityID() == packet->m_bulletSpawnArray[i].m_id)
 				{
-					*(*it)->bullet->m_position = packet->m_bulletSpawnArray[i].m_position;
+					*(*it)->bullet.m_position = packet->m_bulletSpawnArray[i].m_position;
 					addNew = false;
 					break;
 				}
@@ -575,6 +577,7 @@ namespace arena
 		// TODO: Do own systems for these.
 		// Like this 
 		updateServerBullets(gameTime);
+		PhysicsManager::instance().update(gameTime);
 
 		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 		for (auto iterator = entititesBegin(); iterator != entititesEnd();)
@@ -711,6 +714,7 @@ namespace arena
 	{
 		//m_physics.update(gameTime.m_delta);
 		m_physics.update(timeStep);
+	
 	}
 
 	Entity* SandboxScene::createMousePointerEntity()
@@ -747,14 +751,13 @@ namespace arena
 				if (component->m_physicsId == bulletId)
 				{
 					m_physics.removeEntity(component->m_physicsId);
-					entity->destroy();
-					
+					entity->destroy();	
 				}
 			}
 			if (entity->contains(TYPEOF(Projectile)))
 			{
 				Projectile *projectile = (Projectile*)entity->first(TYPEOF(Projectile));
-				if(projectile->bullet->getEntityID() == bulletId)
+				if(projectile->bullet.getEntityID() == bulletId)
 					entity->destroy();
 			}
 		
@@ -830,7 +833,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::ShotgunBullet:
@@ -839,7 +842,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		case BulletType::GrenadeBullet:
@@ -856,7 +859,7 @@ namespace arena
 			serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		}
@@ -880,7 +883,7 @@ namespace arena
 		if (projectileEntity)
 		{ 
 			Projectile* projectile =  builder.addProjectile();
-			projectile->bullet = bullet;
+			projectile->bullet = *bullet;
 		}
 		else
 		{ 
@@ -914,7 +917,7 @@ namespace arena
 		if (projectileEntity)
 		{
 			Projectile* projectile = builder.addProjectile();
-			projectile->bullet = bullet;
+			projectile->bullet = *bullet;
 		}
 		else
 		{

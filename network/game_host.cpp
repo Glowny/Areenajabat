@@ -491,7 +491,7 @@ namespace arena
 		for(uint32 i = 0; i < bullets.size(); i++)
 		{ 
 			bullets[i]->setEntityID(getFreeEntityId());
-			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, gladiator->getEntityID(), bullets[i]->getEntityID());
+			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, bullets [i]->m_rotation, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
 			registerEntity(bullets[i]);
 		}
@@ -694,8 +694,10 @@ namespace arena
 								grenade->destroy();
 							}
 
-							if (grenade->m_timer > grenade->m_explosionTime && !grenade->isExplosion)
+							else if (grenade->m_timer > grenade->m_explosionTime)
 							{
+								if (grenade->isExplosion)
+									continue;
 								//                         printf("Explosion\n");
 								// Create explosion and save id on m_explosionId
 								grenade->isExplosion = true;
@@ -707,9 +709,11 @@ namespace arena
 								hit->m_hitType = 3;
 								m_synchronizationList.push_back(hit);
 								hit->destroy();
-
 							}
+							else
+								m_synchronizationList.push_back(bullet);
 						}
+						else
 						m_synchronizationList.push_back(bullet);
 					}
 				}
@@ -776,6 +780,7 @@ namespace arena
 						{
 							GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(entity);
 							m_physics.removeEntity(grenade->m_explosionId);
+							m_physics.removeEntity(grenade->getEntityID());
 						}
 					}
 				}

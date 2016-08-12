@@ -261,7 +261,7 @@ public:
 	void setGladiatorPosition(glm::vec2 position, unsigned id);
 	void removeGladiator(unsigned id);
 	
-	void addBulletWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
+	void addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angle, unsigned shooterID, uint8_t bulletID);
 	void addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
 	void addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID);
 	float32 getEntityRotation(unsigned id);

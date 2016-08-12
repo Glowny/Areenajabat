@@ -14,7 +14,7 @@ namespace arena
 			// TODO: Consider setting transform position pointer to pointer of bullet position.
 			// Set transform component position to the position of bullet.
 			Transform* bulletTransform = (Transform* const)(*it)->owner()->first(TYPEOF(Transform));	
-			bulletTransform->m_position = *(*it)->bullet->m_position;
+			bulletTransform->m_position = *(*it)->bullet.m_position;
 
 		}
 	}
