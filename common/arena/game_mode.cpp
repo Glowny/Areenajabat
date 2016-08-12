@@ -5,7 +5,8 @@ namespace arena
 	GameMode::GameMode(Scoreboard* m_scoreboard)
 	{
 		GameMode::m_scoreboard = m_scoreboard;
-		GameMode::endMessage = "TEST";
+		waitingEndTime = 200000.0f;
+		GameMode::timer = 0;
 	}
 	GameMode::~GameMode()
 	{
@@ -17,5 +18,13 @@ namespace arena
 		return GameMode::endMessage;
 	}
 
+	bool GameMode::updateEndTimer(float dt) {
+		GameMode::timer += dt;
+		return (GameMode::timer > GameMode::waitingEndTime);
+	}
+
+	void GameMode::resetEndTimer(){
+		GameMode::timer = 0;
+	}
 
 }

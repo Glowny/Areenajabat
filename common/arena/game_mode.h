@@ -13,10 +13,13 @@ namespace arena
 		virtual bool isEnd() = 0;
 		//void setEndMessage(std::string endMessage);
 		std::string getEndMessage();
-
+		bool updateEndTimer(float dt);
+		void resetEndTimer();
 	protected:
 		std::string endMessage;
 		Scoreboard* m_scoreboard;
+		float waitingEndTime;
+		float timer;
 
 
 	};

@@ -9,14 +9,14 @@
 namespace arena
 {
 	GameHost::GameHost(const GameVars& vars) : m_vars(vars),
-											   m_disposed(false),
-											   m_endCalled(false)
+		m_disposed(false),
+		m_endCalled(false)
 	{
 		currentFreeId = 0;
 		memset(isIdFree, true, 256);
 	}
 
-	void GameHost::startSession() 
+	void GameHost::startSession()
 	{
 		if (m_sessionData.m_sessionRunning) return;
 
@@ -89,7 +89,7 @@ namespace arena
 		const uint64 uidt = uint64(dt);
 
 		if (m_sessionData.m_sessionRunning) sessionTick(uidt);
-		
+
 		if (m_gameData.m_gameRunning)
 		{
 			gameTick(uidt);
@@ -101,10 +101,10 @@ namespace arena
 	void GameHost::registerPlayer(const uint32 clientIndex)
 	{
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
-		
+
 		DEBUG_PRINT("new player registered...");
 
-        Player newPlayer;
+		Player newPlayer;
 		newPlayer.m_clientIndex		 = clientIndex;
 		newPlayer.m_playerController = new PlayerController();
 		newPlayer.setEntityID(getFreeEntityId());
@@ -118,27 +118,27 @@ namespace arena
 		gladiator->setEntityID(getFreeEntityId());
 		registerEntity(gladiator);
 		m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
-		
-        m_players.add(newPlayer);
-		
-	
+
+		m_players.add(newPlayer);
+
+
 	}
 	void GameHost::unregisterPlayer(const uint32 clientIndex)
 	{
 		ARENA_ASSERT(isStateValid(), "State isn't valid");
-		
+
 		for (auto it = m_players.begin(); it != m_players.end(); it++)
 		{
-            Player* player = &*it;
+			Player* player = &*it;
 
-			if (player->m_clientIndex == clientIndex) 
+			if (player->m_clientIndex == clientIndex)
 			{
 				// TODO: unregister all entitites that the
 				//		 player owns as well.
 				unregisterEntity(player);
-				
+
 				m_players.remove(*it);
-			
+
 				if (m_players.size() == 0)
 					removeAllEntites();
 				return;
@@ -166,7 +166,7 @@ namespace arena
 
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
-			Player& player					= *it;
+			Player& player = *it;
 			// If player is not alive, do not process input.
 			if (player.m_gladiator->m_alive == false)
 				continue;
@@ -180,8 +180,8 @@ namespace arena
 				m_physics.setGladiatorCollideLightPlatforms(entityID, true);
 			}
 
-			player.m_gladiator->m_aimAngle  = player.m_playerController->aimAngle;
-            
+			player.m_gladiator->m_aimAngle = player.m_playerController->aimAngle;
+
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
 			bool check = player.m_gladiator->m_weapon->checkIfCanShoot((float)dt);
@@ -191,7 +191,7 @@ namespace arena
 				input.m_shootButtonDown = false;
 			}
 			if (input.m_reloadButtonDown)
-			{ 
+			{
 				player.m_gladiator->m_weapon->startReload();
 				player.m_gladiator->m_reloading = true;
 				input.m_reloadButtonDown = false;
@@ -230,16 +230,16 @@ namespace arena
 			}
 
 			// Do not add forces if there are none.
-            if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown ))
+			if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown))
 				continue;
-                      
-          
+
+
 			if (input.m_leftButtonDown)	x = -1;
 			else if (input.m_rightButtonDown)	x = 1;
 			if (input.m_upButtonDown) y = -1;
 			else if (input.m_downButtonDown) y = 1;
- 
-				// reserve upbutton for ladder climb
+
+			// reserve upbutton for ladder climb
 			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(entityID);
 			float desiredVelocityX = 300.0f * (float)x;
 			float velocityChangeX = desiredVelocityX - currentVelocity.x;
@@ -264,7 +264,7 @@ namespace arena
 					player.m_gladiator->m_climbing = ladderCollide;
 					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				}
-				
+
 			}
 
 			glm::vec2 force;
@@ -272,10 +272,12 @@ namespace arena
 			force.x = 1500.0f * velocityChangeX * (float)dt;
 
 			m_physics.applyForceToGladiator(force, entityID);
-				
-			
+
+
+
+
 			// Set the inputs to zero as they are handled.
-            memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
+			memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
 		}
 	}
 	void GameHost::processBulletCollisions(const float64 dt)
@@ -285,12 +287,12 @@ namespace arena
 
 		if (entries.empty()) return;
 
-		for (BulletCollisionEntry& entry : entries) 
+		for (BulletCollisionEntry& entry : entries)
 		{
 			//p_Gladiator& shooter	= entry.m_shooter;
 			// TODO: make target some common type that gladiator and platform are inherited from.
 			p_Bullet& bullet = entry.m_bullet;
-			
+
 			if (entry.m_target->m_type == B_Platform)
 			{
 				p_Platform& platform = *static_cast<p_Platform*>(entry.m_target);
@@ -318,9 +320,9 @@ namespace arena
 			else if (entry.m_target->m_type == B_Gladiator)
 			{
 				p_Gladiator& target = *static_cast<p_Gladiator*>(entry.m_target);
-				
+
 				Gladiator* targetGladiator = nullptr;
-				
+
 				for (auto it = m_players.begin(); it != m_players.end(); it++)
 				{
 					if (it->m_gladiator->getEntityID() == target.m_id)
@@ -331,14 +333,14 @@ namespace arena
 				}
 
 				if (targetGladiator == NULL)
-				{ 
+				{
 					// BUG: Sometimes targetGladiator is not found when there is 8+ players.
 					printf("Hit was missed, searched id %d\n", target.m_id);
 					return;
 				}
 				// if target is not alive, do not register hit.
 				// TODO: set dead player to ignore bullets on physics.
-				
+
 				// Get target entity instance. Does not seem to work.
 				//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&entry](NetworkEntity* const e) { return e->getPhysicsID() == entry.m_shooter.m_id; }));
 				//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
@@ -382,7 +384,7 @@ namespace arena
 
 				targetGladiator->m_hitpoints -= hit->m_damageAmount;
 				if (targetGladiator->m_hitpoints <= 0)
-				{ 
+				{
 					// Search for shooter.
 					unsigned shooterPlayerId = 666;
 					for (auto it = m_players.begin(); it != m_players.end(); it++)
@@ -405,14 +407,14 @@ namespace arena
 					shooterScore.m_kills++;
 					shooterScore.m_score += 10;
 					m_synchronizationList.push_back(m_scoreBoard);
-					
+
 				}
 				m_synchronizationList.push_back(hit);
 				hit->destroy();
 
 				// Sync.
 				m_synchronizationList.push_back(targetGladiator);
-				
+
 				// TODO: Do removal here and properly		
 				delete entry.m_target;
 			}
@@ -420,7 +422,7 @@ namespace arena
 			for (auto it = entities.begin(); it != entities.end(); ++it)
 			{
 				if ((*it)->getEntityID() == bullet.m_id)
-				{ 
+				{
 					(*it)->destroy();
 					break;
 				}
@@ -458,8 +460,8 @@ namespace arena
 
 	void GameHost::getSynchronizationList(std::vector<const NetworkEntity*>& outSynchronizationList)
 	{
-		 outSynchronizationList = m_synchronizationList;
-		 m_synchronizationList.clear();
+		outSynchronizationList = m_synchronizationList;
+		m_synchronizationList.clear();
 	}
 
 	void GameHost::processInput(const uint64 clientIndex, const PlayerInput& input, const float32 aimAngle)
@@ -470,9 +472,9 @@ namespace arena
 		Player* const player = m_players.find([&clientIndex](const Player* const p) { return p->m_clientIndex == clientIndex; });
 
 		if (player == nullptr) return;
-		
+
 		// Do stuff with this on physics update.
-        player->m_playerController->m_input = input;
+		player->m_playerController->m_input = input;
 		player->m_playerController->aimAngle = aimAngle;
 	}
 
@@ -489,16 +491,16 @@ namespace arena
 	void GameHost::GladiatorShoot(Gladiator* gladiator)
 	{
 		std::vector<Bullet*> bullets = gladiator->shoot();
-		
-		for(uint32 i = 0; i < bullets.size(); i++)
-		{ 
+
+		for (uint32 i = 0; i < bullets.size(); i++)
+		{
 			bullets[i]->setEntityID(getFreeEntityId());
 			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, bullets [i]->m_rotation, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
 			registerEntity(bullets[i]);
 		}
 	}
-	
+
 	bool GameHost::shouldProcessPlayerInput() const
 	{
 		// Round freeze.
@@ -529,7 +531,7 @@ namespace arena
 					// Not enough players connected, shutdown.
 					e_sessionRestart();
 				}
-				else 
+				else
 				{
 					// Restart wait time.
 					m_sessionData.m_sessionElapsed = 0;
@@ -537,11 +539,11 @@ namespace arena
 			}
 		}
 
-			//TODO: Move this check to slave_server, and start round from there.
+		//TODO: Move this check to slave_server, and start round from there.
 		if (m_players.size() >= m_vars.m_gm_players_required && !m_gameData.m_gameRunning)
 		{
 			m_gameData.m_gameRunning = true;
-			
+
 			m_sessionData.m_sessionElapsed = 0;
 			m_gameData.m_timeoutElapsed = 0;
 			m_gameData.m_gameElapsed = 0;
@@ -551,7 +553,7 @@ namespace arena
 
 			e_gameStart();
 
-            loadMap("assets/coordinatesRawData.dat");
+			loadMap("assets/coordinatesRawData.dat");
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
@@ -567,13 +569,13 @@ namespace arena
 			}
 			addScoreBoard();
 			m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
-	
+
 		}
 	}
 	void GameHost::gameTick(const uint64 dt)
 	{
 		if (!m_gameData.m_gameRunning) return;
-		
+
 		// TODO: add freezetime.
 
 		if (m_gameData.m_state == GameState::Timeout)
@@ -586,7 +588,7 @@ namespace arena
 			if (m_gameData.m_state != GameState::Timeout)
 			{
 				m_gameData.m_timeoutElapsed = 0;
-				
+
 				e_timeoutEnd();
 			}
 
@@ -643,14 +645,43 @@ namespace arena
 		else if (m_gameData.m_state == GameState::RoundRunning)
 		{
 			// Do normal updates.
-			//Check game end
-			if (m_gameMode->isEnd()) {
-				return;
-			}
 			if ((m_physics.updateTimer += dt) >= PHYSICS_TIMESTEP)
 			{
 				// Update physics
 				m_physics.update(m_physics.updateTimer);
+
+				//Check game end
+				if (m_gameMode->isEnd()) {
+					if (!m_gameMode->updateEndTimer(m_physics.updateTimer)) {
+						return;
+					}
+					for (Player& player : players())
+					{
+						player.m_gladiator->m_alive = true;
+						player.m_gladiator->m_hitpoints = 100;
+						player.m_gladiator->m_weapon->destroy();
+						player.m_gladiator->m_grenadeWeapon->destroy();
+						player.m_gladiator->m_weapon = new WeaponGladius;
+						player.m_gladiator->m_grenadeWeapon = new WeaponGrenade;
+						m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[player.m_gladiator->getEntityID()], player.m_gladiator->getEntityID());
+						m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
+						printf("Respawned player %d\n", player.m_gladiator->getEntityID());
+						// HAX, USE EVENTHANDLER
+						NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
+						entity->setEntityID(player.m_clientIndex);
+						m_synchronizationList.push_back(entity);
+						entity->destroy();
+						// update position because of gravity.
+						m_synchronizationList.push_back(player.m_gladiator);
+					}
+					m_gameData.resetTimers();
+					resetScoreBoard();
+					m_synchronizationList.push_back(m_scoreBoard);
+					m_gameMode->resetEndTimer();
+					//m_gameData.m_gameRunning = false;
+					//m_gameData.m_state = GameState::Stopped;
+				}
+
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
 				applyPlayerInputs(m_physics.updateTimer);
@@ -660,13 +691,13 @@ namespace arena
 				for (Player& player : players())
 				{
 					if (player.m_gladiator->m_alive == false)
-					{ 
-						if (player.m_gladiator->checkRespawn(m_physics.updateTimer)) 
+					{
+						if (player.m_gladiator->checkRespawn(m_physics.updateTimer))
 						{
-					
+
 							player.m_gladiator->m_alive = true;
 							player.m_gladiator->m_hitpoints = 100;
-							m_physics.setGladiatorPosition(glm::vec2(1600,200), player.m_gladiator->getEntityID());
+							m_physics.setGladiatorPosition(glm::vec2(1600, 200), player.m_gladiator->getEntityID());
 							m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
 							printf("Respawned player %d\n", player.m_gladiator->getEntityID());
 							// HAX, USE EVENTHANDLER
@@ -676,8 +707,8 @@ namespace arena
 							entity->destroy();
 						}
 					}
-					 // update position because of gravity.
-					 m_synchronizationList.push_back(player.m_gladiator);
+					// update position because of gravity.
+					m_synchronizationList.push_back(player.m_gladiator);
 				}
 				auto& entities = m_entities.container();
 				for (auto it = entities.begin(); it != entities.end(); ++it)
@@ -722,7 +753,14 @@ namespace arena
 					}
 				}
 				m_physics.updateTimer = 0;
+
 			}
+			//else if (m_gameData.m_state == GameState::Stopped)
+			//{
+			//	addScoreBoard();
+			//	m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
+			//	m_gameData.m_state == GameState::RoundRunning;
+			//}
 		}
 	}
 
@@ -771,11 +809,11 @@ namespace arena
 		auto& entities = m_entities.container();
 		for (auto it = entities.begin(); it != entities.end(); )
 		{
-			NetworkEntity* entity= *it;
+			NetworkEntity* entity = *it;
 			if (entity->getDestroy())
 			{
 				if (entity->m_hasPhysics)
-				{ 
+				{
 					if (entity->type() == NetworkEntityType::Projectile)
 					{
 						Bullet* bullet = static_cast<Bullet*>(entity);
