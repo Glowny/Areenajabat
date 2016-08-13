@@ -436,7 +436,7 @@ namespace arena
 	{
 		ArenaPlatform platform;
 		platform.type = (ArenaPlatformType)packet->m_platform.m_type;
-		for (unsigned i = 0; i < packet->m_platform.m_vertexAmount; i++)
+		for (int32_t i = 0; i < packet->m_platform.m_vertexAmount; i++)
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}

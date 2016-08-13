@@ -602,4 +602,5 @@ p_entity* Physics::getEntity(uint8_t id)
 		if((*entity)->m_id == id)
 			return *entity;
 	}
+    return nullptr;
 }
