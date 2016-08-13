@@ -169,8 +169,7 @@ namespace arena
 		m_torso.m_sprite.m_rotation = 0.0f;//calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
 
     }
-
-    void CharacterAnimator::update(float dt)
+    void CharacterAnimator::update(float64 dt)
     {
         double inMillis = dt * 1000.0;
 		//calculate torso offset
