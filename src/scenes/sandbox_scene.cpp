@@ -61,7 +61,7 @@ namespace arena
 			getline(file, ip);
 			std::string tempString;
 			getline(file, tempString);
-			port = std::stoul(tempString, nullptr, 0);
+			port = (uint16)std::stoul(tempString, nullptr, 0);
 
 		}
 	}
@@ -436,7 +436,7 @@ namespace arena
 	{
 		ArenaPlatform platform;
 		platform.type = (ArenaPlatformType)packet->m_platform.m_type;
-		for (unsigned i = 0; i < packet->m_platform.m_vertexAmount; i++)
+		for (int32_t i = 0; i < packet->m_platform.m_vertexAmount; i++)
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
@@ -587,7 +587,7 @@ namespace arena
 			{
 				// Update timer and destroy entities that are out of their lifetime.
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
-				if (timer->timePassed(gameTime.m_delta))
+				if (timer->timePassed((float)gameTime.m_delta))
 				{
 					entity->destroy();
 					continue;

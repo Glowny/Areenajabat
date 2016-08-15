@@ -14,6 +14,7 @@ namespace arena
 		{ 
 			m_position = new glm::vec2(0,0);
 			m_velocity = new glm::vec2(0, 0);
+			m_aimAngle = 0.0f;
 			m_respawnTime = 5.0f;
 			m_currentRespawnTime = 0.0f;
 			m_jumpCoolDownTimer = 0;

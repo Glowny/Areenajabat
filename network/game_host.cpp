@@ -652,7 +652,7 @@ namespace arena
 
 				//Check game end
 				if (m_gameMode->isEnd()) {
-					if (!m_gameMode->updateEndTimer(m_physics.updateTimer)) {
+					if (!m_gameMode->updateEndTimer((float)m_physics.updateTimer)) {
 						return;
 					}
 					for (Player& player : players())
@@ -721,7 +721,7 @@ namespace arena
 						if (bullet->m_bulletType == GrenadeBullet)
 						{
 							GrenadeProjectile* grenade = static_cast<GrenadeProjectile*>(entity);
-							grenade->m_timer += m_physics.updateTimer;
+							grenade->m_timer += (float)m_physics.updateTimer;
 							if (grenade->m_timer > grenade->m_endTime)
 							{
 								//printf("Delete explosion and grenade\n");
