@@ -17,7 +17,7 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG("-Wextern-c-compat")
 #if BX_PLATFORM_LINUX
 #   include </usr/include/SDL2/SDL_syswm.h>
 #else
-#   include <SDL2/SDL.h>
+#   include <SDL2/SDL_syswm.h>
 #endif
 BX_PRAGMA_DIAGNOSTIC_POP_CLANG()
 
