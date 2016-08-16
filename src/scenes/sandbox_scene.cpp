@@ -240,10 +240,14 @@ namespace arena
 	void SandboxScene::onUpdate(const GameTime& gameTime)
 	{
 		s_stamp = gameTime.m_total;
-		if (!s_client->isConnected() && gameRunning)
-		{ 
-			cleanUp();
-			gameRunning = false;
+		if (!s_client->isConnected())
+		{
+			if (gameRunning)
+			{
+				gameRunning = false;
+			}
+			else
+				cleanUp();
 		}
 		// Send packets related to finding match.
 		s_client->sendMatchMakingPackets(gameTime.m_total);
@@ -261,13 +265,16 @@ namespace arena
 		{
 			sendInput(m_controller);
 			m_sendInputToServerTimer = 0;;
+			
 		}
-		// Write current packets to network.
-		s_client->writePackets();
 		// Get packets form network.
 		s_client->readPackets();
 		// Process packets stored in s_client.
 		processAllPackets(gameTime);
+		// Write current packets to network.
+		s_client->writePackets();
+
+
 
 		//TEMP: if game has not started, do not update.
 		if (m_clientIdToGladiatorData.size() != 0)
@@ -453,7 +460,8 @@ namespace arena
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
-		
+		if (packet->m_playerAmount > m_clientIdToGladiatorData.size())
+			return;
 		for (int32_t i = 0; i < packet->m_playerAmount; i++)
 		{
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
@@ -625,8 +633,8 @@ namespace arena
 			if (entity->contains(TYPEOF(Id)))
 			{ 
 				Id* id = (Id*)entity->first(TYPEOF(Id));
-				if (id->m_id == EntityIdentification::MousePointer || id->m_id == EntityIdentification::MapBack || id->m_id == EntityIdentification::MapFront ||
-					id->m_id)
+				if (id->m_id == EntityIdentification::MousePointer || id->m_id == EntityIdentification::MapBack || id->m_id == EntityIdentification::MapFront||
+					id->m_id == EntityIdentification::Platform)
 				{
 					continue;
 				}

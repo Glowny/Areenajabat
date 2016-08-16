@@ -135,6 +135,7 @@ namespace arena
 		}
 		else
 		{
+
 			PlayerScore score;
 			score.m_kills = 0; 
 			score.m_tickets = 10;
@@ -561,7 +562,7 @@ namespace arena
 		//TODO: Move this check to slave_server, and start round from there.
 		if (m_players.size() >= m_vars.m_gm_players_required && m_gameData.m_state == GameState::UnBegun)
 		{
-			m_gameData.m_state = GameState::RoundRunning;
+			
 			startSession();
 			m_sessionData.m_sessionElapsed = 0;
 			m_gameData.m_timeoutElapsed = 0;
@@ -586,7 +587,9 @@ namespace arena
 				spawnID++;
 			}
 			e_roundStart();
+
 			m_gameData.m_gameRunning = true;
+			m_gameData.m_state = GameState::RoundRunning;
 
 		}
 	}
@@ -618,7 +621,7 @@ namespace arena
 			if (m_gameData.m_roundFreezeTimeElapsed >= m_vars.m_gm_round_freeze_time)
 			{
 				m_gameData.m_roundFreezeTimeElapsed = 0;
-				m_gameData.m_state = GameState::RoundRunning;			
+				//m_gameData.m_state = GameState::RoundRunning;			
 
 			}
 			else
@@ -806,6 +809,7 @@ namespace arena
 			it->m_score = 0;
 			//TODO: get the amount of tickets from initilization file
 			it->m_tickets = 1;
+
 		}
 		m_synchronizationList.push_back(m_scoreBoard);
 	}
@@ -848,19 +852,36 @@ namespace arena
 				it++;
 		}
 	}
+	// TODO: Do versions which remove only physics entities.
 	void GameHost::removeAllEntites()
 	{
 		m_gameData.m_gameRunning = false;
+		m_gameData.m_state = GameState::UnBegun;
 		for (auto it = m_entities.begin(); it != m_entities.end(); )
 		{
 			NetworkEntity* entity = (*it);
+
+			// TODO: Make proper scoreboard creation and deletion.
+			if (entity->type() == NetworkEntityType::Scoreboard)
+			{ 
+				it++;
+				continue;
+			}
+			if (entity->type() == NetworkEntityType::Player)
+			{ 
+				// Destroying players prevents reconnect.
+				//Player* player = (Player*)entity;
+				//unregisterPlayer(player->m_clientIndex);
+				it++;
+				continue;
+			}
 			if (entity->m_hasPhysics)
 				m_physics.removeEntity(entity->getEntityID());
+			
 			isIdFree[entity->getEntityID()] = true;
 			unregisterEntity(entity);
 			delete entity;
 		}
-
 
 	}
 	uint8_t GameHost::getFreeEntityId()

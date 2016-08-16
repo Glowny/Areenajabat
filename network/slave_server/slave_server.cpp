@@ -104,6 +104,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 			packet->m_characterArray[packet->m_playerAmount].m_velocity = *glad->m_velocity;
 			packet->m_characterArray[packet->m_playerAmount].m_reloading= glad->m_reloading;
 			packet->m_characterArray[packet->m_playerAmount].m_throwing = glad->m_throwing;
+			packet->m_playerAmount++;
 		}
 			m_server.sendPacketToConnectedClient(clientIndex, packet, m_totalTime);
 			// TODO: sent other game-entities.
@@ -131,6 +132,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 			packet->m_scoreBoardData.m_playerScoreArray[i].m_score = board.m_playerScoreVector[i].m_score;
 			packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets = board.m_playerScoreVector[i].m_tickets;
 			packet->m_scoreBoardData.m_playerScoreArray[i].m_kills = board.m_playerScoreVector[i].m_kills;
+			packet->m_scoreBoardData.m_playerScoreArray[i].m_playerID = board.m_playerScoreVector[i].m_playerID;
 		}
 		broadcast(packet);
 		// TODO: gamemode send.
@@ -380,6 +382,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 					packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets = ScoreboardEntity->m_playerScoreVector[i].m_tickets;
 					packet->m_scoreBoardData.m_playerScoreArray[i].m_kills = ScoreboardEntity->m_playerScoreVector[i].m_kills;
 					packet->m_scoreBoardData.m_playerScoreArray[i].m_playerID = ScoreboardEntity->m_playerScoreVector[i].m_playerID;
+					
 				}
 				broadcast(packet);
 				break;

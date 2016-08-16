@@ -18,7 +18,7 @@ namespace arena
 		MapBack,
 		HitBlood,
 		MousePointer,
-
+		Platform,
 	};
 
 	class Id final : public Component
