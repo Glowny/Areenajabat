@@ -81,7 +81,7 @@ namespace arena
 
 		Entity* createMousePointerEntity();
 		// Create single gladiator.
-		void createGladiator(CharacterData data);
+		Gladiator* createGladiator(CharacterData data);
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
 		Entity* createBulletEntity(Bullet* bullet, bool projectileEntity = false);

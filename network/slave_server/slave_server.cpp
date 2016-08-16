@@ -60,6 +60,7 @@ void SlaveServer::roundStart()
 		gladiatorsCreatePacket->m_characterArray[i].m_aimAngle = players[i].m_gladiator->m_aimAngle;
 		gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
 		gladiatorsCreatePacket->m_characterArray[i].m_id = players[i].m_gladiator->getEntityID();
+		gladiatorsCreatePacket->m_characterArray[i].m_team = players[i].m_gladiator->m_team;
 	}
 	broadcast(gladiatorsCreatePacket);
 }
@@ -370,7 +371,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 				break;
 			}
 
-					gladiatorsCreatePacket->m_characterArray[i].m_team = players[i].m_gladiator->m_team;
+					
 			case NetworkEntityType::Scoreboard:
 			{
 				Scoreboard* ScoreboardEntity = (Scoreboard*)entity;

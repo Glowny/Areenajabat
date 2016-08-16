@@ -439,10 +439,8 @@ namespace arena
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData characterData = packet->m_characterArray[i];
-			createGladiator(characterData);
-			gladiator->m_team = characterData->m_team;
 			Player player;
-			player.m_gladiator = gladiator;
+			player.m_gladiator = createGladiator(characterData);
 			m_players->push_back(player);
 		}
 		m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
@@ -849,7 +847,7 @@ namespace arena
 		}
 	}
 
-	void SandboxScene::createGladiator(CharacterData characterData)
+	Gladiator* SandboxScene::createGladiator(CharacterData characterData)
 	{
 		Gladiator* gladiator = new Gladiator();
 		gladiator->m_ownerId = characterData.m_ownerId;
@@ -858,6 +856,7 @@ namespace arena
 		*gladiator->m_position = characterData.m_position;
 		gladiator->m_aimAngle = characterData.m_aimAngle;
 		*gladiator->m_velocity = characterData.m_velocity;
+		gladiator->m_team = characterData.m_team;
 		Weapon* weapon = new WeaponGladius();
 		gladiator->m_weapon = weapon;
 		gladiator->setEntityID(characterData.m_id);
@@ -900,7 +899,7 @@ namespace arena
 		data->m_gladiator = gladiator;
 
 		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
-
+		return gladiator;
 	}
 	void SandboxScene::createBullet(BulletData &data)
 	{
