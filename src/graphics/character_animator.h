@@ -4,6 +4,7 @@
 #include "composite_sprite.h"
 #include "animation_system.h"
 #include <map>
+#include "../arena_types.h"
 
 namespace arena
 {
@@ -166,7 +167,7 @@ namespace arena
 
 		float calculateTorsoRotation(float radians, bool direction);
 
-        void update(float dt);
+        void update(float64 dt);
 
         void setPosition(const glm::vec2& position);
 

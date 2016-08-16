@@ -4,6 +4,7 @@
 #include <common/packet.h>
 #include <common/salt.h>
 #include <inttypes.h>
+#include <string>
 namespace arena
 {
 

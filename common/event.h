@@ -25,15 +25,12 @@ namespace arena
 
 		void add(std::function<void()> callback)
 		{
-#if _DEBUG
-			for (auto i = m_subs.begin(); i != m_subs.end(); i++) {
-				assert(((*i).target<void()>() != callback.target<void()>()));
-			}
-#endif
 			m_subs.push_back(callback);
 		}
 		void remove(std::function<void()> callback)
 		{
+            // TODO THIS DOES NOT WORK
+#if 0
 			for (auto i = m_subs.begin(); i != m_subs.end(); i++) {
 				if ((*i).target<void()>() == callback.target<void()>()) {
 					m_subs.erase(i);
@@ -41,6 +38,8 @@ namespace arena
 					return;
 				}
 			}
+#endif
+            (void)callback;
 		}
 
 		void operator +=(std::function<void()> callback)

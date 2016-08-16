@@ -61,7 +61,7 @@ namespace arena
 			getline(file, ip);
 			std::string tempString;
 			getline(file, tempString);
-			port = std::stoul(tempString, nullptr, 0);
+			port = (uint16)std::stoul(tempString, nullptr, 0);
 
 		}
 	}
@@ -442,7 +442,7 @@ namespace arena
 	{
 		ArenaPlatform platform;
 		platform.type = (ArenaPlatformType)packet->m_platform.m_type;
-		for (unsigned i = 0; i < packet->m_platform.m_vertexAmount; i++)
+		for (int32_t i = 0; i < packet->m_platform.m_vertexAmount; i++)
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
@@ -594,7 +594,7 @@ namespace arena
 			{
 				// Update timer and destroy entities that are out of their lifetime.
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
-				if (timer->timePassed(gameTime.m_delta))
+				if (timer->timePassed((float)gameTime.m_delta))
 				{
 					entity->destroy();
 					continue;
@@ -913,7 +913,11 @@ namespace arena
 
 		// effects		
 		createMuzzleFlashEntity(*bullet);
-		createSmokeEntity(*bullet);
+		glm::vec2 angleAsVector = radToVec(bullet->m_rotation);
+		glm::vec2 backTrackedBulletPosition = glm::vec2(bullet->m_position->x + angleAsVector.x * 70, bullet->m_position->y + angleAsVector.y * 70);
+		glm::vec2 position = glm::vec2(backTrackedBulletPosition.x - 16, backTrackedBulletPosition.y - 16);
+		glm::vec2 velocity = glm::vec2(cos(bullet->m_rotation) * 2 , sin(bullet->m_rotation) * 2);
+		createSmokeEntity(position, velocity);
 		return entity;
 	}
 	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet, bool projectileEntity)
@@ -980,7 +984,7 @@ namespace arena
 		// Bullet entity is updated once before sending, so it's is no in creation position.
 		// This should be fixed later, but for now we need to backtrack the bullet position a bit.
 		glm::vec2 angleAsVector = radToVec(bullet.m_rotation);
-		glm::vec2 backTrackedBulletPosition = glm::vec2(bullet.m_position->x - angleAsVector.x * 25, bullet.m_position->y - angleAsVector.y * 25);
+		glm::vec2 backTrackedBulletPosition = glm::vec2(bullet.m_position->x + angleAsVector.x * 70, bullet.m_position->y + angleAsVector.y * 70);
 
 		transform->m_position = glm::vec2(backTrackedBulletPosition.x - 16, backTrackedBulletPosition.y - 16);
 		glm::vec2& origin = renderer->getOrigin();
@@ -1060,7 +1064,7 @@ namespace arena
 
 	}
 
-	void SandboxScene::createSmokeEntity(const Bullet& bullet)
+	void SandboxScene::createSmokeEntity(glm::vec2 position, glm::vec2 velocity)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -1113,13 +1117,11 @@ namespace arena
 				yOffset = -(rand() % 10);
 			}
 
-			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+			transform->m_position = glm::vec2(position.x + xOffset, position.y + yOffset);
 
 			// Movement
 			Movement* movement = builder.addMovement();
-			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 5.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 5.0f);
+			movement->m_velocity = glm::vec2(velocity.x + xOffset/5, velocity.y+ yOffset/5);
 			movement->m_rotationSpeed = rotation;
 
 			renderer->anchor();
@@ -1148,7 +1150,7 @@ namespace arena
 		case 2:
 		{
 			// Temporary, change when there is a platform bullet hit animation.
-			createSmokeEntity(bullet);
+			createSmokeEntity(*bullet.m_position, bullet.m_impulse);
 			//createPlatformBulletHitEntity(bullet);
 			break;
 		}

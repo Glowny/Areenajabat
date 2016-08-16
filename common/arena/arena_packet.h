@@ -260,7 +260,7 @@ namespace arena
 			serialize_uint64(stream, m_clientSalt);
 			serialize_bytes(stream, &m_platform.m_type, 1);
 			serialize_int(stream, m_platform.m_vertexAmount, 0, PLATFORM_VERTEX_MAXAMOUNT);
-			for (unsigned i = 0; i < m_platform.m_vertexAmount; ++i)
+			for (int32_t i = 0; i < m_platform.m_vertexAmount; ++i)
 			{
 				serialize_float(stream, m_platform.m_vertexArray[i].x);
 				serialize_float(stream, m_platform.m_vertexArray[i].y);

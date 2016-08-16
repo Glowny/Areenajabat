@@ -1,22 +1,29 @@
-#include <bgfx/bgfx.h>
-#include <string>
-#include "app.h"
-
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
-
-#if _WIN32 || _WIN64
+#include <bx/platform.h>
+#if BX_PLATFORM_WINDOWS
 #	define SDL_MAIN_HANDLED
 #endif
 
 #include <bx/bx.h>
-#include <SDL2/SDL.h>
+#if BX_PLATFORM_LINUX
+#   include </usr/include/SDL2/SDL.h>
+#else
+#   include <SDL2/SDL.h>
+#endif
 
 BX_PRAGMA_DIAGNOSTIC_PUSH_CLANG()
 BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG("-Wextern-c-compat")
-#include <SDL2/SDL_syswm.h>
+#if BX_PLATFORM_LINUX
+#   include </usr/include/SDL2/SDL_syswm.h>
+#else
+#   include <SDL2/SDL_syswm.h>
+#endif
 BX_PRAGMA_DIAGNOSTIC_POP_CLANG()
 
+#include <bgfx/bgfx.h>
+#include <string.h>
+#include "app.h"
 #include <bx/thread.h>
 #include <bgfx/bgfxplatform.h>
 #if defined(None) // X11 defines this...

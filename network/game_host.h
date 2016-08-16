@@ -178,26 +178,26 @@ namespace arena
 			m_container.clear();
 		}
 
-        decltype(auto) begin()
+        typename std::vector<T>::iterator begin()
         {
             return m_container.begin();
         }
 
-        decltype(auto) end()
+        typename std::vector<T>::iterator end()
         {
             return m_container.end();
         }
 
-		decltype(auto) begin() const
+        typename std::vector<T>::const_iterator begin() const
 		{
 			return m_container.begin();
 		}
-		decltype(auto) end() const
+        typename std::vector<T>::const_iterator end() const
 		{
 			return m_container.end();
 		}
 
-		std::vector<T>& container()
+		typename std::vector<T>& container()
 		{
 			return m_container;
 		}
