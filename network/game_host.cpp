@@ -359,12 +359,6 @@ namespace arena
 				if (targetGladiator->m_alive == false)
 					continue;
 
-				//Player* const player = m_players.find([entry](const Player* const p) { return p->m_gladiator->m_ownerId == entry.m_shooter.m_id; });
-				printf("Target: ");
-				printf(std::to_string(targetGladiator->m_team).c_str());
-				printf("      Shooter: ");
-				printf(std::to_string(shooterGladiator->m_team).c_str());
-				printf("\n");
 				if (targetGladiator->m_team == shooterGladiator->m_team && targetGladiator->m_team != 255 && shooterGladiator->m_team != 255)
 					continue;
 
