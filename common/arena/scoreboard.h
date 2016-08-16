@@ -7,7 +7,7 @@ namespace arena
 	struct PlayerScore 
 	{
 		PlayerScore() :m_playerID(666), m_score(666), m_kills(666), m_tickets(666) {};
-		unsigned m_playerID;
+		int m_playerID;
 		int m_score;
 		int m_kills;
 		int m_tickets;
@@ -21,7 +21,7 @@ namespace arena
 			m_hasPhysics = false;
 		};
 		unsigned m_flagHolder;
-		inline PlayerScore& getPlayerScore(unsigned playerID)
+		inline PlayerScore& getPlayerScore(int playerID)
 		{
 			for (auto it = m_playerScoreVector.begin(); it != m_playerScoreVector.end(); it++)
 			{

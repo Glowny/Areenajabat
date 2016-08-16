@@ -318,6 +318,9 @@ namespace arena
 		case PacketTypes::GameShoot:
 			DYNAMIC_DTOR(static_cast<GameShootPacket*>(packet), GameShootPacket);
 			break;
+		case PacketTypes::GameRequestMap:
+			DYNAMIC_DTOR(static_cast<GameRequestMapPacket*>(packet), GameRequestMapPacket);
+			break;
 		case PacketTypes::GameBulletCurrentPosition:
 			DYNAMIC_DTOR(static_cast<GameBulletCurrentPositionPacket*>(packet), GameBulletCurrentPositionPacket);
 			break;

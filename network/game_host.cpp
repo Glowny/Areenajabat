@@ -15,15 +15,17 @@ namespace arena
 		currentFreeId = 0;
 		memset(isIdFree, true, 256);
 		loadMap("assets/coordinatesRawData.dat");
+		m_gameData.m_state = GameState::UnBegun;
 	}
 
 	void GameHost::startSession()
 	{
 		if (m_sessionData.m_sessionRunning) return;
 
-		e_sessionStart();
-		m_gameData.m_state = GameState::RoundRunning;
 		m_sessionData.m_sessionRunning = true;
+		addScoreBoard();
+		m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
+		
 	}
 	void GameHost::endSession()
 	{
@@ -80,6 +82,11 @@ namespace arena
 		dispose();
 	}
 
+	GameState GameHost::getGameState()
+	{
+		return m_gameData.m_state;
+	}
+
 	bool GameHost::isStateValid() const
 	{
 		return !m_disposed && !m_endCalled;
@@ -122,6 +129,20 @@ namespace arena
 
 		m_players.add(newPlayer);
 
+		if (m_scoreBoard == nullptr)
+		{
+			printf("Scoreboard nullptr, new player was not added in 'registerPlayer'.\n");
+		}
+		else
+		{
+			PlayerScore score;
+			score.m_kills = 0; 
+			score.m_tickets = 10;
+			score.m_playerID = newPlayer.m_clientIndex;
+			score.m_score = 0;
+			m_scoreBoard->m_playerScoreVector.push_back(score);
+			m_synchronizationList.push_back(m_scoreBoard);
+		}
 
 	}
 	void GameHost::unregisterPlayer(const uint32 clientIndex)
@@ -273,9 +294,6 @@ namespace arena
 			force.x = 1500.0f * velocityChangeX * (float)dt;
 
 			m_physics.applyForceToGladiator(force, entityID);
-
-
-
 
 			// Set the inputs to zero as they are handled.
 			memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
@@ -541,10 +559,10 @@ namespace arena
 		}
 
 		//TODO: Move this check to slave_server, and start round from there.
-		if (m_players.size() >= m_vars.m_gm_players_required && !m_gameData.m_gameRunning)
+		if (m_players.size() >= m_vars.m_gm_players_required && m_gameData.m_state == GameState::UnBegun)
 		{
-			m_gameData.m_gameRunning = true;
-
+			m_gameData.m_state = GameState::RoundRunning;
+			startSession();
 			m_sessionData.m_sessionElapsed = 0;
 			m_gameData.m_timeoutElapsed = 0;
 			m_gameData.m_gameElapsed = 0;
@@ -552,13 +570,13 @@ namespace arena
 			m_gameData.m_roundsCount = 0;
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
-			e_gameStart();
+			//e_gameStart();
 
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
 			}
-			m_synchronizationList.push_back(&m_map);
+			//m_synchronizationList.push_back(&m_map);
 			unsigned spawnID = 0;
 			for (auto it = m_players.begin(); it != m_players.end(); it++)
 			{
@@ -567,8 +585,8 @@ namespace arena
 				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[spawnID], physicsID);
 				spawnID++;
 			}
-			addScoreBoard();
-			m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
+			e_roundStart();
+			m_gameData.m_gameRunning = true;
 
 		}
 	}
@@ -600,10 +618,8 @@ namespace arena
 			if (m_gameData.m_roundFreezeTimeElapsed >= m_vars.m_gm_round_freeze_time)
 			{
 				m_gameData.m_roundFreezeTimeElapsed = 0;
-				m_gameData.m_state = GameState::RoundRunning;
+				m_gameData.m_state = GameState::RoundRunning;			
 
-				// Round start.
-				e_roundStart();
 			}
 			else
 			{
@@ -791,6 +807,7 @@ namespace arena
 			//TODO: get the amount of tickets from initilization file
 			it->m_tickets = 1;
 		}
+		m_synchronizationList.push_back(m_scoreBoard);
 	}
 	void GameHost::emptyScoreBoard()
 	{

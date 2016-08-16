@@ -127,7 +127,6 @@ namespace arena
 			if (response->m_joined)
 			{
 				fprintf(stderr, "Joined lobby\n");
-				sandbox->requestMap(0);
 				sandbox->gameRunning = true;
 			}
 			else
@@ -325,7 +324,7 @@ namespace arena
 	}
 	void SandboxScene::requestMap(uint8_t mapID)
 	{
-		if (!hasMap)
+		if (hasMap)
 			return;
 		hasMap = true;
 		GameRequestMapPacket* packet = (GameRequestMapPacket*)createPacket(PacketTypes::GameRequestMap);
@@ -369,10 +368,9 @@ namespace arena
 		case PacketTypes::GameSetup:
 		{
 			GameSetupPacket* setupPacket = (GameSetupPacket*)packet;
-			// Destroy the graphics debug gladiator.
-			//m_clientIdToGladiatorData[m_playerId]->destroy();
-			m_clientIdToGladiatorData.clear();
 			m_playerId = setupPacket->m_clientIndex;
+			// TOOD: Make a new packet type that tells client it is connected to lobby.
+			sandbox->requestMap(0);
 			break;
 		}
 		case PacketTypes::GameUpdate:
@@ -432,28 +430,11 @@ namespace arena
 		m_scoreboard = new Scoreboard;
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
-			CharacterData* characterData = &packet->m_characterArray[i];
-			Gladiator* gladiator = new Gladiator();
-			gladiator->m_ownerId = characterData->m_ownerId;
-			gladiator->m_alive = true;
-			gladiator->m_hitpoints = 100;
-			gladiator->m_position = &characterData->m_position;
-			gladiator->m_aimAngle = characterData->m_aimAngle;
-			gladiator->m_velocity = &characterData->m_velocity;
-			Weapon* weapon = new WeaponGladius();
-			gladiator->m_weapon = weapon;
-			gladiator->setEntityID(characterData->m_id);
-			createGladiator(gladiator);
-			PlayerScore playerScore;
-			playerScore.m_playerID = gladiator->m_ownerId;
-			playerScore.m_kills = 0;
-			playerScore.m_score = 0;
-			playerScore.m_tickets = 0;
-			m_scoreboard->m_playerScoreVector.push_back(playerScore);
+			CharacterData characterData = packet->m_characterArray[i];
+			createGladiator(characterData);
 		}
-
-
 		m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
+
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -472,9 +453,9 @@ namespace arena
 	}
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
+		
 		for (int32_t i = 0; i < packet->m_playerAmount; i++)
 		{
-			
 			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
 			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
@@ -557,6 +538,8 @@ namespace arena
 	}
 	void SandboxScene::processDamagePlayer(GameDamagePlayerPacket* packet)
 	{
+		if (m_clientIdToGladiatorData[packet->m_targetID] == nullptr)
+			return;
 		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
@@ -575,23 +558,61 @@ namespace arena
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{
+		if (m_clientIdToGladiatorData[packet->m_playerID] == nullptr)
+			return;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 0;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = false;
 	}
 	void SandboxScene::respawnPlayer(GameRespawnPlayerPacket* packet)
 	{
+		if (m_clientIdToGladiatorData[packet->m_playerID] == nullptr)
+			return;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 100;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = true;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.resetAnimation();
 	}
 	void SandboxScene::updateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
+		if (m_scoreboard == nullptr)
+		{
+			m_scoreboard = new Scoreboard;
+			m_scoreboard->m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
+			for (unsigned i = 0; i < packet->m_playerAmount; i++)
+			{ 
+				PlayerScore score;
+				score.m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
+				score.m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+				score.m_kills = (packet->m_scoreBoardData.m_playerScoreArray[i].m_kills);
+				score.m_playerID = packet->m_scoreBoardData.m_playerScoreArray[i].m_playerID;
+				m_scoreboard->m_playerScoreVector.push_back(score);
+			}
+		}
+
 		m_scoreboard->m_flagHolder = packet->m_scoreBoardData.m_flagHolder;
+		bool match = false;
 		for (unsigned i = 0; i < packet->m_playerAmount; i++)
 		{
-			m_scoreboard->m_playerScoreVector[i].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
-			m_scoreboard->m_playerScoreVector[i].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
-			m_scoreboard->m_playerScoreVector[i].m_kills = (packet->m_scoreBoardData.m_playerScoreArray[i].m_kills);
+			for(unsigned j = 0; j < m_scoreboard->m_playerScoreVector.size(); j++)
+			{ 
+				// Find the correct id.
+				if (m_scoreboard->m_playerScoreVector[j].m_playerID == packet->m_scoreBoardData.m_playerScoreArray[i].m_playerID)
+				{ 
+					m_scoreboard->m_playerScoreVector[j].m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
+					m_scoreboard->m_playerScoreVector[j].m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+					m_scoreboard->m_playerScoreVector[j].m_kills = (packet->m_scoreBoardData.m_playerScoreArray[i].m_kills);
+					match = true;
+				}
+			}
+			// If there is no correct match for id, add it to array.
+			if (!match)
+			{
+				PlayerScore score;
+				score.m_score = (packet->m_scoreBoardData.m_playerScoreArray[i].m_score);
+				score.m_tickets = (packet->m_scoreBoardData.m_playerScoreArray[i].m_tickets);
+				score.m_kills = (packet->m_scoreBoardData.m_playerScoreArray[i].m_kills);
+				score.m_playerID = packet->m_scoreBoardData.m_playerScoreArray[i].m_playerID;
+				m_scoreboard->m_playerScoreVector.push_back(score);
+			}
 		}
 	}
 
@@ -814,8 +835,19 @@ namespace arena
 		}
 	}
 
-	void SandboxScene::createGladiator(Gladiator* gladiator)
+	void SandboxScene::createGladiator(CharacterData characterData)
 	{
+		Gladiator* gladiator = new Gladiator();
+		gladiator->m_ownerId = characterData.m_ownerId;
+		gladiator->m_alive = true;
+		gladiator->m_hitpoints = 100;
+		*gladiator->m_position = characterData.m_position;
+		gladiator->m_aimAngle = characterData.m_aimAngle;
+		*gladiator->m_velocity = characterData.m_velocity;
+		Weapon* weapon = new WeaponGladius();
+		gladiator->m_weapon = weapon;
+		gladiator->setEntityID(characterData.m_id);
+
 		Entity* entity_gladiator;
 		EntityBuilder builder;
 		builder.begin();
@@ -851,7 +883,7 @@ namespace arena
 		data->m_entity = entity_gladiator;
 		data->m_animator = animator;
 		data->m_transform = transform;
-		data->m_gladiator = new Gladiator();
+		data->m_gladiator = gladiator;
 
 		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
 

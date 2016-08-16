@@ -26,9 +26,11 @@ namespace arena
 {
 	enum class GameState : uint8 
 	{
+		
 		// The game is stopped for some reason.
 		Stopped	= 0,
 
+		UnBegun,
 		// The game is running but it is not 
 		// executing a round yet.
 		Running,
@@ -261,6 +263,7 @@ namespace arena
 		void dispose();
 
 		void forceShutdown();
+		GameState getGameState();
 
 		bool isStateValid() const;
 
@@ -268,7 +271,6 @@ namespace arena
 
 		void timeOutBegin();
 		void timeoutEnd();
-
 
 		void registerPlayer(const uint32 clientIndex);
 		void unregisterPlayer(const uint32 clientIndex);
@@ -282,7 +284,6 @@ namespace arena
 		void processInput(const uint64 clientIndex, const PlayerInput& input, float32 aimAngle);
 		void GrenadeShoot(Gladiator* gladiator);
 		void GladiatorShoot(Gladiator* gladiator);
-		
 
 		bool shouldProcessPlayerInput() const;
 
@@ -293,6 +294,7 @@ namespace arena
 
 		NetworkEntity* const find(Predicate<NetworkEntity* const> pred);
 
+		Scoreboard& getScoreBoard();
 		std::vector<Player>& players();
 		GameMap& map();
 		Physics& physics();
@@ -308,7 +310,6 @@ namespace arena
 		void addScoreBoard();
 		void resetScoreBoard();
 		void emptyScoreBoard();
-		Scoreboard& getScoreBoard();
 
 		GameMap				m_map;
 		Physics				m_physics;

@@ -70,6 +70,7 @@ namespace arena
 		int m_score;
 		int m_tickets;
 		int m_kills;
+		int m_playerID;
 	};
 
 	struct ScoreBoardData
@@ -517,6 +518,7 @@ namespace arena
 				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_score, 0, 1023);
 				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_kills, 0, 127);
 				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_tickets, 0, 127);
+				serialize_int(stream, m_scoreBoardData.m_playerScoreArray[i].m_playerID, 0, 127);
 			}
 			return true;
 		}
@@ -659,7 +661,7 @@ namespace arena
 
 		virtual int32_t getType() const override
 		{
-			return PacketTypes::GameShoot;
+			return PacketTypes::GameRequestMap;
 		}
 
 		bool serializeWrite(WriteStream& stream) override

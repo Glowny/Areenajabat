@@ -60,12 +60,13 @@ namespace arena
         // should be called after step() and cleared after that
         std::vector<PacketEntry>& getSendQueue();
 
-        // wtf?
         float64 getDeltaTime();
 
 		void broadcast(Packet* packet);
 
         void addListener(ClientListener* listener);
+		void roundStart();
+		void clientConnect(uint32_t clientIndex);
 	private:
         // listener which posts connect and disconnect events
         SlaveServerClientListener m_clientListener;
