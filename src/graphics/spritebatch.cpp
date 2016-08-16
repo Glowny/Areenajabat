@@ -9,7 +9,7 @@
 
 namespace arena
 {
-
+    static const uint32_t InitialQueueSize = 256;
     static const bool OriginBottomLeft = BX_PLATFORM_WINDOWS != 0 ? false : true;
 
     SpriteBatch::SpriteBatch()

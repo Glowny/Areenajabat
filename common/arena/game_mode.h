@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include "scoreboard.h"
 #include <sstream>
@@ -20,6 +22,7 @@ namespace arena
 		Scoreboard* m_scoreboard;
 		float waitingEndTime;
 		float timer;
+		bool msgChecker;
 
 
 	};

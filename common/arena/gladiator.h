@@ -12,8 +12,10 @@ namespace arena
 					  m_alive(true),
 					  m_hitpoints(100)
 		{ 
+			m_team = 255;
 			m_position = new glm::vec2(0,0);
 			m_velocity = new glm::vec2(0, 0);
+			m_aimAngle = 0.0f;
 			m_respawnTime = 5.0f;
 			m_currentRespawnTime = 0.0f;
 			m_jumpCoolDownTimer = 0;
@@ -48,6 +50,8 @@ namespace arena
 		{
 			return m_grenadeWeapon->pitch(m_aimAngle, *m_position);
 		}
+
+		uint8_t m_team;
 
 		glm::vec2*	m_position;
 		glm::vec2*	m_velocity;

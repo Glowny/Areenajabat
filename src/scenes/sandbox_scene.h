@@ -12,6 +12,7 @@
 #include <map>
 #include <common/arena/physics.h>
 #include <common/arena/deathmatch.h>
+#include <common/arena/team_deathmatch.h>
 struct Message;
 
 

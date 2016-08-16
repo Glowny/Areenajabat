@@ -44,30 +44,36 @@ namespace arena
         return lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
     }
 
+	/*
+	calculateTorsoRotation, for limiting the torso rotation to certain values
+	Parameters:
+	  radians = the character aiming angle
+	  direction = the character upper body direction, either 0 (left) or 1 (right)
+	Returns the rotation used for upper body
+	*/
 	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
 	{
+	  // TODO : Variable names need some fixing to be more understandable.
+		float pi = 3.141f;
 		if (direction) {
-			if (radians < m_torsoMinAngle) {
+			if (radians >= -m_torsoMinAngle && radians < m_torsoMinAngle) {
 				return radians;
 			}
-			else return m_torsoMinAngle;
-		
-			if (radians > m_torsoMaxAngle) {
-				return radians;
+			else if (radians >= m_torsoMinAngle) {
+				return m_torsoMinAngle;
 			}
-			else return m_torsoMaxAngle;
-		} else
+			else return -m_torsoMinAngle;
+		} 
+		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
 		{
-			if (radians < m_torsoMaxAngle) {
-			return radians;
+			if (radians <= -m_torsoMaxAngle || radians <= pi && radians > m_torsoMaxAngle) {
+				return radians - pi;
+			}
+			else if (radians < m_torsoMaxAngle && radians >= 1.57f) {
+				return m_torsoMaxAngle - pi;
+			}
+			else return -m_torsoMaxAngle - pi;
 		}
-		else return m_torsoMaxAngle;
-
-		if (radians > m_torsoMinAngle) {
-			return radians;
-		}
-		else return m_torsoMinAngle;
-	}
 	}
 
     void CharacterAnimator::setPosition(const glm::vec2& position)
@@ -90,8 +96,8 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
-		m_torsoMaxAngle = 0.524f;
-		m_torsoMinAngle = 5.760f;
+		m_torsoMinAngle = 0.524f;
+		m_torsoMaxAngle = 2.619f;
 		fillMap();
 		m_aimAngle = 0;
 		m_skin = Bronze;
@@ -166,11 +172,10 @@ namespace arena
         m_animationData->m_leftHand->rotateTo(weaponAim);
 
 		//calculate torso rotation
-		m_torso.m_sprite.m_rotation = 0.0f;//calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
-
+		m_torso.m_sprite.m_rotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
+		
     }
-
-    void CharacterAnimator::update(float dt)
+    void CharacterAnimator::update(float64 dt)
     {
         double inMillis = dt * 1000.0;
 		//calculate torso offset

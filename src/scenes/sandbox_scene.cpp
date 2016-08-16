@@ -61,7 +61,7 @@ namespace arena
 			getline(file, ip);
 			std::string tempString;
 			getline(file, tempString);
-			port = std::stoul(tempString, nullptr, 0);
+			port = (uint16)std::stoul(tempString, nullptr, 0);
 
 		}
 	}
@@ -435,19 +435,24 @@ namespace arena
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
 		m_scoreboard = new Scoreboard;
+		std::vector<Player>* m_players = new std::vector<Player>;
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData characterData = packet->m_characterArray[i];
 			createGladiator(characterData);
+			gladiator->m_team = characterData->m_team;
+			Player player;
+			player.m_gladiator = gladiator;
+			m_players->push_back(player);
 		}
 		m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
-
+		//m_gameMode = new TeamDeathMatch(m_scoreboard, m_players, 2);
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
 		ArenaPlatform platform;
 		platform.type = (ArenaPlatformType)packet->m_platform.m_type;
-		for (unsigned i = 0; i < packet->m_platform.m_vertexAmount; i++)
+		for (int32_t i = 0; i < packet->m_platform.m_vertexAmount; i++)
 		{
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
@@ -472,6 +477,7 @@ namespace arena
 			gladiatorData->m_transform->m_position = glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y - 64.0f);
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
+			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
 
 			if (packet->m_characterArray[i].m_reloading)
 			{
@@ -666,7 +672,7 @@ namespace arena
 			{
 				// Update timer and destroy entities that are out of their lifetime.
 				Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
-				if (timer->timePassed(gameTime.m_delta))
+				if (timer->timePassed((float)gameTime.m_delta))
 				{
 					entity->destroy();
 					continue;
@@ -1433,6 +1439,14 @@ namespace arena
 		{
 			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Score: %d \t Kills: %d \t Tickets %d",
 				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
+			row++;
+		}
+		row++;
+		row++;
+		for (auto i = m_clientIdToGladiatorData.begin(); i != m_clientIdToGladiatorData.end(); i++) {
+			Gladiator* gladiator = i->second->m_gladiator;
+			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Team: %d",
+				i->first, gladiator->m_team);
 			row++;
 		}
 		

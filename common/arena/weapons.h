@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <math.h> // sin, cos
 #include <glm/vec2.hpp>
 #include <../common/network_entity.h>
 

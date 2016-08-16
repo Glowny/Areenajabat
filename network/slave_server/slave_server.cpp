@@ -305,6 +305,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_throwing = gladiator->m_throwing;
 				gladiator->m_throwing = false; // Dont spam throwing. TODO: move this to somewhere on game_host.
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_climbing = gladiator->m_climbing;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_team = gladiator->m_team;
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
 			}
@@ -369,6 +370,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 				break;
 			}
 
+					gladiatorsCreatePacket->m_characterArray[i].m_team = players[i].m_gladiator->m_team;
 			case NetworkEntityType::Scoreboard:
 			{
 				Scoreboard* ScoreboardEntity = (Scoreboard*)entity;

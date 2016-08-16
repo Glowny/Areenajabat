@@ -15,7 +15,7 @@ namespace arena
 
 	struct Scoreboard :public NetworkEntity
 	{
-		Scoreboard::Scoreboard(): NetworkEntity(NetworkEntityType::Scoreboard) 
+		Scoreboard(): NetworkEntity(NetworkEntityType::Scoreboard) 
 		{
 			m_flagHolder = 666;
 			m_hasPhysics = false;

@@ -63,14 +63,18 @@ project ("arena")
 		path.join(ARENA_THIRD_DIR),
 		ARENA_DIR
 	}
+    
+    defines {
+        "RAPIDXML_NO_EXCEPTIONS=1"
+    }
 
 	links {
 		"bgfx",
 		"SDL2",
+        "common",
 		"Box2D",
 		"spriterengine",
 		"enet",
-		"common"
 	}
 
 	files {
@@ -103,6 +107,12 @@ project ("arena")
     configuration { "linux*" }
         buildoptions_cpp {
             "-std=c++11"
+        }
+        links { 
+            "dl",
+            "pthread",
+            "X11",
+            "GL"
         }
 
 	configuration {}
@@ -149,12 +159,15 @@ project "server"
 	links {
 		"common",
 		"enet",
-		"ws2_32",
-		"winmm",
 		"Box2D",
 		"minini"
 	}
-
+    
+    configuration { "vs*" }
+        links { 
+            "ws2_32",
+            "winmm"
+        }
 
     configuration { "linux*" }
         buildoptions_cpp {
