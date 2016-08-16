@@ -407,6 +407,7 @@ namespace arena
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
 		m_scoreboard = new Scoreboard;
+		std::vector<Player>* m_players = new std::vector<Player>;
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData* characterData = &packet->m_characterArray[i];
@@ -417,6 +418,7 @@ namespace arena
 			gladiator->m_position = &characterData->m_position;
 			gladiator->m_aimAngle = characterData->m_aimAngle;
 			gladiator->m_velocity = &characterData->m_velocity;
+			gladiator->m_team = characterData->m_team;
 			Weapon* weapon = new WeaponGladius();
 			gladiator->m_weapon = weapon;
 			gladiator->setEntityID(characterData->m_id);
@@ -427,10 +429,14 @@ namespace arena
 			playerScore.m_score = 0;
 			playerScore.m_tickets = 0;
 			m_scoreboard->m_playerScoreVector.push_back(playerScore);
+
+			Player player;
+			player.m_gladiator = gladiator;
+			m_players->push_back(player);
 		}
 
-
 		m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
+		//m_gameMode = new TeamDeathMatch(m_scoreboard, m_players, 2);
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -459,6 +465,7 @@ namespace arena
 			gladiatorData->m_transform->m_position = glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y - 64.0f);
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
+			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
 
 			if (packet->m_characterArray[i].m_reloading)
 			{
@@ -1334,6 +1341,14 @@ namespace arena
 		{
 			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Score: %d \t Kills: %d \t Tickets %d",
 				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
+			row++;
+		}
+		row++;
+		row++;
+		for (auto i = m_clientIdToGladiatorData.begin(); i != m_clientIdToGladiatorData.end(); i++) {
+			Gladiator* gladiator = i->second->m_gladiator;
+			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Team: %d",
+				i->first, gladiator->m_team);
 			row++;
 		}
 		

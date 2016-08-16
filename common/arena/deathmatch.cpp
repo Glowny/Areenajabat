@@ -14,18 +14,23 @@ namespace arena
 
 	bool DeathMatch::isEnd()
 	{
+		int countDead = 0;
+		bool checker = false;
 		for (auto player = m_scoreboard->m_playerScoreVector.begin(); player != m_scoreboard->m_playerScoreVector.end(); player++)
 		{
-			bool checker = false;
 			if (player->m_score >= maxScore)
 				checker = true;
-			if (player->m_tickets < 0)
-				checker = true;
-			if (checker) {
-				generateMessage();
-				return checker;
-			}
+			if (player->m_tickets <= 0)
+				countDead++;
 		}
+		if (checker || countDead == m_scoreboard->m_playerScoreVector.size() - 1) {
+			if (!msgChecker) {
+				generateMessage();
+				msgChecker = true;
+			}
+			return true;
+		}
+		msgChecker = false;
 		return false;
 	}
 

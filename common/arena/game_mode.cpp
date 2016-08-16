@@ -7,6 +7,7 @@ namespace arena
 		GameMode::m_scoreboard = m_scoreboard;
 		waitingEndTime = 200000.0f;
 		GameMode::timer = 0;
+		msgChecker = false;
 	}
 	GameMode::~GameMode()
 	{

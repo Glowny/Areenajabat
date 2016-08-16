@@ -165,6 +165,7 @@ namespace arena
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_throwing = gladiator->m_throwing;
 				gladiator->m_throwing = false; // Dont spam throwing. TODO: move this to somewhere on game_host.
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_climbing = gladiator->m_climbing;
+				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_team = gladiator->m_team;
 				gladiatorUpdatePacket->m_playerAmount++;
 				break;
 			}
@@ -266,6 +267,7 @@ namespace arena
 					gladiatorsCreatePacket->m_characterArray[i].m_aimAngle = players[i].m_gladiator->m_aimAngle;
 					gladiatorsCreatePacket->m_characterArray[i].m_ownerId = players[i].m_gladiator->m_ownerId;
 					gladiatorsCreatePacket->m_characterArray[i].m_id = players[i].m_gladiator->getEntityID();
+					gladiatorsCreatePacket->m_characterArray[i].m_team = players[i].m_gladiator->m_team;
 				}
 				broadcast(gladiatorsCreatePacket);
                 break;

@@ -58,6 +58,7 @@ namespace arena
 		uint8_t m_id;
 		glm::vec2 m_position;
 		glm::vec2 m_velocity;
+		uint8_t m_team;
 		float m_aimAngle;
 		uint32_t m_ownerId;
 		int8_t m_climbing;
@@ -166,6 +167,7 @@ namespace arena
 				serialize_bool(stream, m_characterArray[i].m_throwing);
 				serialize_bool(stream, m_characterArray[i].m_reloading);
 				serialize_int(stream, m_characterArray[i].m_climbing, 0, 2);
+				serialize_bytes(stream, &m_characterArray[i].m_team, 1);
 			}
 			return true;
 		}
@@ -216,6 +218,7 @@ namespace arena
 				serialize_float(stream, m_characterArray[i].m_velocity.x);
 				serialize_float(stream, m_characterArray[i].m_velocity.y);
 				serialize_float(stream, m_characterArray[i].m_aimAngle);
+				serialize_bytes(stream, &m_characterArray[i].m_team, 1);
 
 			}
 			return true;
