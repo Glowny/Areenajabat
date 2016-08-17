@@ -556,14 +556,11 @@ namespace arena
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
-			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection > 0, packet->m_hitPosition.y);
+			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y);
 		}
 
-		Bullet bullet;
-		bullet.m_position->x = packet->m_hitPosition.x;
-		bullet.m_position->y = packet->m_hitPosition.y;
 		destroyBullet(packet->m_bulletId);
-		createBloodBulletHitEntity(bullet);
+		createBloodBulletHitEntity(packet->m_hitDirection, packet->m_hitPosition);
 
 		// Todo: Set animation blood on hit position. Draw blood on gladiator.
 
@@ -1228,13 +1225,12 @@ namespace arena
 		switch (data.m_type)
 		{
 			// Bullet hits gladiator
+			// note: not in use, done in damageplayer.
 		case 1:
 		{
-			createBloodBulletHitEntity(bullet);
-			data.m_id;
 			break;
 		}
-		// Bullet hits platform
+			// Bullet hits platform
 		case 2:
 		{
 			// Temporary, change when there is a platform bullet hit animation.
@@ -1242,7 +1238,7 @@ namespace arena
 			//createPlatformBulletHitEntity(bullet);
 			break;
 		}
-		// Explosion occurs.
+			// Explosion occurs.
 		case 3:
 		{
 			createExplosionEntity(bullet);
@@ -1256,17 +1252,27 @@ namespace arena
 
 
 	}
-	void SandboxScene::createBloodBulletHitEntity(Bullet& bullet)
+	void SandboxScene::createBloodBulletHitEntity(unsigned direction, glm::vec2 position)
 	{
 		EntityBuilder builder;
 		builder.begin();
 
+		glm::vec2 offset = glm::vec2(0.0f, 0.0f);
+		int directionX = 1;
+		// check if bullet is approaching from right.
+		if (direction == 0)
+			directionX = -1;
+
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet.m_position + bullet.m_rotation;
+		// Set offset to middle of sprite.
+		
+		transform->m_position = glm::vec2(position.x + offset.x, position.y + offset.y);
 
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
+		glm::vec2 &scale = renderer->getScale();
+		scale.x * directionX;
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
 		Rectf rect = renderer->getSource();
@@ -1279,8 +1285,8 @@ namespace arena
 		timer->m_lifeTime = 0.5f;
 
 		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
-
+		move->m_velocity = glm::vec2(5.0f* directionX, 4.81f);
+		
 		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
 	}

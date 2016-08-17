@@ -91,7 +91,7 @@ namespace arena
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(glm::vec2 position, glm::vec2 velocity);
 		void createExplosionEntity(const Bullet& bullet);
-		void createBloodBulletHitEntity(Bullet& bullet);
+		void createBloodBulletHitEntity(unsigned direction, glm::vec2 position);
 		void createPlatformBulletHitEntity(Bullet& bullet);
 		// Graphical entities end.
 
