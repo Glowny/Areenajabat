@@ -24,8 +24,8 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4263) // 'function' : member function does not
 #include "spriterengine/objectinfo/boneinstanceinfo.h"
 #include "spriterengine/objectinfo/boxinstanceinfo.h"
 BX_PRAGMA_DIAGNOSTIC_POP_MSVC()
-//void rapidxml::parse_error_handler(const char * /*what*/, void * /*where*/) {
-//}
+void rapidxml::parse_error_handler(const char * /*what*/, void * /*where*/) {
+}
 namespace arena
 {
     using namespace SpriterEngine;
