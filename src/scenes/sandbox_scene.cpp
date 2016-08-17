@@ -1375,7 +1375,9 @@ namespace arena
 		if (mousePointerEntity != nullptr)
 		{
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
-			mouseTransform->m_position = cameraPosition + glm::vec2(-16, 36.0f);
+			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
+			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.57);
+			mouseTransform->m_position = cameraPosition + glm::vec2(-13.0f, +80.0f);
 		}
 		//checkBounds(cameraPosition);
 		camera.m_position = cameraPosition;

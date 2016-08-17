@@ -227,9 +227,8 @@ namespace arena
 				if (checkGrenade)
 				{
 					player.m_gladiator->m_throwing = true;
-					printf("Grenade button reset\n");
 					player.m_gladiator->m_grenadeWeapon->pitching = true;
-					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
+					
 				}
 			}
 			// If the pitching is happening, check if it is ready and create the grenade.
@@ -239,6 +238,7 @@ namespace arena
 				{
 					GrenadeShoot(player.m_gladiator);
 					input.m_grenadeButtonDown = false;
+					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
 				}
 			}
 				// Grenade related stuff here end.
