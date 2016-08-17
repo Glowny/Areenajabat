@@ -1103,7 +1103,7 @@ namespace arena
 			registerEntity(builder.getResults());
 		}
 
-		for (int i = 0; i < rand() % 5 + 3; i++)
+		for (int i = 0; i < rand() % 8 + 3; i++)
 		{
 			int spriteX = rand() % 4;
 
@@ -1129,11 +1129,11 @@ namespace arena
 
 
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
+				xOffset = rand() % 50;
 				rotation = (rand() % 3) / 100.0f;
 			}
 			else {
-				xOffset = -(rand() % 10);
+				xOffset = -(rand() % 50);
 				rotation = -(float)(rand() % 3) / 100.0f;
 			}
 			if (rand() % 2 == 1) {
@@ -1169,7 +1169,7 @@ namespace arena
 
 		// Load gun smoke, randomize rotation and position on spawn.
 
-		for (int i = 0; i < rand() % 8 + 3; i++)
+		for (int i = 0; i < rand() % 5 + 3; i++)
 		{
 			int spriteX = rand() % 4;
 
@@ -1197,12 +1197,12 @@ namespace arena
 
 
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 500;
-				rotation = (rand() % 3) / 500.0f;
+				xOffset = rand() % 10;
+				rotation = (rand() % 3) / 100.0f;
 			}
 			else {
-				xOffset = -(rand() % 500);
-				rotation = (float)-(rand() % 3) / 500.0f;
+				xOffset = -(rand() % 10);
+				rotation = (float)-(rand() % 3) / 100.0f;
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 10;
@@ -1211,7 +1211,7 @@ namespace arena
 				yOffset = -(rand() % 10);
 			}
 
-			transform->m_position = glm::vec2(position.x + xOffset, position.y + yOffset);
+			transform->m_position = glm::vec2(position.x + xOffset, position.y + yOffset );
 
 			// Movement
 			Movement* movement = builder.addMovement();
@@ -1228,6 +1228,7 @@ namespace arena
 	{
 		Bullet bullet;
 		*bullet.m_position = data.m_position;
+		*bullet.m_position = glm::vec2(bullet.m_position->x - 16.0f, bullet.m_position->y - 16.0f);
 		bullet.m_bulletType = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
 

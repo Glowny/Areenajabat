@@ -227,7 +227,6 @@ namespace arena
 				if (checkGrenade)
 				{
 					player.m_gladiator->m_throwing = true;
-					input.m_grenadeButtonDown = false;
 					printf("Grenade button reset\n");
 					player.m_gladiator->m_grenadeWeapon->pitching = true;
 					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
@@ -239,6 +238,7 @@ namespace arena
 				if (player.m_gladiator->m_grenadeWeapon->pitchReady(dt))
 				{
 					GrenadeShoot(player.m_gladiator);
+					input.m_grenadeButtonDown = false;
 				}
 			}
 				// Grenade related stuff here end.
@@ -700,7 +700,7 @@ namespace arena
 				m_physics.update(m_physics.updateTimer);
 
 				//Check game end
-				if (m_gameMode->isEnd()) {
+				if (m_gameMode->isEnd()&& players().size() != 1 ) {
 					if (!m_gameMode->updateEndTimer((float)m_physics.updateTimer)) {
 						return;
 					}
@@ -823,7 +823,7 @@ namespace arena
 			score.m_kills = 0;
 			score.m_score = 0;
 			//TODO: get the amount of tickets from initilization file.
-			score.m_tickets = 1;
+			score.m_tickets = 10;
 			score.m_playerID = player->m_clientIndex;
 			board->m_playerScoreVector.push_back(score);
 		}
