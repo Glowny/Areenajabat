@@ -219,13 +219,27 @@ namespace arena
 				player.m_gladiator->m_reloading = true;
 				input.m_reloadButtonDown = false;
 			}
-
+			printf("Grenade button down: %d\n", input.m_grenadeButtonDown);
 			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
-
-			if (input.m_grenadeButtonDown && checkGrenade)
-			{
-				GrenadeShoot(player.m_gladiator);
-				input.m_grenadeButtonDown = false;
+			if (input.m_grenadeButtonDown)
+			{ 
+				// Check the timer since another grenade was thrown.
+		
+				if (checkGrenade)
+				{
+					player.m_gladiator->m_throwing = true;
+					input.m_grenadeButtonDown = false;
+					printf("Grenade button reset\n");
+					player.m_gladiator->m_grenadeWeapon->pitching = true;
+					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
+				}
+			}
+			if (player.m_gladiator->m_grenadeWeapon->pitching)
+			{ 
+				if (player.m_gladiator->m_grenadeWeapon->pitchReady(dt))
+				{
+					GrenadeShoot(player.m_gladiator);
+				}
 			}
 			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;

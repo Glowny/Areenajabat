@@ -163,7 +163,7 @@ namespace arena
 				return false;
 		}
 
-		inline bool checkCoolDown(float deltaTime)
+		virtual inline bool checkCoolDown(float deltaTime)
 		{
 			if ((m_coolDownTimer += deltaTime) > m_coolDown)
 			{ 
@@ -192,8 +192,6 @@ namespace arena
 		float m_reloadTime;
 		bool m_reloading;
 		unsigned m_reloadBulletAmount;
-
-	private:
 		float m_coolDownTimer;
 		float m_reloadTimer;
 		unsigned m_currentBulletAmount;
@@ -257,10 +255,14 @@ namespace arena
 
 	struct WeaponGrenade : public Weapon
 	{
+#define PITCHTIME 0.8f
 		WeaponGrenade() : Weapon()
 		{
 			m_type = WeaponType::Grenade;
-			m_coolDown = 2.0f;
+			m_coolDown = 1.0f;
+			m_coolDownTimer = 3.0f;
+			pitchTimer = 0.0f;
+			pitching = false;
 		}
 
 		GrenadeProjectile* createBullet(float aimAngle, glm::vec2 position)
@@ -274,5 +276,38 @@ namespace arena
 			bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 			return bullet;
 		}
+
+		bool pitchReady(float dt)
+		{
+			if ((pitchTimer += dt) >= PITCHTIME)
+			{
+				pitchTimer = 0;
+				pitching = false;
+				return true;
+			}
+			return false;
+		}
+		inline bool checkCoolDown(float deltaTime)
+		{
+			// If throwing, do not start cooldowntimer.
+			if (pitching)
+				return false;
+			
+			if ((m_coolDownTimer += deltaTime) > m_coolDown)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		inline void resetCoolDown()
+		{
+			m_coolDownTimer = 0;
+		}
+	public:
+		bool pitching;
+	private:
+		float pitchTimer;
+		
 	};
 }

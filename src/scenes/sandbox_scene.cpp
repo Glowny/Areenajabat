@@ -1271,6 +1271,8 @@ namespace arena
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
+		
+		// Get scale and rotate according to direction where hit comes.
 		glm::vec2 &scale = renderer->getScale();
 		scale.x * directionX;
 
@@ -1292,6 +1294,7 @@ namespace arena
 	}
 	void  SandboxScene::createPlatformBulletHitEntity(Bullet& bullet)
 	{
+		//Note: not in use at the moment.
 		EntityBuilder builder;
 		builder.begin();
 

@@ -203,10 +203,10 @@ namespace arena
 		const int64_t time = currentTime - s_last_time;
 		s_last_time = currentTime;
 
-		const double frequency = (double)bx::getHPFrequency();
+		const float64 frequency = (float64)bx::getHPFrequency();
 
 		// seconds
-		float lastDeltaTime = float(time * (1.0 / frequency));
+		float64 lastDeltaTime = float64(time * (1.0 / frequency));
 		s_timeSinceStart += lastDeltaTime;
 		GameTime gameTime(lastDeltaTime, s_timeSinceStart);
 
