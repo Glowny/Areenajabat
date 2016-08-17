@@ -3,7 +3,7 @@
 
 namespace arena
 {
-	TeamDeathMatch::TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool isAttackTeammate) : GameMode(m_scoreboard)
+	TeamDeathMatch::TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool isAttackTeammates) : GameMode(m_scoreboard)
 	{
 		TeamDeathMatch::m_players = m_players;
 		TeamDeathMatch::numTeams = numTeams;

@@ -495,7 +495,7 @@ namespace arena
 			m_gameMode = new DeathMatch(m_scoreBoard, 20);
 			break;
 		case 2:
-			TeamDeathMatch* teamDeathMatch = new TeamDeathMatch(m_scoreBoard, &m_players.container(), 2, true);
+			TeamDeathMatch* teamDeathMatch = new TeamDeathMatch(m_scoreBoard, &m_players.container(), 2, false);
 			teamDeathMatch->autoGroupTeams();
 			m_gameMode = teamDeathMatch;
 			break;
