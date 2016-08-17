@@ -2,6 +2,7 @@
 
 #include <string>
 #include "scoreboard.h"
+#include "gladiator.h"
 #include <sstream>
 
 namespace arena
@@ -13,6 +14,8 @@ namespace arena
 		virtual ~GameMode() = 0;
 
 		virtual bool isEnd() = 0;
+		virtual bool canAttack(Gladiator* shooter, Gladiator* target) = 0;
+		virtual float calculateScore(Gladiator* shooter, Gladiator* target) = 0;
 		//void setEndMessage(std::string endMessage);
 		std::string getEndMessage();
 		bool updateEndTimer(float dt);

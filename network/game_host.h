@@ -266,6 +266,8 @@ namespace arena
 
 		void loadMap(const char* const mapName);
 
+		void selectGameMode(int number);
+
 		NetworkEntity* const find(Predicate<NetworkEntity* const> pred);
 
 		Scoreboard& getScoreBoard();

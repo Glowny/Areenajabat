@@ -443,8 +443,8 @@ namespace arena
 			player.m_gladiator = createGladiator(characterData);
 			m_players->push_back(player);
 		}
-		m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
-		//m_gameMode = new TeamDeathMatch(m_scoreboard, m_players, 2);
+		//m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
+		m_gameMode = new TeamDeathMatch(m_scoreboard, m_players, 2, true);
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{

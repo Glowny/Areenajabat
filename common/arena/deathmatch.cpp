@@ -34,6 +34,16 @@ namespace arena
 		return false;
 	}
 
+	bool DeathMatch::canAttack(Gladiator * shooter, Gladiator * target)
+	{
+		return true && target->m_alive;
+	}
+
+	float DeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
+	{
+		return 10.0f;
+	}
+
 	struct greater_than
 	{
 		inline bool operator() (const PlayerScore& struct1, const PlayerScore& struct2)

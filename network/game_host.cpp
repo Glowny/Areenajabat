@@ -24,7 +24,6 @@ namespace arena
 
 		m_sessionData.m_sessionRunning = true;
 		addScoreBoard();
-		m_gameMode = new DeathMatch(m_scoreBoard, 20); //TODO
 		
 	}
 	void GameHost::endSession()
@@ -390,10 +389,10 @@ namespace arena
 				//Gladiator* shooterGladiator = static_cast<Gladiator*>(find([&entry](NetworkEntity* const e) { return e->getPhysicsID() == entry.m_shooter.m_id; }));
 				//Gladiator* targetGladiator	= static_cast<Gladiator*>(find([&target](NetworkEntity* const e) { return e->getPhysicsID() == target.m_id; }));
 
-				if (targetGladiator->m_alive == false)
-					continue;
+				//if (targetGladiator->m_alive == false)
+				//	continue;
 
-				if (targetGladiator->m_team == shooterGladiator->m_team && targetGladiator->m_team != 255 && shooterGladiator->m_team != 255)
+				if (!m_gameMode->canAttack(shooterGladiator, targetGladiator))
 					continue;
 
 				BulletHit* hit = new BulletHit;
@@ -434,26 +433,26 @@ namespace arena
 				if (targetGladiator->m_hitpoints <= 0)
 				{
 					// Search for shooter.
-					unsigned shooterPlayerId = 666;
-					for (auto it = m_players.begin(); it != m_players.end(); it++)
-					{
-						if (it->m_gladiator->getEntityID() == entry.m_shooter.m_id)
-						{
-							shooterPlayerId = it->m_gladiator->m_ownerId;
-							break;
-						}
-					}
+					//unsigned shooterPlayerId = 666;
+					//for (auto it = m_players.begin(); it != m_players.end(); it++)
+					//{
+					//	if (it->m_gladiator->getEntityID() == entry.m_shooter.m_id)
+					//	{
+					//		shooterPlayerId = it->m_gladiator->m_ownerId;
+					//		break;
+					//	}
+					//}
 					// assert that shooter is found.
-					assert(shooterPlayerId != 666);
+					//assert(shooterPlayerId != 666);
 
 					targetGladiator->m_alive = false;
 					PlayerScore &targetScore = m_scoreBoard->getPlayerScore(targetGladiator->m_ownerId);
-					PlayerScore &shooterScore = m_scoreBoard->getPlayerScore(shooterPlayerId);
+					PlayerScore &shooterScore = m_scoreBoard->getPlayerScore(shooterGladiator->m_ownerId);
 
 					if (targetScore.m_tickets > 0)
 						targetScore.m_tickets--;
 					shooterScore.m_kills++;
-					shooterScore.m_score += 10;
+					shooterScore.m_score += m_gameMode->calculateScore(shooterGladiator, targetGladiator);
 					m_synchronizationList.push_back(m_scoreBoard);
 
 				}
@@ -484,6 +483,21 @@ namespace arena
 	{
 		m_map.loadMapFromFile(mapName);
 		m_synchronizationList.push_back(&m_map);
+	}
+
+	void GameHost::selectGameMode(int number)
+	{
+		switch(number)
+		{
+		case 1: 
+			m_gameMode = new DeathMatch(m_scoreBoard, 20);
+			break;
+		case 2:
+			TeamDeathMatch* teamDeathMatch = new TeamDeathMatch(m_scoreBoard, &m_players.container(), 2, true);
+			teamDeathMatch->autoGroupTeams();
+			m_gameMode = teamDeathMatch;
+			break;
+		}
 	}
 
 	NetworkEntity* const GameHost::find(Predicate<NetworkEntity* const> pred)
@@ -600,6 +614,7 @@ namespace arena
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
 			//e_gameStart();
+			selectGameMode(2);
 
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{

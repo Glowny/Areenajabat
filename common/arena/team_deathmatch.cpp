@@ -3,10 +3,11 @@
 
 namespace arena
 {
-	TeamDeathMatch::TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams) : GameMode(m_scoreboard)
+	TeamDeathMatch::TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool isAttackTeammate) : GameMode(m_scoreboard)
 	{
 		TeamDeathMatch::m_players = m_players;
 		TeamDeathMatch::numTeams = numTeams;
+		TeamDeathMatch::isAttackTeammates = isAttackTeammates;
 
 	}
 	TeamDeathMatch::~TeamDeathMatch()
@@ -42,6 +43,19 @@ namespace arena
 		}
 		msgChecker = false;
 		return false;
+	}
+
+	bool TeamDeathMatch::canAttack(Gladiator* shooter, Gladiator* target)
+	{
+		return (target->m_team != shooter->m_team || isAttackTeammates) && target->m_alive;
+	}
+
+	float TeamDeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
+	{
+		if (target->m_team != shooter->m_team) {
+			return 10.0f;
+		}
+		return 0.0f;
 	}
 
 	struct greater_than
@@ -94,7 +108,6 @@ namespace arena
 	{
 		int numPlayer = m_players->size();
 		int numPlayerInTeam = ceil( 1.0 * m_players->size() / numTeams);
-
 		auto player = m_players->begin();
 		for (int i = 0; i < numTeams; i++)
 		{

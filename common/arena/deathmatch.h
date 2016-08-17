@@ -9,6 +9,8 @@ namespace arena
 		~DeathMatch();
 
 		bool isEnd();
+		bool canAttack(Gladiator* shooter, Gladiator* target);
+		float calculateScore(Gladiator* shooter, Gladiator* target);
 
 	private:
 		int maxScore;
