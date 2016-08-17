@@ -1228,10 +1228,9 @@ namespace arena
 	{
 		Bullet bullet;
 		*bullet.m_position = data.m_position;
-		*bullet.m_position = glm::vec2(bullet.m_position->x - 16.0f, bullet.m_position->y - 16.0f);
 		bullet.m_bulletType = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
-
+		*bullet.m_position = glm::vec2(bullet.m_position->x - 16.0f, bullet.m_position->y - 16.0f);
 		switch (data.m_type)
 		{
 			// Bullet hits gladiator
@@ -1244,6 +1243,7 @@ namespace arena
 		case 2:
 		{
 			// Temporary, change when there is a platform bullet hit animation.
+			
 			createSmokeEntity(*bullet.m_position, bullet.m_impulse);
 			//createPlatformBulletHitEntity(bullet);
 			break;

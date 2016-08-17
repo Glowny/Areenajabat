@@ -30,7 +30,7 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 	b2Filter filter;
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
-	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet | c_BulletSensor | c_Platform | c_Grenade;
+	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet | c_Platform | c_Grenade;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_Platform] = filter;
 
@@ -55,7 +55,7 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 	//Gladiator no collide filter
 	filter.categoryBits = c_GladiatorNoCollide;
 	filter.maskBits =  c_Ladder | c_Platform | c_Bullet | c_BulletSensor;
-	filter.groupIndex = 0 ;
+	filter.groupIndex = 0;
 	b2Filters[ci_GladiatorNoCollide] = filter;
 
 	// Bullet filter.
@@ -69,7 +69,7 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 
 	// Bullet sensor filter.
 	filter.categoryBits = c_BulletSensor;
-	filter.maskBits = c_Platform | c_GladiatorNoCollide | c_Gladiator;
+	filter.maskBits = c_GladiatorNoCollide | c_Gladiator;
 	filter.groupIndex = 0;
 	b2Filters[ci_BulletSensor] = filter;
 
@@ -419,7 +419,13 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.02f, 0.02f);
 	b2PolygonShape sensorBox;
-	sensorBox.SetAsBox(0.50f, 0.02f);
+	b2Vec2 points[3]
+	{
+		b2Vec2(1.0f,0.0f) , b2Vec2(1.5f, 0.0f), b2Vec2(1.5f, 0.1f)
+	};
+	sensorBox.Set(points, 3);
+
+
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
 	physicalFixtureDef.shape = &dynamicBox;
