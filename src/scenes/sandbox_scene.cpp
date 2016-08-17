@@ -678,7 +678,8 @@ namespace arena
 				{
 					Id* entityId = (Id*)entity->first(TYPEOF(Id));
 					// If entity is type of smoke, fade it.
-					if (entityId->m_id == Smoke)
+					
+					if (entityId->m_id == EntityIdentification::Smoke)
 					{
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
@@ -1082,15 +1083,27 @@ namespace arena
 	void SandboxScene::createExplosionEntity(const Bullet& bullet)
 	{
 		EntityBuilder builder;
-		builder.begin();
 		ResourceManager* resources = App::instance().resources();
-		(void)resources;
+		builder.begin();
+		
+		{
+			Timer* timer = builder.addTimer();
+			builder.addIdentifier(EntityIdentification::Explosion);
+			timer->m_lifeTime = 0.1f;
 
-		Timer* timer = builder.addTimer();
+			// Drawing stuff
+			Transform* transform = builder.addTransformComponent();
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-		// Load gun smoke, randomize rotation and position on spawn.
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
 
-		for (int i = 0; i < rand() % 5 + 3; i++)
+			transform->m_position = glm::vec2(bullet.m_position->x - 32.0f, bullet.m_position->y - 32.0f);
+
+			renderer->anchor();
+			registerEntity(builder.getResults());
+		}
+
+		for (int i = 0; i < rand() % 8 + 3; i++)
 		{
 			int spriteX = rand() % 4;
 
@@ -1099,33 +1112,29 @@ namespace arena
 
 			builder.begin();
 
-			builder.addIdentifier(EntityIdentification::Explosion);
+			builder.addIdentifier(EntityIdentification::Smoke);
 			// Timer
-			timer = builder.addTimer();
-			timer->m_lifeTime = 0.5f;
+			Timer* timer = builder.addTimer();
+			timer->m_lifeTime = 1.0f;
 
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
 			SpriteRenderer* renderer = builder.addSpriteRenderer();
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
-			//uint32_t color = color::toABGR(255, 255, 255, 50);
-			//renderer->setColor(color);
-			renderer = builder.addSpriteRenderer();
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeSmoke_ss.png"));
 			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 16; origin.y = origin.y + 16;
+			origin.x = origin.x + 64; origin.y = origin.y + 64;
 			renderer->setRotation(float32(rand() % 7));
 			Rectf& source = renderer->getSource();
-			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
+			source.x = 128 * (float)spriteX; source.y = 0; source.w = 128; source.h = 128;
 
 
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
+				xOffset = rand() % 50;
 				rotation = (rand() % 3) / 100.0f;
 			}
 			else {
-				xOffset = -(rand() % 10);
-				rotation = (float)-(rand() % 3) / 100.0f;
+				xOffset = -(rand() % 50);
+				rotation = -(float)(rand() % 3) / 100.0f;
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 10;
@@ -1135,7 +1144,7 @@ namespace arena
 			}
 
 			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+			transform->m_position = glm::vec2(bullet.m_position->x-32.0f, bullet.m_position->y-32.0f);
 
 			// Movement
 			Movement* movement = builder.addMovement();
@@ -1202,7 +1211,7 @@ namespace arena
 				yOffset = -(rand() % 10);
 			}
 
-			transform->m_position = glm::vec2(position.x + xOffset, position.y + yOffset);
+			transform->m_position = glm::vec2(position.x + xOffset, position.y + yOffset );
 
 			// Movement
 			Movement* movement = builder.addMovement();
@@ -1219,6 +1228,7 @@ namespace arena
 	{
 		Bullet bullet;
 		*bullet.m_position = data.m_position;
+		*bullet.m_position = glm::vec2(bullet.m_position->x - 16.0f, bullet.m_position->y - 16.0f);
 		bullet.m_bulletType = (BulletType)data.m_type;
 		bullet.m_rotation = data.m_rotation;
 
@@ -1365,7 +1375,9 @@ namespace arena
 		if (mousePointerEntity != nullptr)
 		{
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
-			mouseTransform->m_position = cameraPosition + glm::vec2(-16, 36.0f);
+			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
+			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.57);
+			mouseTransform->m_position = cameraPosition + glm::vec2(-13.0f, +80.0f);
 		}
 		//checkBounds(cameraPosition);
 		camera.m_position = cameraPosition;
