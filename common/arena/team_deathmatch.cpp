@@ -3,11 +3,11 @@
 
 namespace arena
 {
-	TeamDeathMatch::TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool isAttackTeammates) : GameMode(m_scoreboard)
+	TeamDeathMatch::TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool enableAttackTeammates) : GameMode(m_scoreboard)
 	{
 		TeamDeathMatch::m_players = m_players;
 		TeamDeathMatch::numTeams = numTeams;
-		TeamDeathMatch::isAttackTeammates = isAttackTeammates;
+		TeamDeathMatch::enableAttackTeammates = enableAttackTeammates;
 
 	}
 	TeamDeathMatch::~TeamDeathMatch()
@@ -47,7 +47,7 @@ namespace arena
 
 	bool TeamDeathMatch::canAttack(Gladiator* shooter, Gladiator* target)
 	{
-		return (target->m_team != shooter->m_team || isAttackTeammates) && target->m_alive;
+		return (target->m_team != shooter->m_team || enableAttackTeammates) && target->m_alive;
 	}
 
 	float TeamDeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
