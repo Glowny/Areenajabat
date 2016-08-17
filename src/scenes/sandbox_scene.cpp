@@ -678,7 +678,8 @@ namespace arena
 				{
 					Id* entityId = (Id*)entity->first(TYPEOF(Id));
 					// If entity is type of smoke, fade it.
-					if (entityId->m_id == Smoke)
+					
+					if (entityId->m_id == EntityIdentification::Smoke)
 					{
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
@@ -1082,13 +1083,25 @@ namespace arena
 	void SandboxScene::createExplosionEntity(const Bullet& bullet)
 	{
 		EntityBuilder builder;
-		builder.begin();
 		ResourceManager* resources = App::instance().resources();
-		(void)resources;
+		builder.begin();
+		
+		{
+			Timer* timer = builder.addTimer();
+			builder.addIdentifier(EntityIdentification::Explosion);
+			timer->m_lifeTime = 0.1f;
 
-		Timer* timer = builder.addTimer();
+			// Drawing stuff
+			Transform* transform = builder.addTransformComponent();
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
 
-		// Load gun smoke, randomize rotation and position on spawn.
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
+
+			transform->m_position = glm::vec2(bullet.m_position->x - 32.0f, bullet.m_position->y - 32.0f);
+
+			renderer->anchor();
+			registerEntity(builder.getResults());
+		}
 
 		for (int i = 0; i < rand() % 5 + 3; i++)
 		{
@@ -1099,24 +1112,20 @@ namespace arena
 
 			builder.begin();
 
-			builder.addIdentifier(EntityIdentification::Explosion);
+			builder.addIdentifier(EntityIdentification::Smoke);
 			// Timer
-			timer = builder.addTimer();
-			timer->m_lifeTime = 0.5f;
+			Timer* timer = builder.addTimer();
+			timer->m_lifeTime = 1.0f;
 
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
 			SpriteRenderer* renderer = builder.addSpriteRenderer();
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
-			//uint32_t color = color::toABGR(255, 255, 255, 50);
-			//renderer->setColor(color);
-			renderer = builder.addSpriteRenderer();
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeSmoke_ss.png"));
 			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 16; origin.y = origin.y + 16;
+			origin.x = origin.x + 64; origin.y = origin.y + 64;
 			renderer->setRotation(float32(rand() % 7));
 			Rectf& source = renderer->getSource();
-			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
+			source.x = 128 * (float)spriteX; source.y = 0; source.w = 128; source.h = 128;
 
 
 			if (rand() % 2 == 1) {
@@ -1125,7 +1134,7 @@ namespace arena
 			}
 			else {
 				xOffset = -(rand() % 10);
-				rotation = (float)-(rand() % 3) / 100.0f;
+				rotation = -(float)(rand() % 3) / 100.0f;
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 10;
@@ -1135,7 +1144,7 @@ namespace arena
 			}
 
 			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet.m_position->x - 16, bullet.m_position->y - 16);
+			transform->m_position = glm::vec2(bullet.m_position->x-32.0f, bullet.m_position->y-32.0f);
 
 			// Movement
 			Movement* movement = builder.addMovement();
@@ -1160,7 +1169,7 @@ namespace arena
 
 		// Load gun smoke, randomize rotation and position on spawn.
 
-		for (int i = 0; i < rand() % 5 + 3; i++)
+		for (int i = 0; i < rand() % 8 + 3; i++)
 		{
 			int spriteX = rand() % 4;
 
@@ -1188,12 +1197,12 @@ namespace arena
 
 
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
-				rotation = (rand() % 3) / 100.0f;
+				xOffset = rand() % 500;
+				rotation = (rand() % 3) / 500.0f;
 			}
 			else {
-				xOffset = -(rand() % 10);
-				rotation = (float)-(rand() % 3) / 100.0f;
+				xOffset = -(rand() % 500);
+				rotation = (float)-(rand() % 3) / 500.0f;
 			}
 			if (rand() % 2 == 1) {
 				yOffset = rand() % 10;

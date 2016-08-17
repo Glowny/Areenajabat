@@ -185,8 +185,6 @@ namespace arena
 	void GameHost::applyPlayerInputs(const float64 dt)
 	{
 		auto& players = m_players.container();
-
-
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
 			Player& player = *it;
@@ -219,12 +217,13 @@ namespace arena
 				player.m_gladiator->m_reloading = true;
 				input.m_reloadButtonDown = false;
 			}
-			printf("Grenade button down: %d\n", input.m_grenadeButtonDown);
+		
+				// Grenade related stuff here.
+			// Check if the grenade timer is over the cooldown, but do not reset it.
 			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
 			if (input.m_grenadeButtonDown)
 			{ 
-				// Check the timer since another grenade was thrown.
-		
+				// If the button is down and timer is over cooldown, reset cooldown and start grenade pitch.
 				if (checkGrenade)
 				{
 					player.m_gladiator->m_throwing = true;
@@ -234,6 +233,7 @@ namespace arena
 					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
 				}
 			}
+			// If the pitching is happening, check if it is ready and create the grenade.
 			if (player.m_gladiator->m_grenadeWeapon->pitching)
 			{ 
 				if (player.m_gladiator->m_grenadeWeapon->pitchReady(dt))
@@ -241,6 +241,8 @@ namespace arena
 					GrenadeShoot(player.m_gladiator);
 				}
 			}
+				// Grenade related stuff here end.
+
 			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;
 			int32 y = 0;
