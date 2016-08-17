@@ -418,7 +418,8 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	body->SetFixedRotation(true);
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.02f, 0.02f);
-
+	b2PolygonShape sensorBox;
+	sensorBox.SetAsBox(0.50f, 0.02f);
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
 	physicalFixtureDef.shape = &dynamicBox;
@@ -431,10 +432,11 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 
 	// Fixture definition for collisions on players (sensor).
 	b2FixtureDef sensorFixtureDef;
-	sensorFixtureDef.shape = &dynamicBox;
+	sensorFixtureDef.shape = &sensorBox;
 	sensorFixtureDef.isSensor = true;
 	sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
 	sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+
 
 	b2MassData data;
 	data.mass = 0.01f;
