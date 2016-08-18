@@ -29,7 +29,7 @@ enum entityCategory
 	c_JumpSensor =				0x0040,
 	c_Bullet =					0x0080,
 	c_BulletSensor =			0x0100,
-	c_Grenade=					0x0100,
+	c_Grenade=					0x0200,
 };
 enum entityIndexes
 {
@@ -37,12 +37,13 @@ enum entityIndexes
 	ci_LightPlatform			= 1,
 	ci_Ladder					= 2,
 	ci_GladiatorNoCollide		= 3,
-	ci_GladiatorJumpCollider	= 4,
-	ci_Gladiator				= 5,
+	ci_Gladiator				= 4,
+	ci_GladiatorJumpCollider	= 5,
 	ci_JumpSensor				= 6,
 	ci_Bullet					= 7,
 	ci_BulletSensor				= 8,
 	ci_Grenade					= 9,
+	ci_Count,
 
 };
 
@@ -101,6 +102,7 @@ struct p_Platform :public p_entity
 struct p_Gladiator :public p_entity
 {
 	p_userData* m_userData;
+	b2Body* m_sensorBody;
 	glm::vec2* m_gamePosition;
 	glm::vec2* m_gamevelocity;
 
@@ -239,7 +241,7 @@ using CollisionCallback = std::function<void(arena::NetworkEntity* const, arena:
 class Physics
 {
 public:
-	b2Filter b2Filters[9];
+	b2Filter b2Filters[entityIndexes::ci_Count];
 	Physics();
 	~Physics();
 

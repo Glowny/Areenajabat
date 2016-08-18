@@ -30,13 +30,13 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 	b2Filter filter;
 	// Platform collide filter 
 	filter.categoryBits = c_Platform;
-	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_Bullet | c_Platform | c_Grenade;
+	filter.maskBits = c_GladiatorNoCollide | c_Gladiator | c_GladiatorJumpCollider | c_Bullet | c_Platform | c_Grenade;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_Platform] = filter;
 
 	// Light platform collide filter 
 	filter.categoryBits = c_LightPlatform;
-	filter.maskBits =  c_Gladiator;
+	filter.maskBits =  c_Gladiator| c_GladiatorJumpCollider;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_LightPlatform] = filter;
 
@@ -57,6 +57,11 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 	filter.maskBits =  c_Ladder | c_Platform | c_Bullet | c_BulletSensor;
 	filter.groupIndex = 0;
 	b2Filters[ci_GladiatorNoCollide] = filter;
+
+	filter.categoryBits = c_GladiatorJumpCollider;
+	filter.maskBits = c_Platform | c_LightPlatform;
+	filter.groupIndex = 0;
+	b2Filters[ci_GladiatorJumpCollider] = filter;
 
 	// Bullet filter.
 	// Bullet only collides with platforms. 
@@ -237,6 +242,7 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 	glad->m_type = B_Gladiator;
 	glad->m_gamePosition = position;
 	glad->m_gamevelocity = velocity;
+	b2Vec2 gladiatorBodySize(0.2f, 0.6f);
 
 	b2BodyDef bodydef;
 	bodydef.type = b2_dynamicBody;
@@ -244,8 +250,29 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 	bodydef.fixedRotation = true;
 	glad->m_body = m_b2DWorld->CreateBody(&bodydef);
 
+	b2BodyDef sensorBodydef;
+	sensorBodydef.type = b2_dynamicBody;
+	sensorBodydef.position.Set(position->x / 100.0f + gladiatorBodySize.x/6.0f, position->y / 100.0f + gladiatorBodySize.y);
+	sensorBodydef.fixedRotation = true;
+	glad->m_sensorBody = m_b2DWorld->CreateBody(&sensorBodydef);
+	
+
+	b2PolygonShape sensorBox;
+	b2Vec2 points[4]
+	{
+		b2Vec2(0.0f,0.0f) , b2Vec2(0.0f, 0.29f), b2Vec2(gladiatorBodySize.x/1.5f, 0.29f), b2Vec2(gladiatorBodySize.x / 1.5f, 0.0f)
+	};
+	sensorBox.Set(points, 4);
+
+	b2FixtureDef sensorFixtureDef;
+	sensorFixtureDef.shape = &sensorBox;
+	sensorFixtureDef.isSensor = true;
+	sensorFixtureDef.filter = b2Filters[ci_GladiatorJumpCollider];
+	glad->m_sensorBody->CreateFixture(&sensorFixtureDef);
+
+	
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.2f, 0.6f);
+	dynamicBox.SetAsBox(gladiatorBodySize.x, gladiatorBodySize.y);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
@@ -266,9 +293,18 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 	userData->m_bodyType = B_Gladiator;
 	userData->m_object = glad;
 	
+	b2WeldJointDef def;
+	def.bodyA = glad->m_body;
+	def.bodyB = glad->m_sensorBody;
+	def.collideConnected = false;
+	b2Vec2 anchor = def.bodyB->GetPosition();
+	def.Initialize(glad->m_body, glad->m_sensorBody, anchor);
+	m_b2DWorld->CreateJoint(&def);
+
+
 	glad->m_userData = userData;
 	glad->m_body->SetUserData(userData);
-	
+	glad->m_sensorBody->SetUserData(userData);
 	m_entityVector.push_back(glad);
 };
 
@@ -332,8 +368,19 @@ glm::vec2 Physics::getGladiatorPosition(unsigned id)
 bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 {
 	// Is there possibility of multiple edges?
-	b2ContactEdge* edge = getEntity(id)->m_body->GetContactList();
-	if (edge == NULL)
+	p_entity* entity = getEntity(id);
+	b2ContactEdge* edge;
+	if (entity->m_type == bodyType::B_Gladiator)
+	{
+		p_Gladiator* gladiator =	static_cast<p_Gladiator*>(entity);
+		edge = gladiator->m_sensorBody->GetContactList();
+	}
+	else
+	{
+		edge = entity->m_body->GetContactList();		
+	}
+	
+	if (edge == NULL || !edge->contact->IsTouching())
 		return false;
 	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
 	if (data->m_bodyType == B_Platform)
@@ -415,16 +462,16 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	bulletBodyDef.angle = angle;
 	bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
+	body->SetBullet(true);
 	body->SetFixedRotation(true);
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.02f, 0.02f);
 	b2PolygonShape sensorBox;
-	b2Vec2 points[3]
+	b2Vec2 points[4]
 	{
-		b2Vec2(1.0f,0.0f) , b2Vec2(1.5f, 0.0f), b2Vec2(1.5f, 0.1f)
+		b2Vec2(1.0f,0.0f) , b2Vec2(1.5f, 0.0f), b2Vec2(1.5f, 0.1f), b2Vec2(1.0f, 0.1f)
 	};
-	sensorBox.Set(points, 3);
-
+	sensorBox.Set(points, 4);
 
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
@@ -494,6 +541,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	b2MassData data;
 	data.center = b2Vec2(0.007f, 0.0145f);
 	
+
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
 	body->SetAngularDamping(3.50f);
@@ -507,6 +555,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	userData->m_object = bullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;
+	bullet->m_body->SetActive(true);
 	bullet->m_contact = false;
 	bullet->m_contactBody = B_NONE;
 	bullet->m_shooterID = shooterID;
