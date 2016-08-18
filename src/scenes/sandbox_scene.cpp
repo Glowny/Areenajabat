@@ -634,7 +634,7 @@ namespace arena
 	{
 		printf("Received Game Mode Packet");
 		int32_t index = packet->m_gameModeIndex;
-		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreboard, m_players);
+		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreboard, &m_physics, m_players, NULL, NULL);
 	}
 
 	void SandboxScene::cleanUp()

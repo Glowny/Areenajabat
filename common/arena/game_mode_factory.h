@@ -8,7 +8,14 @@ namespace arena
 	class GameModeFactory
 	{
 	public:
-		static GameMode* createGameModeFromIndex(int32_t index, Scoreboard* m_scoreboard, std::vector<Player>* m_players);
+		static GameMode* createGameModeFromIndex(
+			int32_t index,
+			Scoreboard* m_scoreboard,
+			Physics* m_physics,
+			std::vector<Player>* m_players,
+			GameMap* m_map,
+			std::vector<const NetworkEntity*>* m_synchronizationList
+		);
 
 	};
 }
