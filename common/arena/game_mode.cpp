@@ -2,10 +2,11 @@
 
 namespace arena
 {
-	GameMode::GameMode(Scoreboard* m_scoreboard)
+	GameMode::GameMode(int32_t index, Scoreboard* m_scoreboard)
 	{
 		GameMode::m_scoreboard = m_scoreboard;
-		waitingEndTime = 200000.0f;
+		GameMode::index = index;
+		waitingEndTime = 500000.0f;
 		GameMode::timer = 0;
 		msgChecker = false;
 	}

@@ -10,7 +10,7 @@ namespace arena
 	class GameMode
 	{
 	public:
-		GameMode(Scoreboard* m_scoreboard);
+		GameMode(int32_t index, Scoreboard* m_scoreboard);
 		virtual ~GameMode() = 0;
 
 		virtual bool isEnd() = 0;
@@ -20,6 +20,9 @@ namespace arena
 		std::string getEndMessage();
 		bool updateEndTimer(float dt);
 		void resetEndTimer();
+
+		int32_t index;
+
 	protected:
 		std::string endMessage;
 		Scoreboard* m_scoreboard;

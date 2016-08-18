@@ -427,6 +427,11 @@ namespace arena
 			updateScoreBoard((GameUpdateScoreBoardPacket*)packet);
 			break;
 		}
+		case PacketTypes::GameMode:
+		{
+			setGameMode((GameModePacket*)packet);
+			break;
+		}
 		default:
 		{
 			printf("Unknown packet type received on sandbox_scene, id: %d\n", packet->getType());
@@ -437,7 +442,7 @@ namespace arena
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
 		m_scoreboard = new Scoreboard;
-		std::vector<Player>* m_players = new std::vector<Player>;
+		m_players = new std::vector<Player>;
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData characterData = packet->m_characterArray[i];
@@ -445,8 +450,6 @@ namespace arena
 			player.m_gladiator = createGladiator(characterData);
 			m_players->push_back(player);
 		}
-		//m_gameMode = new DeathMatch(m_scoreboard, 20); //TODO
-		m_gameMode = new TeamDeathMatch(m_scoreboard, m_players, 2, false);
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -625,6 +628,13 @@ namespace arena
 				m_scoreboard->m_playerScoreVector.push_back(score);
 			}
 		}
+	}
+
+	void SandboxScene::setGameMode(GameModePacket* packet)
+	{
+		printf("Received Game Mode Packet");
+		int32_t index = packet->m_gameModeIndex;
+		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreboard, m_players);
 	}
 
 	void SandboxScene::cleanUp()

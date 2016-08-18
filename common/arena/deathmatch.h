@@ -5,7 +5,7 @@ namespace arena
 	class DeathMatch : public GameMode
 	{
 	public:
-		DeathMatch(Scoreboard* m_scoreboard, int maxScore);
+		DeathMatch(int32_t index, Scoreboard* m_scoreboard, int maxScore);
 		~DeathMatch();
 
 		bool isEnd();

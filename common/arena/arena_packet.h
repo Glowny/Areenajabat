@@ -759,5 +759,42 @@ namespace arena
 		}
 	};
 
+	struct GameModePacket : public Packet
+	{
+		uint64_t m_clientSalt;
+		int32_t m_gameModeIndex;
 
+		GameModePacket()
+			: m_clientSalt(0)
+		{
+			m_gameModeIndex = 0;
+		}
+
+		virtual ~GameModePacket() {}
+
+		template <typename Stream>
+		bool serialize(Stream& stream)
+		{
+			serialize_uint64(stream, m_clientSalt);
+
+			serialize_int(stream, m_gameModeIndex, 0, 10);
+
+			return true;
+		}
+
+		virtual int32_t getType() const override
+		{
+			return PacketTypes::GameMode;
+		}
+
+		bool serializeWrite(WriteStream& stream) override
+		{
+			return serialize(stream);
+		}
+
+		bool serializeRead(ReadStream& stream) override
+		{
+			return serialize(stream);
+		}
+	};
 }

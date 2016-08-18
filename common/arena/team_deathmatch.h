@@ -7,7 +7,7 @@ namespace arena
 	class TeamDeathMatch : public GameMode
 	{
 	public:
-		TeamDeathMatch(Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool enableAttackTeammates);
+		TeamDeathMatch(int32_t index, Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool enableAttackTeammates);
 		~TeamDeathMatch();
 
 		bool isEnd();

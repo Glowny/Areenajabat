@@ -11,8 +11,7 @@
 #include "../ecs/transform.h"
 #include <map>
 #include <common/arena/physics.h>
-#include <common/arena/deathmatch.h>
-#include <common/arena/team_deathmatch.h>
+#include <common/arena/game_mode_factory.h>
 struct Message;
 
 
@@ -68,6 +67,7 @@ namespace arena
 		void killPlayer(GameKillPlayerPacket* packet);
 		void respawnPlayer(GameRespawnPlayerPacket* packet);
 		void updateScoreBoard(GameUpdateScoreBoardPacket* packet);
+		void setGameMode(GameModePacket* packet);
 		
 		void cleanUp();
 
@@ -127,6 +127,7 @@ namespace arena
 		//TODO: remake as component later.
 		glm::vec2 oldMousePos;
 		Scoreboard* m_scoreboard;
+		std::vector<Player>* m_players;
 		GameMode* m_gameMode;
 		glm::vec2 m_screenSize = glm::vec2(1920, 1080);
     };
