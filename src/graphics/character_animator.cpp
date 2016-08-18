@@ -51,8 +51,37 @@ namespace arena
 	  direction = the character upper body direction, either 0 (left) or 1 (right)
 	Returns the rotation used for upper body
 	*/
-	float CharacterAnimator::calculateHeadAndTorsoRotation(float radians, bool direction)
+	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
 	{
+		float pi = 3.1416f;
+		if (direction) {
+			if (radians >= -m_angleLimit1 - m_torsoRotation && radians < m_angleLimit1 - m_torsoRotation) {
+				return radians + m_torsoRotation;
+			}
+			else if (radians >= m_angleLimit1 - m_torsoRotation) {
+				return m_angleLimit1;
+			}
+			else return -m_angleLimit1;
+		} 
+		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
+		{
+
+			printf("%f\n", radians);
+			if (radians <= -m_angleLimit2 + m_torsoRotation || radians <= pi && radians > m_angleLimit2 + m_torsoRotation) {
+				return radians - pi - m_torsoRotation;
+			}
+			else if (radians < m_angleLimit2 + m_torsoRotation && radians >= 1.57f) {
+				return m_angleLimit2 - pi;
+			}
+			else {
+				return -m_angleLimit2 - pi;
+			}
+		}
+	}
+
+	float CharacterAnimator::calculateHeadRotation(float radians, bool direction)
+	{
+		printf("%f\n", radians);
 		float pi = 3.1416f;
 		if (direction) {
 			if (radians >= -m_angleLimit1 && radians < m_angleLimit1) {
@@ -62,8 +91,8 @@ namespace arena
 				return m_angleLimit1;
 			}
 			else return -m_angleLimit1;
-		} 
-		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
+		}
+		else
 		{
 			if (radians <= -m_angleLimit2 || radians <= pi && radians > m_angleLimit2) {
 				return radians - pi;
@@ -72,7 +101,6 @@ namespace arena
 				return m_angleLimit2 - pi;
 			}
 			else {
-				printf("%f\n", radians);
 				return -m_angleLimit2 - pi;
 			}
 		}
@@ -98,13 +126,15 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
-		m_angleLimit1 = 0.524f;
+		m_angleLimit1 = 0.524f; // used for limiting head and torso rotation
 		m_angleLimit2 = 2.619f;
 		fillMap();
 		m_aimAngle = 0;
 		m_skin = Bronze;
+		m_torsoRotation = 0.5f; // how much the character is leaning forward when aiming forward
 		m_torso.m_sprite.m_origin = glm::vec2(18.f, 30.f);
-        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 37.f + 30.f); // original position + values used in rotation above
+        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 35.f + 30.f); // original position + values used in rotation above
+		m_torso.m_sprite.m_rotation = m_torsoRotation;
 		// add death relative offset
 		m_death.m_relativeOffset = glm::vec2(11, 124);
 		m_gladiusReload.m_relativeOffset = glm::vec2(10, 45);
@@ -175,8 +205,8 @@ namespace arena
         m_animationData->m_leftHand->rotateTo(weaponAim);
 
 		//Calculate torso and head rotation
-		m_head.m_helmet.m_rotation = m_torso.m_sprite.m_rotation = calculateHeadAndTorsoRotation(m_aimAngle, m_upperBodyDirection);
-		
+		m_torso.m_sprite.m_rotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
+		m_head.m_helmet.m_rotation = calculateHeadRotation(m_aimAngle, m_upperBodyDirection);
     }
     void CharacterAnimator::update(float64 dt)
     {
@@ -292,12 +322,14 @@ namespace arena
         {
 			tempString += "Right_Running";
 			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 124;
 			m_torso.m_relativeOffset.x = -8.f + 19.f;
         }
         else
         {
 			tempString += "Left_Running";
             m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 124;
             m_torso.m_relativeOffset.x = -4.f + 17.f;
         }
 
@@ -320,12 +352,14 @@ namespace arena
 		{ 
 			tempString += "Right_Standing";
 			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 123;
 			m_torso.m_relativeOffset.x = -5.f + 18.f;
 		}
 		else
 		{ 
 			tempString += "Left_Standing";
 			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 123;
 			m_torso.m_relativeOffset.x = -4.f + 17.f;
 		}
 		m_legs.m_animation.pausePlayback();
