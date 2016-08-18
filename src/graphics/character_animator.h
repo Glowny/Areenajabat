@@ -165,7 +165,7 @@ namespace arena
     public:
         CharacterAnimator();
 
-		float calculateTorsoRotation(float radians, bool direction);
+		float calculateHeadAndTorsoRotation(float radians, bool direction);
 
         void update(float64 dt);
 
@@ -221,8 +221,10 @@ namespace arena
 
         glm::vec2 m_position;
 
-		float m_torsoMaxAngle = 0;
-		float m_torsoMinAngle = 0;
+		float m_angleLimit1 = 0; //used for head and torso rotation
+		float m_angleLimit2 = 0; //used for head and torso rotation
+		float m_headMaxAngle = 0;
+		float m_headMinAngle = 0;
         bool m_flipX;
 		float m_aimAngle;
 		void fillMap();
