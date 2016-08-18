@@ -560,7 +560,7 @@ namespace arena
 		}
 
 		destroyBullet(packet->m_bulletId);
-		createBloodBulletHitEntity(packet->m_hitDirection, packet->m_hitPosition);
+		createBloodBulletHitEntity(packet->m_hitDirection, glm::vec2(gladiator->m_gladiator->m_position->x,packet->m_hitPosition.y));
 
 		// Todo: Set animation blood on hit position. Draw blood on gladiator.
 
@@ -1268,10 +1268,10 @@ namespace arena
 		builder.begin();
 
 		glm::vec2 offset = glm::vec2(0.0f, 0.0f);
-		int directionX = 1;
+		float directionX = 1.0f;
 		// check if bullet is approaching from right.
 		if (direction == 0)
-			directionX = -1;
+			directionX = -1.0f;
 
 		Transform* transform = builder.addTransformComponent();
 		// Set offset to middle of sprite.
@@ -1284,11 +1284,12 @@ namespace arena
 		
 		// Get scale and rotate according to direction where hit comes.
 		glm::vec2 &scale = renderer->getScale();
-		scale.x * directionX;
+		scale.x =  scale.x * directionX;
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
 		Rectf rect = renderer->getSource();
 		renderer->setSize(128, 32);
+		renderer->setLayer(2);
 		rect.x = 0; rect.y = 0;
 		rect.w = 128; rect.h = 32;
 		renderer->anchor();
