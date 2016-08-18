@@ -252,7 +252,7 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 
 	b2BodyDef sensorBodydef;
 	sensorBodydef.type = b2_dynamicBody;
-	sensorBodydef.position.Set(position->x / 100.0f + gladiatorBodySize.x/3.0f, position->y / 100.0f + gladiatorBodySize.y);
+	sensorBodydef.position.Set(position->x / 100.0f + gladiatorBodySize.x/6.0f, position->y / 100.0f + gladiatorBodySize.y);
 	sensorBodydef.fixedRotation = true;
 	glad->m_sensorBody = m_b2DWorld->CreateBody(&sensorBodydef);
 	
@@ -260,7 +260,7 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 	b2PolygonShape sensorBox;
 	b2Vec2 points[4]
 	{
-		b2Vec2(0.0f,0.0f) , b2Vec2(0.0f, 0.1f), b2Vec2(gladiatorBodySize.x/3.0f, 0.1f), b2Vec2(gladiatorBodySize.x / 3.0f, 0.0f)
+		b2Vec2(0.0f,0.0f) , b2Vec2(0.0f, 0.29f), b2Vec2(gladiatorBodySize.x/1.5f, 0.29f), b2Vec2(gladiatorBodySize.x / 1.5f, 0.0f)
 	};
 	sensorBox.Set(points, 4);
 
@@ -377,9 +377,10 @@ bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
 	}
 	else
 	{
-		edge = getEntity(id)->m_body->GetContactList();
+		edge = entity->m_body->GetContactList();		
 	}
-	if (edge == NULL)
+	
+	if (edge == NULL || !edge->contact->IsTouching())
 		return false;
 	p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
 	if (data->m_bodyType == B_Platform)
