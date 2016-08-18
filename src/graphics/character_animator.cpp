@@ -51,28 +51,30 @@ namespace arena
 	  direction = the character upper body direction, either 0 (left) or 1 (right)
 	Returns the rotation used for upper body
 	*/
-	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
+	float CharacterAnimator::calculateHeadAndTorsoRotation(float radians, bool direction)
 	{
-	  // TODO : Variable names need some fixing to be more understandable.
-		float pi = 3.141f;
+		float pi = 3.1416f;
 		if (direction) {
-			if (radians >= -m_torsoMinAngle && radians < m_torsoMinAngle) {
+			if (radians >= -m_angleLimit1 && radians < m_angleLimit1) {
 				return radians;
 			}
-			else if (radians >= m_torsoMinAngle) {
-				return m_torsoMinAngle;
+			else if (radians >= m_angleLimit1) {
+				return m_angleLimit1;
 			}
-			else return -m_torsoMinAngle;
+			else return -m_angleLimit1;
 		} 
 		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
 		{
-			if (radians <= -m_torsoMaxAngle || radians <= pi && radians > m_torsoMaxAngle) {
+			if (radians <= -m_angleLimit2 || radians <= pi && radians > m_angleLimit2) {
 				return radians - pi;
 			}
-			else if (radians < m_torsoMaxAngle && radians >= 1.57f) {
-				return m_torsoMaxAngle - pi;
+			else if (radians < m_angleLimit2 && radians >= 1.57f) {
+				return m_angleLimit2 - pi;
 			}
-			else return -m_torsoMaxAngle - pi;
+			else {
+				printf("%f\n", radians);
+				return -m_angleLimit2 - pi;
+			}
 		}
 	}
 
@@ -96,13 +98,13 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
-		m_torsoMinAngle = 0.524f;
-		m_torsoMaxAngle = 2.619f;
+		m_angleLimit1 = 0.524f;
+		m_angleLimit2 = 2.619f;
 		fillMap();
 		m_aimAngle = 0;
 		m_skin = Bronze;
-		m_torso.m_sprite.m_origin = glm::vec2(18.f, 32.f);
-        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 37.f + 32.f);
+		m_torso.m_sprite.m_origin = glm::vec2(18.f, 30.f);
+        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 37.f + 30.f); // original position + values used in rotation above
 		// add death relative offset
 		m_death.m_relativeOffset = glm::vec2(11, 124);
 		m_gladiusReload.m_relativeOffset = glm::vec2(10, 45);
@@ -111,7 +113,8 @@ namespace arena
 		m_climb.m_relativeOffsetLeft = glm::vec2(40, 124);
 		m_climb.m_relativeOffsetRight = glm::vec2(-40, 124);
         m_legs.m_relativeOffset = glm::vec2(11, 124);
-        m_head.m_helmet.m_position = glm::vec2(-16, -57);
+		m_head.m_helmet.m_origin = glm::vec2(32.f, 58.f);
+		m_head.m_helmet.m_position = glm::vec2(16.f, 1.f);
 		m_head.m_crest.m_position = glm::vec2(0,0);
         // build sprite hierarchy
         // assign crest to be child of helmet
@@ -171,8 +174,8 @@ namespace arena
 		m_animationData->m_rightHand->rotateTo(weaponAim);
         m_animationData->m_leftHand->rotateTo(weaponAim);
 
-		//calculate torso rotation
-		m_torso.m_sprite.m_rotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
+		//Calculate torso and head rotation
+		m_head.m_helmet.m_rotation = m_torso.m_sprite.m_rotation = calculateHeadAndTorsoRotation(m_aimAngle, m_upperBodyDirection);
 		
     }
     void CharacterAnimator::update(float64 dt)
@@ -288,8 +291,8 @@ namespace arena
         if (flip)
         {
 			tempString += "Right_Running";
-            m_legs.m_animation.setCurrentAnimation(tempString);
-            m_torso.m_relativeOffset.x = -8.f + 18.f;
+			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_torso.m_relativeOffset.x = -8.f + 19.f;
         }
         else
         {
