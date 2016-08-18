@@ -66,6 +66,7 @@ namespace arena
 
         void addListener(ClientListener* listener);
 		void roundStart();
+		void modeSet();
 		void clientConnect(uint32_t clientIndex);
 	private:
         // listener which posts connect and disconnect events

@@ -39,6 +39,7 @@ namespace arena
 		sizeof(GameRequestMapPacket),
         sizeof(GameBulletCurrentPositionPacket),
         sizeof(GameSetPlayerAmountPacket),
+		sizeof(GameModePacket)
 	};
 
     static_assert(BX_COUNTOF(s_packetSizes) == PacketTypes::Count, "Invalid amount of packets");
@@ -147,6 +148,9 @@ namespace arena
 			break;
 		case PacketTypes::GameSetPlayerAmount:
 			DYNAMIC_NEW_DEFAULT(packet, GameSetPlayerAmountPacket);
+			break;
+		case PacketTypes::GameMode:
+			DYNAMIC_NEW_DEFAULT(packet, GameModePacket);
 			break;
         default:
             fprintf(stderr, "Invalid packet type %d", type);
@@ -326,6 +330,9 @@ namespace arena
 			break;
 		case PacketTypes::GameSetPlayerAmount:
 			DYNAMIC_DTOR(static_cast<GameSetPlayerAmountPacket*>(packet), GameSetPlayerAmountPacket);
+			break;
+		case PacketTypes::GameMode:
+			DYNAMIC_DTOR(static_cast<GameModePacket*>(packet), GameModePacket);
 			break;
 		default:
 			ARENA_ASSERT(0, "Invalid packet type %d", type);

@@ -487,19 +487,11 @@ namespace arena
 		m_synchronizationList.push_back(&m_map);
 	}
 
-	void GameHost::selectGameMode(int number)
+	void GameHost::selectGameMode(int index)
 	{
-		switch(number)
-		{
-		case 1: 
-			m_gameMode = new DeathMatch(m_scoreBoard, 20);
-			break;
-		case 2:
-			TeamDeathMatch* teamDeathMatch = new TeamDeathMatch(m_scoreBoard, &m_players.container(), 2, false);
-			teamDeathMatch->autoGroupTeams();
-			m_gameMode = teamDeathMatch;
-			break;
-		}
+		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreBoard, &m_players.container());
+		e_gameModeSet();
+
 	}
 
 	NetworkEntity* const GameHost::find(Predicate<NetworkEntity* const> pred)

@@ -12,8 +12,7 @@
 #include <common/arena/weapons.h>
 #include <common/arena/scoreboard.h>
 #include <common/arena/player.h>
-#include <common/arena/deathmatch.h>
-#include <common/arena/team_deathmatch.h>
+#include <common/arena/game_mode_factory.h>
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ClientData)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_STRUCT, arena, ArenaPlatform)
@@ -227,6 +226,9 @@ namespace arena
 		EventHandler e_sessionRestart;
 		EventHandler e_timeoutStart;
 		EventHandler e_timeoutEnd;
+		EventHandler e_gameModeSet;
+
+		GameMode* m_gameMode;
 
 		GameHost(const GameVars& vars);
 		
@@ -293,7 +295,7 @@ namespace arena
 		std::vector<const NetworkEntity*>		m_synchronizationList;
 		Container<NetworkEntity*>				m_entities;
 		Container<Player>						m_players;
-		GameMode*								m_gameMode;
+		/*GameMode*								m_gameMode;*/
 		
 		const GameVars		m_vars;
 

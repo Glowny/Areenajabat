@@ -3,7 +3,7 @@
 
 namespace arena
 {
-	DeathMatch::DeathMatch(Scoreboard* m_scoreboard, int maxScore) : GameMode(m_scoreboard)
+	DeathMatch::DeathMatch(int32_t index, Scoreboard* m_scoreboard, int maxScore) : GameMode(index, m_scoreboard)
 	{
 		DeathMatch::maxScore = maxScore;
 	}

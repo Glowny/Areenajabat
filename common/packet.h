@@ -43,6 +43,7 @@ namespace arena
 			GameKillPlayer,
 			GameRespawnPlayer,
 			GameUpdateScoreBoard,
+			GameMode,
 
 			// Client --> Server.
 			GameInput,

@@ -33,9 +33,13 @@ namespace arena
 
     void onRoundStart()
     {
-        fprintf(stderr, "On game start\n");
-		server->roundStart();
+    	server->roundStart();
     }
+
+	void onModeSet()
+	{
+		server->modeSet();
+	}
 
 void SlaveServer::roundStart()
 {
@@ -64,6 +68,15 @@ void SlaveServer::roundStart()
 	}
 	broadcast(gladiatorsCreatePacket);
 }
+
+void SlaveServer::modeSet()
+{
+	GameModePacket* packet = (GameModePacket*)createPacket(PacketTypes::GameMode);
+	packet->m_gameModeIndex = m_host.m_gameMode->index;
+	broadcast(packet);
+
+}
+
 void SlaveServer::clientConnect(uint32_t clientIndex)
 {
 	GameSetupPacket* setupPacket = (GameSetupPacket*)createPacket(PacketTypes::GameSetup);
@@ -164,7 +177,8 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 		m_sendQueue.reserve(InitialNetworkQueueSize);
         m_server.addClientListener(&m_clientListener);
         m_host.e_roundStart += onRoundStart;
-        m_host.startSession();
+		m_host.e_roundStart += onModeSet;
+		m_host.startSession();
 		// Make pretty way to communicate to slave about respawn messages
 		//m_host.e_respawn += [](unsigned id) { respawnPlayer(id); };
 	}
