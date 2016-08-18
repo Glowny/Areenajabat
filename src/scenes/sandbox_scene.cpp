@@ -905,7 +905,10 @@ namespace arena
 		}
 		else
 		{
-			assert(0);
+			// If no team, set the team color to bronze.
+			tempCrestString = "Characters/head/1_Crest4.png";
+			tempHelmetString = "Characters/head/1_Helmet.png";
+			tempTorsoString = "Characters/body/1_Torso.png";
 		}
 
 		anim.setStaticContent(
