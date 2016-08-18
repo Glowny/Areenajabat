@@ -126,14 +126,14 @@ namespace arena
         m_weaponAnimType(WeaponAnimationType::Count),
         m_animationData(nullptr)
     {
-		m_angleLimit1 = 0.524f; // used for limiting head and torso rotation
-		m_angleLimit2 = 2.619f;
+		m_angleLimit1 = 0.4f; // used for limiting head and torso rotation
+		m_angleLimit2 = 2.74f; // = pi - angleLimit1
 		fillMap();
 		m_aimAngle = 0;
 		m_skin = Bronze;
 		m_torsoRotation = 0.5f; // how much the character is leaning forward when aiming forward
-		m_torso.m_sprite.m_origin = glm::vec2(18.f, 30.f);
-        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 35.f + 30.f); // original position + values used in rotation above
+		m_torso.m_sprite.m_origin = glm::vec2(16.f, 32.f);
+        m_torso.m_relativeOffset = glm::vec2(-5.f + 16.f, 36.f + 32.f); // original position + values used in rotation above
 		m_torso.m_sprite.m_rotation = m_torsoRotation;
 		// add death relative offset
 		m_death.m_relativeOffset = glm::vec2(11, 124);
@@ -323,14 +323,20 @@ namespace arena
 			tempString += "Right_Running";
 			m_legs.m_animation.setCurrentAnimation(tempString);
 			m_legs.m_relativeOffset.y = 124;
-			m_torso.m_relativeOffset.x = -8.f + 19.f;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 9.f;//-8.f + 16.f
+			else
+				m_torso.m_relativeOffset.x = 10.f;
         }
         else
         {
 			tempString += "Left_Running";
             m_legs.m_animation.setCurrentAnimation(tempString);
 			m_legs.m_relativeOffset.y = 124;
-            m_torso.m_relativeOffset.x = -4.f + 17.f;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 10.f;
+			else
+				m_torso.m_relativeOffset.x = 11.f;
         }
 
     }
@@ -353,14 +359,20 @@ namespace arena
 			tempString += "Right_Standing";
 			m_legs.m_animation.setCurrentAnimation(tempString);
 			m_legs.m_relativeOffset.y = 123;
-			m_torso.m_relativeOffset.x = -5.f + 18.f;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 11.f; //-5.f + 16.f
+			else
+				m_torso.m_relativeOffset.x = 13.f;
 		}
 		else
 		{ 
 			tempString += "Left_Standing";
 			m_legs.m_animation.setCurrentAnimation(tempString);
 			m_legs.m_relativeOffset.y = 123;
-			m_torso.m_relativeOffset.x = -4.f + 17.f;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 10.f;
+			else
+				m_torso.m_relativeOffset.x = 12.f;
 		}
 		m_legs.m_animation.pausePlayback();
 		m_legs.running = false;
