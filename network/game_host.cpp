@@ -16,6 +16,7 @@ namespace arena
 		memset(isIdFree, true, 256);
 		loadMap("assets/coordinatesRawData.dat");
 		m_gameData.m_state = GameState::UnBegun;
+
 	}
 
 	void GameHost::startSession()
@@ -803,11 +804,15 @@ namespace arena
 								m_synchronizationList.push_back(hit);
 								hit->destroy();
 							}
-							else
+							else if (debugBullets)
+							{
 								m_synchronizationList.push_back(bullet);
+							}
 						}
-						else
+						else if (debugBullets)
+						{
 							m_synchronizationList.push_back(bullet);
+						}
 					}
 				}
 				m_physics.updateTimer = 0;

@@ -36,7 +36,7 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 
 	// Light platform collide filter 
 	filter.categoryBits = c_LightPlatform;
-	filter.maskBits =  c_Gladiator;
+	filter.maskBits =  c_Gladiator| c_GladiatorJumpCollider;
 	filter.groupIndex = 0 ;
 	b2Filters[ci_LightPlatform] = filter;
 
@@ -541,6 +541,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	b2MassData data;
 	data.center = b2Vec2(0.007f, 0.0145f);
 	
+
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
 	body->SetAngularDamping(3.50f);
@@ -554,6 +555,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	userData->m_object = bullet;
 	bullet->m_myUserData = userData;
 	bullet->m_body = body;
+	bullet->m_body->SetActive(true);
 	bullet->m_contact = false;
 	bullet->m_contactBody = B_NONE;
 	bullet->m_shooterID = shooterID;
