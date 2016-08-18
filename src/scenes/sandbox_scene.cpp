@@ -882,11 +882,36 @@ namespace arena
 
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
+		
+		arena::CharacterSkin skin = (CharacterSkin)characterData.m_team;
+		
+		anim.setCharacterSkin(skin);
+		
+		std::string tempCrestString;
+		std::string tempHelmetString;
+		std::string tempTorsoString;
+
+		if (skin == Bronze)
+		{
+			tempCrestString = "Characters/head/1_Crest4.png";
+			tempHelmetString = "Characters/head/1_Helmet.png";
+			tempTorsoString = "Characters/body/1_Torso.png";
+		}
+		else if (skin == Gold)
+		{
+			tempCrestString= "Characters/head/2_Crest4.png";
+			tempHelmetString = "Characters/head/2_Helmet.png";
+			tempTorsoString= "Characters/body/2_Torso.png";
+		}
+		else
+		{
+			assert(0);
+		}
 
 		anim.setStaticContent(
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Crest4.png"),
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/head/1_Helmet.png"),
-			resources->get<TextureResource>(ResourceType::Texture, "Characters/body/1_Torso.png"),
+			resources->get<TextureResource>(ResourceType::Texture, tempCrestString),
+			resources->get<TextureResource>(ResourceType::Texture, tempHelmetString),
+			resources->get<TextureResource>(ResourceType::Texture, tempTorsoString),
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0),
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0),
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/ThrowingGrenade.scml")->getNewEntityInstance(0),
@@ -895,6 +920,7 @@ namespace arena
 			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Climbing.scml")->getNewEntityInstance(0)
 
 		);
+		
 		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
 
 		entity_gladiator = builder.getResults();

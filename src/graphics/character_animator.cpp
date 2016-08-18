@@ -273,28 +273,56 @@ namespace arena
 
         m_flipX = flip;
 
+		//TODO: Do the model change somewhere else!
+		std::string tempString;
+		if (m_skin == CharacterSkin::Bronze)
+		{
+			tempString = "1_";
+		}
+		else if(m_skin == CharacterSkin::Gold)
+		{
+			tempString = "2_";
+		}
+
+
         if (flip)
         {
-            m_legs.m_animation.setCurrentAnimation("1_Right_Running");
+			tempString += "Right_Running";
+            m_legs.m_animation.setCurrentAnimation(tempString);
             m_torso.m_relativeOffset.x = -8.f + 18.f;
         }
         else
         {
-            m_legs.m_animation.setCurrentAnimation("1_Left_Running");
+			tempString += "Left_Running";
+            m_legs.m_animation.setCurrentAnimation(tempString);
             m_torso.m_relativeOffset.x = -4.f + 17.f;
         }
 
     }
 	void CharacterAnimator::stopRunningAnimation()
 	{
+		//TODO: Do the model change somewhere else!
+		std::string tempString;
+		if (m_skin == CharacterSkin::Bronze)
+		{
+			tempString = "1_";
+		}
+		else if (m_skin == CharacterSkin::Gold)
+		{
+			tempString = "2_";
+		}
+
+
 		if (m_flipX)
 		{ 
-			m_legs.m_animation.setCurrentAnimation("1_Right_Standing");
+			tempString += "Right_Standing";
+			m_legs.m_animation.setCurrentAnimation(tempString);
 			m_torso.m_relativeOffset.x = -5.f + 18.f;
 		}
 		else
 		{ 
-			m_legs.m_animation.setCurrentAnimation("1_Left_Standing");
+			tempString += "Left_Standing";
+			m_legs.m_animation.setCurrentAnimation(tempString);
 			m_torso.m_relativeOffset.x = -4.f + 17.f;
 		}
 		m_legs.m_animation.pausePlayback();
