@@ -3,6 +3,36 @@
 #include "serialization.h"
 #include "read_stream.h"
 #include "write_stream.h"
+
+/*	Serialization
+
+	// Serialize int between minimum and maximum value.
+	// This reserves the least amount of memory needed to reserve that space.
+	// For example, playeramount is between 0-12.
+	serialize_int(stream, m_playerAmount, 0, MAX_PLAYERAMOUNT);
+	serialize_int(stream, value, min, max)
+
+	// Serialize a bool value(0 or 1), reserves one bit.
+	serialize_bool(stream, value)
+	
+	// Serialize a float value.
+	serialize_float(stream, value)
+
+	// Serialize uint32, most of the time it is better to use serialize_int.
+	serialize_uint32(stream, value)
+	
+	// Serialize uint64, used for salts.
+	serialize_uint64(stream, value)
+
+	// Serialize values by byte amount, most of the time it is better to use serialize_int.
+	// For example uint8_t (0-255 values)
+	serialize_bytes(stream, data, bytes)
+
+	// Serialize a array of chars.
+	serialize_string(stream, string, bufferSize)
+
+*/
+
 namespace arena
 {
 

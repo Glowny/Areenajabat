@@ -148,7 +148,6 @@ namespace arena
         }                                                                                               \
     } while (0)
 
-
 namespace arena
 {
     namespace detail

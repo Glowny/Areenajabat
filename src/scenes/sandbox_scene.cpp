@@ -40,6 +40,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#define STB_TRUETYPE_IMPLEMENTATION  // force following include to generate implementation
+#include "stb/stb_truetype.h"
 #ifdef _DEBUG
 
 #   include "../rtti/rtti_define.h"
@@ -1269,7 +1271,6 @@ namespace arena
 			break;
 		}
 		}
-
 
 	}
 	void SandboxScene::createBloodBulletHitEntity(unsigned direction, glm::vec2 position)
