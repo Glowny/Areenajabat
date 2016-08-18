@@ -101,6 +101,7 @@ struct p_Platform :public p_entity
 struct p_Gladiator :public p_entity
 {
 	p_userData* m_userData;
+	b2Body* m_sensorBody;
 	glm::vec2* m_gamePosition;
 	glm::vec2* m_gamevelocity;
 
