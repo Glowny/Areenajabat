@@ -8,10 +8,12 @@ namespace arena
 {
 	struct Gladiator : public NetworkEntity
 	{
+	public:
 		Gladiator() : NetworkEntity(NetworkEntityType::Gladiator),
 					  m_alive(true),
 					  m_hitpoints(100)
 		{ 
+
 			m_team = 255;
 			m_position = new glm::vec2(0,0);
 			m_velocity = new glm::vec2(0, 0);
@@ -25,6 +27,9 @@ namespace arena
 			m_reloading = false;
 			m_remove = false;
 			m_hasPhysics = true;
+			m_isClimbing = false;
+			m_isReloading = false;
+			m_isPitching = false;
 		}
 		~Gladiator()
 		{
@@ -41,6 +46,51 @@ namespace arena
 			}
 			return false;
 		}
+		bool checkIfDoingAction()
+		{
+			if (!m_isClimbing && !m_isPitching && !m_isReloading)
+				return true;
+			return false;
+		}
+		// Set climbing to 0 for no climbing, 1 for up, 2 for down.
+		void setClimbing(uint8_t climbDir)
+		{
+			m_climbing = climbDir;
+			if (climbDir == 0)
+				m_isClimbing = false;
+			else
+				m_isClimbing = true;
+		}
+		void startPitching()
+		{
+			m_isPitching = true;
+			m_throwing = true;
+			m_grenadeWeapon->pitching = true;
+		}
+
+		void startReload()
+		{
+			m_weapon->startReload();
+			m_reloading = true;
+			m_isReloading = true;
+		}
+		void finishReload()
+		{
+			m_reloading = false;
+			m_isReloading = false;
+		}
+
+		// returns true if reload is still happening.
+		bool checkReload()
+		{
+			if (!m_weapon->m_reloading)
+			{
+				finishReload();	
+				return false;
+			}
+			return true;
+		}
+
 		std::vector<Bullet*> shoot()
 		{
 			return m_weapon->shoot(m_aimAngle, *m_position);
@@ -48,6 +98,7 @@ namespace arena
 
 		Bullet* pitch()
 		{
+			m_isPitching = false;
 			return m_grenadeWeapon->pitch(m_aimAngle, *m_position);
 		}
 
@@ -70,6 +121,9 @@ namespace arena
 		bool		m_throwing;
 		bool		m_reloading;
 	private:
+		bool		m_isClimbing;
+		bool		m_isPitching;
+		bool		m_isReloading;
 		float64		m_respawnTime;
 		float64		m_currentRespawnTime;
 	};

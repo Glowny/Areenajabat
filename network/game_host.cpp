@@ -187,71 +187,73 @@ namespace arena
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
 			Player& player = *it;
+			Gladiator* gladiator = player.m_gladiator;
 			// If player is not alive, do not process input.
-			if (player.m_gladiator->m_alive == false)
+			if (gladiator->m_alive == false)
 				continue;
 
-			uint8_t entityID = player.m_gladiator->getEntityID();
+			uint8_t entityID = gladiator->getEntityID();
 			PlayerInput& input = player.m_playerController->m_input;
 
 			// Reset lightplatforms to solid if enought time has passed
-			if ((player.m_gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
+			if ((gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
 			{
 				m_physics.setGladiatorCollideLightPlatforms(entityID, true);
 			}
 
-			player.m_gladiator->m_aimAngle = player.m_playerController->aimAngle;
-
+			gladiator->m_aimAngle = player.m_playerController->aimAngle;
+			// Check if reload is done.
+			if (gladiator->checkReload())
+			{
+				input.m_reloadButtonDown;
+			}
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
-			bool check = player.m_gladiator->m_weapon->checkIfCanShoot((float)dt);
-			if (input.m_shootButtonDown && check)
+			bool check = gladiator->m_weapon->checkIfCanShoot((float)dt);
+			if (input.m_shootButtonDown && check && gladiator->checkIfDoingAction())
 			{
-				GladiatorShoot(player.m_gladiator);
+				GladiatorShoot(gladiator);
 				input.m_shootButtonDown = false;
 			}
-			if (input.m_reloadButtonDown)
+			if (input.m_reloadButtonDown && gladiator->checkIfDoingAction())
 			{
-				player.m_gladiator->m_weapon->startReload();
-				player.m_gladiator->m_reloading = true;
+				gladiator->startReload();
 				input.m_reloadButtonDown = false;
 			}
 		
 				// Grenade related stuff here.
 			// Check if the grenade timer is over the cooldown, but do not reset it.
-			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
-			if (input.m_grenadeButtonDown)
+			bool checkGrenade = gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
+			if (input.m_grenadeButtonDown && gladiator->checkIfDoingAction())
 			{ 
 				// If the button is down and timer is over cooldown, reset cooldown and start grenade pitch.
 				if (checkGrenade)
 				{
-					player.m_gladiator->m_throwing = true;
-					player.m_gladiator->m_grenadeWeapon->pitching = true;
-					
+					gladiator->startPitching();
 				}
 			}
 			// If the pitching is happening, check if it is ready and create the grenade.
-			if (player.m_gladiator->m_grenadeWeapon->pitching)
+			if (gladiator->m_grenadeWeapon->pitching)
 			{ 
-				if (player.m_gladiator->m_grenadeWeapon->pitchReady(dt))
+				if (gladiator->m_grenadeWeapon->pitchReady(dt))
 				{
-					GrenadeShoot(player.m_gladiator);
+					GrenadeShoot(gladiator);
 					input.m_grenadeButtonDown = false;
-					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
+					gladiator->m_grenadeWeapon->resetCoolDown();
 				}
 			}
 				// Grenade related stuff here end.
 
-			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
+			gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;
 			int32 y = 0;
 
 			// TODO: Make a sensor physics object under player that detects platforms.
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(entityID)
-				&& (player.m_gladiator->m_jumpCoolDownTimer > 0.25f))
+				&& (gladiator->m_jumpCoolDownTimer > 0.25f))
 			{
 				input.m_jumpButtonDown = false;
-				player.m_gladiator->m_jumpCoolDownTimer = 0;
+				gladiator->m_jumpCoolDownTimer = 0;
 
 				glm::vec2 force;
 				if (x == 0)
@@ -285,21 +287,21 @@ namespace arena
 			float desiredVelocityY = 0;
 			float velocityChangeY = 0;
 
-			player.m_gladiator->m_climbing = false;
+			gladiator->setClimbing(0);
 			if (input.m_upButtonDown || input.m_downButtonDown)
 			{
 				if (input.m_downButtonDown)
 				{
-					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
+					gladiator->m_ignoreLightPlatformsTimer = 0.00f;
 					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				}
 				int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(entityID);
 				if (ladderCollide != 0)
 				{
-					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
+					gladiator->m_ignoreLightPlatformsTimer = 0.40f;
 					desiredVelocityY = 300.0f * (float)y;
 					velocityChangeY = desiredVelocityY - currentVelocity.y;
-					player.m_gladiator->m_climbing = ladderCollide;
+					gladiator->setClimbing(ladderCollide);
 					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				}
 

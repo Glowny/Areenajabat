@@ -183,6 +183,7 @@ namespace arena
 			return false;
 		};
 
+		bool m_reloading;
 	protected:
 		glm::vec2 radToVec(float r)
 		{
@@ -190,7 +191,6 @@ namespace arena
 		}
 		float m_coolDown;
 		float m_reloadTime;
-		bool m_reloading;
 		unsigned m_reloadBulletAmount;
 		float m_coolDownTimer;
 		float m_reloadTimer;
