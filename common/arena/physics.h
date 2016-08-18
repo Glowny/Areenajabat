@@ -25,9 +25,10 @@ enum entityCategory
 	c_Ladder =					0x0004,
 	c_GladiatorNoCollide=		0x0008,
 	c_Gladiator=				0x0010,
-	c_JumpSensor=				0x0020,
-	c_Bullet =					0x0040,
-	c_BulletSensor =			0x0080,
+	c_GladiatorJumpCollider=	0x0020,
+	c_JumpSensor =				0x0040,
+	c_Bullet =					0x0080,
+	c_BulletSensor =			0x0100,
 	c_Grenade=					0x0100,
 };
 enum entityIndexes
@@ -36,11 +37,12 @@ enum entityIndexes
 	ci_LightPlatform			= 1,
 	ci_Ladder					= 2,
 	ci_GladiatorNoCollide		= 3,
-	ci_Gladiator				= 4,
-	ci_JumpSensor				= 5,
-	ci_Bullet					= 6,
-	ci_BulletSensor				= 7,
-	ci_Grenade					= 8,
+	ci_GladiatorJumpCollider	= 4,
+	ci_Gladiator				= 5,
+	ci_JumpSensor				= 6,
+	ci_Bullet					= 7,
+	ci_BulletSensor				= 8,
+	ci_Grenade					= 9,
 
 };
 
