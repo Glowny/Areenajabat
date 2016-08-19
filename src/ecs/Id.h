@@ -19,6 +19,7 @@ namespace arena
 		HitBlood,
 		MousePointer,
 		Platform,
+		ExplosionBlood
 	};
 
 	class Id final : public Component

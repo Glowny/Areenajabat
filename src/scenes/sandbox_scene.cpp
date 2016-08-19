@@ -814,6 +814,55 @@ namespace arena
 
 					rectangle = render->getSource();
 
+				}
+				else if (id->m_id == ExplosionBlood)
+				{
+					//Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
+					//					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+					Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+
+					// TODO: Remake this.
+					float time = timer->timePassed();
+
+					int multiplerX = 0;
+					int multiplerY = 0;
+
+					if (time < 0.10f)
+					{
+						multiplerX = 0;
+					}
+					else if (time < 0.25)
+					{
+						multiplerX = 1;
+					}
+					else if (time < 0.45)
+					{
+						multiplerX = 2;
+					}
+					else if (time < 0.55)
+					{
+						multiplerX = 3;
+					}
+					else if (time < 0.75)
+					{
+						multiplerX = 0;
+						multiplerY = 1;
+					}
+					else
+					{
+						multiplerX = 1;
+						multiplerY = 1;
+					}
+
+					Rectf& rectangle = render->getSource();
+					rectangle.x = 256.0f * multiplerX;
+					rectangle.y = 256.0f * multiplerY;
+					rectangle.w = 256.0f;
+					rectangle.h = 256.0f;
+
+					rectangle = render->getSource();
+
 				};
 
 			}
@@ -1317,7 +1366,8 @@ namespace arena
 		case 3:
 		{
 			createExplosionEntity(bullet);
-				break;
+			createBloodExplosionHitEntity(bullet);
+			break;
 		}
 		default:
 		{
@@ -1365,6 +1415,35 @@ namespace arena
 		move->m_velocity = glm::vec2(5.0f* directionX, 4.81f);
 		
 		builder.addIdentifier(EntityIdentification::HitBlood);
+		registerEntity(builder.getResults());
+	}
+	void  SandboxScene::createBloodExplosionHitEntity(Bullet& bullet)
+	{
+		//Note: not in use at the moment.
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = *bullet.m_position + bullet.m_rotation;
+
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodExplosionAnimation_ss.png"));
+		Rectf rect = renderer->getSource();
+		renderer->setSize(256, 128);
+		rect.x = 0; rect.y = 0;
+		rect.w = 256; rect.h = 128;
+		renderer->anchor();
+
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.4f;
+
+		Movement* move = builder.addMovement();
+		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
+
+		builder.addIdentifier(EntityIdentification::ExplosionBlood);
 		registerEntity(builder.getResults());
 	}
 	void  SandboxScene::createPlatformBulletHitEntity(Bullet& bullet)
