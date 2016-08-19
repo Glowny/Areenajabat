@@ -205,8 +205,7 @@ namespace arena
         void render();
 
         void rotateAimTo(float radians);
-		float aimOffSetLeft = 0;
-		float aimOffSetRight = 0;
+		
     private:
 		CharacterSkin m_skin;
         Head m_head;

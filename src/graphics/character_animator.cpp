@@ -176,30 +176,31 @@ namespace arena
 		m_gladiusReload.m_animation.m_entity = gladiusReload;
 		m_axeReload.m_animation.m_entity = axeReload;
     }
-
+#define PI 3.141592
     void CharacterAnimator::rotateAimTo(float radians)
     {
+		printf("Aimangle %f\n", radians);
 		m_aimAngle = radians;
 		float weaponAim = m_aimAngle;
+		float aimOffSet = 0;
 
 		//pi/2 = 1.5707...
-		if (m_aimAngle < 1.571 && m_aimAngle > -1.571) //if aiming right
+		if (m_aimAngle < PI/2 && m_aimAngle > -PI/2) //if aiming right
 		{
-			aimOffSetLeft = 0.25f;
-			weaponAim += aimOffSetLeft;
+			aimOffSet += -0.25f;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
 			m_animationData->m_leftHand->setDirection(1);
 		}
 		else //if aiming left
 		{ 
-			aimOffSetRight = -0.25f;
-			weaponAim += aimOffSetRight;
+			aimOffSet += 0.25f;
 			m_upperBodyDirection = 0;
 			m_animationData->m_rightHand->setDirection(0);
 			m_animationData->m_leftHand->setDirection(0);
 		}
 
+		weaponAim += aimOffSet;
         ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
 		m_animationData->m_rightHand->rotateTo(weaponAim);
         m_animationData->m_leftHand->rotateTo(weaponAim);

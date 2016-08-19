@@ -206,7 +206,7 @@ namespace arena
 			// Check if reload is done.
 			if (gladiator->checkReload())
 			{
-				input.m_reloadButtonDown;
+				input.m_reloadButtonDown = false;
 			}
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
