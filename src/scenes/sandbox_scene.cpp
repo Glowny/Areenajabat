@@ -507,7 +507,7 @@ namespace arena
 			{
 				gladiatorData->m_animator->m_animator.setFlipX(0);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-				//printf("MOVE, %f\n", moveSpeed.x);
+				printf("MOVE, %f\n", moveSpeed.x);
 			}
 			else if (moveSpeed.x > 15.0f)
 			{

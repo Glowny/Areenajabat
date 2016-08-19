@@ -765,6 +765,8 @@ namespace arena
 
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
+				// Update physics
+				m_physics.update(m_physics.updateTimer);
 				applyPlayerInputs(m_physics.updateTimer);
 				processBulletCollisions(m_physics.updateTimer);
 
@@ -838,8 +840,7 @@ namespace arena
 						}
 					}
 				}
-				// Update physics
-				m_physics.update(m_physics.updateTimer);
+				
 				m_physics.updateTimer = 0;
 
 			}
