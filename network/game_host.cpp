@@ -516,7 +516,8 @@ namespace arena
 
 	void GameHost::selectGameMode(int index)
 	{
-		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreBoard, &m_players.container());
+		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreBoard, &m_physics, &m_players.container(), &m_map, &m_synchronizationList);
+		m_gameMode->resetScoreBoard();
 		e_gameModeSet();
 
 	}
@@ -635,21 +636,22 @@ namespace arena
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
 			//e_gameStart();
-			selectGameMode(2);
+			selectGameMode(1);
 
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
 				m_physics.createPlatform(m_map.m_platformVector[i].vertices, m_map.m_platformVector[i].type);
 			}
 			//m_synchronizationList.push_back(&m_map);
-			unsigned spawnID = 0;
-			for (auto it = m_players.begin(); it != m_players.end(); it++)
-			{
-				Player* player = &*it;
-				uint8_t physicsID = player->m_gladiator->getEntityID();
-				m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[spawnID], physicsID);
-				spawnID++;
-			}
+			//unsigned spawnID = 0;
+			m_gameMode->spawnPlayers();
+			//for (auto it = m_players.begin(); it != m_players.end(); it++)
+			//{
+			//	Player* player = &*it;
+			//	uint8_t physicsID = player->m_gladiator->getEntityID();
+			//	m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[spawnID], physicsID);
+			//	spawnID++;
+			//}
 			e_roundStart();
 
 			m_gameData.m_gameRunning = true;
@@ -737,27 +739,27 @@ namespace arena
 					if (!m_gameMode->updateEndTimer((float)m_physics.updateTimer)) {
 						return;
 					}
-					for (Player& player : players())
-					{
-						player.m_gladiator->m_alive = true;
-						player.m_gladiator->m_hitpoints = 100;
-						player.m_gladiator->m_weapon->destroy();
-						player.m_gladiator->m_grenadeWeapon->destroy();
-						player.m_gladiator->m_weapon = new WeaponGladius;
-						player.m_gladiator->m_grenadeWeapon = new WeaponGrenade;
-						m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[player.m_gladiator->getEntityID()], player.m_gladiator->getEntityID());
-						m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
-						// HAX, USE EVENTHANDLER
-						NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
-						entity->setEntityID(player.m_clientIndex);
-						m_synchronizationList.push_back(entity);
-						entity->destroy();
-						// update position because of gravity.
-						m_synchronizationList.push_back(player.m_gladiator);
-					}
+					m_gameMode->respawnPlayers();
+					//for (Player& player : players())
+					//{
+					//	player.m_gladiator->m_alive = true;
+					//	player.m_gladiator->m_hitpoints = 100;
+					//	delete player.m_gladiator->m_weapon;
+					//	delete player.m_gladiator->m_grenadeWeapon;
+					//	player.m_gladiator->m_weapon = new WeaponGladius;
+					//	player.m_gladiator->m_grenadeWeapon = new WeaponGrenade;
+					//	m_physics.setGladiatorPosition(m_map.m_playerSpawnLocations[player.m_gladiator->getEntityID()], player.m_gladiator->getEntityID());
+					//	m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
+					//	// HAX, USE EVENTHANDLER
+					//	NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
+					//	entity->setEntityID(player.m_clientIndex);
+					//	m_synchronizationList.push_back(entity);
+					//	entity->destroy();
+					//	// update position because of gravity.
+					//	m_synchronizationList.push_back(player.m_gladiator);
+					//}
 					m_gameData.resetTimers();
-					resetScoreBoard();
-					m_synchronizationList.push_back(m_scoreBoard);
+					m_gameMode->resetScoreBoard();
 					m_gameMode->resetEndTimer();
 					//m_gameData.m_gameRunning = false;
 					//m_gameData.m_state = GameState::Stopped;
@@ -779,15 +781,16 @@ namespace arena
 						{
 							if (player.m_gladiator->checkRespawn(m_physics.updateTimer))
 							{
-								player.m_gladiator->m_alive = true;
-								player.m_gladiator->m_hitpoints = 100;
-								m_physics.setGladiatorPosition(glm::vec2(1600, 200), player.m_gladiator->getEntityID());
-								m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
-								// HAX, USE EVENTHANDLER
-								NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
-								entity->setEntityID(player.m_clientIndex);
-								m_synchronizationList.push_back(entity);
-								entity->destroy();
+								m_gameMode->respawnPlayer(&player);
+								//player.m_gladiator->m_alive = true;
+								//player.m_gladiator->m_hitpoints = 100;
+								//m_physics.setGladiatorPosition(glm::vec2(1600, 200), player.m_gladiator->getEntityID());
+								//m_physics.applyImpulseToGladiator(glm::vec2(1, 1), player.m_gladiator->getEntityID());
+								//// HAX, USE EVENTHANDLER
+								//NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
+								//entity->setEntityID(player.m_clientIndex);
+								//m_synchronizationList.push_back(entity);
+								//entity->destroy();
 							}
 						}
 					}
@@ -863,7 +866,7 @@ namespace arena
 			score.m_kills = 0;
 			score.m_score = 0;
 			//TODO: get the amount of tickets from initilization file.
-			score.m_tickets = 10;
+			score.m_tickets = 0;
 			score.m_playerID = player->m_clientIndex;
 			board->m_playerScoreVector.push_back(score);
 		}

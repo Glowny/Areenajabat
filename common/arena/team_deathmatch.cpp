@@ -3,11 +3,29 @@
 
 namespace arena
 {
-	TeamDeathMatch::TeamDeathMatch(int32_t index, Scoreboard* m_scoreboard, std::vector<Player>* m_players, int numTeams, bool enableAttackTeammates) : GameMode(index, m_scoreboard)
+	TeamDeathMatch::TeamDeathMatch(
+		int32_t index,
+		Scoreboard* m_scoreboard,
+		Physics* m_physics,
+		std::vector<Player>* m_players,
+		GameMap* m_map,
+		std::vector<const NetworkEntity*>* m_synchronizationList,
+		int numTeams,
+		bool enableAttackTeammates
+	) :
+		GameMode(
+			index,
+			m_scoreboard,
+			m_physics,
+			m_players,
+			m_map,
+			m_synchronizationList
+		)
 	{
-		TeamDeathMatch::m_players = m_players;
 		TeamDeathMatch::numTeams = numTeams;
 		TeamDeathMatch::enableAttackTeammates = enableAttackTeammates;
+
+		GameMode::init_m_tickets = 3;
 
 	}
 	TeamDeathMatch::~TeamDeathMatch()
@@ -33,7 +51,7 @@ namespace arena
 			}
 			if (count == 0)
 			{
-				if (!msgChecker) 
+				if (!msgChecker)
 				{
 					msgChecker = true;
 					generateMessage();
@@ -70,7 +88,7 @@ namespace arena
 	void TeamDeathMatch::generateMessage()
 	{
 		int maxScore = -1;
-		uint8_t winTeam = -1;
+		uint8_t winTeam = 255;
 		std::stringstream ss;
 		std::vector<PlayerScore> m_playerScoreVector(m_scoreboard->m_playerScoreVector);
 		std::sort(m_playerScoreVector.begin(), m_playerScoreVector.end(), greater_than());
@@ -95,19 +113,19 @@ namespace arena
 	{
 		for (auto player = m_players->begin(); player < m_players->end(); player++)
 		{
-			if (player->m_gladiator->m_ownerId == playerScore->m_playerID) 
+			if (player->m_gladiator->m_ownerId == playerScore->m_playerID)
 			{
 				return player->m_gladiator->m_team;
 			}
 		}
-		return -1;
+		return 255;
 	}
 
 	//assign team ID to each player
 	void TeamDeathMatch::autoGroupTeams()
 	{
 		int numPlayer = m_players->size();
-		int numPlayerInTeam = ceil( 1.0 * m_players->size() / numTeams);
+		int numPlayerInTeam = ceil(1.0 * numPlayer / numTeams);
 		auto player = m_players->begin();
 		for (int i = 0; i < numTeams; i++)
 		{
@@ -115,7 +133,7 @@ namespace arena
 			{
 				player->m_gladiator->m_team = i;
 				player++;
-				if (player >= m_players->end()) 
+				if (player >= m_players->end())
 				{
 					return;
 				}
@@ -123,4 +141,62 @@ namespace arena
 		}
 	}
 
+	glm::vec2* TeamDeathMatch::spawnLocation(Player * m_player)
+	{
+		glm::vec2* target = NULL;
+		switch (m_player->m_gladiator->m_team)
+		{
+		case 0:
+			target = &m_map->m_playerSpawnLocations[0];
+			break;
+		case 1:
+			target = &m_map->m_playerSpawnLocations[11];
+			break;
+		default:
+			break;
+		}
+		return target;
+	}
+
+	void TeamDeathMatch::spawnPlayers()
+	{
+		for (auto m_player = m_players->begin(); m_player < m_players->end(); m_player++)
+		{
+			TeamDeathMatch::spawnPlayer(&(*m_player));
+		}
+	}
+
+	void TeamDeathMatch::respawnPlayers()
+	{
+		for (auto m_player = m_players->begin(); m_player < m_players->end(); m_player++)
+		{
+			TeamDeathMatch::respawnPlayer(&(*m_player));
+		}
+	}
+
+	void TeamDeathMatch::spawnPlayer(Player* m_player)
+	{
+		GameMode::resetPlayer(m_player);
+
+		glm::vec2* target = TeamDeathMatch::spawnLocation(m_player);
+		m_physics->setGladiatorPosition(*target, m_player->m_gladiator->getEntityID());
+	}
+
+	void TeamDeathMatch::respawnPlayer(Player* m_player)
+	{
+		GameMode::resetPlayer(m_player);
+
+		glm::vec2* target = TeamDeathMatch::spawnLocation(m_player);
+		m_physics->setGladiatorPosition(*target, m_player->m_gladiator->getEntityID());
+		m_physics->applyImpulseToGladiator(glm::vec2(1, 1), m_player->m_gladiator->getEntityID());
+
+		// HAX, USE EVENTHANDLER
+		NetworkEntity* entity = new NetworkEntity(NetworkEntityType::RespawnPlayer, 0);
+		entity->setEntityID(m_player->m_clientIndex);
+		m_synchronizationList->push_back(entity);
+		entity->destroy();
+
+		// update position because of gravity.
+		m_synchronizationList->push_back(m_player->m_gladiator);
+	}
 }
