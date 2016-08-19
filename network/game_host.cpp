@@ -309,8 +309,7 @@ namespace arena
 				{ 
 					// Set from which side the gladiator attaches into the ladder.
 					gladiator->setClimbing(ladderCollide);
-					// While climbing, ignore light platforms.
-					
+
 				}
 			}
 			// If not colliding with ladder set climbing to false.
@@ -322,6 +321,7 @@ namespace arena
 			// If gladiator is climbing, set the gladiator velocity to desired velocity.
 			if (gladiator->isClimbing())
 			{
+				// While climbing, ignore light platforms.
 				m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				desiredVelocityY = 2.0f * (float)y;
 				if (desiredVelocityY == 0)
