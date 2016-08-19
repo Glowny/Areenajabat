@@ -16,6 +16,7 @@ namespace arena
 		memset(isIdFree, true, 256);
 		loadMap("assets/coordinatesRawData.dat");
 		m_gameData.m_state = GameState::UnBegun;
+
 	}
 
 	void GameHost::startSession()
@@ -187,89 +188,91 @@ namespace arena
 		for (auto it = players.begin(); it != players.end(); ++it)
 		{
 			Player& player = *it;
+			Gladiator* gladiator = player.m_gladiator;
 			// If player is not alive, do not process input.
-			if (player.m_gladiator->m_alive == false)
+			if (gladiator->m_alive == false)
 				continue;
 
-			uint8_t entityID = player.m_gladiator->getEntityID();
+			uint8_t entityID = gladiator->getEntityID();
 			PlayerInput& input = player.m_playerController->m_input;
 
 			// Reset lightplatforms to solid if enought time has passed
-			if ((player.m_gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
+			if ((gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
 			{
 				m_physics.setGladiatorCollideLightPlatforms(entityID, true);
 			}
 
-			player.m_gladiator->m_aimAngle = player.m_playerController->aimAngle;
-
+			gladiator->m_aimAngle = player.m_playerController->aimAngle;
+			// Check if reload is done.
+			if (gladiator->checkReload())
+			{
+				input.m_reloadButtonDown = false;
+			}
 			// Check if player wants to shoot, and if weapon is able to shoot.
 			// Reset shoot flag here, so that shoot messages are not missed.
-			bool check = player.m_gladiator->m_weapon->checkIfCanShoot((float)dt);
-			if (input.m_shootButtonDown && check)
+			bool check = gladiator->m_weapon->checkIfCanShoot((float)dt);
+			if (input.m_shootButtonDown && check && gladiator->checkIfDoingAction())
 			{
-				GladiatorShoot(player.m_gladiator);
+				GladiatorShoot(gladiator);
 				input.m_shootButtonDown = false;
 			}
-			if (input.m_reloadButtonDown)
+			if (input.m_reloadButtonDown && gladiator->checkIfDoingAction())
 			{
-				player.m_gladiator->m_weapon->startReload();
-				player.m_gladiator->m_reloading = true;
+				gladiator->startReload();
 				input.m_reloadButtonDown = false;
 			}
 		
 				// Grenade related stuff here.
 			// Check if the grenade timer is over the cooldown, but do not reset it.
-			bool checkGrenade = player.m_gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
-			if (input.m_grenadeButtonDown)
+			bool checkGrenade = gladiator->m_grenadeWeapon->checkCoolDown((float)dt);
+			if (input.m_grenadeButtonDown && gladiator->checkIfDoingAction())
 			{ 
 				// If the button is down and timer is over cooldown, reset cooldown and start grenade pitch.
 				if (checkGrenade)
 				{
-					player.m_gladiator->m_throwing = true;
-					player.m_gladiator->m_grenadeWeapon->pitching = true;
-					
+					gladiator->startPitching();
 				}
 			}
 			// If the pitching is happening, check if it is ready and create the grenade.
-			if (player.m_gladiator->m_grenadeWeapon->pitching)
+			if (gladiator->m_grenadeWeapon->pitching)
 			{ 
-				if (player.m_gladiator->m_grenadeWeapon->pitchReady(dt))
+				if (gladiator->m_grenadeWeapon->pitchReady(dt))
 				{
-					GrenadeShoot(player.m_gladiator);
+					GrenadeShoot(gladiator);
 					input.m_grenadeButtonDown = false;
-					player.m_gladiator->m_grenadeWeapon->resetCoolDown();
+					gladiator->m_grenadeWeapon->resetCoolDown();
 				}
 			}
 				// Grenade related stuff here end.
 
-			player.m_gladiator->m_jumpCoolDownTimer += (float)dt;
+			gladiator->m_jumpCoolDownTimer += (float)dt;
 			int32 x = 0;
 			int32 y = 0;
 
 			// TODO: Make a sensor physics object under player that detects platforms.
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(entityID)
-				&& (player.m_gladiator->m_jumpCoolDownTimer > 0.25f))
+				&& (gladiator->m_jumpCoolDownTimer > 0.4f))
 			{
 				input.m_jumpButtonDown = false;
-				player.m_gladiator->m_jumpCoolDownTimer = 0;
+				gladiator->m_jumpCoolDownTimer = 0;
 
 				glm::vec2 force;
 				if (x == 0)
 				{
-					force.y = -400.0f;
+					force.y = -330.0f;
 					force.x = 0;
 				}
 				else
 				{
-					force.y = -300.0f;
-					force.x = x * 150.0f;
+					force.y = -200.0f;
+					force.x = x * 300.0f;
 				}
 				m_physics.applyImpulseToGladiator(force, entityID);
 			}
 
 			// Do not add forces if there are none.
-			if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown))
-				continue;
+			//if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown))
+			//	continue;
 
 
 			if (input.m_leftButtonDown)	x = -1;
@@ -279,36 +282,60 @@ namespace arena
 
 			// reserve upbutton for ladder climb
 			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(entityID);
-			float desiredVelocityX = 300.0f * (float)x;
-			float velocityChangeX = desiredVelocityX - currentVelocity.x;
+			float desiredVelocityX;
+			//Slow down gradually so huge forces are not applied if input is missed once.
+			if (x == 0)
+				desiredVelocityX = currentVelocity.x/100 * 0.8f;
+			else
+				desiredVelocityX = 3.0f * (float)x;
+			
+			float velocityChangeX = desiredVelocityX - currentVelocity.x/100;
 			// add more velocity only if climbing ladders.
 			float desiredVelocityY = 0;
 			float velocityChangeY = 0;
 
-			player.m_gladiator->m_climbing = false;
-			if (input.m_upButtonDown || input.m_downButtonDown)
-			{
-				if (input.m_downButtonDown)
-				{
-					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.00f;
-					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
-				}
-				int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(entityID);
-				if (ladderCollide != 0)
-				{
-					player.m_gladiator->m_ignoreLightPlatformsTimer = 0.40f;
-					desiredVelocityY = 300.0f * (float)y;
-					velocityChangeY = desiredVelocityY - currentVelocity.y;
-					player.m_gladiator->m_climbing = ladderCollide;
-					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
-				}
 
+			if (input.m_downButtonDown)
+			{
+				gladiator->m_ignoreLightPlatformsTimer = 0.00f;
+				m_physics.setGladiatorCollideLightPlatforms(entityID, false);
+			}
+			int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(entityID);
+			// If colliding with ladder
+			if (ladderCollide != 0)
+			{
+				// If colliding with ladder and up or down button is down, start climbing
+				if ((input.m_upButtonDown || input.m_downButtonDown))
+				{ 
+					// Set from which side the gladiator attaches into the ladder.
+					gladiator->setClimbing(ladderCollide);
+					// While climbing, ignore light platforms.
+					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
+				}
+			}
+			// If not colliding with ladder set climbing to false.
+			else
+			{
+				gladiator->setClimbing(0);
+			}
+			
+			// If gladiator is climbing, set the gladiator velocity to desired velocity.
+			if (gladiator->isClimbing())
+			{
+				gladiator->m_ignoreLightPlatformsTimer = 0.40f;
+				desiredVelocityY = 2.0f * (float)y;
+				if (desiredVelocityY == 0)
+					desiredVelocityY = -0.16f;
+				velocityChangeY = desiredVelocityY - currentVelocity.y/200;
+				printf("Velocity needed to change: %f\n", velocityChangeY);
 			}
 
 			glm::vec2 force;
-			force.y = 1500.0f * velocityChangeY * (float)dt;
-			force.x = 1500.0f * velocityChangeX * (float)dt;
+			float gladiatorMass = m_physics.getGladiatorMass(entityID);
+			force.y = gladiatorMass * velocityChangeY / (float)dt;
+			force.x = gladiatorMass * velocityChangeX / (float)dt;
 
+			printf("Applying force to gladiator (%f, %f), dt %f, btn dwn: %d\n", force.x, force.y, dt, x);
 			m_physics.applyForceToGladiator(force, entityID);
 
 			// Set the inputs to zero as they are handled.
@@ -705,8 +732,7 @@ namespace arena
 			// Do normal updates.
 			if ((m_physics.updateTimer += dt) >= PHYSICS_TIMESTEP)
 			{
-				// Update physics
-				m_physics.update(m_physics.updateTimer);
+				
 
 				//Check game end
 				if (m_gameMode->isEnd()&& players().size() != 1 ) {
@@ -741,6 +767,8 @@ namespace arena
 
 				//TODO: uncomment check when confirmed working
 				//if(shouldProcessPlayerInput())
+				// Update physics
+				m_physics.update(m_physics.updateTimer);
 				applyPlayerInputs(m_physics.updateTimer);
 				processBulletCollisions(m_physics.updateTimer);
 
@@ -804,13 +832,18 @@ namespace arena
 								m_synchronizationList.push_back(hit);
 								hit->destroy();
 							}
-							else
+							else if (debugBullets)
+							{
 								m_synchronizationList.push_back(bullet);
+							}
 						}
-						else
+						else if (debugBullets)
+						{
 							m_synchronizationList.push_back(bullet);
+						}
 					}
 				}
+				
 				m_physics.updateTimer = 0;
 
 			}

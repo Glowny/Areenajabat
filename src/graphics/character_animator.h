@@ -167,6 +167,8 @@ namespace arena
 
 		float calculateTorsoRotation(float radians, bool direction);
 
+		float calculateHeadRotation(float radians, bool direction);
+
         void update(float64 dt);
 
         void setPosition(const glm::vec2& position);
@@ -185,6 +187,9 @@ namespace arena
 		void playDeathAnimation(bool hitDirection, float hitPositionY);
 
 		void playClimbAnimation(int direction);
+		bool isClimbing();
+		void pauseClimbAnimation();
+		void continueClimbAnimation();
 		void endClimbAnimation();
 
 		void stopRunningAnimation();
@@ -203,8 +208,7 @@ namespace arena
         void render();
 
         void rotateAimTo(float radians);
-		float aimOffSetLeft = 0;
-		float aimOffSetRight = 0;
+		
     private:
 		CharacterSkin m_skin;
         Head m_head;
@@ -221,8 +225,11 @@ namespace arena
 
         glm::vec2 m_position;
 
-		float m_torsoMaxAngle = 0;
-		float m_torsoMinAngle = 0;
+		float m_torsoRotation = 0;
+		float m_angleLimit1 = 0; //used for head and torso rotation
+		float m_angleLimit2 = 0; //used for head and torso rotation
+		float m_headMaxAngle = 0;
+		float m_headMinAngle = 0;
         bool m_flipX;
 		float m_aimAngle;
 		void fillMap();

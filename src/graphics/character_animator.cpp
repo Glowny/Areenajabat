@@ -7,42 +7,42 @@
 namespace arena
 {
 
-    struct AnimationPosition
-    {
-        enum Enum
-        {
-            Helmet, 
-            RightArm,
-            LeftArm,
-            Count
-        };
-    };
+	struct AnimationPosition
+	{
+		enum Enum
+		{
+			Helmet,
+			RightArm,
+			LeftArm,
+			Count
+		};
+	};
 
-    float calculateTorsoOffsetY(uint32_t milliseconds)
-    {
-        static const uint32_t length = 600;
-        static const float s_directionTransitionTable[] =
-        {
-            0.f, // 0
-            -1.f, // 50
-            1.f, // 100
-            2.f, // 150
-            1.f, // 200
-            0.5f, // 250
-            0.f, // 300
-            -1.f, // 350
-            1.f, // 400
-            2.f, // 450
-            1.f, // 500
-            0.5f // 550
-        };
+	float calculateTorsoOffsetY(uint32_t milliseconds)
+	{
+		static const uint32_t length = 600;
+		static const float s_directionTransitionTable[] =
+		{
+			0.f, // 0
+			-1.f, // 50
+			1.f, // 100
+			2.f, // 150
+			1.f, // 200
+			0.5f, // 250
+			0.f, // 300
+			-1.f, // 350
+			1.f, // 400
+			2.f, // 450
+			1.f, // 500
+			0.5f // 550
+		};
 
-        uint32_t index = uint32_t(milliseconds / 50) % BX_COUNTOF(s_directionTransitionTable);
-        uint32_t nextIndex = (index + 1) % BX_COUNTOF(s_directionTransitionTable);
-        // hax :D
-        float t = (milliseconds % 50) / 50.f;
-        return lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
-    }
+		uint32_t index = uint32_t(milliseconds / 50) % BX_COUNTOF(s_directionTransitionTable);
+		uint32_t nextIndex = (index + 1) % BX_COUNTOF(s_directionTransitionTable);
+		// hax :D
+		float t = (milliseconds % 50) / 50.f;
+		return lerp<float>(s_directionTransitionTable[index], s_directionTransitionTable[nextIndex], t);
+	}
 
 	/*
 	calculateTorsoRotation, for limiting the torso rotation to certain values
@@ -53,34 +53,64 @@ namespace arena
 	*/
 	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
 	{
-	  // TODO : Variable names need some fixing to be more understandable.
-		float pi = 3.141f;
+		float pi = 3.1416f;
 		if (direction) {
-			if (radians >= -m_torsoMinAngle && radians < m_torsoMinAngle) {
-				return radians;
+			if (radians >= -m_angleLimit1 - m_torsoRotation && radians < m_angleLimit1 - m_torsoRotation) {
+				return radians + m_torsoRotation;
 			}
-			else if (radians >= m_torsoMinAngle) {
-				return m_torsoMinAngle;
+			else if (radians >= m_angleLimit1 - m_torsoRotation) {
+				return m_angleLimit1;
 			}
-			else return -m_torsoMinAngle;
-		} 
+			else return -m_angleLimit1;
+		}
 		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
 		{
-			if (radians <= -m_torsoMaxAngle || radians <= pi && radians > m_torsoMaxAngle) {
-				return radians - pi;
+
+		//	printf("%f\n", radians);
+			if (radians <= -m_angleLimit2 + m_torsoRotation || radians <= pi && radians > m_angleLimit2 + m_torsoRotation) {
+				return radians - pi - m_torsoRotation;
 			}
-			else if (radians < m_torsoMaxAngle && radians >= 1.57f) {
-				return m_torsoMaxAngle - pi;
+			else if (radians < m_angleLimit2 + m_torsoRotation && radians >= 1.57f) {
+				return m_angleLimit2 - pi;
 			}
-			else return -m_torsoMaxAngle - pi;
+			else {
+				return -m_angleLimit2 - pi;
+			}
 		}
 	}
 
-    void CharacterAnimator::setPosition(const glm::vec2& position)
-    {
-        ARENA_ASSERT(m_legs.m_animation.m_entity != nullptr, "Leg animation hasnt been set");
-        m_position = position;
-        m_legs.m_animation.setPosition(m_legs.m_relativeOffset + position);
+	float CharacterAnimator::calculateHeadRotation(float radians, bool direction)
+	{
+	//	printf("%f\n", radians);
+		float pi = 3.1416f;
+		if (direction) {
+			if (radians >= -m_angleLimit1 && radians < m_angleLimit1) {
+				return radians;
+			}
+			else if (radians >= m_angleLimit1) {
+				return m_angleLimit1;
+			}
+			else return -m_angleLimit1;
+		}
+		else
+		{
+			if (radians <= -m_angleLimit2 || radians <= pi && radians > m_angleLimit2) {
+				return radians - pi;
+			}
+			else if (radians < m_angleLimit2 && radians >= 1.57f) {
+				return m_angleLimit2 - pi;
+			}
+			else {
+				return -m_angleLimit2 - pi;
+			}
+		}
+	}
+
+	void CharacterAnimator::setPosition(const glm::vec2& position)
+	{
+		ARENA_ASSERT(m_legs.m_animation.m_entity != nullptr, "Leg animation hasnt been set");
+		m_position = position;
+		m_legs.m_animation.setPosition(m_legs.m_relativeOffset + position);
 		m_death.m_animation.setPosition(m_death.m_relativeOffset + position);
 		if (m_climb.m_climbing == 1) // Left
 		{
@@ -90,19 +120,21 @@ namespace arena
 		{
 			m_climb.m_animation.setPosition(m_climb.m_relativeOffsetRight + position);
 		}
-    }
+	}
 
-    CharacterAnimator::CharacterAnimator() :
-        m_weaponAnimType(WeaponAnimationType::Count),
-        m_animationData(nullptr)
-    {
-		m_torsoMinAngle = 0.524f;
-		m_torsoMaxAngle = 2.619f;
+	CharacterAnimator::CharacterAnimator() :
+		m_weaponAnimType(WeaponAnimationType::Count),
+		m_animationData(nullptr)
+	{
+		m_angleLimit1 = 0.4f; // used for limiting head and torso rotation
+		m_angleLimit2 = 2.74f; // = pi - angleLimit1
 		fillMap();
 		m_aimAngle = 0;
 		m_skin = Bronze;
-		m_torso.m_sprite.m_origin = glm::vec2(18.f, 32.f);
-        m_torso.m_relativeOffset = glm::vec2(-6.f + 18.f, 37.f + 32.f);
+		m_torsoRotation = 0.5f; // how much the character is leaning forward when aiming forward
+		m_torso.m_sprite.m_origin = glm::vec2(16.f, 32.f);
+		m_torso.m_relativeOffset = glm::vec2(-5.f + 16.f, 36.f + 32.f); // original position + values used in rotation above
+		m_torso.m_sprite.m_rotation = m_torsoRotation;
 		// add death relative offset
 		m_death.m_relativeOffset = glm::vec2(11, 124);
 		m_gladiusReload.m_relativeOffset = glm::vec2(10, 45);
@@ -110,80 +142,82 @@ namespace arena
 		m_throw.m_relativeOffset = glm::vec2(10, 45);
 		m_climb.m_relativeOffsetLeft = glm::vec2(40, 124);
 		m_climb.m_relativeOffsetRight = glm::vec2(-40, 124);
-        m_legs.m_relativeOffset = glm::vec2(11, 124);
-        m_head.m_helmet.m_position = glm::vec2(-16, -57);
-		m_head.m_crest.m_position = glm::vec2(0,0);
-        // build sprite hierarchy
-        // assign crest to be child of helmet
-        m_head.m_helmet.m_children.push_back(&m_head.m_crest);
+		m_legs.m_relativeOffset = glm::vec2(11, 124);
+		m_head.m_helmet.m_origin = glm::vec2(32.f, 58.f);
+		m_head.m_helmet.m_position = glm::vec2(16.f, 1.f);
+		m_head.m_crest.m_position = glm::vec2(0, 0);
+		// build sprite hierarchy
+		// assign crest to be child of helmet
+		m_head.m_helmet.m_children.push_back(&m_head.m_crest);
 
-        // torso will hold 2 arms and head 
-        // TODO only one hand for now
-        m_torso.m_sprite.m_children.resize(AnimationPosition::Count);
-        // put helmet as first child of torso
-        m_torso.m_sprite.m_children[AnimationPosition::Helmet] = &m_head.m_helmet;
-        // this is the hand, but we dont have it. The flipX assumes there is allocated space 
-        m_torso.m_sprite.m_children[AnimationPosition::RightArm] = nullptr;
-        m_torso.m_sprite.m_children[AnimationPosition::LeftArm] = nullptr;
-    }
+		// torso will hold 2 arms and head 
+		// TODO only one hand for now
+		m_torso.m_sprite.m_children.resize(AnimationPosition::Count);
+		// put helmet as first child of torso
+		m_torso.m_sprite.m_children[AnimationPosition::Helmet] = &m_head.m_helmet;
+		// this is the hand, but we dont have it. The flipX assumes there is allocated space 
+		m_torso.m_sprite.m_children[AnimationPosition::RightArm] = nullptr;
+		m_torso.m_sprite.m_children[AnimationPosition::LeftArm] = nullptr;
+	}
 
-    void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
+	void CharacterAnimator::setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
 		SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death, SpriterEngine::EntityInstance* throwing,
 		SpriterEngine::EntityInstance* gladiusReload, SpriterEngine::EntityInstance* axeReload, SpriterEngine::EntityInstance* climb)
 	{
-        m_head.m_crest.m_texture = crest;
-        m_head.m_helmet.m_texture = helmet;
+		m_head.m_crest.m_texture = crest;
+		m_head.m_helmet.m_texture = helmet;
 
-        m_torso.m_sprite.m_texture = torso;
+		m_torso.m_sprite.m_texture = torso;
 
-        m_legs.m_animation.m_entity = legs;
+		m_legs.m_animation.m_entity = legs;
 		m_death.m_animation.m_entity = death;
 		m_climb.m_animation.m_entity = climb;
 		m_throw.m_animation.m_entity = throwing;
 		m_gladiusReload.m_animation.m_entity = gladiusReload;
 		m_axeReload.m_animation.m_entity = axeReload;
-    }
+	}
+#define PI 3.141592
+	void CharacterAnimator::rotateAimTo(float radians)
+	{
 
-    void CharacterAnimator::rotateAimTo(float radians)
-    {
 		m_aimAngle = radians;
 		float weaponAim = m_aimAngle;
+		float aimOffSet = 0;
 
 		//pi/2 = 1.5707...
-		if (m_aimAngle < 1.571 && m_aimAngle > -1.571) //if aiming right
+		if (m_aimAngle < PI / 2 && m_aimAngle > -PI / 2) //if aiming right
 		{
-			aimOffSetLeft = 0.25f;
-			weaponAim += aimOffSetLeft;
+			aimOffSet += -0.25f;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
 			m_animationData->m_leftHand->setDirection(1);
 		}
 		else //if aiming left
-		{ 
-			aimOffSetRight = -0.25f;
-			weaponAim += aimOffSetRight;
+		{
+			aimOffSet += 0.25f;
 			m_upperBodyDirection = 0;
 			m_animationData->m_rightHand->setDirection(0);
 			m_animationData->m_leftHand->setDirection(0);
 		}
 
-        ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
+		weaponAim += aimOffSet;
+		ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
 		m_animationData->m_rightHand->rotateTo(weaponAim);
-        m_animationData->m_leftHand->rotateTo(weaponAim);
+		m_animationData->m_leftHand->rotateTo(weaponAim);
 
-		//calculate torso rotation
+		//Calculate torso and head rotation
 		m_torso.m_sprite.m_rotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
-		
-    }
-    void CharacterAnimator::update(float64 dt)
-    {
-        double inMillis = dt * 1000.0;
+		m_head.m_helmet.m_rotation = calculateHeadRotation(m_aimAngle, m_upperBodyDirection);
+	}
+	void CharacterAnimator::update(float64 dt)
+	{
+		double inMillis = dt * 1000.0;
 		//calculate torso offset
 		glm::vec2 offset(
 			0.f,
 			calculateTorsoOffsetY(uint32_t(m_legs.m_animation.getCurrentTime()))
 		);
-		
+
 
 		if (m_death.dying)
 		{
@@ -191,15 +225,15 @@ namespace arena
 		}
 		else if (m_climb.m_climbing)
 		{
-			m_climb.m_animation.setTimeElapsed(inMillis/2);
+			m_climb.m_animation.setTimeElapsed(inMillis / 2);
 			if (m_climb.m_animation.getCurrentTime() == 300.0f) // this is animation specific.
-			{ 
+			{
 				m_climb.m_animation.setCurrentTime(0.0f);
 			}
 		}
-		
+
 		else
-		{ 
+		{
 			m_legs.m_animation.setTimeElapsed(inMillis * m_legs.m_playSpeedMultiplier);
 			//move torso according to leg movement
 			m_torso.m_sprite.m_position = m_position + m_torso.m_relativeOffset + offset;
@@ -232,7 +266,7 @@ namespace arena
 		{
 			m_gladiusReload.m_animation.setTimeElapsed(inMillis);
 			//move reloading arms according to leg movement
-			m_gladiusReload.m_animation.setPosition( m_position + m_gladiusReload.m_relativeOffset + offset);
+			m_gladiusReload.m_animation.setPosition(m_position + m_gladiusReload.m_relativeOffset + offset);
 			if (m_gladiusReload.m_animation.isFinished())
 			{
 				auto& childrens = m_torso.m_sprite.m_children;
@@ -242,60 +276,104 @@ namespace arena
 		}
 
 
-    }
+	}
 
-    void CharacterAnimator::setWeaponAnimation(WeaponAnimationType::Enum type)
-    {
-        ARENA_ASSERT(type != WeaponAnimationType::Count, "Invalid type for weapon animation %d", type);
-
-        if (m_weaponAnimType != type)
-        {
-            if (m_animationData != nullptr)
-            {
-                delete m_animationData;
-            }
-
-            m_animationData = getAnimationDataFor(type);
-            m_weaponAnimType = type;
-
-            auto& childrens = m_torso.m_sprite.m_children;
-            // replace the hand
-            // TODO other hands too
-            childrens[AnimationPosition::RightArm] = m_animationData->m_rightHand->getParent();
-            childrens[AnimationPosition::LeftArm] = m_animationData->m_leftHand->getParent();
-        }
-    }
-
-    void CharacterAnimator::setFlipX(bool flip)
-    {
-     
-        ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
-
-        m_flipX = flip;
-
-        if (flip)
-        {
-            m_legs.m_animation.setCurrentAnimation("1_Right_Running");
-            m_torso.m_relativeOffset.x = -8.f + 18.f;
-        }
-        else
-        {
-            m_legs.m_animation.setCurrentAnimation("1_Left_Running");
-            m_torso.m_relativeOffset.x = -4.f + 17.f;
-        }
-
-    }
-	void CharacterAnimator::stopRunningAnimation()
+	void CharacterAnimator::setWeaponAnimation(WeaponAnimationType::Enum type)
 	{
-		if (m_flipX)
-		{ 
-			m_legs.m_animation.setCurrentAnimation("1_Right_Standing");
-			m_torso.m_relativeOffset.x = -5.f + 18.f;
+		ARENA_ASSERT(type != WeaponAnimationType::Count, "Invalid type for weapon animation %d", type);
+
+		if (m_weaponAnimType != type)
+		{
+			if (m_animationData != nullptr)
+			{
+				delete m_animationData;
+			}
+
+			m_animationData = getAnimationDataFor(type);
+			m_weaponAnimType = type;
+
+			auto& childrens = m_torso.m_sprite.m_children;
+			// replace the hand
+			// TODO other hands too
+			childrens[AnimationPosition::RightArm] = m_animationData->m_rightHand->getParent();
+			childrens[AnimationPosition::LeftArm] = m_animationData->m_leftHand->getParent();
+		}
+	}
+
+	void CharacterAnimator::setFlipX(bool flip)
+	{
+
+		ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Weapon animation type hasnt been set");
+
+		m_flipX = flip;
+
+		//TODO: Do the model change somewhere else!
+		std::string tempString;
+		if (m_skin == CharacterSkin::Bronze)
+		{
+			tempString = "1_";
+		}
+		else if (m_skin == CharacterSkin::Gold)
+		{
+			tempString = "2_";
+		}
+
+
+		if (flip)
+		{
+			tempString += "Right_Running";
+			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 124;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 9.f;//-8.f + 16.f
+			else
+				m_torso.m_relativeOffset.x = 10.f;
 		}
 		else
-		{ 
-			m_legs.m_animation.setCurrentAnimation("1_Left_Standing");
-			m_torso.m_relativeOffset.x = -4.f + 17.f;
+		{
+			tempString += "Left_Running";
+			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 124;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 10.f;
+			else
+				m_torso.m_relativeOffset.x = 11.f;
+		}
+
+	}
+	void CharacterAnimator::stopRunningAnimation()
+	{
+		//TODO: Do the model change somewhere else!
+		std::string tempString;
+		if (m_skin == CharacterSkin::Bronze)
+		{
+			tempString = "1_";
+		}
+		else if (m_skin == CharacterSkin::Gold)
+		{
+			tempString = "2_";
+		}
+
+
+		if (m_flipX)
+		{
+			tempString += "Right_Standing";
+			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 123;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 11.f; //-5.f + 16.f
+			else
+				m_torso.m_relativeOffset.x = 13.f;
+		}
+		else
+		{
+			tempString += "Left_Standing";
+			m_legs.m_animation.setCurrentAnimation(tempString);
+			m_legs.m_relativeOffset.y = 123;
+			if (m_upperBodyDirection)
+				m_torso.m_relativeOffset.x = 10.f;
+			else
+				m_torso.m_relativeOffset.x = 12.f;
 		}
 		m_legs.m_animation.pausePlayback();
 		m_legs.running = false;
@@ -316,15 +394,15 @@ namespace arena
 		gladiator = m_skin; //either 0 (bronze) or 1 (gold), unless more skins are added
 		hitDirectionInt = (int)hitDirection; // either 0 (left) or 1 (right)
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
-		
+
 		//0 = legs, 1 = body, 2 = head
 		if (hitPositionY < 10)
-			bodyArea = 2; 
+			bodyArea = 2;
 		else if (hitPositionY < 60)
 			bodyArea = 1;
 		else
 			bodyArea = 0;
-		
+
 		upperBodyDirection = (int)m_upperBodyDirection;
 
 		//if the character is shot to legs, the direction of the character's upper body is the same as the direction of it's legs when dying
@@ -344,15 +422,15 @@ namespace arena
 	}
 
 	void CharacterAnimator::playClimbAnimation(int direction) {
-		
+
 		if (m_climb.m_climbing != 0)
 			return;
 		int gladiator;
 		gladiator = m_skin;
-	
+
 
 		// Get the correct animation, climb direction can be 1 (left) or 2 (right).
-		ClimbingAnimations animation = ClimbingAnimations(direction-1 + 2 * gladiator);
+		ClimbingAnimations animation = ClimbingAnimations(direction - 1 + 2 * gladiator);
 		m_climb.m_animation.setCurrentAnimation(ClimbingEnumToFileName[animation]);
 		m_climb.m_animation.setCurrentTime(0);
 		m_climb.m_climbing = direction;
@@ -362,6 +440,19 @@ namespace arena
 	{
 		m_climb.m_climbing = 0;
 	}
+	bool CharacterAnimator::isClimbing()
+	{
+		return m_climb.m_climbing;
+	}
+	void CharacterAnimator::pauseClimbAnimation()
+	{
+		m_climb.m_animation.pausePlayback();
+	}
+	void CharacterAnimator::continueClimbAnimation()
+	{
+		m_climb.m_animation.startResumePlayback();
+	}
+
 
 	void CharacterAnimator::playReloadAnimation(int weapon) {
 
