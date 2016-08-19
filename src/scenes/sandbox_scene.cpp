@@ -289,6 +289,11 @@ namespace arena
 			for (const auto& elem : m_clientIdToGladiatorData)
 			{
 				elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+
+				// Set gladiator model position bit to the left to it is on correct position;
+				Transform* transform = (Transform*)elem.second->m_entity->first(TYPEOF(Transform));
+				glm::vec2 pos = *elem.second->m_gladiator->m_position;
+				transform->m_position= glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
 			}
 
 			updateCameraPosition();
@@ -477,7 +482,6 @@ namespace arena
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			// Maybe move this to entity-update.
-			gladiatorData->m_transform->m_position = glm::vec2(packet->m_characterArray[i].m_position.x, packet->m_characterArray[i].m_position.y - 64.0f);
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
@@ -507,7 +511,7 @@ namespace arena
 			{
 				gladiatorData->m_animator->m_animator.setFlipX(0);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-				printf("MOVE, %f\n", moveSpeed.x);
+
 			}
 			else if (moveSpeed.x > 15.0f)
 			{
@@ -519,19 +523,18 @@ namespace arena
 			else
 			{
 				gladiatorData->m_animator->m_animator.stopRunningAnimation();
-				printf("STOPPED %f\n",moveSpeed.x);
+
 			}
 
 			// If gladiator is climbing a ladder, decide if still, going up or going down animation is played.
 			if (gladiatorData->m_animator->m_animator.isClimbing())
 			{
 				if (moveSpeed.y < -50.0f)
-
-					gladiatorData->m_animator->m_animator.continueClimbAnimation();
+					gladiatorData->m_animator->m_animator.continueClimbAnimation(1);
 
 				else if (moveSpeed.y > 50.0f)
 				{
-					gladiatorData->m_animator->m_animator.continueClimbAnimation();
+					gladiatorData->m_animator->m_animator.continueClimbAnimation(-1);
 				}
 				else
 				{
@@ -898,6 +901,7 @@ namespace arena
 		ResourceManager* resources = App::instance().resources();
 
 		Transform* transform = builder.addTransformComponent();
+		
 		transform->m_position = *gladiator->m_position;
 
 		Animator* animator = builder.addCharacterAnimator();

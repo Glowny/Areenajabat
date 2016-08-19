@@ -396,11 +396,14 @@ int Physics::checkIfGladiatorCollidesLadder(unsigned id)
 	b2ContactEdge* edge = getEntity(id)->m_body->GetContactList();
 	while (edge != NULL)
 	{
-		p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
-		if (data->m_bodyType == B_LadderLeft)
-			return 1;
-		else if (data->m_bodyType == B_LadderRight)
-			return 2;
+		if (edge->contact->IsTouching())
+		{ 
+			p_userData* data = static_cast<p_userData*>(edge->contact->GetFixtureA()->GetBody()->GetUserData());
+			if (data->m_bodyType == B_LadderLeft)
+				return 1;
+			else if (data->m_bodyType == B_LadderRight)
+				return 2;
+		}
 		edge = edge->next;
 	}
 	return false;

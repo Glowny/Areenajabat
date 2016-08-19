@@ -310,7 +310,7 @@ namespace arena
 					// Set from which side the gladiator attaches into the ladder.
 					gladiator->setClimbing(ladderCollide);
 					// While climbing, ignore light platforms.
-					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
+					
 				}
 			}
 			// If not colliding with ladder set climbing to false.
@@ -322,12 +322,12 @@ namespace arena
 			// If gladiator is climbing, set the gladiator velocity to desired velocity.
 			if (gladiator->isClimbing())
 			{
-				gladiator->m_ignoreLightPlatformsTimer = 0.40f;
+				m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 				desiredVelocityY = 2.0f * (float)y;
 				if (desiredVelocityY == 0)
 					desiredVelocityY = -0.16f;
 				velocityChangeY = desiredVelocityY - currentVelocity.y/200;
-				printf("Velocity needed to change: %f\n", velocityChangeY);
+
 			}
 
 			glm::vec2 force;
@@ -335,7 +335,7 @@ namespace arena
 			force.y = gladiatorMass * velocityChangeY / (float)dt;
 			force.x = gladiatorMass * velocityChangeX / (float)dt;
 
-			printf("Applying force to gladiator (%f, %f), dt %f, btn dwn: %d\n", force.x, force.y, dt, x);
+
 			m_physics.applyForceToGladiator(force, entityID);
 
 			// Set the inputs to zero as they are handled.
