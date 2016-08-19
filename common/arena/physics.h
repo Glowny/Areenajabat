@@ -257,6 +257,7 @@ public:
 	void applyExplosionToGladiator(glm::vec2* origin, glm::vec2* target, float constant, unsigned id);
 	glm::vec2 getGladiatorVelocity(unsigned id);
 	glm::vec2 getGladiatorPosition(unsigned id);
+	float getGladiatorMass(unsigned id);
 	bool checkIfGladiatorCollidesPlatform(unsigned id);
 	int checkIfGladiatorCollidesLadder(unsigned id);
 	//void addCollisionCallback(CollisionCallback callback);

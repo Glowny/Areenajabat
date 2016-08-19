@@ -251,7 +251,7 @@ namespace arena
 
 			// TODO: Make a sensor physics object under player that detects platforms.
 			if (input.m_jumpButtonDown && m_physics.checkIfGladiatorCollidesPlatform(entityID)
-				&& (gladiator->m_jumpCoolDownTimer > 0.25f))
+				&& (gladiator->m_jumpCoolDownTimer > 0.4f))
 			{
 				input.m_jumpButtonDown = false;
 				gladiator->m_jumpCoolDownTimer = 0;
@@ -259,13 +259,13 @@ namespace arena
 				glm::vec2 force;
 				if (x == 0)
 				{
-					force.y = -400.0f;
+					force.y = -330.0f;
 					force.x = 0;
 				}
 				else
 				{
-					force.y = -300.0f;
-					force.x = x * 150.0f;
+					force.y = -200.0f;
+					force.x = x * 300.0f;
 				}
 				m_physics.applyImpulseToGladiator(force, entityID);
 			}
@@ -282,8 +282,14 @@ namespace arena
 
 			// reserve upbutton for ladder climb
 			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(entityID);
-			float desiredVelocityX = 300.0f * (float)x;
-			float velocityChangeX = desiredVelocityX - currentVelocity.x;
+			float desiredVelocityX;
+			//Slow down gradually so huge forces are not applied if input is missed once.
+			if (x == 0)
+				desiredVelocityX = currentVelocity.x/100 * 0.8f;
+			else
+				desiredVelocityX = 3.0f * (float)x;
+			
+			float velocityChangeX = desiredVelocityX - currentVelocity.x/100;
 			// add more velocity only if climbing ladders.
 			float desiredVelocityY = 0;
 			float velocityChangeY = 0;
@@ -317,18 +323,19 @@ namespace arena
 			if (gladiator->isClimbing())
 			{
 				gladiator->m_ignoreLightPlatformsTimer = 0.40f;
-				desiredVelocityY = 300.0f * (float)y;
-				velocityChangeY = desiredVelocityY - currentVelocity.y;
+				desiredVelocityY = 2.0f * (float)y;
+				if (desiredVelocityY == 0)
+					desiredVelocityY = -0.16f;
+				velocityChangeY = desiredVelocityY - currentVelocity.y/200;
 				printf("Velocity needed to change: %f\n", velocityChangeY);
 			}
 
-
-			
-
 			glm::vec2 force;
-			force.y = 1500.0f * velocityChangeY * (float)dt;
-			force.x = 1500.0f * velocityChangeX * (float)dt;
+			float gladiatorMass = m_physics.getGladiatorMass(entityID);
+			force.y = gladiatorMass * velocityChangeY / (float)dt;
+			force.x = gladiatorMass * velocityChangeX / (float)dt;
 
+			printf("Applying force to gladiator (%f, %f), dt %f, btn dwn: %d\n", force.x, force.y, dt, x);
 			m_physics.applyForceToGladiator(force, entityID);
 
 			// Set the inputs to zero as they are handled.
@@ -723,8 +730,7 @@ namespace arena
 			// Do normal updates.
 			if ((m_physics.updateTimer += dt) >= PHYSICS_TIMESTEP)
 			{
-				// Update physics
-				m_physics.update(m_physics.updateTimer);
+				
 
 				//Check game end
 				if (m_gameMode->isEnd()&& players().size() != 1 ) {
@@ -832,6 +838,8 @@ namespace arena
 						}
 					}
 				}
+				// Update physics
+				m_physics.update(m_physics.updateTimer);
 				m_physics.updateTimer = 0;
 
 			}

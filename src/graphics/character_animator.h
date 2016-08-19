@@ -187,6 +187,9 @@ namespace arena
 		void playDeathAnimation(bool hitDirection, float hitPositionY);
 
 		void playClimbAnimation(int direction);
+		bool isClimbing();
+		void pauseClimbAnimation();
+		void continueClimbAnimation();
 		void endClimbAnimation();
 
 		void stopRunningAnimation();

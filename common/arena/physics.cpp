@@ -276,8 +276,8 @@ void Physics::addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint3
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 2.5f;
-	fixtureDef.friction = 0.8f;
+	//fixtureDef.density = 2.5f;
+	fixtureDef.friction = 0.2f; //0.8f;
 	fixtureDef.filter = b2Filters[ci_Gladiator];
 	
 	fixtureDef.filter.groupIndex = gladiatorIdToGroupId(glad->m_id);
@@ -443,6 +443,12 @@ glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 	velocity.y = vel.y*100.0f;
 	return velocity;
 }
+float Physics::getGladiatorMass(unsigned id)
+{
+	return getEntity(id)->m_body->GetMass();
+	
+}
+
 void Physics::removeGladiator(unsigned id)
 {
     BX_UNUSED(id);

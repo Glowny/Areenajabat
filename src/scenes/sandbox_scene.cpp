@@ -500,25 +500,45 @@ namespace arena
 			}
 
 			// TODO: move this to entity-update.
-			float moveSpeed = packet->m_characterArray[i].m_velocity.x;
+			// Set player legs move according to x-velocity.
+			glm::vec2 moveSpeed = packet->m_characterArray[i].m_velocity;
 			// Max movement speed is 300.
-			if (moveSpeed < -25.0f)
+			if (moveSpeed.x < -15.0f)
 			{
 				gladiatorData->m_animator->m_animator.setFlipX(0);
-				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed / 300.0f));
+				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
+				//printf("MOVE, %f\n", moveSpeed.x);
 			}
-			else if (moveSpeed > 25.0f)
+			else if (moveSpeed.x > 15.0f)
 			{
 
 				gladiatorData->m_animator->m_animator.setFlipX(1);
-				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed / 300.0f));
+				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
+				//printf("MOVE %f\n",moveSpeed.x);
 			}
 			else
 			{
 				gladiatorData->m_animator->m_animator.stopRunningAnimation();
+				printf("STOPPED %f\n",moveSpeed.x);
+			}
+
+			// If gladiator is climbing a ladder, decide if still, going up or going down animation is played.
+			if (gladiatorData->m_animator->m_animator.isClimbing())
+			{
+				if (moveSpeed.y < -50.0f)
+
+					gladiatorData->m_animator->m_animator.continueClimbAnimation();
+
+				else if (moveSpeed.y > 50.0f)
+				{
+					gladiatorData->m_animator->m_animator.continueClimbAnimation();
+				}
+				else
+				{
+					gladiatorData->m_animator->m_animator.pauseClimbAnimation();
+				}
 			}
 		}
-
 	}
 	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
 	{
