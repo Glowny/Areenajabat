@@ -271,8 +271,8 @@ namespace arena
 			}
 
 			// Do not add forces if there are none.
-			if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown))
-				continue;
+			//if (!(input.m_leftButtonDown || input.m_rightButtonDown || input.m_upButtonDown || input.m_downButtonDown))
+			//	continue;
 
 
 			if (input.m_leftButtonDown)	x = -1;
@@ -288,25 +288,42 @@ namespace arena
 			float desiredVelocityY = 0;
 			float velocityChangeY = 0;
 
-			gladiator->setClimbing(0);
-			if (input.m_upButtonDown || input.m_downButtonDown)
-			{
-				if (input.m_downButtonDown)
-				{
-					gladiator->m_ignoreLightPlatformsTimer = 0.00f;
-					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
-				}
-				int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(entityID);
-				if (ladderCollide != 0)
-				{
-					gladiator->m_ignoreLightPlatformsTimer = 0.40f;
-					desiredVelocityY = 300.0f * (float)y;
-					velocityChangeY = desiredVelocityY - currentVelocity.y;
-					gladiator->setClimbing(ladderCollide);
-					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
-				}
 
+			if (input.m_downButtonDown)
+			{
+				gladiator->m_ignoreLightPlatformsTimer = 0.00f;
+				m_physics.setGladiatorCollideLightPlatforms(entityID, false);
 			}
+			int ladderCollide = m_physics.checkIfGladiatorCollidesLadder(entityID);
+			// If colliding with ladder
+			if (ladderCollide != 0)
+			{
+				// If colliding with ladder and up or down button is down, start climbing
+				if ((input.m_upButtonDown || input.m_downButtonDown))
+				{ 
+					// Set from which side the gladiator attaches into the ladder.
+					gladiator->setClimbing(ladderCollide);
+					// While climbing, ignore light platforms.
+					m_physics.setGladiatorCollideLightPlatforms(entityID, false);
+				}
+			}
+			// If not colliding with ladder set climbing to false.
+			else
+			{
+				gladiator->setClimbing(0);
+			}
+			
+			// If gladiator is climbing, set the gladiator velocity to desired velocity.
+			if (gladiator->isClimbing())
+			{
+				gladiator->m_ignoreLightPlatformsTimer = 0.40f;
+				desiredVelocityY = 300.0f * (float)y;
+				velocityChangeY = desiredVelocityY - currentVelocity.y;
+				printf("Velocity needed to change: %f\n", velocityChangeY);
+			}
+
+
+			
 
 			glm::vec2 force;
 			force.y = 1500.0f * velocityChangeY * (float)dt;

@@ -52,7 +52,7 @@ namespace arena
 				return true;
 			return false;
 		}
-		// Set climbing to 0 for no climbing, 1 for up, 2 for down.
+		// Set climbing to 0 for no climbing, 1 for left, 2 for right
 		void setClimbing(uint8_t climbDir)
 		{
 			m_climbing = climbDir;
@@ -89,6 +89,11 @@ namespace arena
 				return false;
 			}
 			return true;
+		}
+
+		bool isClimbing()
+		{
+			return m_isClimbing;
 		}
 
 		std::vector<Bullet*> shoot()
