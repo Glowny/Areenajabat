@@ -719,6 +719,18 @@ namespace arena
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
 					}
+
+					if (entityId->m_id == EntityIdentification::GrenadeSmoke)
+					{
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 2));
+					}
+
+					if (entityId->m_id == EntityIdentification::Explosion)
+					{
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1));
+					}
 				}
 
 				// Move entities that need to be moved
@@ -1198,38 +1210,24 @@ namespace arena
 	{
 		EntityBuilder builder;
 		ResourceManager* resources = App::instance().resources();
-		builder.begin();
 		
-		{
-			Timer* timer = builder.addTimer();
-			builder.addIdentifier(EntityIdentification::Explosion);
-			timer->m_lifeTime = 0.1f;
-
-			// Drawing stuff
-			Transform* transform = builder.addTransformComponent();
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
-
-			transform->m_position = glm::vec2(bullet.m_position->x - 32.0f, bullet.m_position->y - 32.0f);
-
-			renderer->anchor();
-			registerEntity(builder.getResults());
-		}
-
-		for (int i = 0; i < rand() % 8 + 3; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			int spriteX = rand() % 4;
+			int spriteY = 0;
+
+			if (spriteX == 0)
+				spriteY = rand() % 2;
 
 			float rotation = 0;
 			int xOffset = 0, yOffset = 0;
 
 			builder.begin();
 
-			builder.addIdentifier(EntityIdentification::Smoke);
+			builder.addIdentifier(EntityIdentification::GrenadeSmoke);
 			// Timer
 			Timer* timer = builder.addTimer();
-			timer->m_lifeTime = 1.0f;
+			timer->m_lifeTime = 2.0f;
 
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
@@ -1238,33 +1236,59 @@ namespace arena
 			glm::vec2& origin = renderer->getOrigin();
 			origin.x = origin.x + 64; origin.y = origin.y + 64;
 			renderer->setRotation(float32(rand() % 7));
+			renderer->setSize(2048.f, 1024.f);
 			Rectf& source = renderer->getSource();
-			source.x = 128 * (float)spriteX; source.y = 0; source.w = 128; source.h = 128;
+			source.x = 128 * (float)spriteX; source.y = 128 * (float)spriteY; source.w = 128; source.h = 128;
 
 
 			if (rand() % 2 == 1) {
-				xOffset = rand() % 50;
-				rotation = (rand() % 3) / 100.0f;
+				xOffset = rand() % 40;
 			}
 			else {
-				xOffset = -(rand() % 50);
-				rotation = -(float)(rand() % 3) / 100.0f;
+				xOffset = -(rand() % 40);
 			}
 			if (rand() % 2 == 1) {
-				yOffset = rand() % 10;
+				yOffset = rand() % 40;
 			}
 			else {
-				yOffset = -(rand() % 10);
+				yOffset = -(rand() % 40);
+			}
+			if (rand() % 2 == 1) {
+				rotation = 0.001f;
+			}
+			else {
+				rotation = -0.001f;
 			}
 
 			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet.m_position->x-32.0f, bullet.m_position->y-32.0f);
+			transform->m_position = glm::vec2(bullet.m_position->x - 32.0f + xOffset, bullet.m_position->y - 32.0f + yOffset);
 
 			// Movement
 			Movement* movement = builder.addMovement();
 			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 5.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 5.0f);
+			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 10.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 10.0f);
 			movement->m_rotationSpeed = rotation;
+
+			renderer->anchor();
+			registerEntity(builder.getResults());
+		}
+
+		{
+			builder.begin();
+			Timer* timer = builder.addTimer();
+			builder.addIdentifier(EntityIdentification::Explosion);
+			timer->m_lifeTime = 0.05f;
+
+			// Drawing stuff
+			Transform* transform = builder.addTransformComponent();
+			SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
+			glm::vec2& origin = renderer->getOrigin();
+			origin.x = origin.x + 64; origin.y = origin.y + 64;
+			renderer->setSize(256.f, 256.f);
+
+			transform->m_position = glm::vec2(bullet.m_position->x - 0.0f, bullet.m_position->y - 0.0f);
 
 			renderer->anchor();
 			registerEntity(builder.getResults());
@@ -1366,7 +1390,7 @@ namespace arena
 		case 3:
 		{
 			createExplosionEntity(bullet);
-			createBloodExplosionHitEntity(bullet);
+			//createBloodExplosionHitEntity(bullet);
 			break;
 		}
 		default:
