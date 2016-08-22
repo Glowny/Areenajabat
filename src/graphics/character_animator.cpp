@@ -225,7 +225,7 @@ namespace arena
 		}
 		else if (m_climb.m_climbing)
 		{
-			m_climb.m_animation.setTimeElapsed(inMillis / 2 * m_climb.m_climbVerticalDirection);
+			m_climb.m_animation.setTimeElapsed(inMillis / 2 * m_climb.m_climbSpeed / 400 * -1 );
 			if (m_climb.m_animation.getCurrentTime() == 300.0f) // this is animation specific.
 			{
 				m_climb.m_animation.setCurrentTime(0.0f);
@@ -448,9 +448,10 @@ namespace arena
 	{
 		m_climb.m_animation.pausePlayback();
 	}
-	void CharacterAnimator::continueClimbAnimation(int verticalDirection)
+	void CharacterAnimator::continueClimbAnimation(int verticalDirection, float speed)
 	{
 		m_climb.m_climbVerticalDirection = verticalDirection;
+		m_climb.m_climbSpeed = speed;
 		m_climb.m_animation.startResumePlayback();
 	}
 

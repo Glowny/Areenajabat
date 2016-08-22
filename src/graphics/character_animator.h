@@ -124,7 +124,9 @@ namespace arena
 		glm::vec2 m_relativeOffsetLeft;
 		glm::vec2 m_relativeOffsetRight;
 		int m_climbing;
+		// TODO: remove direction as speed can be used.
 		int m_climbVerticalDirection = 1;
+		float m_climbSpeed;
 	};
 
 	struct Reload
@@ -190,7 +192,7 @@ namespace arena
 		void playClimbAnimation(int direction);
 		bool isClimbing();
 		void pauseClimbAnimation();
-		void continueClimbAnimation(int verticalDirection);
+		void continueClimbAnimation(int verticalDirection, float speed);
 		void endClimbAnimation();
 
 		void stopRunningAnimation();

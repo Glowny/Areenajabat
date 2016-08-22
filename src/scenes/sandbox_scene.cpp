@@ -530,11 +530,11 @@ namespace arena
 			if (gladiatorData->m_animator->m_animator.isClimbing())
 			{
 				if (moveSpeed.y < -50.0f)
-					gladiatorData->m_animator->m_animator.continueClimbAnimation(1);
+					gladiatorData->m_animator->m_animator.continueClimbAnimation(1, moveSpeed.y);
 
 				else if (moveSpeed.y > 50.0f)
 				{
-					gladiatorData->m_animator->m_animator.continueClimbAnimation(-1);
+					gladiatorData->m_animator->m_animator.continueClimbAnimation(-1, moveSpeed.y);
 				}
 				else
 				{
@@ -968,8 +968,13 @@ namespace arena
 		Animator* animator = builder.addCharacterAnimator();
 		CharacterAnimator& anim = animator->m_animator;
 		
-		arena::CharacterSkin skin = (CharacterSkin)characterData.m_team;
+		int skinNumber = characterData.m_team;
+		if (skinNumber > 1)
+			skinNumber = 0;
+
+		arena::CharacterSkin skin = (CharacterSkin)skinNumber;
 		
+
 		anim.setCharacterSkin(skin);
 		
 		std::string tempCrestString;
