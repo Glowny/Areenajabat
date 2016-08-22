@@ -6,8 +6,8 @@
 
 #define GLADIUSIMPULSE 20.0f
 #define SHOTGUNIMPULSE 13.0f
-#define GRENADEIMPULSE 13.0f
-#define EXPLOSIONIMPULSE 500.0f
+#define GRENADEIMPULSE 500.0f
+#define EXPLOSIONIMPULSE 400.0f
 namespace arena
 {
 	enum WeaponType :uint8_t

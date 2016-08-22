@@ -183,7 +183,7 @@ namespace arena
 		void setCharacterSkin(CharacterSkin skin);
 
         void setFlipX(bool flip);
-
+		bool getFlipX() { return m_flipX; };
 
         void setWeaponAnimation(WeaponAnimationType::Enum type);
 

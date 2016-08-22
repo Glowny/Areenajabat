@@ -20,7 +20,8 @@ namespace arena
 		HitBlood,
 		MousePointer,
 		Platform,
-		ExplosionBlood
+		ExplosionBlood,
+		Magazine,
 	};
 
 	class Id final : public Component

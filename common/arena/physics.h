@@ -270,8 +270,7 @@ public:
 	void addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID);
 	void addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID);
 	float32 getEntityRotation(unsigned id);
-	
-	// TODO: Rename this to removeEntity. Use the same system to remove bullets, grenades and explosions.
+	float32 getClientSideEntityRotation(unsigned id);
 	void removeEntity(uint8_t id);
 
 	ContactListener m_ContactListener;
@@ -279,8 +278,16 @@ public:
 	std::vector<BulletHit> hitVector;
 	std::vector<p_entity*> m_entityVector;
 
-private:
+	// Clientside physics, move at some point to a separate file.
+	// Use separate ids.
+	void addMagazine(glm::vec2* position, glm::vec2 impulse, uint8_t id);
+	void removeClientSideEntity(uint8_t id);
 	
+	std::vector<p_entity*> m_clientEntityVector;
+	// Clientside physics end.
+
+private:
+	p_entity* getClientSideEntity(uint8_t id);
 	//ArenaContactListener m_listener;
 	p_entity* getEntity(uint8_t id);
 	std::vector<CollisionCallback> m_callbacks;

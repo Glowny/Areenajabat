@@ -16,7 +16,7 @@ namespace arena
 
 	public:
 		uint8_t m_physicsId = 0;
-
+		bool clientSide = false;
 		~PhysicsComponent() = default;
 		PhysicsComponent() = default;
 	protected:

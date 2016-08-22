@@ -91,6 +91,7 @@ namespace arena
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(glm::vec2 position, glm::vec2 velocity);
 		void createExplosionEntity(const Bullet& bullet);
+		Entity* createMagazineEntity(glm::vec2 position, glm::vec2 force);
 		void createBloodBulletHitEntity(unsigned direction, glm::vec2 position);
 		void createBloodExplosionHitEntity(Bullet & bullet);
 		void createPlatformBulletHitEntity(Bullet& bullet);
@@ -131,6 +132,12 @@ namespace arena
 		std::vector<Player>* m_players;
 		GameMode* m_gameMode;
 		glm::vec2 m_screenSize = glm::vec2(1920, 1080);
+
+
+		uint8_t getFreeEntityId();
+		void nextUint8_t(uint8_t& current);
+		uint8_t currentFreeId = 0;
+		uint8_t isIdFree[255];
     };
 
 	static void inputMoveLeft(const void*);

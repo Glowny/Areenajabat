@@ -93,7 +93,7 @@ void Physics::update(float64 timeStep)
 
 	m_b2DWorld->Step(timeStep, VelocityIterations, PositionIterations);
 
-	// Set gladiator positions.
+	// Set Entities positions.
 	for (unsigned i = 0; i < m_entityVector.size(); i++)
 	{
 		if (m_entityVector[i]->m_type == bodyType::B_Gladiator)
@@ -112,8 +112,17 @@ void Physics::update(float64 timeStep)
 			*bullet->gamePosition = glm::vec2(position.x * 100, position.y * 100);
 		}
 		
-
 	}
+	for (unsigned i = 0; i < m_clientEntityVector.size(); i++)
+	{
+		if (m_clientEntityVector[i]->m_type == bodyType::B_Grenade)
+		{
+			p_Bullet* bullet = static_cast<p_Bullet*>(m_clientEntityVector[i]);
+			b2Vec2 position = bullet->m_body->GetPosition();
+			*bullet->gamePosition = glm::vec2(position.x * 100, position.y * 100);
+		}
+	}
+
 
 	#pragma region Old impl
 	// TODO: old impl, see contact listener.
@@ -438,6 +447,52 @@ int Physics::checkIfGladiatorCollidesLadder(unsigned id)
 //	}
 //}
 
+void Physics::addMagazine(glm::vec2* position, glm::vec2 impulse, uint8_t id)
+{
+
+	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), imp(impulse.x / 100.0f, impulse.y / 100.0f);
+	b2BodyDef magBodyDef;
+	magBodyDef.type = b2_dynamicBody;
+	magBodyDef.position.Set(pos.x, pos.y);
+	//bulletBodyDef.bullet = true;
+	b2Body* body = m_b2DWorld->CreateBody(&magBodyDef);
+
+	b2PolygonShape dynamicBox;
+	dynamicBox.SetAsBox(0.14f, 0.29f);
+
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &dynamicBox;
+	//fixtureDef.density = 0.5f;
+	fixtureDef.friction = 3.01f;
+	fixtureDef.restitution = 0.0f;
+	fixtureDef.filter = b2Filters[ci_Grenade];
+	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
+
+	b2MassData data;
+	data.center = b2Vec2(0.07f, 0.145f);
+	data.mass = 0.05f;
+	body->SetMassData(&data);
+	body->CreateFixture(&fixtureDef);
+	body->SetAngularDamping(3.50f);
+
+	p_Bullet* bullet = new p_Bullet;
+	bullet->m_id = id;
+	p_userData* userData = new p_userData;
+	userData->m_bodyType = B_Grenade;
+	bullet->m_type = B_Grenade;
+	bullet->m_bulletType = arena::BulletType::GrenadeBullet;
+	userData->m_object = bullet;
+	bullet->m_myUserData = userData;
+	bullet->m_body = body;
+	bullet->m_body->SetActive(true);
+	bullet->m_contact = false;
+	bullet->m_contactBody = B_NONE;
+	bullet->gamePosition = position;
+	body->SetUserData(userData);
+	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
+	m_clientEntityVector.push_back(bullet);
+}
+
 glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 {
 	b2Vec2 vel = getEntity(id)->m_body->GetLinearVelocity();
@@ -526,34 +581,38 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 
 };
 
-
 void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned shooterID, uint8_t bulletID)
 {
 	b2Vec2 pos(position->x / 100.0f, position->y / 100.0f), imp(impulse.x / 100.0f, impulse.y / 100.0f);
 	b2BodyDef bulletBodyDef;
 	bulletBodyDef.type = b2_dynamicBody;
+	bulletBodyDef.angle = 0.8f;
+	bulletBodyDef.fixedRotation = false;
 	bulletBodyDef.position.Set(pos.x, pos.y);
 	//bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.014f, 0.029f);
+	dynamicBox.SetAsBox(0.14f, 0.29f);
+	
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
-	fixtureDef.density = 6.5f;
-	fixtureDef.friction = 3.01f;
-	fixtureDef.restitution = 0.0f;
+
+	fixtureDef.friction = 1.0f;
+	fixtureDef.restitution = 0.23f;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.center = b2Vec2(0.007f, 0.0145f);
-	
+	data.center = b2Vec2(0.07f, 0.29);
+	data.mass = 0.390f;
 
+	
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
-	body->SetAngularDamping(3.50f);
+	//body->SetAngularDamping(0);
+	body->SetLinearDamping(0.2);
 
 	p_Bullet* bullet = new p_Bullet;
 	bullet->m_id = bulletID;
@@ -570,10 +629,13 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	bullet->m_shooterID = shooterID;
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
-	bullet->m_body->ApplyLinearImpulse(imp, data.center, true);
+	bullet->m_body->ApplyLinearImpulse(imp, b2Vec2(data.center.x+0.1f, data.center.y), true);
 	m_entityVector.push_back(bullet);
 
 };
+
+
+
 float32 Physics::getEntityRotation(unsigned id)
 {
 	for (unsigned i = 0; i < m_entityVector.size(); i++)
@@ -583,8 +645,21 @@ float32 Physics::getEntityRotation(unsigned id)
 			return m_entityVector[i]->m_body->GetAngle();
 		}
 	}
-		return 0.0f;
 		printf("Trying to get rotation of entity with no body\n");
+		return 0.0f;
+}
+
+float32 Physics::getClientSideEntityRotation(unsigned id)
+{
+	for (unsigned i = 0; i < m_clientEntityVector.size(); i++)
+	{
+		if (id == m_clientEntityVector[i]->m_id && m_clientEntityVector[i]->m_body != nullptr)
+		{
+			return m_clientEntityVector[i]->m_body->GetAngle();
+		}
+	}
+	printf("Trying to get rotation of entity with no body\n");
+	return 0.0f;
 }
 
 void Physics::addExplosionWithID(glm::vec2* position, float radius, unsigned shooterID, uint8_t bulletID)
@@ -642,7 +717,6 @@ void Physics::reset()
 }
 void Physics::removeEntity(uint8_t id)
 {
-	// TODO: Do proper removal.
 	for (unsigned i = 0; i < m_entityVector.size(); i++)
 	{
 		if (id == m_entityVector[i]->m_id)
@@ -650,6 +724,21 @@ void Physics::removeEntity(uint8_t id)
 			m_entityVector[i]->cleanUp();
 			delete m_entityVector[i];
 			m_entityVector.erase(m_entityVector.begin() + i);
+			break;
+		}
+	}
+
+}
+
+void Physics::removeClientSideEntity(uint8_t id)
+{
+	for (unsigned i = 0; i < m_clientEntityVector.size(); i++)
+	{
+		if (id == m_clientEntityVector[i]->m_id)
+		{
+			m_clientEntityVector[i]->cleanUp();
+			delete m_clientEntityVector[i];
+			m_clientEntityVector.erase(m_entityVector.begin() + i);
 			break;
 		}
 	}
@@ -669,4 +758,14 @@ p_entity* Physics::getEntity(uint8_t id)
 			return *entity;
 	}
     return nullptr;
+}
+
+p_entity* Physics::getClientSideEntity(uint8_t id)
+{
+	for (auto entity = m_clientEntityVector.begin(); entity != m_clientEntityVector.end(); entity++)
+	{
+		if ((*entity)->m_id == id)
+			return *entity;
+	}
+	return nullptr;
 }

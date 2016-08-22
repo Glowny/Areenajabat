@@ -465,12 +465,10 @@ namespace arena
 			platform.vertices.push_back(packet->m_platform.m_vertexArray[i]);
 		}
 		m_platformVector.push_back(platform);
-		// TODO: There is a bug that receives empty platform.
-		//if (platform.vertices.size() >= 2)
-		//{
-			m_physics.createPlatform(platform.vertices, platform.type);
-		//}
+
+		m_physics.createPlatform(platform.vertices, platform.type);
 	}
+	
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
 		if (packet->m_playerAmount > m_clientIdToGladiatorData.size())
@@ -489,6 +487,9 @@ namespace arena
 			if (packet->m_characterArray[i].m_reloading)
 			{
 				gladiatorData->m_animator->m_animator.playReloadAnimation(0);
+				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
+				createPos = glm::vec2(createPos.x + gladiatorData->m_animator->m_animator.getFlipX() * 64 - 46, createPos.y - 32.0f);
+				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity);
 			}
 			if (packet->m_characterArray[i].m_throwing)
 			{
@@ -690,7 +691,7 @@ namespace arena
 	{
 
 		// TODO: Do own systems for these.
-		// Like this 
+
 		updateServerBullets(gameTime);
 		PhysicsManager::instance().update(gameTime);
 
@@ -755,9 +756,16 @@ namespace arena
 
 			if (entity->contains(TYPEOF(PhysicsComponent)))
 			{
+				
 				PhysicsComponent* physicsComponent = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
 				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-				renderer->setRotation(m_physics.getEntityRotation(physicsComponent->m_physicsId));
+				float rotation = 0;
+				if (physicsComponent->clientSide)
+					rotation = m_physics.getClientSideEntityRotation(physicsComponent->m_physicsId);
+				else
+					rotation =m_physics.getEntityRotation(physicsComponent->m_physicsId);
+
+				renderer->setRotation(rotation);
 			}
 
 			if (entity->contains(TYPEOF(Id)))
@@ -875,7 +883,8 @@ namespace arena
 
 					rectangle = render->getSource();
 
-				};
+				}
+
 
 			}
 			iterator++;
@@ -1147,11 +1156,7 @@ namespace arena
 			Projectile* projectile = builder.addProjectile();
 			projectile->bullet = *bullet;
 		}
-		else
-		{
-			PhysicsComponent* component = builder.addPhysicsComponent();
-			component->m_physicsId = bullet->getEntityID();
-		}
+
 		
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
@@ -1167,6 +1172,38 @@ namespace arena
 
 		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
 		physicsComponent->m_physicsId = bullet->getEntityID();
+
+		Entity* entity = builder.getResults();
+		registerEntity(entity);
+
+		return entity;
+	}
+
+	Entity* SandboxScene::createMagazineEntity(glm::vec2 position, glm::vec2 force)
+	{
+		EntityBuilder builder;
+		builder.begin();
+
+		PhysicsComponent* component = builder.addPhysicsComponent();
+		component->m_physicsId = getFreeEntityId();
+		component->clientSide = true;
+		Transform* transform = builder.addTransformComponent();
+		transform->m_position = position;
+		transform->m_origin = glm::vec2(10, 10);
+		m_physics.addMagazine(&transform->m_position, glm::vec2(force.x/100, force.y/100),component->m_physicsId);
+
+		builder.addIdentifier(arena::EntityIdentification::Magazine);
+		Timer* timer =builder.addTimer();
+		timer->m_lifeTime = 5;
+		timer->m_currentTime = 0;
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gladiusClip.png"));
+		renderer->setRotation(0.0f);
+
+		renderer->anchor();
 
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
@@ -1732,5 +1769,33 @@ namespace arena
 			}
 		}
 
+	}
+	uint8_t SandboxScene::getFreeEntityId()
+	{
+		nextUint8_t(currentFreeId);
+		return currentFreeId;
+	}
+
+	void SandboxScene::nextUint8_t(uint8_t& current)
+	{
+		uint8_t old = current;
+		current++;
+
+		// search for id till there is a free one left. Will crash if there is none left.
+		while (current != old)
+		{
+
+			if (current > 255)
+				current = 0;
+			if (isIdFree[current])
+			{
+				isIdFree[current] = false;
+				return;
+			}
+			current++;
+		}
+		// If this happens, there is no free ids left. To add more bullets, use bigger data type
+		printf("No more bullet ids id: %d\n", current);
+		assert(false);
 	}
 }
