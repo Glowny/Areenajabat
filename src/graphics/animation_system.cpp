@@ -23,6 +23,8 @@ namespace arena
 
         ~GladiusRightArm() override {}
 
+		
+
         void create() override
         {
             ResourceManager* resources = App::instance().resources();
@@ -104,6 +106,15 @@ namespace arena
 				m_gun.m_rotation = glm::radians(m_gunAngle);
 				m_foreArm.m_position.x = 5.f;
 			}
+		}
+
+		void setRecoil(bool recoilState) override
+		{
+			// Do stuff here when recoil happens/ends.
+			if (recoilState)
+				m_foreArm.m_scale = glm::vec2(1.1, 1.1);
+			else
+				m_foreArm.m_scale = glm::vec2(1, 1);
 		}
 
         CompositeSprite* getParent() override
@@ -204,6 +215,14 @@ namespace arena
 				m_foreArm.m_rotation = glm::radians(m_forearmAngle);
 				m_foreArm.m_position.x = 5.f;
 			}
+		}
+		void setRecoil(bool recoilState) override
+		{
+			// Do stuff here when recoil happens/ends.
+			if (recoilState)
+				m_foreArm.m_scale = glm::vec2(1.1, 1.1);
+			else
+				m_foreArm.m_scale = glm::vec2(1, 1);
 		}
 
         CompositeSprite* getParent() override

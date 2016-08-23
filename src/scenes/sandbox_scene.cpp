@@ -1042,7 +1042,7 @@ namespace arena
 	}
 	void SandboxScene::createBullet(BulletData &data)
 	{
-		// TODO: add some identifier (Color?) on bullets, to see clientside/serverside difference.
+		m_clientIdToGladiatorData[data.m_ownerId]->m_animator->m_animator.setRecoil(true);
 
 		// Create bullet entity that is updated by server. (DEBUG)
 		Bullet* bullet = new Bullet;

@@ -203,6 +203,8 @@ namespace arena
 
 		void playThrowAnimation(int weapon, int weaponSkin);
 
+		void setRecoil(bool recoilState);
+
 		void resetAnimation();
 
         void setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
@@ -238,8 +240,8 @@ namespace arena
 		float m_aimAngle;
 		void fillMap();
 		bool m_upperBodyDirection;
-	
-
+		bool m_recoilState = false;
+		float m_recoilTimer = 0;
 		std::map<unsigned, std::string> ClimbingEnumToFileName;
 		std::map<unsigned, std::string> DyingEnumToFileName;
 		std::map<unsigned, std::string> ReloadingEnumToFileName;
