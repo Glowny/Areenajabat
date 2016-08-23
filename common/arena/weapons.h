@@ -8,7 +8,7 @@
 #define SHOTGUNIMPULSE 13.0f
 #define GRENADEIMPULSE 500.0f
 #define EXPLOSIONIMPULSE 400.0f
-#define SHARDIMPULSE 25.0f;
+#define SHARDIMPULSE 25.0f
 
 namespace arena
 {

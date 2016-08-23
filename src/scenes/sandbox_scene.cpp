@@ -1088,6 +1088,15 @@ namespace arena
 			m_physics.addGrenadeWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
+		case BulletType::ShardBullet:
+		{
+			bullet->m_impulse = glm::vec2(vectorAngle.x * SHARDIMPULSE, vectorAngle.y * SHARDIMPULSE);
+			serverEntity = createBulletEntity(bullet, true);
+			clientEntity = createBulletEntity(bullet, false);
+			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
+			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
+			break;
+		}
 		default:
 		{
 			serverEntity = createBulletEntity(bullet, true);
