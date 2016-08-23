@@ -14,7 +14,7 @@
 #include "../ecs/managers/animator_manager.h"
 #include "../ecs/managers/projectile_manager.h"
 #include "../ecs/managers/physics_manager.h"
-
+#include "../ecs/bullet_trail.h"
 
 #include "../res/resource_manager.h"
 #include "../res/texture_resource.h"
@@ -715,24 +715,30 @@ namespace arena
 				{
 					Id* entityId = (Id*)entity->first(TYPEOF(Id));
 					// If entity is type of smoke, fade it.
+					SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 					
 					if (entityId->m_id == EntityIdentification::Smoke)
 					{
-						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
 					}
 
 					if (entityId->m_id == EntityIdentification::GrenadeSmoke)
 					{
-						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1.5));
 					}
 
 					if (entityId->m_id == EntityIdentification::Explosion)
 					{
-						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1));
 					}
+					
+				}
+
+				if (entity->contains(TYPEOF(BulletTrail)))
+				{
+					//BulletTrail* entityId = (BulletTrail*)entity->first(TYPEOF(BulletTrail));
+					// If entity is type of smoke, fade it.
+					//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 				}
 
 				// Move entities that need to be moved
@@ -1064,7 +1070,8 @@ namespace arena
 		case BulletType::GladiusBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * GLADIUSIMPULSE, vectorAngle.y * GLADIUSIMPULSE);
-			serverEntity = createBulletEntity(bullet, true);
+			if (debugBullets)
+				serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
@@ -1073,7 +1080,8 @@ namespace arena
 		case BulletType::ShotgunBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * SHOTGUNIMPULSE, vectorAngle.y * SHOTGUNIMPULSE);
-			serverEntity = createBulletEntity(bullet, true);
+			if (debugBullets)
+				serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
@@ -1082,7 +1090,8 @@ namespace arena
 		case BulletType::GrenadeBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * GRENADEIMPULSE, vectorAngle.y * GRENADEIMPULSE);
-			serverEntity = createGrenadeEntity(bullet, true);
+			if (debugBullets)
+				serverEntity = createGrenadeEntity(bullet, true);
 			clientEntity = createGrenadeEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 			m_physics.addGrenadeWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
@@ -1091,7 +1100,8 @@ namespace arena
 		case BulletType::ShardBullet:
 		{
 			bullet->m_impulse = glm::vec2(vectorAngle.x * SHARDIMPULSE, vectorAngle.y * SHARDIMPULSE);
-			serverEntity = createBulletEntity(bullet, true);
+			if (debugBullets)
+				serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
@@ -1099,20 +1109,25 @@ namespace arena
 		}
 		default:
 		{
-			serverEntity = createBulletEntity(bullet, true);
+			if (debugBullets)
+				serverEntity = createBulletEntity(bullet, true);
 			clientEntity = createBulletEntity(bullet, false);
 			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
 			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
 			break;
 		}
 		}
-		assert(serverEntity != nullptr);
+		if(debugBullets)
+			assert(serverEntity != nullptr);
 		assert(clientEntity != nullptr);
 
 		// Set color of server side entities to green.
-		SpriteRenderer* renderer = (SpriteRenderer*)serverEntity->first(TYPEOF(SpriteRenderer));
-		uint32_t color = color::toABGR(0, 255, 0, 255);
-		renderer->setColor(color);
+		if (debugBullets)
+		{
+			SpriteRenderer* renderer = (SpriteRenderer*)serverEntity->first(TYPEOF(SpriteRenderer));
+			uint32_t color = color::toABGR(0, 255, 0, 255);
+			renderer->setColor(color);
+		}
 	
 	}
 	Entity* SandboxScene::createBulletEntity(Bullet* bullet, bool projectileEntity)
@@ -1132,6 +1147,8 @@ namespace arena
 		{ 
 			PhysicsComponent* component =  builder.addPhysicsComponent();
 			component->m_physicsId = bullet->getEntityID();
+			BulletTrail* trail = new BulletTrail;
+			trail->addPart(*bullet->m_position, bullet->m_rotation);
 		}
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;

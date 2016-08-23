@@ -56,7 +56,7 @@ namespace arena
 		m_gm_mid_game_restart	= ini.getbool(SECTION_GAMEMODE, GM_MID_GAME_RESTART, false);
 		m_gm_player_wait_time	= ini.geti(SECTION_GAMEMODE, GM_PLAYER_WAIT_TIME, 0);
 		m_gm_shutdown_after_wait = ini.getbool(SECTION_GAMEMODE, GM_SHUTDOWN_AFTER_WAIT, false);
-		m_gm_players_required	= ini.geti(SECTION_GAMEMODE, GM_PLAYERS_REQUIRED, 1);
+		m_gm_players_required	= ini.geti(SECTION_GAMEMODE, GM_PLAYERS_REQUIRED, 3);
 	}
 	
 	GameVars::~GameVars()

@@ -12,6 +12,7 @@
 #include <map>
 #include <common/arena/physics.h>
 #include <common/arena/game_mode_factory.h>
+
 struct Message;
 
 
@@ -95,6 +96,7 @@ namespace arena
 		void createBloodBulletHitEntity(unsigned direction, glm::vec2 position);
 		void createBloodExplosionHitEntity(Bullet & bullet);
 		void createPlatformBulletHitEntity(Bullet& bullet);
+	
 		// Graphical entities end.
 
 		void createBulletHit(BulletHitData& data);
@@ -138,6 +140,7 @@ namespace arena
 		void nextUint8_t(uint8_t& current);
 		uint8_t currentFreeId = 0;
 		uint8_t isIdFree[255];
+		bool debugBullets = true;
     };
 
 	static void inputMoveLeft(const void*);

@@ -80,8 +80,8 @@ namespace arena
 		std::vector<ShardProjectile*> createShards()
 		{
 			std::vector<ShardProjectile*> shards;
-			float rotation = 0;
-			for (unsigned i = 0; i < 8; i++)
+			float rotation = m_rotation;
+			for (unsigned i = 0; i < 12; i++)
 			{
 				rotation += 1.0f;
 				ShardProjectile* projectile = new ShardProjectile;
