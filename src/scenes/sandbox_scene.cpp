@@ -229,7 +229,7 @@ namespace arena
 		PhysicsManager::instance().setPhysics(&m_physics);
 		// Set background. This is to reduce loading time when debugging.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
-		m_backgroundSetting = 1;
+
 		createBackground();
 
 		m_scoreboard = nullptr;
@@ -1160,6 +1160,7 @@ namespace arena
 		
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
+		transform->m_origin = glm::vec2(6, 14.5);
 
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
@@ -1189,7 +1190,6 @@ namespace arena
 		component->clientSide = true;
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = position;
-		transform->m_origin = glm::vec2(10, 10);
 		m_physics.addMagazine(&transform->m_position, glm::vec2(force.x/100, force.y/100),component->m_physicsId);
 
 		builder.addIdentifier(arena::EntityIdentification::Magazine);
@@ -1199,7 +1199,10 @@ namespace arena
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
+		glm::vec2& origin = renderer->getOrigin();
+		origin = glm::vec2(7,15);
+		glm::vec2& offSet =  renderer->getOffset();
+		offSet = glm::vec2(3, -7);
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gladiusClip.png"));
 		renderer->setRotation(0.0f);
 

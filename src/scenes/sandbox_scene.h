@@ -122,7 +122,7 @@ namespace arena
 		int m_nextSprite = 0; 
 		// m_backgroundSetting is used to set which backgrounds are loaded.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
-		int m_backgroundSetting; 
+		int m_backgroundSetting = 1; 
 		Entity* mousePointerEntity;
 		Physics m_physics;
 
