@@ -163,27 +163,28 @@ namespace arena
     };
 
 	
-    class CharacterAnimator
-    {
-    public:
-        CharacterAnimator();
+	class CharacterAnimator
+	{
+	public:
+		CharacterAnimator();
 
 		float calculateTorsoRotation(float radians, bool direction);
 
 		float calculateHeadRotation(float radians, bool direction);
 
-        void update(float64 dt);
+		void update(float64 dt);
 
-        void setPosition(const glm::vec2& position);
+		void setPosition(const glm::vec2& position);
 
-        glm::vec2& getPosition();
+		glm::vec2& getPosition();
 
-        const glm::vec2& getPosition() const;
+		const glm::vec2& getPosition() const;
 
 		void setCharacterSkin(CharacterSkin skin);
 
-        void setFlipX(bool flip);
+		void setFlipX(bool flip);
 		bool getFlipX() { return m_flipX; };
+		bool getUpperBodyDirection() { return m_upperBodyDirection; };
 
         void setWeaponAnimation(WeaponAnimationType::Enum type);
 

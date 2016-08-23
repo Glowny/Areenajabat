@@ -458,18 +458,19 @@ void Physics::addMagazine(glm::vec2* position, glm::vec2 impulse, uint8_t id)
 	b2Body* body = m_b2DWorld->CreateBody(&magBodyDef);
 
 	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(0.14f, 0.29f);
+	dynamicBox.SetAsBox(0.10f, 0.20f);
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &dynamicBox;
 	//fixtureDef.density = 0.5f;
-	fixtureDef.friction = 3.01f;
-	fixtureDef.restitution = 0.0f;
+	fixtureDef.friction = 0.81f;
+	fixtureDef.restitution = 0.2f;
+	fixtureDef.density = 3;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.center = b2Vec2(0.07f, 0.145f);
+	data.center = b2Vec2(0.05f, 0.10f);
 	data.mass = 0.05f;
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
@@ -600,18 +601,19 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	fixtureDef.shape = &dynamicBox;
 
 	fixtureDef.friction = 1.0f;
+	fixtureDef.density = 2.5;
 	fixtureDef.restitution = 0.23f;
 	fixtureDef.filter = b2Filters[ci_Grenade];
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.center = b2Vec2(0.07f, 0.29);
+	data.center = b2Vec2(0.07f, 0.145);
 	data.mass = 0.390f;
 
 	
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
-	//body->SetAngularDamping(0);
+	body->SetAngularDamping(5);
 	body->SetLinearDamping(0.2);
 
 	p_Bullet* bullet = new p_Bullet;
@@ -629,7 +631,7 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	bullet->m_shooterID = shooterID;
 	bullet->gamePosition = position;
 	body->SetUserData(userData);
-	bullet->m_body->ApplyLinearImpulse(imp, b2Vec2(data.center.x+0.1f, data.center.y), true);
+	bullet->m_body->ApplyLinearImpulse(imp, b2Vec2(data.center.x, data.center.y), true);
 	m_entityVector.push_back(bullet);
 
 };

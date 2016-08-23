@@ -202,12 +202,15 @@ namespace arena
 
 		weaponAim += aimOffSet;
 		ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
-		m_animationData->m_rightHand->rotateTo(weaponAim);
-		m_animationData->m_leftHand->rotateTo(weaponAim);
+
+		float torsoRotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
+
+		m_animationData->m_rightHand->rotateTo(weaponAim, torsoRotation);
+		m_animationData->m_leftHand->rotateTo(weaponAim, torsoRotation);
 
 		//Calculate torso and head rotation
-		m_torso.m_sprite.m_rotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
-		m_head.m_helmet.m_rotation = calculateHeadRotation(m_aimAngle, m_upperBodyDirection);
+		m_torso.m_sprite.m_rotation = torsoRotation;
+		m_head.m_helmet.m_rotation = torsoRotation;
 	}
 	void CharacterAnimator::update(float64 dt)
 	{

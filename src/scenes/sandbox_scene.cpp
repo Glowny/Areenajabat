@@ -229,7 +229,7 @@ namespace arena
 		PhysicsManager::instance().setPhysics(&m_physics);
 		// Set background. This is to reduce loading time when debugging.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
-		m_backgroundSetting = 1;
+
 		createBackground();
 
 		m_scoreboard = nullptr;
@@ -488,8 +488,9 @@ namespace arena
 			{
 				gladiatorData->m_animator->m_animator.playReloadAnimation(0);
 				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
-				createPos = glm::vec2(createPos.x + gladiatorData->m_animator->m_animator.getFlipX() * 64 - 46, createPos.y - 32.0f);
-				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity);
+				bool flip = gladiatorData->m_animator->m_animator.getUpperBodyDirection();
+				createPos = glm::vec2(createPos.x + flip * 70 - 60, createPos.y - 24.0f);
+				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity +glm::vec2(2.0f,2.0f),flip);
 			}
 			if (packet->m_characterArray[i].m_throwing)
 			{
@@ -1161,13 +1162,17 @@ namespace arena
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 
+
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenade.png"));
 		renderer->setRotation(bullet->m_rotation);
-
+		glm::vec2& origin = renderer->getOrigin();
+		origin = glm::vec2(6, 14.5);
+		//glm::vec2& offSet = renderer->getOffset();
+		//offSet = glm::vec2(3, -7);
 		renderer->anchor();
 
 		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
@@ -1179,7 +1184,7 @@ namespace arena
 		return entity;
 	}
 
-	Entity* SandboxScene::createMagazineEntity(glm::vec2 position, glm::vec2 force)
+	Entity* SandboxScene::createMagazineEntity(glm::vec2 position, glm::vec2 force, bool flip)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -1189,8 +1194,7 @@ namespace arena
 		component->clientSide = true;
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = position;
-		transform->m_origin = glm::vec2(10, 10);
-		m_physics.addMagazine(&transform->m_position, glm::vec2(force.x/100, force.y/100),component->m_physicsId);
+		m_physics.addMagazine(&transform->m_position, glm::vec2(force.x/100*-1, force.y/100*-1),component->m_physicsId);
 
 		builder.addIdentifier(arena::EntityIdentification::Magazine);
 		Timer* timer =builder.addTimer();
@@ -1199,7 +1203,13 @@ namespace arena
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
+		glm::vec2& origin = renderer->getOrigin();
+		origin = glm::vec2(7,15);
+		glm::vec2& offSet =  renderer->getOffset();
+		offSet = glm::vec2(3, -7);
+		glm::vec2& scale = renderer->getScale();
+		if (flip)
+		scale.x = -1;
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gladiusClip.png"));
 		renderer->setRotation(0.0f);
 
