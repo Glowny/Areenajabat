@@ -9,7 +9,7 @@ namespace arena
         virtual ~IHandAnimation() = 0;
         virtual void create() = 0;
         virtual void flip() = 0;
-        virtual void rotateTo(float radians) = 0;
+        virtual void rotateTo(float radians, float torsoRotation) = 0;
 		virtual void setDirection(bool direction) = 0;
         virtual CompositeSprite* getParent() = 0;
     };

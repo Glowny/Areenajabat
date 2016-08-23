@@ -91,7 +91,7 @@ namespace arena
 		void createMuzzleFlashEntity(const Bullet& bullet);
 		void createSmokeEntity(glm::vec2 position, glm::vec2 velocity);
 		void createExplosionEntity(const Bullet& bullet);
-		Entity* createMagazineEntity(glm::vec2 position, glm::vec2 force);
+		Entity* createMagazineEntity(glm::vec2 position, glm::vec2 force, bool flip);
 		void createBloodBulletHitEntity(unsigned direction, glm::vec2 position);
 		void createBloodExplosionHitEntity(Bullet & bullet);
 		void createPlatformBulletHitEntity(Bullet& bullet);

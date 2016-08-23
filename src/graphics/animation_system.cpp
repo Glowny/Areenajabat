@@ -53,8 +53,10 @@ namespace arena
             m_gun.m_position = glm::vec2(6.f, 20.f); // 10.f
         }
 
-        void rotateTo(float radians) override
+        void rotateTo(float radians, float torsoRotation) override
 		{
+			// Do something with torso rotation (calculated in Character_animator calculateTorsoRotation())
+			torsoRotation;
             if (m_flipX)
             {
                 m_upperArm.m_rotation = m_gunAngle + radians;
@@ -155,8 +157,9 @@ namespace arena
             m_foreArm.m_depth = 1.8f;
         }
 
-        void rotateTo(float radians) override
+        void rotateTo(float radians, float torsoRotation) override
         {
+			torsoRotation;
             (void)radians;	
             if (m_flipX)
             {
