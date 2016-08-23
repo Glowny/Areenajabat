@@ -8,8 +8,11 @@
 #define SHOTGUNIMPULSE 13.0f
 #define GRENADEIMPULSE 500.0f
 #define EXPLOSIONIMPULSE 400.0f
+#define SHARDIMPULSE 25.0f;
+
 namespace arena
 {
+
 	enum WeaponType :uint8_t
 	{
 		Gladius,
@@ -21,11 +24,16 @@ namespace arena
 	{
 		GladiusBullet,
 		ShotgunBullet,
-		GrenadeBullet
+		GrenadeBullet,
+		ShardBullet
 	};
 
 	struct Bullet : public NetworkEntity
 	{
+		glm::vec2 radToVec(float r)
+		{
+			return glm::vec2(cos(r), sin(r));
+		}
 		Bullet()
 			: NetworkEntity(NetworkEntityType::Projectile)
 		{
@@ -49,6 +57,14 @@ namespace arena
 		float m_rotation;
 		float m_creationDelay;
 	};
+	struct ShardProjectile : public Bullet
+	{
+		ShardProjectile()
+			: Bullet()
+		{
+			m_hasPhysics = true;
+		}
+	};
 
 	struct GrenadeProjectile : public Bullet
 	{
@@ -61,12 +77,34 @@ namespace arena
 			isExplosion = false;
 			m_hasPhysics = true;
 		}
+		std::vector<ShardProjectile*> createShards()
+		{
+			std::vector<ShardProjectile*> shards;
+			float rotation = 0;
+			for (unsigned i = 0; i < 8; i++)
+			{
+				rotation += 1.0f;
+				ShardProjectile* projectile = new ShardProjectile;
+				projectile->m_bulletType = ShardBullet;
+				projectile->m_creationDelay = 0;
+				glm::vec2 vectorAngle = radToVec(rotation);
+				projectile->m_rotation = rotation;
+				projectile->m_impulse.x = vectorAngle.x * SHARDIMPULSE; projectile->m_impulse.y = vectorAngle.y * SHARDIMPULSE;
+				*projectile->m_position = *m_position;
+				projectile->m_shooterId = m_shooterId;
+				shards.push_back(projectile);
+			}
+			return shards;
+		}
 		float m_timer;
 		float m_explosionTime;
 		bool isExplosion;
 		float m_endTime;
 		uint8_t m_explosionId;
 	};
+
+
+	
 
 	struct BulletHit : public NetworkEntity
 	{
@@ -89,7 +127,12 @@ namespace arena
 
 	struct Weapon : public NetworkEntity
 	{
+
 	public:
+		glm::vec2 radToVec(float r)
+		{
+			return glm::vec2(cos(r), sin(r));
+		}
 		WeaponType m_type;
 		Weapon() : NetworkEntity(NetworkEntityType::Weapon)
 		{
@@ -185,10 +228,7 @@ namespace arena
 
 		bool m_reloading;
 	protected:
-		glm::vec2 radToVec(float r)
-		{
-			return glm::vec2(cos(r), sin(r));
-		}
+
 		float m_coolDown;
 		float m_reloadTime;
 		unsigned m_reloadBulletAmount;
@@ -276,6 +316,8 @@ namespace arena
 			bullet->m_position->x = position.x + vectorAngle.x * 72; bullet->m_position->y = position.y + vectorAngle.y * 72;
 			return bullet;
 		}
+
+		
 
 		bool pitchReady(float dt)
 		{

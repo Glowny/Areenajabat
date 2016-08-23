@@ -1625,7 +1625,6 @@ namespace arena
 		glm::vec2 dir(mouseLoc - weaponRotationPoint);
 		float a = glm::atan(dir.y, dir.x);
 		m_controller.aimAngle = a;
-
 		// Update own gladiator aim
 		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 	}
