@@ -725,7 +725,7 @@ namespace arena
 					if (entityId->m_id == EntityIdentification::GrenadeSmoke)
 					{
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 2));
+						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1.5));
 					}
 
 					if (entityId->m_id == EntityIdentification::Explosion)
@@ -1279,7 +1279,7 @@ namespace arena
 			builder.addIdentifier(EntityIdentification::GrenadeSmoke);
 			// Timer
 			Timer* timer = builder.addTimer();
-			timer->m_lifeTime = 2.0f;
+			timer->m_lifeTime = 3.0f;
 
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
@@ -1318,7 +1318,7 @@ namespace arena
 			// Movement
 			Movement* movement = builder.addMovement();
 			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 10.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 10.0f);
+			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 20.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 20.0f);
 			movement->m_rotationSpeed = rotation;
 
 			renderer->anchor();
@@ -1339,8 +1339,9 @@ namespace arena
 			glm::vec2& origin = renderer->getOrigin();
 			origin.x = origin.x + 64; origin.y = origin.y + 64;
 			renderer->setSize(256.f, 256.f);
+			renderer->setRotation(float32(rand() % 7));
 
-			transform->m_position = glm::vec2(bullet.m_position->x - 0.0f, bullet.m_position->y - 0.0f);
+			transform->m_position = glm::vec2(bullet.m_position->x - 0.0f - 32.0f, bullet.m_position->y - 0.0f - 32.0f);
 
 			renderer->anchor();
 			registerEntity(builder.getResults());
