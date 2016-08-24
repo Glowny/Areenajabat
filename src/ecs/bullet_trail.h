@@ -75,7 +75,7 @@ namespace arena
 			 
 			for (auto elem = trail.begin(); elem != trail.end(); )
 			{
-				if ((elem->m_alpha -= dt*4) < 10)
+				if ((elem->m_alpha -= dt*10) < 10)
 				{
 					elem->m_renderer->destroy();
 					elem->m_transform->destroy();
