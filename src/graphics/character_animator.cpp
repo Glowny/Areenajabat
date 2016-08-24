@@ -130,6 +130,7 @@ namespace arena
 		m_angleLimit2 = 2.74f; // = pi - angleLimit1
 		fillMap();
 		m_aimAngle = 0;
+		m_shoulderPoint = glm::vec2(0.0f, 0.0f);
 		m_skin = Bronze;
 		m_torsoRotation = 0.5f; // how much the character is leaning forward when aiming forward
 		m_torso.m_sprite.m_origin = glm::vec2(16.f, 32.f);
@@ -182,25 +183,21 @@ namespace arena
 
 		m_aimAngle = radians;
 		float weaponAim = m_aimAngle;
-		float aimOffSet = 0;
 
 		//pi/2 = 1.5707...
 		if (m_aimAngle < PI / 2 && m_aimAngle > -PI / 2) //if aiming right
 		{
-			aimOffSet += -0.25f;
 			m_upperBodyDirection = 1;
 			m_animationData->m_rightHand->setDirection(1);
 			m_animationData->m_leftHand->setDirection(1);
 		}
 		else //if aiming left
 		{
-			aimOffSet += 0.25f;
 			m_upperBodyDirection = 0;
 			m_animationData->m_rightHand->setDirection(0);
 			m_animationData->m_leftHand->setDirection(0);
 		}
 
-		weaponAim += aimOffSet;
 		ARENA_ASSERT(m_weaponAnimType != WeaponAnimationType::Count, "Animation type hasn't been set");
 
 		float torsoRotation = calculateTorsoRotation(m_aimAngle, m_upperBodyDirection);
@@ -210,7 +207,11 @@ namespace arena
 
 		//Calculate torso and head rotation
 		m_torso.m_sprite.m_rotation = torsoRotation;
-		m_head.m_helmet.m_rotation = torsoRotation;
+		m_head.m_helmet.m_rotation = calculateHeadRotation(m_aimAngle, m_upperBodyDirection);
+
+		float pi = 3.1416f / 2.0f;
+		m_shoulderPoint.x = cos(torsoRotation - pi) * 31.0f;
+		m_shoulderPoint.y = sin(torsoRotation - pi) * 31.0f;
 	}
 	void CharacterAnimator::update(float64 dt)
 	{

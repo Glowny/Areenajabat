@@ -133,6 +133,7 @@ namespace arena
 		GameMode* m_gameMode;
 		glm::vec2 m_screenSize = glm::vec2(1920, 1080);
 
+		glm::vec2 m_weaponRotationPoint;
 
 		uint8_t getFreeEntityId();
 		void nextUint8_t(uint8_t& current);

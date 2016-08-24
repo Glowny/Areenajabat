@@ -10,7 +10,7 @@ namespace arena
     struct GladiusRightArm : public IHandAnimation
     {
         GladiusRightArm() :
-            m_upperAngle(70.f),
+            m_upperAngle(290.f),
             m_forearmAngle(40.f),
             m_gunAngle(250.f),
             m_flipX(false),
@@ -50,21 +50,19 @@ namespace arena
             m_gun.m_depth = 1.9f;
             m_gun.m_origin = glm::vec2(m_gun.m_texture->width, m_gun.m_texture->height) / 2.f;
             m_gun.m_rotation = glm::radians(m_gunAngle);
-            m_gun.m_position = glm::vec2(6.f, 20.f); // 10.f
+            m_gun.m_position = glm::vec2(0.f, 20.f);
         }
 
         void rotateTo(float radians, float torsoRotation) override
-		{
-			// Do something with torso rotation (calculated in Character_animator calculateTorsoRotation())
-			torsoRotation;
+		{	
             if (m_flipX)
-            {
-                m_upperArm.m_rotation = m_gunAngle + radians;
+			{
+				m_upperArm.m_rotation = radians - torsoRotation + glm::radians(m_upperAngle);
             }
             else
             {
-                m_upperArm.m_rotation = m_gunAngle + radians + glm::radians(-25.f);
-            }
+				m_upperArm.m_rotation = radians - torsoRotation - glm::radians(110.f);
+			}
         }
 
         void flip() override
@@ -95,6 +93,7 @@ namespace arena
 				m_upperArm.m_rotation = glm::radians(-m_upperAngle);
 				m_foreArm.m_rotation = glm::radians(-m_forearmAngle);
 				m_gun.m_rotation = glm::radians(-m_gunAngle);
+				m_gun.m_position.x = 0.0f;
 				m_foreArm.m_position.x = 9.f;
 			}
 			else
@@ -102,6 +101,7 @@ namespace arena
 				m_upperArm.m_rotation = glm::radians(m_upperAngle);
 				m_foreArm.m_rotation = glm::radians(m_forearmAngle);
 				m_gun.m_rotation = glm::radians(m_gunAngle);
+				m_gun.m_position.x = 9.0f;
 				m_foreArm.m_position.x = 5.f;
 			}
 		}
@@ -163,12 +163,12 @@ namespace arena
             (void)radians;	
             if (m_flipX)
             {
-                m_upperArm.m_rotation = glm::radians(m_upperAngle) + radians;
+                m_upperArm.m_rotation = glm::radians(m_upperAngle + 20.f) + radians - torsoRotation;
             }
             else
             {
-                m_upperArm.m_rotation = glm::radians(m_upperAngle) + radians + glm::radians(240.f);
-            }
+                m_upperArm.m_rotation = glm::radians(m_upperAngle - 140.f) + radians - torsoRotation;
+			}
         }
         void flip() override
         {

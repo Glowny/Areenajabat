@@ -288,7 +288,18 @@ namespace arena
 			// rotate all gladiators aim for draw.
 			for (const auto& elem : m_clientIdToGladiatorData)
 			{
-				elem.second->m_animator->rotateAimTo(elem.second->m_gladiator->m_aimAngle);
+				float aimAngle = elem.second->m_gladiator->m_aimAngle;
+				const MouseState& mouse = Mouse::getState();
+
+				glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+				Camera& camera = App::instance().camera();
+				transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+			
+				//There is an area inside player character where we don't want to track mouse location, otherwise the character will have some serious epileptic seizures 
+				//(because m_weaponRotationPoint is different depending on if the character is facing left or right).
+				//BUG: You can still see some weird movement if you place the cursor around the upper corners of this area (the area is a box with upper corners around the character and bottom corners all the way at the bottom of the screen).
+				if (!(mouseLoc.y > m_weaponRotationPoint.y - 30.0f && mouseLoc.x < m_weaponRotationPoint.x + 12.0f && mouseLoc.x > m_weaponRotationPoint.x - 12.0f))
+					elem.second->m_animator->rotateAimTo(aimAngle);
 
 				// Set gladiator model position bit to the left to it is on correct position;
 				Transform* transform = (Transform*)elem.second->m_entity->first(TYPEOF(Transform));
@@ -1615,17 +1626,18 @@ namespace arena
 	}
 	void SandboxScene::rotatePlayerAim()
 	{
+		float xOffset = m_clientIdToGladiatorData[m_playerId]->m_animator->m_animator.m_shoulderPoint.x;
+		float yOffset = m_clientIdToGladiatorData[m_playerId]->m_animator->m_animator.m_shoulderPoint.y;
 		const MouseState& mouse = Mouse::getState();
 
 		glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
 		Camera& camera = App::instance().camera();
 		transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
 		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-		glm::vec2 weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 8, playerTransform->m_position.y + 28);
-		glm::vec2 dir(mouseLoc - weaponRotationPoint);
+		m_weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 9 + xOffset, playerTransform->m_position.y + 14 - yOffset);
+		glm::vec2 dir(mouseLoc - m_weaponRotationPoint);
 		float a = glm::atan(dir.y, dir.x);
 		m_controller.aimAngle = a;
-
 		// Update own gladiator aim
 		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
 	}

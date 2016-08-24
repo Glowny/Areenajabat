@@ -166,6 +166,8 @@ namespace arena
 	class CharacterAnimator
 	{
 	public:
+		glm::vec2 m_shoulderPoint;
+
 		CharacterAnimator();
 
 		float calculateTorsoRotation(float radians, bool direction);
