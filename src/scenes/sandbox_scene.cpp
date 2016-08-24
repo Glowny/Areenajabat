@@ -17,6 +17,7 @@
 #include "../ecs/managers/transform_manager.h"
 #include "../ecs/managers/trail_manager.h"
 #include "../ecs/bullet_trail.h"
+#include "../ecs/player_link.h"
 
 #include "../res/resource_manager.h"
 #include "../res/texture_resource.h"
@@ -589,6 +590,7 @@ namespace arena
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y);
+			createMiniBombEntity(packet->m_targetID, 1.5f);
 		}
 
 		destroyBullet(packet->m_bulletId);
@@ -611,6 +613,7 @@ namespace arena
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 100;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = true;
 		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.resetAnimation();
+		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.hide = false;
 	}
 	void SandboxScene::updateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
@@ -878,6 +881,18 @@ namespace arena
 					rectangle = render->getSource();
 
 				}
+				else if (id->m_id == Minibomb)
+				{
+					Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+					if (timer->timePassed() > 0.5f)
+					{ 
+						PlayerLink* link = (PlayerLink*)entity->first(TYPEOF(PlayerLink));
+						createBloodExplosionHitEntity(*m_clientIdToGladiatorData[link->m_playerId]->m_gladiator->m_position);
+						m_clientIdToGladiatorData[link->m_playerId]->m_animator->m_animator.hide = true;
+						entity->destroy();
+					}
+				}
+
 				else if (id->m_id == ExplosionBlood)
 				{
 					//Movement* movement = (Movement*)entity->first(TYPEOF(Movement));
@@ -891,11 +906,11 @@ namespace arena
 					int multiplerX = 0;
 					int multiplerY = 0;
 
-					if (time < 0.10f)
+					if (time > 0.0f)
 					{
 						multiplerX = 0;
 					}
-					else if (time < 0.25)
+					if (time < 0.25)
 					{
 						multiplerX = 1;
 					}
@@ -923,9 +938,6 @@ namespace arena
 					rectangle.y = 256.0f * multiplerY;
 					rectangle.w = 256.0f;
 					rectangle.h = 256.0f;
-
-					rectangle = render->getSource();
-
 				}
 
 
@@ -1569,31 +1581,28 @@ namespace arena
 		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
 	}
-	void  SandboxScene::createBloodExplosionHitEntity(Bullet& bullet)
+	void  SandboxScene::createBloodExplosionHitEntity(glm::vec2 position)
 	{
 		//Note: not in use at the moment.
 		EntityBuilder builder;
 		builder.begin();
-
+		builder.addTimer();
 		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet.m_position + bullet.m_rotation;
+		transform->m_position = glm::vec2(position.x - 64, position.y - 64);
 
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodExplosionAnimation_ss.png"));
+		renderer->setSize(512, 512);
 		Rectf rect = renderer->getSource();
-		renderer->setSize(256, 128);
 		rect.x = 0; rect.y = 0;
-		rect.w = 256; rect.h = 128;
+		rect.w = 256; rect.h = 256;
 		renderer->anchor();
 
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.4f;
-
 		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
+		move->m_velocity = glm::vec2(0,0);
 
 		builder.addIdentifier(EntityIdentification::ExplosionBlood);
 		registerEntity(builder.getResults());
@@ -1626,6 +1635,19 @@ namespace arena
 
 		builder.addIdentifier(EntityIdentification::HitBlood);
 		registerEntity(builder.getResults());
+	}
+
+	void SandboxScene::createMiniBombEntity(uint32_t playerIndex, float time)
+	{
+		EntityBuilder builder;
+		builder.begin();
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = time;
+		timer->m_currentTime = 0.0f;
+		builder.addIdentifier(arena::EntityIdentification::Minibomb);
+		Entity* entity = builder.getResults();
+		entity->add(new PlayerLink(playerIndex));
+		registerEntity(entity);
 	}
 
 	void SandboxScene::checkBounds(glm::vec2& cameraPosition)
@@ -1881,6 +1903,6 @@ namespace arena
 		}
 		// If this happens, there is no free ids left. To add more bullets, use bigger data type
 		printf("No more bullet ids id: %d\n", current);
-		assert(false);
+		//assert(false);
 	}
 }

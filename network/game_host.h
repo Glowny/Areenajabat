@@ -281,7 +281,7 @@ namespace arena
 
 		~GameHost();
 	private:	
-		bool debugBullets = true;
+		bool debugBullets = false;
 		void sessionTick(const uint64 dt);
 		void gameTick(const uint64 dt);
 		void worldTick(const float64 dt);

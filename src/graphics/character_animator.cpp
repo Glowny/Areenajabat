@@ -551,6 +551,8 @@ namespace arena
 
 	void CharacterAnimator::render()
 	{
+		if (hide)
+			return;
 		SpriteEffects::Enum effects = m_upperBodyDirection ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
 
 		// Render full body animation

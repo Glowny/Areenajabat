@@ -207,6 +207,8 @@ namespace arena
 
 		void resetAnimation();
 
+		
+
         void setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
 			SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death, SpriterEngine::EntityInstance* throwing,
 			SpriterEngine::EntityInstance* gladiusReload, SpriterEngine::EntityInstance* axeReload, SpriterEngine::EntityInstance* climb);
@@ -214,7 +216,7 @@ namespace arena
         void render();
 
         void rotateAimTo(float radians);
-		
+		bool hide = false;
     private:
 		CharacterSkin m_skin;
         Head m_head;

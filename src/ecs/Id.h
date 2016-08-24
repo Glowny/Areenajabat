@@ -22,6 +22,7 @@ namespace arena
 		Platform,
 		ExplosionBlood,
 		Magazine,
+		Minibomb,
 	};
 
 	class Id final : public Component
