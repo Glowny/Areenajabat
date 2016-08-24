@@ -577,7 +577,7 @@ namespace arena
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
 			createBulletHit(packet->bulletHitArray[i]);
-			destroyBullet(packet->bulletHitArray[i].m_id);
+			 destroyBullet(packet->bulletHitArray[i].m_id);
 		}
 
 	}
@@ -787,7 +787,9 @@ namespace arena
 						glm::vec2 position = m_physics.getEntityPosition(trail->bulletId);
 						transform->m_position = position;
 						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
-						trail->addPart(position, rotation, transform, renderer);
+						glm::vec2 velocity = m_physics.getEntityVelocity(trail->bulletId);
+						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y)) / 1500.0f;
+						trail->addPart(position, rotation, transform, renderer, vel);
 						
 					}
 
@@ -1201,7 +1203,8 @@ namespace arena
 			Transform* transform= new Transform();
 			transform->m_position = *bullet->m_position;
 			SpriteRenderer* renderer= new SpriteRenderer();
-			trail->addPart(*bullet->m_position, bullet->m_rotation, transform, renderer);
+			// set manually
+			trail->addPart(*bullet->m_position, bullet->m_rotation, transform, renderer, 1.0f);
 
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/trail.png"));
 			renderer->setRotation(bullet->m_rotation);
@@ -1586,7 +1589,8 @@ namespace arena
 		//Note: not in use at the moment.
 		EntityBuilder builder;
 		builder.begin();
-		builder.addTimer();
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 0.5f;
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = glm::vec2(position.x - 64, position.y - 64);
 

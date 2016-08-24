@@ -15,7 +15,7 @@ namespace arena
 {
 	struct TrailPart
 	{
-		uint8_t m_alpha;
+		float m_alpha;
 		bool m_destroy = false;
 		SpriteRenderer* m_renderer = nullptr;
 		Transform* m_transform = nullptr;
@@ -41,7 +41,7 @@ namespace arena
 				return false;
 		}
 
-		inline void addPart(glm::vec2 position, float rotation, Transform* transform, SpriteRenderer* renderer)
+		inline void addPart(glm::vec2 position, float rotation, Transform* transform, SpriteRenderer* renderer, float velocity)
 		{
 			TrailPart part;
 			part.m_alpha = 255;
@@ -50,11 +50,11 @@ namespace arena
 			transform->m_position = position;
 			renderer->setRotation(rotation);
 			glm::vec2& scale = renderer->getScale();
-			scale.x = 4.0f;
+			scale.x = velocity;
 			scale.y = 0.2f;
-			glm::vec2& origin = renderer->getOrigin();
-			origin.x = 15.0f;
-			origin.y = 2.50f;
+			//glm::vec2& origin = renderer->getOrigin();
+			//origin.x = 15.0f;
+			//origin.y = 2.50f;
 			//glm::vec2& offset = renderer->getOffset();
 			//offset.x = 15.0f;
 			trail.push_back(part);
@@ -62,7 +62,7 @@ namespace arena
 
 		inline bool checkTimer()
 		{
-			if (createNewPartTimer > 0.020f && !bulletDestroyed)
+			if (createNewPartTimer > 0.016f && !bulletDestroyed)
 			{
 				createNewPartTimer = 0;
 				return true;
@@ -75,7 +75,7 @@ namespace arena
 			 
 			for (auto elem = trail.begin(); elem != trail.end(); )
 			{
-				if ((elem->m_alpha -= dt*10) < 10)
+				if ((elem->m_alpha -= (dt*1000)) < 10.0f)
 				{
 					elem->m_renderer->destroy();
 					elem->m_transform->destroy();
