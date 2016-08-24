@@ -52,9 +52,9 @@ namespace arena
 			glm::vec2& scale = renderer->getScale();
 			scale.x = 4.0f;
 			scale.y = 0.2f;
-			//glm::vec2& origin = renderer->getOrigin();
-			//origin.x = 15.0f;
-			//origin.y = 2.50f;
+			glm::vec2& origin = renderer->getOrigin();
+			origin.x = 15.0f;
+			origin.y = 2.50f;
 			//glm::vec2& offset = renderer->getOffset();
 			//offset.x = 15.0f;
 			trail.push_back(part);
@@ -62,7 +62,7 @@ namespace arena
 
 		inline bool checkTimer()
 		{
-			if (createNewPartTimer > 0.016f && !bulletDestroyed)
+			if (createNewPartTimer > 0.020f && !bulletDestroyed)
 			{
 				createNewPartTimer = 0;
 				return true;
