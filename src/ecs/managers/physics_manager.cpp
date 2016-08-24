@@ -14,6 +14,8 @@ namespace arena
 		{
 			PhysicsComponent* physicsComponent = (PhysicsComponent *)(*it)->owner()->first(TYPEOF(PhysicsComponent));
 			SpriteRenderer* renderer = (SpriteRenderer*)(*it)->owner()->first(TYPEOF(SpriteRenderer));
+			if (renderer == nullptr)
+				return;
 			float rotation = m_physics->getEntityRotation(physicsComponent->m_physicsId);
 			renderer->setRotation(rotation);
 			

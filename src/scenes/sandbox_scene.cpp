@@ -14,6 +14,8 @@
 #include "../ecs/managers/animator_manager.h"
 #include "../ecs/managers/projectile_manager.h"
 #include "../ecs/managers/physics_manager.h"
+#include "../ecs/managers/transform_manager.h"
+#include "../ecs/managers/trail_manager.h"
 #include "../ecs/bullet_trail.h"
 
 #include "../res/resource_manager.h"
@@ -299,9 +301,9 @@ namespace arena
 			updateCameraPosition();
 		}
 		
-
 		SpriteManager::instance().update(gameTime);
 		AnimatorManager::instance().update(gameTime);
+		TrailManager::instance().update(gameTime);
 		App::instance().spriteBatch()->submit(0);
 
 		// Set current debug draw text.
@@ -734,12 +736,7 @@ namespace arena
 					
 				}
 
-				if (entity->contains(TYPEOF(BulletTrail)))
-				{
-					//BulletTrail* entityId = (BulletTrail*)entity->first(TYPEOF(BulletTrail));
-					// If entity is type of smoke, fade it.
-					//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-				}
+				
 
 				// Move entities that need to be moved
 				if (entity->contains(TYPEOF(Movement)) && entity->contains(TYPEOF(Transform)) && entity->contains(TYPEOF(SpriteRenderer)))
@@ -760,12 +757,51 @@ namespace arena
 				}
 
 			}
+			if (entity->contains(TYPEOF(BulletTrail)))
+			{
+				BulletTrail* trail = (BulletTrail*)entity->first(TYPEOF(BulletTrail));
+				if (trail->getDone())
+				{
+					entity->destroy();
+					iterator++;
+					continue;
+				}
+				if (trail->checkTimer())
+				{
+					if (!m_physics.entityExists(trail->bulletId))
+					{
+						trail->bulletDestroyed = true;
+					}
+					else
+					{
+						Transform* const transform = new Transform();
+						entity->add(transform);
+	
+						SpriteRenderer* const renderer = new SpriteRenderer();
+						renderer->setTexture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "effects/trail.png"));
+	
+						entity->add(renderer);
+						glm::vec2 position = m_physics.getEntityPosition(trail->bulletId);
+						transform->m_position = position;
+						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
+						trail->addPart(position, rotation, transform, renderer);
+						
+					}
 
+				}
+				trail->update(gameTime.m_delta);
+				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+			}
 			if (entity->contains(TYPEOF(PhysicsComponent)))
 			{
 				
 				PhysicsComponent* physicsComponent = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
 				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+				if (renderer == nullptr)
+				{ 
+					iterator++;
+					continue;
+				}
 				float rotation = 0;
 				if (physicsComponent->clientSide)
 					rotation = m_physics.getClientSideEntityRotation(physicsComponent->m_physicsId);
@@ -1137,6 +1173,7 @@ namespace arena
 
 		// Debugbullet does not need projectile, but clientside physics needs it 
 		// for the projectile to be deleted by server.
+		ResourceManager* resources = App::instance().resources();
 
 		if (projectileEntity)
 		{ 
@@ -1145,16 +1182,30 @@ namespace arena
 		}
 		else
 		{ 
-			PhysicsComponent* component =  builder.addPhysicsComponent();
+			EntityBuilder builder2;
+			builder2.begin();
+			BulletTrail* trail = builder2.addBulletTrail();
+			trail->bulletId = bullet->getEntityID();
+			Transform* transform= new Transform();
+			transform->m_position = *bullet->m_position;
+			SpriteRenderer* renderer= new SpriteRenderer();
+			trail->addPart(*bullet->m_position, bullet->m_rotation, transform, renderer);
+
+			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/trail.png"));
+			renderer->setRotation(bullet->m_rotation);
+			renderer->hide();
+	
+			Entity* entity = builder2.getResults();
+			entity->add(transform);
+			entity->add(renderer);
+			registerEntity(entity);
+			PhysicsComponent* component = builder.addPhysicsComponent();
 			component->m_physicsId = bullet->getEntityID();
-			BulletTrail* trail = new BulletTrail;
-			trail->addPart(*bullet->m_position, bullet->m_rotation);
 		}
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
 
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
+		
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
 
@@ -1184,10 +1235,8 @@ namespace arena
 			projectile->bullet = *bullet;
 		}
 
-		
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
-
 
 		ResourceManager* resources = App::instance().resources();
 		(void)resources;

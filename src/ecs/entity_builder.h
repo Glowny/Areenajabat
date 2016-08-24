@@ -9,6 +9,7 @@
 #include "../ecs/Id.h"
 #include "../ecs/projectile.h"
 #include "../ecs/physics_component.h"
+#include "../ecs/bullet_trail.h"
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, TextureResource)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteRenderer)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Transform)
@@ -35,6 +36,7 @@ namespace arena
 		Id* const addIdentifier(EntityIdentification id);
 		Projectile* const addProjectile();
 		PhysicsComponent* const addPhysicsComponent();
+		BulletTrail* const addBulletTrail();
 		void addTag(const String& tag);
 		void setTags(const String& tags);
 

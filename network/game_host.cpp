@@ -281,7 +281,7 @@ namespace arena
 			else if (input.m_downButtonDown) y = 1;
 
 			// reserve upbutton for ladder climb
-			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(entityID);
+			glm::vec2 currentVelocity = m_physics.getEntityVelocity(entityID);
 			float desiredVelocityX;
 			//Slow down gradually so huge forces are not applied if input is missed once.
 			if (x == 0)

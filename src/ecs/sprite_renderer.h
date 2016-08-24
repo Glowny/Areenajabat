@@ -52,8 +52,8 @@ namespace arena
 		void setTexture(TextureResource* const texture);
 
 		~SpriteRenderer() = default;
-	protected:
 		SpriteRenderer() = default;
+	protected:
 	private:
 		SpriteData m_sprite;
 	};

@@ -255,8 +255,10 @@ public:
 	void applyImpulseToGladiator(glm::vec2 direction, unsigned id);
 	void applyGrenadeExplosionToGladiator(glm::vec2* origin, glm::vec2* target, unsigned id);
 	void applyExplosionToGladiator(glm::vec2* origin, glm::vec2* target, float constant, unsigned id);
-	glm::vec2 getGladiatorVelocity(unsigned id);
-	glm::vec2 getGladiatorPosition(unsigned id);
+	glm::vec2 getEntityVelocity(unsigned id);
+	float getEntityVelocityAngle(unsigned id);
+	glm::vec2 getEntityPosition(unsigned id);
+	bool entityExists(unsigned id);
 	float getGladiatorMass(unsigned id);
 	bool checkIfGladiatorCollidesPlatform(unsigned id);
 	int checkIfGladiatorCollidesLadder(unsigned id);

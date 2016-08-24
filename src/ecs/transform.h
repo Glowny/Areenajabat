@@ -22,7 +22,7 @@ namespace arena
 		float32 rotation	 { 0.0f };
 
 		~Transform() = default;
-	protected:
 		Transform() = default;
+	protected:
 	};
 }

@@ -365,13 +365,20 @@ void Physics::setGladiatorPosition(glm::vec2 position, unsigned id )
 	pos.y = position.y / 100.0f;
 	getEntity(id)->m_body->SetTransform(pos, getEntity(id)->m_body->GetAngle());
 }
-glm::vec2 Physics::getGladiatorPosition(unsigned id)
+glm::vec2 Physics::getEntityPosition(unsigned id)
 {
 	b2Vec2 pos = getEntity(id)->m_body->GetPosition();
 	glm::vec2 position;
 	position.x = pos.x*100.0f;
 	position.y = pos.y*100.0f;
 	return position;
+}
+
+bool Physics::entityExists(unsigned id)
+{
+	if (getEntity(id) == nullptr)
+		return false;
+	return true;
 }
 
 bool Physics::checkIfGladiatorCollidesPlatform(unsigned id)
@@ -494,7 +501,7 @@ void Physics::addMagazine(glm::vec2* position, glm::vec2 impulse, uint8_t id)
 	m_clientEntityVector.push_back(bullet);
 }
 
-glm::vec2 Physics::getGladiatorVelocity(unsigned id)
+glm::vec2 Physics::getEntityVelocity(unsigned id)
 {
 	b2Vec2 vel = getEntity(id)->m_body->GetLinearVelocity();
 	glm::vec2 velocity;
@@ -502,6 +509,13 @@ glm::vec2 Physics::getGladiatorVelocity(unsigned id)
 	velocity.y = vel.y*100.0f;
 	return velocity;
 }
+float Physics::getEntityVelocityAngle(unsigned id)
+{
+	b2Vec2 vel =  getEntity(id)->m_body->GetLinearVelocity();
+	float angle = atan2(vel.y, vel.x);
+	return angle;
+}
+
 float Physics::getGladiatorMass(unsigned id)
 {
 	return getEntity(id)->m_body->GetMass();
