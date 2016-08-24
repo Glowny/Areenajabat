@@ -213,6 +213,14 @@ namespace arena
 		m_shoulderPoint.x = cos(torsoRotation - pi) * 31.0f;
 		m_shoulderPoint.y = sin(torsoRotation - pi) * 31.0f;
 	}
+	void CharacterAnimator::setRecoil(bool recoilState)
+	{
+		m_recoilState = recoilState;
+		m_animationData->m_leftHand->setRecoil(recoilState);
+		m_animationData->m_leftHand->setRecoil(recoilState);
+
+	}
+
 	void CharacterAnimator::update(float64 dt)
 	{
 		double inMillis = dt * 1000.0;
@@ -221,7 +229,16 @@ namespace arena
 			0.f,
 			calculateTorsoOffsetY(uint32_t(m_legs.m_animation.getCurrentTime()))
 		);
-
+		if (m_recoilState)
+		{
+			if ((m_recoilTimer += dt) > 1.0f)
+			{ 
+				m_recoilState = false;
+				m_animationData->m_leftHand->setRecoil(false);
+				m_animationData->m_rightHand->setRecoil(false);
+				m_recoilTimer = 0;
+			}
+		}
 
 		if (m_death.dying)
 		{
@@ -535,6 +552,8 @@ namespace arena
 
 	void CharacterAnimator::render()
 	{
+		if (hide)
+			return;
 		SpriteEffects::Enum effects = m_upperBodyDirection ? SpriteEffects::FlipHorizontally : SpriteEffects::None;
 
 		// Render full body animation

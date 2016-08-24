@@ -205,7 +205,11 @@ namespace arena
 
 		void playThrowAnimation(int weapon, int weaponSkin);
 
+		void setRecoil(bool recoilState);
+
 		void resetAnimation();
+
+		
 
         void setStaticContent(TextureResource* crest, TextureResource* helmet, TextureResource* torso,
 			SpriterEngine::EntityInstance* legs, SpriterEngine::EntityInstance* death, SpriterEngine::EntityInstance* throwing,
@@ -214,7 +218,7 @@ namespace arena
         void render();
 
         void rotateAimTo(float radians);
-		
+		bool hide = false;
     private:
 		CharacterSkin m_skin;
         Head m_head;
@@ -240,8 +244,8 @@ namespace arena
 		float m_aimAngle;
 		void fillMap();
 		bool m_upperBodyDirection;
-	
-
+		bool m_recoilState = false;
+		float m_recoilTimer = 0;
 		std::map<unsigned, std::string> ClimbingEnumToFileName;
 		std::map<unsigned, std::string> DyingEnumToFileName;
 		std::map<unsigned, std::string> ReloadingEnumToFileName;

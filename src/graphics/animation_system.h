@@ -11,7 +11,9 @@ namespace arena
         virtual void flip() = 0;
         virtual void rotateTo(float radians, float torsoRotation) = 0;
 		virtual void setDirection(bool direction) = 0;
+		virtual void setRecoil(bool recoilState) = 0;
         virtual CompositeSprite* getParent() = 0;
+		
     };
     inline IHandAnimation::~IHandAnimation() {}
 

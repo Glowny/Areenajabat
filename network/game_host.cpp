@@ -281,7 +281,7 @@ namespace arena
 			else if (input.m_downButtonDown) y = 1;
 
 			// reserve upbutton for ladder climb
-			glm::vec2 currentVelocity = m_physics.getGladiatorVelocity(entityID);
+			glm::vec2 currentVelocity = m_physics.getEntityVelocity(entityID);
 			float desiredVelocityX;
 			//Slow down gradually so huge forces are not applied if input is missed once.
 			if (x == 0)
@@ -797,9 +797,10 @@ namespace arena
 					// update position because of gravity.
 					m_synchronizationList.push_back(player.m_gladiator);
 				}
+				std::vector<NetworkEntity*> registerEntities;
 				auto& entities = m_entities.container();
 				for (auto it = entities.begin(); it != entities.end(); ++it)
-				{
+				 {
 					NetworkEntity* entity = *it;
 					if (entity->type() == NetworkEntityType::Projectile)
 					{
@@ -824,7 +825,19 @@ namespace arena
 								// Create explosion and save id on m_explosionId
 								grenade->isExplosion = true;
 								grenade->m_explosionId = getFreeEntityId();
-								m_physics.addExplosionWithID(grenade->m_position, 500, grenade->m_shooterId, grenade->m_explosionId);
+								// TODO: move this to shardsCreation()
+								std::vector<ShardProjectile*> projectiles = grenade->createShards();
+								for(unsigned i= 0; i < projectiles.size(); i++)
+								{
+									ShardProjectile* projectile = projectiles[i];
+									projectile->setEntityID(getFreeEntityId());
+									m_physics.addBulletWithID(projectile->m_position, projectile->m_impulse,
+										projectile->m_rotation, projectile->m_shooterId, projectile->getEntityID());
+									m_synchronizationList.push_back(projectile);
+									registerEntities.push_back(projectile);
+								}
+
+									m_physics.addExplosionWithID(grenade->m_position, 500, grenade->m_shooterId, grenade->m_explosionId);
 								BulletHit* hit = new BulletHit;
 								hit->m_hitId = grenade->getEntityID();
 								hit->m_hitPosition = *grenade->m_position;
@@ -844,6 +857,11 @@ namespace arena
 					}
 				}
 				
+				for (unsigned i = 0; i < registerEntities.size(); i++)
+				{
+					registerEntity(registerEntities[i]);
+				}
+
 				m_physics.updateTimer = 0;
 
 			}
