@@ -97,6 +97,7 @@ namespace arena
 		void createBloodExplosionHitEntity(glm::vec2 position);
 		void createPlatformBulletHitEntity(Bullet& bullet);
 		void createMiniBombEntity(uint32_t playerIndex, float time);
+		void createTestEntity(glm::vec2 position);
 		// Graphical entities end.
 
 		void createBulletHit(BulletHitData& data);

@@ -3,6 +3,7 @@
 #include <math.h> // sin, cos
 #include <glm/vec2.hpp>
 #include <../common/network_entity.h>
+#include <../common/arena/gladiator_shoulder_point.h>
 
 #define GLADIUSIMPULSE 17.0f
 #define SHOTGUNIMPULSE 13.0f
@@ -145,6 +146,8 @@ namespace arena
 		
 		std::vector<Bullet*> shoot(float aimAngle, glm::vec2 position)
 		{
+			glm::vec2 shoulderPoint = getShoulderPointWithAimAngle(aimAngle);
+			position = glm::vec2(position.x + 9 + shoulderPoint.x, position.y + 14 - shoulderPoint.y);
 			std::vector<Bullet*> bullets = createBullets(aimAngle, position);
 			m_currentBulletAmount -= (unsigned)bullets.size();
 			return bullets;

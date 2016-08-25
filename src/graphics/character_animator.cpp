@@ -3,6 +3,7 @@
 #include "../utils/math.h"
 #include <algorithm>
 #include <common/debug.h>
+#include <common/arena/gladiator_shoulder_point.h>
 
 namespace arena
 {
@@ -65,8 +66,6 @@ namespace arena
 		}
 		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
 		{
-
-		//	printf("%f\n", radians);
 			if (radians <= -m_angleLimit2 + m_torsoRotation || radians <= pi && radians > m_angleLimit2 + m_torsoRotation) {
 				return radians - pi - m_torsoRotation;
 			}
@@ -81,7 +80,6 @@ namespace arena
 
 	float CharacterAnimator::calculateHeadRotation(float radians, bool direction)
 	{
-	//	printf("%f\n", radians);
 		float pi = 3.1416f;
 		if (direction) {
 			if (radians >= -m_angleLimit1 && radians < m_angleLimit1) {
@@ -212,6 +210,7 @@ namespace arena
 		float pi = 3.1416f / 2.0f;
 		m_shoulderPoint.x = cos(torsoRotation - pi) * 31.0f;
 		m_shoulderPoint.y = sin(torsoRotation - pi) * 31.0f;
+		m_shoulderPoint = getShoulderPointWithTorsoRotation(torsoRotation);
 	}
 	void CharacterAnimator::setRecoil(bool recoilState)
 	{

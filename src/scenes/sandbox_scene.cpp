@@ -308,6 +308,9 @@ namespace arena
 				Transform* transform = (Transform*)elem.second->m_entity->first(TYPEOF(Transform));
 				glm::vec2 pos = *elem.second->m_gladiator->m_position;
 				transform->m_position= glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
+
+				if (rand() % 1000)
+					createTestEntity(glm::vec2(pos.x, pos.y));
 			}
 
 			updateCameraPosition();
@@ -1665,6 +1668,43 @@ namespace arena
 		registerEntity(entity);
 	}
 
+	void SandboxScene::createTestEntity(glm::vec2 position) {
+		///////////////
+		EntityBuilder builder;
+		builder.begin();
+
+		Transform* transform = builder.addTransformComponent();
+
+
+		builder.addIdentifier(arena::EntityIdentification::Magazine);
+		Timer* timer = builder.addTimer();
+		timer->m_lifeTime = 1.0f;
+		timer->m_currentTime = 0;
+		ResourceManager* resources = App::instance().resources();
+		(void)resources;
+		SpriteRenderer* renderer = builder.addSpriteRenderer();
+
+
+		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/test.png"));
+		glm::vec2& origin = renderer->getOrigin();
+		origin = glm::vec2(12, 63);
+		renderer->setRotation(0.0f);
+		glm::vec2 pos = position;
+		pos.x = pos.x - 12;
+		pos.y = pos.y - 63;
+		transform->m_position = pos;
+
+		Movement* movement = builder.addMovement();
+		//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
+		movement->m_rotationSpeed = 0.1f;
+
+		renderer->anchor();
+
+		Entity* entity = builder.getResults();
+		registerEntity(entity);
+
+	}
+
 	void SandboxScene::checkBounds(glm::vec2& cameraPosition)
 	{
 		if (cameraPosition.x < m_screenSize.x / 2)
@@ -1709,7 +1749,7 @@ namespace arena
 		{
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
-			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.57);
+			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.5708f);
 			mouseTransform->m_position = cameraPosition + glm::vec2(-13.0f, +80.0f);
 		}
 		//checkBounds(cameraPosition);
