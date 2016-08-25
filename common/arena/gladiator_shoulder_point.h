@@ -8,12 +8,17 @@ namespace arena
 #define PI 3.141592
 #define HALFPI 1.570796
 	
-	inline glm::vec2 getShoulderPointWithTorsoRotation(float torsoRotation)
+	inline glm::vec2 getShoulderPointWithTorsoRotation(float torsoRotation, bool direction)
 	{
 		glm::vec2 shoulderPoint;
 
-		shoulderPoint.x = cos(torsoRotation - HALFPI) * 31.0f;
-		shoulderPoint.y = sin(torsoRotation - HALFPI) * 31.0f;
+		if (direction)
+			shoulderPoint.x = cos(torsoRotation - HALFPI) * 31.0f - 4;
+		else
+			shoulderPoint.x = cos(torsoRotation - HALFPI) * 31.0f + 4;
+		shoulderPoint.y = sin(torsoRotation - HALFPI) * 28.0f;
+		//shoulderPoint.x = cos(torsoRotation - HALFPI) * 24.0f;
+		//shoulderPoint.y = sin(torsoRotation - HALFPI) * 26.0f;
 
 		return shoulderPoint;
 	}
@@ -51,7 +56,7 @@ namespace arena
 			}
 		}
 
-		return getShoulderPointWithTorsoRotation(torsoRotation);
+		return getShoulderPointWithTorsoRotation(torsoRotation, direction);
 	}
 }
 #endif

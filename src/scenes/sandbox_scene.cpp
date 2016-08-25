@@ -308,9 +308,6 @@ namespace arena
 				Transform* transform = (Transform*)elem.second->m_entity->first(TYPEOF(Transform));
 				glm::vec2 pos = *elem.second->m_gladiator->m_position;
 				transform->m_position= glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
-
-				if (rand() % 1000)
-					createTestEntity(glm::vec2(pos.x, pos.y));
 			}
 
 			updateCameraPosition();
@@ -1677,7 +1674,7 @@ namespace arena
 		registerEntity(entity);
 	}
 
-	void SandboxScene::createTestEntity(glm::vec2 position) {
+	/*void SandboxScene::createTestEntity(glm::vec2 position) {
 		///////////////
 		EntityBuilder builder;
 		builder.begin();
@@ -1711,8 +1708,8 @@ namespace arena
 
 		Entity* entity = builder.getResults();
 		registerEntity(entity);
-
-	}
+		
+	}*/
 
 	void SandboxScene::checkBounds(glm::vec2& cameraPosition)
 	{
