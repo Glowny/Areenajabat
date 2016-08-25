@@ -555,6 +555,9 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
 	physicalFixtureDef.shape = &dynamicBox;
+	float rest= rand() % 4;
+	rest= rest / 100.0f;
+	physicalFixtureDef.restitution = rest;
 	physicalFixtureDef.density = 2.0f;
 	physicalFixtureDef.friction = 1.01f;
 	physicalFixtureDef.filter = b2Filters[ci_Bullet];
@@ -658,6 +661,11 @@ float32 Physics::getEntityRotation(unsigned id)
 	{
 		if (id == m_entityVector[i]->m_id && m_entityVector[i]->m_body != nullptr)
 		{
+			if (m_entityVector[i]->m_type == bodyType::B_Bullet)
+			{
+				return getEntityVelocityAngle(id);
+			}
+			else
 			return m_entityVector[i]->m_body->GetAngle();
 		}
 	}

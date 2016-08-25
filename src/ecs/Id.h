@@ -23,6 +23,8 @@ namespace arena
 		ExplosionBlood,
 		Magazine,
 		Minibomb,
+		BulletModel,
+		FragmentModel,
 	};
 
 	class Id final : public Component

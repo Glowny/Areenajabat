@@ -587,7 +587,8 @@ namespace arena
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
 			createBulletHit(packet->bulletHitArray[i]);
-			 destroyBullet(packet->bulletHitArray[i].m_id);
+			if (packet->bulletHitArray[i].m_type != 2)
+			destroyBullet(packet->bulletHitArray[i].m_id);
 		}
 
 	}
@@ -798,7 +799,7 @@ namespace arena
 						transform->m_position = position;
 						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
 						glm::vec2 velocity = m_physics.getEntityVelocity(trail->bulletId);
-						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y)) / 1500.0f;
+						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y)) / 1000.0f;
 						trail->addPart(position, rotation, transform, renderer, vel);
 						
 					}
@@ -933,6 +934,18 @@ namespace arena
 					rectangle.y = 256.0f * multiplerY;
 					rectangle.w = 256.0f;
 					rectangle.h = 256.0f;
+				}
+				else if (id->m_id == EntityIdentification::BulletModel)
+				{
+					PhysicsComponent* physics = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
+					uint8_t bulletID = physics->m_physicsId;
+					glm::vec2 velocity =m_physics.getEntityVelocity(bulletID);
+					// Get combined velocity.
+					float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y));
+					// Destroy bullet if it is slow enought.
+					if (vel < 800)
+						destroyBullet(bulletID);
+
 				}
 
 
@@ -1209,6 +1222,7 @@ namespace arena
 			registerEntity(entity);
 			PhysicsComponent* component = builder.addPhysicsComponent();
 			component->m_physicsId = bullet->getEntityID();
+			builder.addIdentifier(EntityIdentification::BulletModel);
 		}
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;

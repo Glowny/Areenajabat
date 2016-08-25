@@ -642,7 +642,7 @@ namespace arena
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
 			//e_gameStart();
-			selectGameMode(1);
+			selectGameMode(2);
 
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
