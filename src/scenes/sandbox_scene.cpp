@@ -598,10 +598,10 @@ namespace arena
 			return;
 		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
-		//printf("hitdir:%d, hitpos:%f\n", packet->m_hitDirection, packet->m_hitPosition.y);
+		printf("hitdir:%d, hitpos:%f\n", packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
-			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y);
+			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
 			createMiniBombEntity(packet->m_targetID, 1.5f);
 		}
 

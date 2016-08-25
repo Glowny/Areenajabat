@@ -416,9 +416,9 @@ namespace arena
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
 
 		//0 = legs, 1 = body, 2 = head
-		if (hitPositionY < 10)
+		if (hitPositionY < -20.0f)
 			bodyArea = 2;
-		else if (hitPositionY < 60)
+		else if (hitPositionY < 0.0f)
 			bodyArea = 1;
 		else
 			bodyArea = 0;
