@@ -345,7 +345,6 @@ namespace arena
 		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
 		packet->m_input = controller.m_input;
-
 		packet->m_clientSalt = s_client->m_clientSalt;
 		packet->m_challengeSalt = s_client->m_challengeSalt;
 
@@ -591,7 +590,8 @@ namespace arena
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
 			createBulletHit(packet->bulletHitArray[i]);
-			 destroyBullet(packet->bulletHitArray[i].m_id);
+			if (packet->bulletHitArray[i].m_type != 2)
+			destroyBullet(packet->bulletHitArray[i].m_id);
 		}
 
 	}
@@ -802,8 +802,14 @@ namespace arena
 						transform->m_position = position;
 						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
 						glm::vec2 velocity = m_physics.getEntityVelocity(trail->bulletId);
-						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y)) / 1500.0f;
-						trail->addPart(position, rotation, transform, renderer, vel);
+						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y));
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						if (vel < 1400)
+						{ 
+							float alpha = vel - 945;
+							render->setColor(color::toABGR(255, 255, 255, alpha));
+						}
+						trail->addPart(position, rotation, transform, renderer, vel / 1000.0f);
 						
 					}
 
@@ -811,24 +817,7 @@ namespace arena
 				trail->update(gameTime.m_delta);
 				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 			}
-			if (entity->contains(TYPEOF(PhysicsComponent)))
-			{
-				
-				PhysicsComponent* physicsComponent = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
-				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-				if (renderer == nullptr)
-				{ 
-					iterator++;
-					continue;
-				}
-				float rotation = 0;
-				if (physicsComponent->clientSide)
-					rotation = m_physics.getClientSideEntityRotation(physicsComponent->m_physicsId);
-				else
-					rotation =m_physics.getEntityRotation(physicsComponent->m_physicsId);
-
-				renderer->setRotation(rotation);
-			}
+			
 
 			if (entity->contains(TYPEOF(Id)))
 			{
@@ -954,6 +943,24 @@ namespace arena
 					rectangle.y = 256.0f * multiplerY;
 					rectangle.w = 256.0f;
 					rectangle.h = 256.0f;
+				}
+				else if (id->m_id == EntityIdentification::BulletModel)
+				{
+					PhysicsComponent* physics = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
+					uint8_t bulletID = physics->m_physicsId;
+					glm::vec2 velocity =m_physics.getEntityVelocity(bulletID);
+					// Get combined velocity.
+					float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y));
+					// Destroy bullet if it is slow enought.
+					if (vel < 1200)
+					{ 
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						float alpha = vel - 945;
+						render->setColor(color::toABGR(255, 255, 255, alpha));
+					}
+					if (vel < 800)
+						destroyBullet(bulletID);
+
 				}
 
 
@@ -1230,6 +1237,7 @@ namespace arena
 			registerEntity(entity);
 			PhysicsComponent* component = builder.addPhysicsComponent();
 			component->m_physicsId = bullet->getEntityID();
+			builder.addIdentifier(EntityIdentification::BulletModel);
 		}
 		Transform* transform = builder.addTransformComponent();
 		transform->m_position = *bullet->m_position;
@@ -1481,6 +1489,7 @@ namespace arena
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
 			SpriteRenderer* renderer = builder.addSpriteRenderer();
+			renderer->setLayer(3);
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			//uint32_t color = color::toABGR(255, 255, 255, 50);
 			//renderer->setColor(color);
@@ -1751,6 +1760,7 @@ namespace arena
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
 			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.5708f);
 			mouseTransform->m_position = cameraPosition + glm::vec2(-13.0f, +80.0f);
+			renderer->setLayer(4);
 		}
 		//checkBounds(cameraPosition);
 		camera.m_position = cameraPosition;

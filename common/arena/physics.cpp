@@ -542,7 +542,7 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	bulletBodyDef.bullet = true;
 	b2Body* body = m_b2DWorld->CreateBody(&bulletBodyDef);
 	body->SetBullet(true);
-	body->SetFixedRotation(true);
+	body->SetFixedRotation(false);
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.02f, 0.02f);
 	b2PolygonShape sensorBox;
@@ -555,6 +555,9 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
 	physicalFixtureDef.shape = &dynamicBox;
+	float rest= rand() % 2;
+	rest= rest / 100.0f;
+	physicalFixtureDef.restitution = rest;
 	physicalFixtureDef.density = 2.0f;
 	physicalFixtureDef.friction = 1.01f;
 	physicalFixtureDef.filter = b2Filters[ci_Bullet];
@@ -658,10 +661,15 @@ float32 Physics::getEntityRotation(unsigned id)
 	{
 		if (id == m_entityVector[i]->m_id && m_entityVector[i]->m_body != nullptr)
 		{
+			if (m_entityVector[i]->m_type == bodyType::B_Bullet)
+			{
+				return getEntityVelocityAngle(id);
+			}
+			else
 			return m_entityVector[i]->m_body->GetAngle();
 		}
 	}
-		printf("Trying to get rotation of entity with no body\n");
+		printf("SS Trying to get rotation of entity with no body, id: %d\n", id);
 		return 0.0f;
 }
 
@@ -674,7 +682,7 @@ float32 Physics::getClientSideEntityRotation(unsigned id)
 			return m_clientEntityVector[i]->m_body->GetAngle();
 		}
 	}
-	printf("Trying to get rotation of entity with no body\n");
+	printf("CS Trying to get rotation of entity with no body, id: %d\n", id);
 	return 0.0f;
 }
 

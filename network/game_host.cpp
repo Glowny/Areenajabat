@@ -203,6 +203,12 @@ namespace arena
 			}
 
 			gladiator->m_aimAngle = player.m_playerController->aimAngle;
+			// Temporary fix for reloading. Something is corrupting the bool value, so if it is not 1 or 0, it is corrupted.
+			int reloadButtonFix = player.m_playerController->m_input.m_reloadButtonDown;
+			if (reloadButtonFix > 1)
+				player.m_playerController->m_input.m_reloadButtonDown = false;
+			
+	
 			// Check if reload is done.
 			if (gladiator->checkReload())
 			{
@@ -636,7 +642,7 @@ namespace arena
 			m_gameData.m_roundFreezeTimeElapsed = 0;
 
 			//e_gameStart();
-			selectGameMode(1);
+			selectGameMode(2);
 
 			for (uint32 i = 0; i < m_map.m_platformVector.size(); i++)
 			{
