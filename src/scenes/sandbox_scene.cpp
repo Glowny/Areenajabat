@@ -814,6 +814,7 @@ namespace arena
 						{ 
 							float alpha = vel - 945;
 							render->setColor(color::toABGR(255, 255, 255, alpha));
+							renderer->setLayer(6);
 						}
 						trail->addPart(position, rotation, transform, renderer, vel / 1000.0f);
 						
@@ -1230,11 +1231,13 @@ namespace arena
 			Transform* transform= new Transform();
 			transform->m_position = *bullet->m_position;
 			SpriteRenderer* renderer= new SpriteRenderer();
+			renderer->setLayer(6);
 			// set manually
 			trail->addPart(*bullet->m_position, bullet->m_rotation, transform, renderer, 1.0f);
 
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/trail.png"));
 			renderer->setRotation(bullet->m_rotation);
+			renderer->setLayer(6);
 			renderer->hide();
 	
 			Entity* entity = builder2.getResults();
@@ -1291,6 +1294,7 @@ namespace arena
 		origin = glm::vec2(6, 14.5);
 		//glm::vec2& offSet = renderer->getOffset();
 		//offSet = glm::vec2(3, -7);
+		renderer->setLayer(4);
 		renderer->anchor();
 
 		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
@@ -1330,7 +1334,7 @@ namespace arena
 		scale.x = -1;
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gladiusClip.png"));
 		renderer->setRotation(0.0f);
-
+		renderer->setLayer(3);
 		renderer->anchor();
 
 		Entity* entity = builder.getResults();
@@ -1372,7 +1376,7 @@ namespace arena
 		glm::vec2& origin = renderer->getOrigin();
 		origin.x = origin.x + 16; origin.y = origin.y + 16;
 		renderer->setRotation((float32)bullet.m_rotation + 3.142f);
-		renderer->setLayer(2);
+		renderer->setLayer(6);
 		renderer->anchor();
 		registerEntity(builder.getResults());
 	}
@@ -1407,6 +1411,7 @@ namespace arena
 			origin.x = origin.x + 64; origin.y = origin.y + 64;
 			renderer->setRotation(float32(rand() % 7));
 			renderer->setSize(2048.f, 1024.f);
+			renderer->setLayer(5);
 			Rectf& source = renderer->getSource();
 			source.x = 128 * (float)spriteX; source.y = 128 * (float)spriteY; source.w = 128; source.h = 128;
 
@@ -1458,7 +1463,7 @@ namespace arena
 			origin.x = origin.x + 64; origin.y = origin.y + 64;
 			renderer->setSize(256.f, 256.f);
 			renderer->setRotation(float32(rand() % 7));
-
+			renderer->setLayer(6);
 			transform->m_position = glm::vec2(bullet.m_position->x - 0.0f - 32.0f, bullet.m_position->y - 0.0f - 32.0f);
 
 			renderer->anchor();
@@ -1495,7 +1500,7 @@ namespace arena
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
 			SpriteRenderer* renderer = builder.addSpriteRenderer();
-			renderer->setLayer(3);
+			renderer->setLayer(5);
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			//uint32_t color = color::toABGR(255, 255, 255, 50);
 			//renderer->setColor(color);
@@ -1599,7 +1604,7 @@ namespace arena
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
 		Rectf rect = renderer->getSource();
 		renderer->setSize(128, 32);
-		renderer->setLayer(2);
+		renderer->setLayer(4);
 		rect.x = 0; rect.y = 0;
 		rect.w = 128; rect.h = 32;
 		renderer->anchor();
@@ -1633,7 +1638,7 @@ namespace arena
 		rect.x = 0; rect.y = 0;
 		rect.w = 256; rect.h = 256;
 		renderer->anchor();
-
+		renderer->setLayer(6);
 		Movement* move = builder.addMovement();
 		move->m_velocity = glm::vec2(0,0);
 
@@ -1659,7 +1664,7 @@ namespace arena
 		rect.x = 0; rect.y = 0;
 		rect.w = 128; rect.h = 32;
 		renderer->anchor();
-
+		renderer->setLayer(5);
 		Timer* timer = builder.addTimer();
 		timer->m_lifeTime = 0.5f;
 
@@ -1784,44 +1789,44 @@ namespace arena
 			{
 				newPosition.x = 0;
 			}
-			else if (newPosition.x > 8000)
+			else if (newPosition.x > 7680)
 			{
-				newPosition.x = 8000;
+				newPosition.x = 7680;
 			}
-			if (newPosition.y < -200)
+			if (newPosition.y < 0)
 			{
-				newPosition.y = -200;
+				newPosition.y = 0;
 			}
-			else if (newPosition.y > 2500)
+			else if (newPosition.y > 2160)
 			{
-				newPosition.y = 2500;
+				newPosition.y = 2160;
 			}
 			mouseTransform->m_position = newPosition;
 
 
 			cameraPosition = mouseTransform->m_position;
-			if (cameraPosition.x < 1000)
+			if (cameraPosition.x < 1080)
 			{
-				cameraPosition.x = 1000;
+				cameraPosition.x = 1080;
 			}
-			else if (cameraPosition.x > 9000)
+			else if (cameraPosition.x > 6720)
 			{
-				cameraPosition.x = 9000;
+				cameraPosition.x = 6720;
 			}
-			if (cameraPosition.y < 400)
+			if (cameraPosition.y < 540)
 			{
-				cameraPosition.y = 400;
+				cameraPosition.y = 540;
 			}
-			else if (cameraPosition.y > 3000)
+			else if (cameraPosition.y > 1620)
 			{
-				cameraPosition.y = 3000;
+				cameraPosition.y = 1620;
 			}
 			oldMousePos = cameraPosition;
 
 
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
 			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.5708f);
-			renderer->setLayer(4);
+			renderer->setLayer(10);
 		}
 		
 		//checkBounds(cameraPosition);
@@ -1970,6 +1975,7 @@ namespace arena
 					transform->m_position = glm::vec2((x - 1) * 1920, (y - 1) * 1080);
 					renderer->setTexture(textureResource);
 					move->m_velocity = transform->m_position;
+					renderer->setLayer(0);
 					renderer->anchor();
 					registerEntity(builder.getResults());
 				}
@@ -2000,7 +2006,7 @@ namespace arena
 					transform->m_position = glm::vec2(x * 1920, y * 1080);
 
 					renderer->setTexture(textureResource);
-
+					renderer->setLayer(1);
 					renderer->anchor();
 					registerEntity(builder.getResults());
 				}
