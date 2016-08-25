@@ -1478,6 +1478,7 @@ namespace arena
 			// Drawing stuff
 			Transform* transform = builder.addTransformComponent();
 			SpriteRenderer* renderer = builder.addSpriteRenderer();
+			renderer->setLayer(3);
 			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
 			//uint32_t color = color::toABGR(255, 255, 255, 50);
 			//renderer->setColor(color);
@@ -1711,6 +1712,7 @@ namespace arena
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
 			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.57);
 			mouseTransform->m_position = cameraPosition + glm::vec2(-13.0f, +80.0f);
+			renderer->setLayer(4);
 		}
 		//checkBounds(cameraPosition);
 		camera.m_position = cameraPosition;
