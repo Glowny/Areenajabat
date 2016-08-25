@@ -342,7 +342,7 @@ namespace arena
 		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
 		packet->m_input = controller.m_input;
-
+		printf("controller reload: %d\n", controller.m_input.m_reloadButtonDown);
 		packet->m_clientSalt = s_client->m_clientSalt;
 		packet->m_challengeSalt = s_client->m_challengeSalt;
 
@@ -808,24 +808,7 @@ namespace arena
 				trail->update(gameTime.m_delta);
 				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 			}
-			if (entity->contains(TYPEOF(PhysicsComponent)))
-			{
-				
-				PhysicsComponent* physicsComponent = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
-				SpriteRenderer* renderer = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-				if (renderer == nullptr)
-				{ 
-					iterator++;
-					continue;
-				}
-				float rotation = 0;
-				if (physicsComponent->clientSide)
-					rotation = m_physics.getClientSideEntityRotation(physicsComponent->m_physicsId);
-				else
-					rotation =m_physics.getEntityRotation(physicsComponent->m_physicsId);
-
-				renderer->setRotation(rotation);
-			}
+			
 
 			if (entity->contains(TYPEOF(Id)))
 			{

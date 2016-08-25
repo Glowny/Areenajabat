@@ -16,7 +16,12 @@ namespace arena
 			SpriteRenderer* renderer = (SpriteRenderer*)(*it)->owner()->first(TYPEOF(SpriteRenderer));
 			if (renderer == nullptr)
 				return;
-			float rotation = m_physics->getEntityRotation(physicsComponent->m_physicsId);
+			float rotation;
+			if (physicsComponent->clientSide)
+				rotation = m_physics->getClientSideEntityRotation(physicsComponent->m_physicsId);
+			else
+				rotation = m_physics->getEntityRotation(physicsComponent->m_physicsId);
+
 			renderer->setRotation(rotation);
 			
 		}

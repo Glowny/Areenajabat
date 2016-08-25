@@ -661,7 +661,7 @@ float32 Physics::getEntityRotation(unsigned id)
 			return m_entityVector[i]->m_body->GetAngle();
 		}
 	}
-		printf("Trying to get rotation of entity with no body\n");
+		printf("SS Trying to get rotation of entity with no body, id: %d\n", id);
 		return 0.0f;
 }
 
@@ -674,7 +674,7 @@ float32 Physics::getClientSideEntityRotation(unsigned id)
 			return m_clientEntityVector[i]->m_body->GetAngle();
 		}
 	}
-	printf("Trying to get rotation of entity with no body\n");
+	printf("CS Trying to get rotation of entity with no body, id: %d\n", id);
 	return 0.0f;
 }
 
