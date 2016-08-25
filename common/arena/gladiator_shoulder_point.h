@@ -1,11 +1,14 @@
 #pragma once
 #include <glm/glm.hpp>
+#ifndef GLADIATOR_SHOULD_POINT_H
+#define GLADIATOR_SHOULD_POINT_H
 
 namespace arena
 {
 #define PI 3.141592
 #define HALFPI 1.570796
-	glm::vec2 getShoulderPointWithTorsoRotation(float torsoRotation)
+	
+	inline glm::vec2 getShoulderPointWithTorsoRotation(float torsoRotation)
 	{
 		glm::vec2 shoulderPoint;
 
@@ -15,7 +18,7 @@ namespace arena
 		return shoulderPoint;
 	}
 
-	glm::vec2 getShoulderPointWithAimAngle(float aimAngle)
+	inline glm::vec2 getShoulderPointWithAimAngle(float aimAngle)
 	{
 		float angleLimit1 = 0.4f; //used for limiting head and torso rotation
 		float angleLimit2 = 2.74f; //used for limiting head and torso rotation, = pi - angleLimit1
@@ -51,3 +54,4 @@ namespace arena
 		return getShoulderPointWithTorsoRotation(torsoRotation);
 	}
 }
+#endif
