@@ -111,10 +111,18 @@ namespace arena
 		void setRecoil(bool recoilState) override
 		{
 			// Do stuff here when recoil happens/ends.
-			if (recoilState)
-				m_foreArm.m_scale = glm::vec2(1.1, 1.1);
-			else
-				m_foreArm.m_scale = glm::vec2(1, 1);
+			if (recoilState) {
+				m_upperAngle = 290.f;
+				m_forearmAngle = 40.f;
+				m_gunAngle = 250.f;
+				m_gun.m_position.y = 19.f;
+			}
+			else {
+				m_upperAngle = 290.f;
+				m_forearmAngle = 40.f;
+				m_gunAngle = 250.f;
+				m_gun.m_position.y = 20.f;
+			}
 		}
 
         CompositeSprite* getParent() override
@@ -170,8 +178,6 @@ namespace arena
 
         void rotateTo(float radians, float torsoRotation) override
         {
-			torsoRotation;
-            (void)radians;	
             if (m_flipX)
             {
                 m_upperArm.m_rotation = glm::radians(m_upperAngle + 20.f) + radians - torsoRotation;
@@ -219,10 +225,17 @@ namespace arena
 		void setRecoil(bool recoilState) override
 		{
 			// Do stuff here when recoil happens/ends.
-			if (recoilState)
-				m_foreArm.m_scale = glm::vec2(1.1, 1.1);
-			else
-				m_foreArm.m_scale = glm::vec2(1, 1);
+			if (recoilState) {
+				if (m_flipX)
+					m_upperAngle = 335.f;
+				else
+					m_upperAngle = 325.f;
+				m_forearmAngle = 130.f;
+			}
+			else {
+				m_upperAngle = 330.f;
+				m_forearmAngle = 125.f;
+			}
 		}
 
         CompositeSprite* getParent() override

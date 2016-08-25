@@ -217,7 +217,7 @@ namespace arena
 	{
 		m_recoilState = recoilState;
 		m_animationData->m_leftHand->setRecoil(recoilState);
-		m_animationData->m_leftHand->setRecoil(recoilState);
+		m_animationData->m_rightHand->setRecoil(recoilState);
 
 	}
 
@@ -231,7 +231,7 @@ namespace arena
 		);
 		if (m_recoilState)
 		{
-			if ((m_recoilTimer += dt) > 1.0f)
+			if ((m_recoilTimer += dt) > 0.05f)
 			{ 
 				m_recoilState = false;
 				m_animationData->m_leftHand->setRecoil(false);
