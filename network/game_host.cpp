@@ -585,6 +585,7 @@ namespace arena
 		for (uint32 i = 0; i < bullets.size(); i++)
 		{
 			bullets[i]->setEntityID(getFreeEntityId());
+			bullets[i]->m_ownerId = gladiator->m_ownerId;
 			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, bullets[i]->m_rotation, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
 			registerEntity(bullets[i]);

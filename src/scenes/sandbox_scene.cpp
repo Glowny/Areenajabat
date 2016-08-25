@@ -598,6 +598,7 @@ namespace arena
 			return;
 		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
+		//printf("hitdir:%d, hitpos:%f\n", packet->m_hitDirection, packet->m_hitPosition.y);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y);
@@ -1619,7 +1620,7 @@ namespace arena
 		SpriteRenderer* renderer = builder.addSpriteRenderer();
 
 		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodExplosionAnimation_ss.png"));
-		renderer->setSize(512, 512);
+		renderer->setSize(1024, 512);
 		Rectf rect = renderer->getSource();
 		rect.x = 0; rect.y = 0;
 		rect.w = 256; rect.h = 256;
