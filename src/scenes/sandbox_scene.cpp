@@ -799,8 +799,14 @@ namespace arena
 						transform->m_position = position;
 						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
 						glm::vec2 velocity = m_physics.getEntityVelocity(trail->bulletId);
-						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y)) / 1000.0f;
-						trail->addPart(position, rotation, transform, renderer, vel);
+						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y));
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						if (vel < 1400)
+						{ 
+							float alpha = vel - 945;
+							render->setColor(color::toABGR(255, 255, 255, alpha));
+						}
+						trail->addPart(position, rotation, transform, renderer, vel / 1000.0f);
 						
 					}
 
@@ -943,6 +949,12 @@ namespace arena
 					// Get combined velocity.
 					float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y));
 					// Destroy bullet if it is slow enought.
+					if (vel < 1200)
+					{ 
+						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						float alpha = vel - 945;
+						render->setColor(color::toABGR(255, 255, 255, alpha));
+					}
 					if (vel < 800)
 						destroyBullet(bulletID);
 
