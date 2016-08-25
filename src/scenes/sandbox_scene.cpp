@@ -309,8 +309,8 @@ namespace arena
 				glm::vec2 pos = *elem.second->m_gladiator->m_position;
 				transform->m_position= glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
 
-				if (rand() % 1000)
-					createTestEntity(glm::vec2(pos.x, pos.y));
+				//if (rand() % 1000)
+				//	createTestEntity(glm::vec2(pos.x, pos.y));
 			}
 
 			updateCameraPosition();
@@ -750,7 +750,15 @@ namespace arena
 					{
 						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1));
 					}
-					
+					if (entityId->m_id == EntityIdentification::Magazine)
+					{
+						// fade out magazine after certain time.
+						Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
+						if (timer->m_currentTime/timer->m_lifeTime > 0.7f)
+						{
+							render->setColor(color::toABGR(255, 255, 255, (uint8_t)(timer->timePassedReverse255() * 2.5)));
+						}
+					}
 				}
 
 				
@@ -830,7 +838,7 @@ namespace arena
 					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
 					// Parallex scrolling.
 					// use movement component as offset component.
-					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.2f, playerTransform->m_position.y *1.2f);
+					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.05f, playerTransform->m_position.y *1.05f);
 					// HAX: velocity is original position, too lazy to create originalposition-component or something like that
 					transform->m_position = glm::vec2(movement->m_velocity.x + mapOffset.x, movement->m_velocity.y + mapOffset.y);
 				}
@@ -1748,20 +1756,76 @@ namespace arena
 		const MouseState& mouse = Mouse::getState();
 		// TODO: get real resolution
 		rotatePlayerAim();
+		glm::vec2 movement = glm::vec2(mouse.m_mrx, mouse.m_mry);
+		if (movement.x == m_mouseValues.x && movement.y == m_mouseValues.y)
+			movement = glm::ivec2(0,0);
+		m_mouseValues = glm::vec2(mouse.m_mrx, mouse.m_mry);
 
+			
+		//if (-2 < movement.x && movement.x< 2)
+		//	movement.x = 0;
+		//if (-2 < movement.y && movement.y< 2)
+		//	movement.y = 0;
+		/*
 		glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x / 2 + mouse.m_mx, -m_screenSize.y / 2 + mouse.m_my);
 		glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
 		glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerPosition.x, oldMousePos.y + movement.y + playerPosition.y);
 		oldMousePos = cameraPositionOnMouse;
+		*/
+		
+		glm::vec2 cameraPosition = glm::vec2(0, 0);
 		// Adjust the aim position where bullets drop.
+		printf("mouse relative position: %d, %d\n", mouse.m_mrx, mouse.m_mry);
 		if (mousePointerEntity != nullptr)
 		{
+			
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
+			
+			glm::vec2 newPosition = mouseTransform->m_position + movement;
+			if (newPosition.x < 0)
+			{
+				newPosition.x = 0;
+			}
+			else if (newPosition.x > 8000)
+			{
+				newPosition.x = 8000;
+			}
+			if (newPosition.y < -200)
+			{
+				newPosition.y = -200;
+			}
+			else if (newPosition.y > 2500)
+			{
+				newPosition.y = 2500;
+			}
+			mouseTransform->m_position = newPosition;
+
+
+			cameraPosition = mouseTransform->m_position;
+			if (cameraPosition.x < 1000)
+			{
+				cameraPosition.x = 1000;
+			}
+			else if (cameraPosition.x > 9000)
+			{
+				cameraPosition.x = 9000;
+			}
+			if (cameraPosition.y < 400)
+			{
+				cameraPosition.y = 400;
+			}
+			else if (cameraPosition.y > 3000)
+			{
+				cameraPosition.y = 3000;
+			}
+			oldMousePos = cameraPosition;
+
+
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
 			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.5708f);
-			mouseTransform->m_position = cameraPosition + glm::vec2(-13.0f, +80.0f);
 			renderer->setLayer(4);
 		}
+		
 		//checkBounds(cameraPosition);
 		camera.m_position = cameraPosition;
 		camera.calculate();
@@ -1779,11 +1843,13 @@ namespace arena
 	{
 		float xOffset = m_clientIdToGladiatorData[m_playerId]->m_animator->m_animator.m_shoulderPoint.x;
 		float yOffset = m_clientIdToGladiatorData[m_playerId]->m_animator->m_animator.m_shoulderPoint.y;
-		const MouseState& mouse = Mouse::getState();
+		//const MouseState& mouse = Mouse::getState();
 
-		glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-		Camera& camera = App::instance().camera();
-		transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+		Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
+		glm::vec2 mouseLoc = mouseTransform->m_position;
+	//	glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+	//	Camera& camera = App::instance().camera();
+		//transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
 		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
 		m_weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 9 + xOffset, playerTransform->m_position.y + 14 - yOffset);
 		glm::vec2 dir(mouseLoc - m_weaponRotationPoint);

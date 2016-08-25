@@ -304,6 +304,8 @@ namespace arena
 		SessionVariables	m_sessionData;
 		Scoreboard*			m_scoreBoard;
 
+		
+
 		bool				m_disposed;
 		bool				m_endCalled;
 

@@ -143,6 +143,7 @@ namespace arena
 		uint8_t currentFreeId = 0;
 		uint8_t isIdFree[255];
 		bool debugBullets = false;
+		glm::ivec2 m_mouseValues{ 0,0 };
     };
 
 	static void inputMoveLeft(const void*);

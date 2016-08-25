@@ -65,6 +65,8 @@ namespace arena
         int32_t m_mx;
         int32_t m_my;
         int32_t m_mz;
+		int32_t m_rx;
+		int32_t m_ry;
         MouseButton::Enum m_button;
         bool m_down;
         bool m_move;
@@ -146,12 +148,14 @@ namespace arena
             m_queue.push(ev);
         }
 
-        void postMouseEvent(SDL_Window* _handle, int32_t _mx, int32_t _my, int32_t _mz)
+        void postMouseEvent(SDL_Window* _handle, int32_t _mx, int32_t _my, int32_t _mz, int32_t _mrx, int32_t _mry)
         {
             MouseEvent* ev = new MouseEvent(_handle);
             ev->m_mx = _mx;
             ev->m_my = _my;
             ev->m_mz = _mz;
+			ev->m_rx = _mrx;
+			ev->m_ry = _mry;
             ev->m_button = MouseButton::None;
             ev->m_down = false;
             ev->m_move = true;

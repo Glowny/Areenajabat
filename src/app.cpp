@@ -73,9 +73,13 @@ namespace arena
 					if (mouse->m_move)
 					{
 						inputSetMousePos(mouse->m_mx, mouse->m_my, mouse->m_mz);
+						
 						s_mouseState.m_mx = mouse->m_mx;
 						s_mouseState.m_my = mouse->m_my;
 						s_mouseState.m_mz = mouse->m_mz;
+						s_mouseState.m_mrx = mouse->m_rx;
+						s_mouseState.m_mry = mouse->m_ry;
+						
 					}
 					else
 					{

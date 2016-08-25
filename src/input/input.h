@@ -182,7 +182,9 @@ namespace arena
             : m_mx(0)
             , m_my(0)
             , m_mz(0)
-        {
+			, m_mrx(0)
+			, m_mry(0)
+		{ 
             for (uint32_t ii = 0; ii < arena::MouseButton::Count; ++ii)
             {
                 m_buttons[ii] = arena::MouseButton::None;
@@ -192,6 +194,8 @@ namespace arena
         int32_t m_mx;
         int32_t m_my;
         int32_t m_mz;
+		int32_t m_mrx;
+		int32_t m_mry;
         uint8_t m_buttons[arena::MouseButton::Count];
     };
 

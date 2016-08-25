@@ -264,10 +264,12 @@ namespace arena
                     case SDL_MOUSEMOTION:
                     {
                         const SDL_MouseMotionEvent& mev = event.motion;
+						 mev.xrel;
                         m_mx = mev.x;
                         m_my = mev.y;
-
-                        m_eventQueue.postMouseEvent(m_window, m_mx, m_my, m_mz);
+						m_mrx = mev.xrel;
+						m_mry = mev.yrel;
+                        m_eventQueue.postMouseEvent(m_window, m_mx, m_my, m_mz, m_mrx, m_mry);
                         break;
                     }
                     
@@ -302,7 +304,7 @@ namespace arena
                         const SDL_MouseWheelEvent& mev = event.wheel;
                         m_mz += mev.y;
 
-                        m_eventQueue.postMouseEvent(m_window, m_mx, m_my, m_mz);
+                        m_eventQueue.postMouseEvent(m_window, m_mx, m_my, m_mz, m_mrx, m_mry);
 
                     }
                     break;
@@ -416,7 +418,8 @@ namespace arena
         int32_t m_mx;
         int32_t m_my;
         int32_t m_mz;
-
+		int32_t m_mrx;
+		int32_t m_mry;
         SDL_Window* m_window;
 
         EventQueue m_eventQueue;
@@ -434,6 +437,10 @@ namespace arena
             s_ctx.m_height = height;
 
             SDL_SetWindowSize(s_ctx.m_window, width, height);
+			SDL_SetWindowGrab(s_ctx.m_window, SDL_bool::SDL_TRUE);
+			SDL_SetWindowTitle(s_ctx.m_window, "Areenajabat");
+			SDL_SetRelativeMouseMode(SDL_bool::SDL_TRUE);
+			SDL_ShowCursor(0);
             s_ctx.m_eventQueue.postSizeEvent(s_ctx.m_window, width, height);
         }
     }
