@@ -52,9 +52,10 @@ namespace arena
 	  direction = the character upper body direction, either 0 (left) or 1 (right)
 	Returns the rotation used for upper body
 	*/
+#define PI 3.141592
+#define HALFPI 1.570796
 	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
 	{
-		float pi = 3.1416f;
 		if (direction) {
 			if (radians >= -m_angleLimit1 - m_torsoRotation && radians < m_angleLimit1 - m_torsoRotation) {
 				return radians + m_torsoRotation;
@@ -66,21 +67,20 @@ namespace arena
 		}
 		else // Upper body facing left : we must subtract or add pi to all return values for the rotation to work correctly.
 		{
-			if (radians <= -m_angleLimit2 + m_torsoRotation || radians <= pi && radians > m_angleLimit2 + m_torsoRotation) {
-				return radians - pi - m_torsoRotation;
+			if (radians <= -m_angleLimit2 + m_torsoRotation || radians <= PI && radians > m_angleLimit2 + m_torsoRotation) {
+				return radians - PI - m_torsoRotation;
 			}
-			else if (radians < m_angleLimit2 + m_torsoRotation && radians >= 1.57f) {
-				return m_angleLimit2 - pi;
+			else if (radians < m_angleLimit2 + m_torsoRotation && radians >= HALFPI) {
+				return m_angleLimit2 - PI;
 			}
 			else {
-				return -m_angleLimit2 - pi;
+				return -m_angleLimit2 - PI;
 			}
 		}
 	}
 
 	float CharacterAnimator::calculateHeadRotation(float radians, bool direction)
 	{
-		float pi = 3.1416f;
 		if (direction) {
 			if (radians >= -m_angleLimit1 && radians < m_angleLimit1) {
 				return radians;
@@ -92,14 +92,14 @@ namespace arena
 		}
 		else
 		{
-			if (radians <= -m_angleLimit2 || radians <= pi && radians > m_angleLimit2) {
-				return radians - pi;
+			if (radians <= -m_angleLimit2 || radians <= PI && radians > m_angleLimit2) {
+				return radians - PI;
 			}
-			else if (radians < m_angleLimit2 && radians >= 1.57f) {
-				return m_angleLimit2 - pi;
+			else if (radians < m_angleLimit2 && radians >= HALFPI) {
+				return m_angleLimit2 - PI;
 			}
 			else {
-				return -m_angleLimit2 - pi;
+				return -m_angleLimit2 - PI;
 			}
 		}
 	}
@@ -210,7 +210,7 @@ namespace arena
 		float pi = 3.1416f / 2.0f;
 		m_shoulderPoint.x = cos(torsoRotation - pi) * 31.0f;
 		m_shoulderPoint.y = sin(torsoRotation - pi) * 31.0f;
-		m_shoulderPoint = getShoulderPointWithTorsoRotation(torsoRotation);
+		m_shoulderPoint = getShoulderPointWithTorsoRotation(torsoRotation, m_upperBodyDirection);
 	}
 	void CharacterAnimator::setRecoil(bool recoilState)
 	{
@@ -416,9 +416,9 @@ namespace arena
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
 
 		//0 = legs, 1 = body, 2 = head
-		if (hitPositionY < 10)
+		if (hitPositionY < -20.0f)
 			bodyArea = 2;
-		else if (hitPositionY < 60)
+		else if (hitPositionY < 0.0f)
 			bodyArea = 1;
 		else
 			bodyArea = 0;

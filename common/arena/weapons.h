@@ -148,7 +148,7 @@ namespace arena
 		std::vector<Bullet*> shoot(float aimAngle, glm::vec2 position)
 		{
 			glm::vec2 shoulderPoint = getShoulderPointWithAimAngle(aimAngle);
-			position = glm::vec2(position.x + 9 + shoulderPoint.x, position.y + 14 - shoulderPoint.y);
+			position = glm::vec2(position.x - 20 + 10 + shoulderPoint.x, position.y - 55 + 14 - shoulderPoint.y);//position = glm::vec2(position.x - 20 + 10 + shoulderPoint.x, position.y - 52 + 14 - shoulderPoint.y);
 			std::vector<Bullet*> bullets = createBullets(aimAngle, position);
 			m_currentBulletAmount -= (unsigned)bullets.size();
 			return bullets;
@@ -263,7 +263,7 @@ namespace arena
 				bullet->m_creationDelay = 0.1f * i;
 				bullet->m_rotation = aimAngle;
 				bullet->m_impulse.x = vectorAngle.x * GLADIUSIMPULSE; bullet->m_impulse.y = vectorAngle.y * GLADIUSIMPULSE;
-				bullet->m_position->x = position.x -10; bullet->m_position->y = position.y - 16;
+				bullet->m_position->x = position.x; bullet->m_position->y = position.y;
 				bullets.push_back(bullet);
 			}
 			return bullets;
