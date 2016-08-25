@@ -203,6 +203,12 @@ namespace arena
 			}
 
 			gladiator->m_aimAngle = player.m_playerController->aimAngle;
+			// Temporary fix for reloading. Something is corrupting the bool value, so if it is not 1 or 0, it is corrupted.
+			int reloadButtonFix = player.m_playerController->m_input.m_reloadButtonDown;
+			if (reloadButtonFix > 1)
+				player.m_playerController->m_input.m_reloadButtonDown = false;
+			
+	
 			// Check if reload is done.
 			if (gladiator->checkReload())
 			{

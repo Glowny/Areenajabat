@@ -342,7 +342,6 @@ namespace arena
 		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
 		packet->m_input = controller.m_input;
-		printf("controller reload: %d\n", controller.m_input.m_reloadButtonDown);
 		packet->m_clientSalt = s_client->m_clientSalt;
 		packet->m_challengeSalt = s_client->m_challengeSalt;
 
