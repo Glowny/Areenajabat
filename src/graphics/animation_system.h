@@ -34,6 +34,7 @@ namespace arena
         enum Enum
         {
             Gladius,
+			Shotgun,
             Count
         };
     };

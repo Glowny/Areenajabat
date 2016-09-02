@@ -201,7 +201,7 @@ namespace arena
 		void stopRunningAnimation();
 		void startRunningAnimation(float playSpeedMultiplier);
 
-		void playReloadAnimation(int weapon);
+		void playReloadAnimation();
 
 		void playThrowAnimation(int weapon, int weaponSkin);
 

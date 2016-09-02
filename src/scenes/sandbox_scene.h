@@ -45,6 +45,8 @@ namespace arena
 		~SandboxScene() = default;
         PlayerController m_controller;
 		bool m_toggleKeyBindDraw;
+		bool m_toggleScoreboardDraw = false;
+		bool m_toggleGameStateDraw = false;
 		void requestMap(uint8_t mapID);
 		bool gameRunning;
 		bool hasMap;
@@ -155,5 +157,6 @@ namespace arena
 	static void inputJump(const void*);
 	static void inputThrow(const void*);
 	static void toggleKeyBindDraw(const void*);
+	static void toggleScoreBoardDraw(const void*);
 
 }

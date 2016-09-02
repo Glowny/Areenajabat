@@ -138,9 +138,10 @@ namespace arena
 		m_death.m_relativeOffset = glm::vec2(11, 124);
 		m_gladiusReload.m_relativeOffset = glm::vec2(10, 45);
 		m_axeReload.m_relativeOffset = glm::vec2(10, 45);
+		
 		m_throw.m_relativeOffset = glm::vec2(10, 45);
 		m_climb.m_relativeOffsetLeft = glm::vec2(40, 124);
-		m_climb.m_relativeOffsetRight = glm::vec2(-40, 124);
+		m_climb.m_relativeOffsetRight = glm::vec2(0, 124);
 		m_legs.m_relativeOffset = glm::vec2(11, 124);
 		m_head.m_helmet.m_origin = glm::vec2(32.f, 58.f);
 		m_head.m_helmet.m_position = glm::vec2(16.f, 1.f);
@@ -245,6 +246,7 @@ namespace arena
 		}
 		else if (m_climb.m_climbing)
 		{
+			
 			m_climb.m_animation.setTimeElapsed(inMillis / 2 * m_climb.m_climbSpeed / 400 * -1 );
 			if (m_climb.m_animation.getCurrentTime() == 300.0f) // this is animation specific.
 			{
@@ -476,7 +478,7 @@ namespace arena
 	}
 
 
-	void CharacterAnimator::playReloadAnimation(int weapon) {
+	void CharacterAnimator::playReloadAnimation() {
 
 		int gladiator, direction;
 
@@ -485,7 +487,7 @@ namespace arena
 		//weapons: 0 = gladius (ump45), 1 = axe (shotgun)
 
 		ReloadingAnimations animation = ReloadingAnimations(direction + 2 * gladiator);
-		if (weapon == 0)
+		if (m_weaponAnimType == WeaponAnimationType::Gladius)
 		{
 			m_gladiusReload.m_animation.setCurrentAnimation(ReloadingEnumToFileName[animation]);
 			m_gladiusReload.m_reload = true;

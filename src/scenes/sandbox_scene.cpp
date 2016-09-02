@@ -174,7 +174,7 @@ namespace arena
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
-
+		{ arena::Key::Tab, arena::Modifier::None, 0, toggleScoreBoardDraw, "toggleScoreBoardDraw" },
 		INPUT_BINDING_END
 	};
 
@@ -199,7 +199,6 @@ namespace arena
 	static void inputReload(const void*)
 	{
 		sandbox->m_controller.m_input.m_reloadButtonDown = true;
-		//anime->m_animator.playReloadAnimation(0);
 	}
 	static void inputJump(const void*)
 	{
@@ -208,8 +207,11 @@ namespace arena
 
 	static void toggleKeyBindDraw(const void*)
 	{
-		//anime->m_animator.playThrowAnimation(0, 0);
 		sandbox->m_toggleKeyBindDraw = !sandbox->m_toggleKeyBindDraw;
+	}
+	static void toggleScoreBoardDraw(const void*)
+	{
+		sandbox->m_toggleScoreboardDraw = !sandbox->m_toggleScoreboardDraw;
 	}
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
@@ -470,6 +472,7 @@ namespace arena
 			player.m_gladiator = createGladiator(characterData);
 			m_players->push_back(player);
 		}
+		m_toggleKeyBindDraw = false;
 	}
 	void SandboxScene::createPlatform(GamePlatformPacket* packet)
 	{
@@ -503,7 +506,7 @@ namespace arena
 
 			if (packet->m_characterArray[i].m_reloading)
 			{
-				gladiatorData->m_animator->m_animator.playReloadAnimation(0);
+				gladiatorData->m_animator->m_animator.playReloadAnimation();
 				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
 				bool flip = gladiatorData->m_animator->m_animator.getUpperBodyDirection();
 				createPos = glm::vec2(createPos.x + flip * 70 - 60, createPos.y - 24.0f);
@@ -1898,7 +1901,8 @@ namespace arena
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Left mousebutton: Shoot");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Space: Jump");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Right mousebutton: Throw grenade");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: toggleKeyBindDraw");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: show this");
+
 			if (s_client->isConnected())
 				bgfx::dbgTextPrintf(0, row++, 0x56f, "Connected", s_client->isConnected());
 			else
@@ -1907,30 +1911,30 @@ namespace arena
 		}
 
 		row++;
-		if (m_scoreboard == nullptr)
-			return;
-
-		for (const auto& elem : m_scoreboard->m_playerScoreVector)
+		if (m_scoreboard != nullptr && m_toggleScoreboardDraw)
 		{
-			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Score: %d \t Kills: %d \t Tickets %d",
-				elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
+
+			for (const auto& elem : m_scoreboard->m_playerScoreVector)
+			{
+				bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Score: %d \t Kills: %d \t Tickets %d",
+					elem.m_playerID, elem.m_score, elem.m_kills, elem.m_tickets);
+				row++;
+			}
 			row++;
-		}
-		row++;
-		row++;
-		for (auto i = m_clientIdToGladiatorData.begin(); i != m_clientIdToGladiatorData.end(); i++) {
-			Gladiator* gladiator = i->second->m_gladiator;
-			bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Team: %d",
-				i->first, gladiator->m_team);
 			row++;
+			for (auto i = m_clientIdToGladiatorData.begin(); i != m_clientIdToGladiatorData.end(); i++) {
+				Gladiator* gladiator = i->second->m_gladiator;
+				bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Team: %d",
+					i->first, gladiator->m_team);
+				row++;
+			}
 		}
-		
 		if (m_gameMode == nullptr)
 			return;
 		//show game end
 		if (m_gameMode->isEnd())
 		{
-			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: TRUE");
+			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "Round ends");
 			int col = 20;
 
 			std::vector<std::string> internal;
@@ -1942,8 +1946,8 @@ namespace arena
 				bgfx::dbgTextPrintf(col, row++ + 10, 0x9f, tok.c_str());
 			}
 		}
-		else
-			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: FALSE");
+		//else
+		//	bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "GAME END: FALSE");
 	}
 	void SandboxScene::createBackground()
 	{
