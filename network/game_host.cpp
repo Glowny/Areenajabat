@@ -201,7 +201,12 @@ namespace arena
 			{
 				m_physics.setGladiatorCollideLightPlatforms(entityID, true);
 			}
-
+			// TEMP FIX: find the source of bug that sets aim angle randomly to zero.
+			// This prevents aim angle from randomly being set to zero.
+			if (player.m_playerController->aimAngle < 0.001f &&  player.m_playerController->aimAngle > -0.001f)
+			{
+			}
+			else
 			gladiator->m_aimAngle = player.m_playerController->aimAngle;
 			// Temporary fix for reloading. Something is corrupting the bool value, so if it is not 1 or 0, it is corrupted.
 			int reloadButtonFix = player.m_playerController->m_input.m_reloadButtonDown;

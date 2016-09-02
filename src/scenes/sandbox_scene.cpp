@@ -497,13 +497,8 @@ namespace arena
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			// Maybe move this to entity-update.
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			// TEMP FIX: find the source of bug that sets aim angle randomly to zero.
-			// This prevents aim angle from randomly being set to zero.
-			if (packet->m_characterArray[i].m_aimAngle < 0.001f && packet->m_characterArray[i].m_aimAngle > -0.001f)
-			{
-			}
-			else
-				gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
+		
+			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
 			
 			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
 
@@ -1758,12 +1753,13 @@ namespace arena
 	void SandboxScene::updateCameraPosition()
 	{
 		Camera& camera = App::instance().camera();
-		glm::vec2 playerPosition = glm::vec2(0, 0);
-
+		glm::vec2 playerPositionChange = glm::vec2(0, 0);
+		
 		if (m_clientIdToGladiatorData.at(m_playerId) != nullptr)
 		{
 			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-			playerPosition = playerTransform->m_position;
+			playerPositionChange =playerTransform->m_position - oldPlayerPos;
+			oldPlayerPos = playerTransform->m_position;
 		};
 	
 		const MouseState& mouse = Mouse::getState();
@@ -1774,7 +1770,7 @@ namespace arena
 			movement = glm::ivec2(0,0);
 		m_mouseValues = glm::vec2(mouse.m_mrx, mouse.m_mry);
 
-			
+		
 		//if (-2 < movement.x && movement.x< 2)
 		//	movement.x = 0;
 		//if (-2 < movement.y && movement.y< 2)
@@ -1793,7 +1789,7 @@ namespace arena
 			
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
 			
-			glm::vec2 newPosition = mouseTransform->m_position + movement;
+			glm::vec2 newPosition = mouseTransform->m_position + movement + playerPositionChange;
 			if (newPosition.x < 0)
 			{
 				newPosition.x = 0;
@@ -1830,7 +1826,7 @@ namespace arena
 			{
 				cameraPosition.y = 1620;
 			}
-			oldMousePos = cameraPosition;
+			//oldMousePos = cameraPosition;
 
 
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));

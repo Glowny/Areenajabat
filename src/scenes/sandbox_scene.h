@@ -130,7 +130,7 @@ namespace arena
 		Physics m_physics;
 
 		//TODO: remake as component later.
-		glm::vec2 oldMousePos;
+		glm::vec2 oldPlayerPos = glm::vec2(0, 0);
 		Scoreboard* m_scoreboard;
 		std::vector<Player>* m_players;
 		GameMode* m_gameMode;
