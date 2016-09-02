@@ -1,56 +1,22 @@
 # Areenajabat
-2016 kesäpeliprojekti
+13.6.2016 - 26.8.2016 Summer game project at Kajaani university of applied sciences.
 
-```cpp
-// Sulkujen asettaminen omalle riville
-int main()
-{
-}
+## WHAT
 
-// funktiot lowerCamelCase()
-void doSomething()
-{
-}
+* Gladiators with gunz. 
+* Online shoot' em up for up to 10 players.
 
-// sisäkkäiset preprosessorit
-#if 1
-#   if LINUX
-#     include <sys/stat.h>
-#   endif
-#endif
+## FEATURES
+* Master server and game instance creation.
+* 5v5 epic battles or something.
+* Cool effets.
+HAS GUN(S)
 
-// luokat ja jäsenet
-class UpperCamelCase
-{
-  // publicit ylhäällä
-public:
-  void function();
-// privatet alimpana ja muuttujat
-private:
-  void privateFunc();
-  int m_member;
-  std::string m_name;
-};
+## Credits:
 
-// namespace
-namespace arena
-{
-  // kaikki paska tän sisään
-}
-
-// vakiot, UpperCamel
-const int MaxMornings = 42;
-
-struct Constant
-{
-  enum Enum
-  {
-    Constant,
-    Value
-  };
-};
-
-// .cpp/.h sisäiset globaalit/staattiset
-int g_globalInt = 4;
-static int s_staticInt = 5;
-```
+* Vesa Karjalainen, team lead, server and client gameplay programmer (3 months)
+* Jani Niemelä, build & low level graphics, low level network, lobby, master-server and slave-server instances. (2 months)
+* Niko Salmela, ecs, allocators (2 months)
+* Loviisa Karjalainen, background, menus.(2 months)
+* Samuli Määttä, Characters, Animations, weapons. (2 months)
+* Thanachote-Frank, Game modes, Player teams (3 weeks).
