@@ -48,13 +48,13 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 
 	// Gladiator collide filter 
 	filter.categoryBits = c_Gladiator;
-	filter.maskBits = c_Ladder | c_Platform | c_LightPlatform | c_Bullet | c_BulletSensor;
+	filter.maskBits = c_Ladder | c_Platform | c_LightPlatform  /*| c_BulletSensor*/ | c_Bullet;
 	filter.groupIndex = 0;
 	b2Filters[ci_Gladiator] = filter;
 
 	//Gladiator no collide filter
 	filter.categoryBits = c_GladiatorNoCollide;
-	filter.maskBits =  c_Ladder | c_Platform | c_Bullet | c_BulletSensor;
+	filter.maskBits =  c_Ladder | c_Platform | c_Bullet /*| c_BulletSensor*/;
 	filter.groupIndex = 0;
 	b2Filters[ci_GladiatorNoCollide] = filter;
 
@@ -68,15 +68,15 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 	// It passes gladiators, and hits to gladiators are registered by bullet sensor.
 	
 	filter.categoryBits = c_Bullet;
-	filter.maskBits = c_Platform;
+	filter.maskBits = c_Platform | c_Gladiator;
 	filter.groupIndex = 0;
 	b2Filters[ci_Bullet] = filter;
 
 	// Bullet sensor filter.
-	filter.categoryBits = c_BulletSensor;
-	filter.maskBits = c_GladiatorNoCollide | c_Gladiator;
-	filter.groupIndex = 0;
-	b2Filters[ci_BulletSensor] = filter;
+	//filter.categoryBits = c_BulletSensor;
+	//filter.maskBits = c_GladiatorNoCollide | c_Gladiator;
+	//filter.groupIndex = 0;
+	//b2Filters[ci_BulletSensor] = filter;
 
 	// Grenade filter.
 	filter.categoryBits = c_Grenade;
@@ -545,13 +545,13 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	body->SetFixedRotation(false);
 	b2PolygonShape dynamicBox;
 	dynamicBox.SetAsBox(0.02f, 0.02f);
-	b2PolygonShape sensorBox;
-	b2Vec2 points[4]
-	{
-		b2Vec2(1.0f,0.0f) , b2Vec2(1.5f, 0.0f), b2Vec2(1.5f, 0.1f), b2Vec2(1.0f, 0.1f)
-	};
-	sensorBox.Set(points, 4);
-
+	//b2PolygonShape sensorBox;
+	//b2Vec2 points[4]
+	//{
+	//	b2Vec2(1.0f,0.0f) , b2Vec2(1.5f, 0.0f), b2Vec2(1.5f, 0.1f), b2Vec2(1.0f, 0.1f)
+	//};
+	//sensorBox.Set(points, 4);
+	//
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
 	physicalFixtureDef.shape = &dynamicBox;
@@ -566,11 +566,11 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	physicalFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
 	// Fixture definition for collisions on players (sensor).
-	b2FixtureDef sensorFixtureDef;
-	sensorFixtureDef.shape = &sensorBox;
-	sensorFixtureDef.isSensor = true;
-	sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
-	sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
+	//b2FixtureDef sensorFixtureDef;
+	//sensorFixtureDef.shape = &sensorBox;
+	//sensorFixtureDef.isSensor = true;
+	//sensorFixtureDef.filter = b2Filters[ci_BulletSensor];
+	//sensorFixtureDef.filter.groupIndex = gladiatorIdToGroupId(shooterID);
 
 
 	b2MassData data;
@@ -579,7 +579,7 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 
 	body->SetMassData(&data);
 	body->CreateFixture(&physicalFixtureDef);
-	body->CreateFixture(&sensorFixtureDef);
+//	body->CreateFixture(&sensorFixtureDef);
 	p_Bullet* bullet = new p_Bullet;
 	bullet->m_id = bulletID;
 	p_userData* userData = new p_userData;

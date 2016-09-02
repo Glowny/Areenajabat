@@ -241,7 +241,7 @@ namespace arena
             // if timeout happens
             else if (event.type == ENET_EVENT_TYPE_DISCONNECT)
             {
-                printf("ENET: diconnected\n");
+                printf("ENET: disconnected\n");
                 m_state = ClientState::Disconnected;
                 reset();
             }

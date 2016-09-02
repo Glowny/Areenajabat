@@ -95,7 +95,7 @@ namespace arena
             }
             else if (event.type == ENET_EVENT_TYPE_DISCONNECT)
             {
-                printf("ENET: diconnected\n");
+                printf("ENET: disconnected\n");
                 // hmmm we can't close the socket now so we need to implement new system...
                 // because we dont know the clientSalt nor challenge
             }

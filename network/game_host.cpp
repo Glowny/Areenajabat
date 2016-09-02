@@ -192,10 +192,10 @@ namespace arena
 			// If player is not alive, do not process input.
 			if (gladiator->m_alive == false)
 				continue;
-
+			
 			uint8_t entityID = gladiator->getEntityID();
 			PlayerInput& input = player.m_playerController->m_input;
-
+			
 			// Reset lightplatforms to solid if enought time has passed
 			if ((gladiator->m_ignoreLightPlatformsTimer += (float)dt) > 0.5f)
 			{
@@ -346,6 +346,7 @@ namespace arena
 
 			// Set the inputs to zero as they are handled.
 			memset(&player.m_playerController->m_input, false, sizeof(PlayerInput));
+
 		}
 	}
 	void GameHost::processBulletCollisions(const float64 dt)
@@ -565,7 +566,9 @@ namespace arena
 
 		// Do stuff with this on physics update.
 		player->m_playerController->m_input = input;
+
 		player->m_playerController->aimAngle = aimAngle;
+		
 	}
 
 	void GameHost::GrenadeShoot(Gladiator* gladiator) {

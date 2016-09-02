@@ -27,6 +27,7 @@ namespace arena
 	DEFINE_RTTI_SUB_TYPE(BulletTrail)
 	
 	public:
+		unsigned amount = 0;
 		std::vector<TrailPart> trail;
 		bool bulletDestroyed = false;
 		uint8_t bulletId = 255;
@@ -50,7 +51,7 @@ namespace arena
 			transform->m_position = position;
 			renderer->setRotation(rotation);
 			glm::vec2& scale = renderer->getScale();
-			scale.x = velocity;
+			scale.x = -velocity;
 			scale.y = 0.2f;
 			//glm::vec2& origin = renderer->getOrigin();
 			//origin.x = 15.0f;
@@ -64,6 +65,7 @@ namespace arena
 		{
 			if (createNewPartTimer > 0.016f && !bulletDestroyed)
 			{
+				amount++;
 				createNewPartTimer = 0;
 				return true;
 			}

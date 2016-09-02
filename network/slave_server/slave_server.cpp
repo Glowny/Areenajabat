@@ -314,6 +314,7 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_position = *gladiator->m_position;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_velocity = *gladiator->m_velocity;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_aimAngle = gladiator->m_aimAngle;
+				
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_ownerId = gladiator->m_ownerId;
 				gladiatorUpdatePacket->m_characterArray[gladiatorUpdatePacket->m_playerAmount].m_reloading = gladiator->m_reloading;
 				gladiator->m_reloading = false; // Dont spam reload. TODO: move this to somewhere on game_host.

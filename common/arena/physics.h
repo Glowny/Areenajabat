@@ -119,6 +119,7 @@ struct p_Bullet :public p_entity
 {
 	unsigned m_shooterID;
 	bool m_contact;
+	bool m_noGladiatorContact = false;
 	bodyType m_contactBody;
 	arena::BulletType m_bulletType;
 	p_userData* m_contactUserData;
@@ -189,7 +190,7 @@ private:
 						return;
 					p_Bullet* bullet = static_cast<p_Bullet*>(bulletUserData->m_object);
 					bullet->startContact(targetUserData);
-
+					bullet->m_noGladiatorContact = true;
 					BulletCollisionEntry entry;
 					entry.m_bullet = *bullet;
 
@@ -204,6 +205,8 @@ private:
 				case B_Gladiator:
 				{
 					p_Bullet* bullet = static_cast<p_Bullet*>(bulletUserData->m_object);
+					if (bullet->m_noGladiatorContact == true)
+						return;
 					bullet->startContact(targetUserData);
 
 					BulletCollisionEntry entry;

@@ -341,6 +341,9 @@ namespace arena
 	{
 		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
+
+		
+
 		packet->m_input = controller.m_input;
 		packet->m_clientSalt = s_client->m_clientSalt;
 		packet->m_challengeSalt = s_client->m_challengeSalt;
@@ -494,7 +497,14 @@ namespace arena
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
 			// Maybe move this to entity-update.
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
+			// TEMP FIX: find the source of bug that sets aim angle randomly to zero.
+			// This prevents aim angle from randomly being set to zero.
+			if (packet->m_characterArray[i].m_aimAngle < 0.001f && packet->m_characterArray[i].m_aimAngle > -0.001f)
+			{
+			}
+			else
+				gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
+			
 			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
 
 			if (packet->m_characterArray[i].m_reloading)
@@ -795,7 +805,7 @@ namespace arena
 					{
 						trail->bulletDestroyed = true;
 					}
-					else
+					else if (trail->amount > 1)
 					{
 						Transform* const transform = new Transform();
 						entity->add(transform);
@@ -837,7 +847,7 @@ namespace arena
 					Transform* transform = (Transform*)entity->first(TYPEOF(Transform));
 					// Parallex scrolling.
 					// use movement component as offset component.
-					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *1.05f, playerTransform->m_position.y *1.05f);
+					glm::vec2 mapOffset = glm::vec2(playerTransform->m_position.x *0.25f, playerTransform->m_position.y *0.25f);
 					// HAX: velocity is original position, too lazy to create originalposition-component or something like that
 					transform->m_position = glm::vec2(movement->m_velocity.x + mapOffset.x, movement->m_velocity.y + mapOffset.y);
 				}
@@ -1778,7 +1788,6 @@ namespace arena
 		
 		glm::vec2 cameraPosition = glm::vec2(0, 0);
 		// Adjust the aim position where bullets drop.
-		printf("mouse relative position: %d, %d\n", mouse.m_mrx, mouse.m_mry);
 		if (mousePointerEntity != nullptr)
 		{
 			

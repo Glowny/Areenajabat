@@ -112,7 +112,7 @@ namespace arena
 		glm::vec2*	m_position;
 		glm::vec2*	m_velocity;
 
-		float32		m_aimAngle;		
+		float		m_aimAngle;		
 		uint8_t		m_ownerId;
 		int32		m_hitpoints;
 		

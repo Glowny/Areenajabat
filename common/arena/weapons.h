@@ -6,7 +6,7 @@
 #include <../common/network_entity.h>
 #include <../common/arena/gladiator_shoulder_point.h>
 
-#define GLADIUSIMPULSE 17.0f
+#define GLADIUSIMPULSE 25.0f
 #define SHOTGUNIMPULSE 13.0f
 #define GRENADEIMPULSE 500.0f
 #define EXPLOSIONIMPULSE 400.0f
