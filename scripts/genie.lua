@@ -91,7 +91,8 @@ project ("arena")
 
 	configuration { "vs*" }
 	postbuildcommands {
-		"XCOPY \"" .. path.join(ARENA_DIR, "assets") .. "\" \"$(TargetDir)assets\\\" /D /K /Y /E"
+		"XCOPY \"" .. path.join(ARENA_DIR, "assets") .. "\" \"$(TargetDir)assets\\\" /D /K /Y /E",
+		"XCOPY \"" .. path.join(ARENA_DIR, "assets") .. "\" \"$(ProjectDir)assets\\\" /D /K /Y /E"
 	}
 
 	configuration { "vs*" and "x32"}

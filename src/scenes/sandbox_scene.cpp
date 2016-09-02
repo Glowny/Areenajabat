@@ -169,11 +169,9 @@ namespace arena
 		{ arena::Key::KeyD, arena::Modifier::None, 0, inputMoveRight, "moveright" },
 		{ arena::Key::KeyW, arena::Modifier::None, 0, inputMoveUp, "moveup" },
 		{ arena::Key::KeyS, arena::Modifier::None, 0, inputMoveDown, "movedown" },
-		{ arena::Key::Key1, arena::Modifier::None, 0, inputShoot, "shoot" },
 		{ arena::Key::KeyQ, arena::Modifier::None, 0, connect, "connect" },
 		{ arena::Key::Key9, arena::Modifier::None, 0, disconnect, "disconnect" },
 		{ arena::Key::KeyR, arena::Modifier::None, 0, inputReload, "reload"},
-		{ arena::Key::KeyT, arena::Modifier::None, 0, inputThrow, "apple" },
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
 
@@ -198,10 +196,6 @@ namespace arena
 		sandbox->m_controller.m_input.m_downButtonDown = true;
 	}
 
-	static void inputShoot(const void*)
-	{
-		sandbox->m_controller.m_input.m_shootButtonDown = true;
-	}
 	static void inputReload(const void*)
 	{
 		sandbox->m_controller.m_input.m_reloadButtonDown = true;
@@ -211,11 +205,7 @@ namespace arena
 	{
 		sandbox->m_controller.m_input.m_jumpButtonDown = true;
 	}
-	static void inputThrow(const void*)
-	{
-		//anime->m_animator.playThrowAnimation(0, 0);
-		sandbox->m_controller.m_input.m_grenadeButtonDown = true;
-	}
+
 	static void toggleKeyBindDraw(const void*)
 	{
 		//anime->m_animator.playThrowAnimation(0, 0);
@@ -245,6 +235,15 @@ namespace arena
 	void SandboxScene::onUpdate(const GameTime& gameTime)
 	{
 		s_stamp = gameTime.m_total;
+		MouseState state = Mouse::getState();
+		if (state.m_buttons[MouseButton::Left])
+		{
+			m_controller.m_input.m_shootButtonDown = true;
+		}
+		if (state.m_buttons[MouseButton::Right])
+		{
+			m_controller.m_input.m_grenadeButtonDown = true;
+		}
 		if (!s_client->isConnected())
 		{
 			if (gameRunning)
@@ -293,7 +292,7 @@ namespace arena
 			{
 				float aimAngle = elem.second->m_gladiator->m_aimAngle;
 				const MouseState& mouse = Mouse::getState();
-
+				
 				glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
 				Camera& camera = App::instance().camera();
 				transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
@@ -1889,18 +1888,16 @@ namespace arena
 		if (m_toggleKeyBindDraw == true)
 		{
 
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyQ: connect");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "Key9: disconnect");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyA: moveleft");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyD: moveright");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyW: moveup");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyS: movedown");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyR: reload");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "Key1: shoot");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "Space: jump");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyT: apple");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyH: animationdie");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "KeyV: animationReset");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Q: Connect");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "9: Disconnect");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "A: Move left");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "D: Move right");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "W: Climb ladder up");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "S: Climb ladder down / drop down platform");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "R: Reload");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Left mousebutton: Shoot");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Space: Jump");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Right mousebutton: Throw grenade");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: toggleKeyBindDraw");
 			if (s_client->isConnected())
 				bgfx::dbgTextPrintf(0, row++, 0x56f, "Connected", s_client->isConnected());

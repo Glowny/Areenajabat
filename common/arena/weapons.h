@@ -250,6 +250,7 @@ namespace arena
 			m_coolDown = 0.07f;
 			m_reloadTime = 1.25f;
 			m_reloadBulletAmount = 30;
+			m_currentBulletAmount = 30;
 		}
 
 		std::vector<Bullet*> createBullets(float aimAngle, glm::vec2 position)
