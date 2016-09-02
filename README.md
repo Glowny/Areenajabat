@@ -10,7 +10,6 @@
 * Master server and game instance creation.
 * 5v5 epic battles or something.
 * Cool effets.
-HAS GUN(S)
 
 ## Credits:
 
@@ -18,5 +17,5 @@ HAS GUN(S)
 * Jani Niemelä, build & low level graphics, low level network, lobby, master-server and slave-server instances. (2 months)
 * Niko Salmela, ecs, allocators (2 months)
 * Loviisa Karjalainen, background, menus.(2 months)
-* Samuli Määttä, Characters, Animations, weapons. (2 months)
-* Thanachote-Frank, Game modes, Player teams (3 weeks).
+* Samuli Määttä, characters, animations, weapons. (2 months)
+* Thanachote-Frank, game modes, player teams (3 weeks).
