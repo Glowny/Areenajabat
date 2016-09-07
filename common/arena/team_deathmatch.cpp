@@ -25,7 +25,7 @@ namespace arena
 		TeamDeathMatch::numTeams = numTeams;
 		TeamDeathMatch::enableAttackTeammates = enableAttackTeammates;
 
-		GameMode::init_m_tickets = 3;
+		GameMode::init_m_tickets = 8;
 
 	}
 	TeamDeathMatch::~TeamDeathMatch()

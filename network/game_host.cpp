@@ -581,6 +581,7 @@ namespace arena
 		bullet->m_shooterId = gladiator->getEntityID();
 
 		bullet->setEntityID(getFreeEntityId());
+		bullet->m_ownerId = gladiator->m_ownerId;
 		m_physics.addGrenadeWithID(bullet->m_position, bullet->m_impulse, gladiator->getEntityID(), bullet->getEntityID());
 		m_synchronizationList.push_back(bullet);
 		registerEntity(bullet);
@@ -593,6 +594,7 @@ namespace arena
 		for (uint32 i = 0; i < bullets.size(); i++)
 		{
 			bullets[i]->setEntityID(getFreeEntityId());
+			
 			bullets[i]->m_ownerId = gladiator->m_ownerId;
 			m_physics.addBulletWithID(bullets[i]->m_position, bullets[i]->m_impulse, bullets[i]->m_rotation, gladiator->getEntityID(), bullets[i]->getEntityID());
 			m_synchronizationList.push_back(bullets[i]);
@@ -846,6 +848,7 @@ namespace arena
 								{
 									ShardProjectile* projectile = projectiles[i];
 									projectile->setEntityID(getFreeEntityId());
+									projectile->m_ownerId = grenade->m_ownerId;
 									m_physics.addBulletWithID(projectile->m_position, projectile->m_impulse,
 										projectile->m_rotation, projectile->m_shooterId, projectile->getEntityID());
 									m_synchronizationList.push_back(projectile);
@@ -899,7 +902,7 @@ namespace arena
 			score.m_kills = 0;
 			score.m_score = 0;
 			//TODO: get the amount of tickets from initilization file.
-			score.m_tickets = 0;
+			score.m_tickets = 10;
 			score.m_playerID = player->m_clientIndex;
 			board->m_playerScoreVector.push_back(score);
 		}
@@ -916,7 +919,7 @@ namespace arena
 			it->m_kills = 0;
 			it->m_score = 0;
 			//TODO: get the amount of tickets from initilization file
-			it->m_tickets = 1;
+			it->m_tickets = 10;
 
 		}
 		m_synchronizationList.push_back(m_scoreBoard);

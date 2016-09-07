@@ -605,7 +605,6 @@ namespace arena
 			return;
 		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
-		printf("hitdir:%d, hitpos:%f\n", packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
@@ -1891,18 +1890,18 @@ namespace arena
 		if (m_toggleKeyBindDraw == true)
 		{
 
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "Q: Connect");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "9: Disconnect");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Q: Connect to game");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "9: Disconnect from game");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Left mousebutton: Shoot");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "R: Reload");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Right mousebutton: Throw grenade");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "A: Move left");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "D: Move right");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "W: Climb ladder up");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "S: Climb ladder down / drop down platform");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "R: Reload");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "Left mousebutton: Shoot");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Space: Jump");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "Right mousebutton: Throw grenade");
-			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: show this");
-
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: show/hide this");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "Tab: show/hide scoreboard");
 			if (s_client->isConnected())
 				bgfx::dbgTextPrintf(0, row++, 0x56f, "Connected", s_client->isConnected());
 			else
@@ -1934,8 +1933,9 @@ namespace arena
 		//show game end
 		if (m_gameMode->isEnd())
 		{
-			bgfx::dbgTextPrintf(0, row++ + 10, 0x9f, "Round ends");
-			int col = 20;
+			int col = 100;
+			bgfx::dbgTextPrintf(col, 20, 0x9f, "Round ends");
+			
 
 			std::vector<std::string> internal;
 			std::stringstream ss(m_gameMode->getEndMessage()); // Turn the string into a stream.
@@ -1943,7 +1943,7 @@ namespace arena
 
 			while (getline(ss, tok,'=')) {
 				internal.push_back(tok);
-				bgfx::dbgTextPrintf(col, row++ + 10, 0x9f, tok.c_str());
+				bgfx::dbgTextPrintf(col, 20, 0x9f, tok.c_str());
 			}
 		}
 		//else
