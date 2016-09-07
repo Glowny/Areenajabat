@@ -30,7 +30,7 @@ namespace arena
 
 		virtual bool isEnd() = 0;
 		virtual bool canAttack(Gladiator* shooter, Gladiator* target) = 0;
-		virtual float calculateScore(Gladiator* shooter, Gladiator* target) = 0;
+		virtual int calculateScore(Gladiator* shooter, Gladiator* target) = 0;
 		virtual void spawnPlayers() = 0;
 		virtual void spawnPlayer(Player* m_player) = 0;
 		virtual void respawnPlayers() = 0;

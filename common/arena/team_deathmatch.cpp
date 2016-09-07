@@ -68,12 +68,12 @@ namespace arena
 		return (target->m_team != shooter->m_team || enableAttackTeammates) && target->m_alive;
 	}
 
-	float TeamDeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
+	int TeamDeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
 	{
 		if (target->m_team != shooter->m_team) {
-			return 10.0f;
+			return 10;
 		}
-		return 0.0f;
+		return 0;
 	}
 
 	struct greater_than

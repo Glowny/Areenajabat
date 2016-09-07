@@ -261,7 +261,7 @@ namespace arena
 		s_client->sendProtocolPackets(gameTime.m_total);
 
 		// Send player input to server if 1/60 of a second has passed.
-		if ((m_physics.updateTimer += gameTime.m_delta) >= PHYSICS_TIMESTEP && s_client->isConnected())
+		if ((m_physics.updateTimer += static_cast<float32>(gameTime.m_delta)) >= PHYSICS_TIMESTEP && s_client->isConnected())
 		{
 			updatePhysics(m_physics.updateTimer);
 			m_physics.updateTimer = 0;
@@ -732,17 +732,17 @@ namespace arena
 					
 					if (entityId->m_id == EntityIdentification::Smoke)
 					{
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() / 8)));
 					}
 
 					if (entityId->m_id == EntityIdentification::GrenadeSmoke)
 					{
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1.5));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() / 1.5)));
 					}
 
 					if (entityId->m_id == EntityIdentification::Explosion)
 					{
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() / 1)));
 					}
 					if (entityId->m_id == EntityIdentification::Magazine)
 					{
@@ -750,7 +750,7 @@ namespace arena
 						Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 						if (timer->m_currentTime/timer->m_lifeTime > 0.7f)
 						{
-							render->setColor(color::toABGR(255, 255, 255, (uint8_t)(timer->timePassedReverse255() * 2.5)));
+							render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() * 2.5)));
 						}
 					}
 				}
@@ -809,7 +809,7 @@ namespace arena
 						if (vel < 1400)
 						{ 
 							float alpha = vel - 945;
-							render->setColor(color::toABGR(255, 255, 255, alpha));
+							render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
 							renderer->setLayer(6);
 						}
 						trail->addPart(position, rotation, transform, renderer, vel / 1000.0f);
@@ -817,7 +817,7 @@ namespace arena
 					}
 
 				}
-				trail->update(gameTime.m_delta);
+				trail->update(static_cast<float>(gameTime.m_delta));
 				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 			}
 			
@@ -959,7 +959,7 @@ namespace arena
 					{ 
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						float alpha = vel - 945;
-						render->setColor(color::toABGR(255, 255, 255, alpha));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
 					}
 					if (vel < 800)
 						destroyBullet(bulletID);
@@ -977,7 +977,7 @@ namespace arena
 		instance.update(gameTime);
 	}
 
-	void SandboxScene::updatePhysics(float64 timeStep)
+	void SandboxScene::updatePhysics(float32 timeStep)
 	{
 		//m_physics.update(gameTime.m_delta);
 		m_physics.update(timeStep);

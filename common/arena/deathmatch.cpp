@@ -61,9 +61,9 @@ namespace arena
 		return true && target->m_alive;
 	}
 
-	float DeathMatch::calculateScore(Gladiator*, Gladiator*)
+	int DeathMatch::calculateScore(Gladiator*, Gladiator*)
 	{
-		return 10.0f;
+		return 10;
 	}
 
 	struct greater_than

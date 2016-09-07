@@ -86,7 +86,7 @@ Physics::Physics() : m_ContactListener(&m_entityVector)
 };
 Physics::~Physics() {};
 
-void Physics::update(float64 timeStep)
+void Physics::update(float32 timeStep)
 {
 	const int32 VelocityIterations = 8;
 	const int32 PositionIterations = 3;
@@ -625,14 +625,14 @@ void Physics::addGrenadeWithID(glm::vec2* position, glm::vec2 impulse, unsigned 
 	fixtureDef.filter.groupIndex = 0;//gladiatorIdToGroupId(shooterID);
 
 	b2MassData data;
-	data.center = b2Vec2(0.07f, 0.145);
+	data.center = b2Vec2(0.07f, 0.145f);
 	data.mass = 0.390f;
 
 	
 	body->SetMassData(&data);
 	body->CreateFixture(&fixtureDef);
 	body->SetAngularDamping(5);
-	body->SetLinearDamping(0.2);
+	body->SetLinearDamping(0.2f);
 
 	p_Bullet* bullet = new p_Bullet;
 	bullet->m_id = bulletID;

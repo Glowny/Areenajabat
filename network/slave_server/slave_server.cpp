@@ -80,7 +80,7 @@ void SlaveServer::modeSet()
 void SlaveServer::clientConnect(uint32_t clientIndex)
 {
 	GameSetupPacket* setupPacket = (GameSetupPacket*)createPacket(PacketTypes::GameSetup);
-	setupPacket->m_playerAmount = m_host.players().size();
+	setupPacket->m_playerAmount = static_cast<int32_t>(m_host.players().size());
 	setupPacket->m_clientIndex = clientIndex;
 	m_server.sendPacketToConnectedClient(clientIndex, setupPacket, m_totalTime);
 

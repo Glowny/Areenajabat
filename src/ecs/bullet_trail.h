@@ -85,7 +85,7 @@ namespace arena
 				}
 				else
 				{
-					elem->m_renderer->setColor(color::toABGR(255, 255, 255, elem->m_alpha));
+					elem->m_renderer->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(elem->m_alpha)));
 					elem++;
 				}
 				
