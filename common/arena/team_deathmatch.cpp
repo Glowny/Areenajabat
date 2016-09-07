@@ -124,8 +124,8 @@ namespace arena
 	//assign team ID to each player
 	void TeamDeathMatch::autoGroupTeams()
 	{
-		int numPlayer = m_players->size();
-		int numPlayerInTeam = ceil(1.0 * numPlayer / numTeams);
+		size_t numPlayer = m_players->size();
+		int numPlayerInTeam = static_cast<int>(ceil(1.0 * numPlayer / numTeams));
 		auto player = m_players->begin();
 		for (int i = 0; i < numTeams; i++)
 		{

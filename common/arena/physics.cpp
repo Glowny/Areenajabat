@@ -555,7 +555,8 @@ void Physics::addBulletWithID(glm::vec2* position, glm::vec2 impulse, float angl
 	// Fixture definiton for collisions on platforms or other similiar objects.
 	b2FixtureDef physicalFixtureDef;
 	physicalFixtureDef.shape = &dynamicBox;
-	float rest= rand() % 2;
+	float rest = static_cast <float>(rand() % 2);
+	
 	rest= rest / 100.0f;
 	physicalFixtureDef.restitution = rest;
 	physicalFixtureDef.density = 2.0f;

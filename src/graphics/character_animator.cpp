@@ -52,8 +52,8 @@ namespace arena
 	  direction = the character upper body direction, either 0 (left) or 1 (right)
 	Returns the rotation used for upper body
 	*/
-#define PI 3.141592
-#define HALFPI 1.570796
+#define PI 3.141592f
+#define HALFPI 1.570796f
 	float CharacterAnimator::calculateTorsoRotation(float radians, bool direction)
 	{
 		if (direction) {
@@ -176,7 +176,6 @@ namespace arena
 		m_gladiusReload.m_animation.m_entity = gladiusReload;
 		m_axeReload.m_animation.m_entity = axeReload;
 	}
-#define PI 3.141592
 	void CharacterAnimator::rotateAimTo(float radians)
 	{
 
@@ -409,12 +408,11 @@ namespace arena
 		m_legs.running = true;
 	}
 
-	void CharacterAnimator::playDeathAnimation(bool hitDirection, float hitPositionY)
+	void CharacterAnimator::playDeathAnimation(uint8_t hitDirection, float hitPositionY)
 	{
-		int bodyArea, gladiator, hitDirectionInt, upperBodyDirection, lowerBodyDirection;
+		int bodyArea, gladiator, upperBodyDirection, lowerBodyDirection;
 
 		gladiator = m_skin; //either 0 (bronze) or 1 (gold), unless more skins are added
-		hitDirectionInt = (int)hitDirection; // either 0 (left) or 1 (right)
 		lowerBodyDirection = (int)m_flipX; // either 0 or 1, used for cases when upper body direction is different than lower body direction and legshot triggers the animation
 
 		//0 = legs, 1 = body, 2 = head
@@ -437,8 +435,7 @@ namespace arena
 		DyingAnimations dyingAnimation = DyingAnimations(hitDirection + (2 * upperBodyDirection) + (4 * bodyArea) + (12 * gladiator));
 		m_death.m_animation.setCurrentAnimation(DyingEnumToFileName[dyingAnimation]);
 		m_death.m_animation.setCurrentTime(0);
-		//printf("animation enum: %d, string : %s\n", dyingAnimation, dyingEnumToFileName[dyingAnimation].c_str());
-
+		
 		//start updating the animation
 		m_death.dying = true;
 	}
@@ -464,7 +461,9 @@ namespace arena
 	}
 	bool CharacterAnimator::isClimbing()
 	{
-		return m_climb.m_climbing;
+		if (m_climb.m_climbing == 0)
+			return false;
+		return true;
 	}
 	void CharacterAnimator::pauseClimbAnimation()
 	{
@@ -508,15 +507,15 @@ namespace arena
 		
 	}
 
-	void CharacterAnimator::playThrowAnimation(int weapon, int weaponSkin) {
-
+	void CharacterAnimator::playThrowAnimation(int weapon) 
+	{
 		int gladiator, direction;
 
 		gladiator = m_skin;
 		direction = (int)m_upperBodyDirection;
 		//26.7.2016 currently there is only 1 grenade
 		//26.7.2016 currently weaponSkin is only used for Gladius (0 = with clip, 1 = without clip), so weapon 1 with weaponSkin 1 should not be used.
-		ThrowingAnimations animation = (ThrowingAnimations)(direction + 2 * weaponSkin + 4 * weapon + 6 * gladiator);
+		ThrowingAnimations animation = (ThrowingAnimations)(direction + 2 * m_weaponAnimType + 4 * weapon + 6 * gladiator);
 		m_throw.m_animation.setCurrentAnimation(ThrowingEnumToFileName[animation]);
 		m_throw.m_throwing = true;
 		m_throw.m_animation.setCurrentTime(0);

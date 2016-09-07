@@ -215,9 +215,9 @@ namespace arena
 	}
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
-		// Pointer to scene for input to use.
 		gameRunning = false;
 		hasMap = false;
+		// Pointer to scene for input to use.
 		sandbox = this;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
@@ -293,6 +293,7 @@ namespace arena
 			for (const auto& elem : m_clientIdToGladiatorData)
 			{
 				float aimAngle = elem.second->m_gladiator->m_aimAngle;
+				// FIX THIS; IT CHANGES EVERY GLADIATORS AIM ACCORDING TO PLAYER'S GLADIATOR.
 				const MouseState& mouse = Mouse::getState();
 				
 				glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
@@ -342,16 +343,11 @@ namespace arena
 	{
 		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
-
-		
-
 		packet->m_input = controller.m_input;
 		packet->m_clientSalt = s_client->m_clientSalt;
 		packet->m_challengeSalt = s_client->m_challengeSalt;
-
 		s_client->sendPacketToServer(packet, s_stamp);
 		memset(&m_controller.m_input, false, sizeof(PlayerInput));
-
 	}
 	void SandboxScene::requestMap(uint8_t mapID)
 	{
@@ -497,24 +493,21 @@ namespace arena
 			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			// Maybe move this to entity-update.
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-		
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
-			
 			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
 
 			if (packet->m_characterArray[i].m_reloading)
 			{
 				gladiatorData->m_animator->m_animator.playReloadAnimation();
-				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
 				bool flip = gladiatorData->m_animator->m_animator.getUpperBodyDirection();
+				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
 				createPos = glm::vec2(createPos.x + flip * 70 - 60, createPos.y - 24.0f);
-				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity +glm::vec2(2.0f,2.0f),flip);
+				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity + glm::vec2(2.0f,2.0f),flip);
 			}
 			if (packet->m_characterArray[i].m_throwing)
 			{
-				gladiatorData->m_animator->m_animator.playThrowAnimation(0, 0);
+				gladiatorData->m_animator->m_animator.playThrowAnimation(0);
 			}
 			if (packet->m_characterArray[i].m_climbing != 0)
 			{
@@ -533,14 +526,11 @@ namespace arena
 			{
 				gladiatorData->m_animator->m_animator.setFlipX(0);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-
 			}
 			else if (moveSpeed.x > 15.0f)
 			{
-
 				gladiatorData->m_animator->m_animator.setFlipX(1);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-				//printf("MOVE %f\n",moveSpeed.x);
 			}
 			else
 			{
@@ -605,7 +595,6 @@ namespace arena
 			return;
 		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
 		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
-		printf("hitdir:%d, hitpos:%f\n", packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);

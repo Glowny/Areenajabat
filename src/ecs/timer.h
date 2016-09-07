@@ -16,6 +16,7 @@ namespace arena
 		float m_lifeTime;
 		float m_currentTime;
 		float m_between;
+		float m_threshold;
 		bool timePassed(float time) 
 		{
 			m_between += time;

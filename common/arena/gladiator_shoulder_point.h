@@ -5,8 +5,8 @@
 
 namespace arena
 {
-#define PI 3.141592
-#define HALFPI 1.570796
+#define PI 3.141592f
+#define HALFPI 1.570796f
 	
 	inline glm::vec2 getShoulderPointWithTorsoRotation(float torsoRotation, bool direction)
 	{
