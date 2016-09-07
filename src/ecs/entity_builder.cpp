@@ -3,6 +3,11 @@
 #include "entity.h"
 #include "transform.h"
 #include "sprite_renderer.h"
+#include "timer.h"
+#include "movement.h"
+#include "projectile.h"
+#include "physics_component.h"
+#include "bullet_trail.h"
 #include "../res/texture_resource.h"
 #include "managers/transform_manager.h"
 #include "managers/sprite_manager.h"
@@ -10,6 +15,7 @@
 #include "managers/projectile_manager.h"
 #include "managers/physics_manager.h"
 #include "managers/trail_manager.h"
+
 #include <cassert>
 #include <common/debug.h>
 

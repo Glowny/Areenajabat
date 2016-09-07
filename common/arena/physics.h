@@ -248,9 +248,9 @@ public:
 	Physics();
 	~Physics();
 
-	float64 updateTimer;
+	float32 updateTimer;
 	void reset();
-	void update(float64 timeStep = PHYSICS_TIMESTEP);
+	void update(float32 timeStep = PHYSICS_TIMESTEP);
 	void createPlatform(std::vector<glm::vec2> platform, unsigned type);
 	void setGladiatorCollideLightPlatforms(unsigned gladiatorID, bool collide);
 	void addGladiatorWithID(glm::vec2* position, glm::vec2* velocity, uint32_t id);

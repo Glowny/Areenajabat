@@ -78,7 +78,7 @@ namespace arena
 		void updateEntities(const GameTime& gameTime);
 
 		// Update clientside physics
-		void updatePhysics(float64 timeStep);
+		void updatePhysics(float32 timeStep);
 
 		void updateServerBullets(const GameTime& gameTime);
 

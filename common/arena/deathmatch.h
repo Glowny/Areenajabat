@@ -20,7 +20,7 @@ namespace arena
 
 		bool isEnd();
 		bool canAttack(Gladiator* shooter, Gladiator* target);
-		float calculateScore(Gladiator* shooter, Gladiator* target);
+		int calculateScore(Gladiator* shooter, Gladiator* target);
 		void spawnPlayers();
 		void spawnPlayer(Player* m_player);
 		void respawnPlayers();

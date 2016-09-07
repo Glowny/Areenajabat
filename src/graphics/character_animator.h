@@ -190,7 +190,7 @@ namespace arena
 
         void setWeaponAnimation(WeaponAnimationType::Enum type);
 
-		void playDeathAnimation(bool hitDirection, float hitPositionY);
+		void playDeathAnimation(uint8_t hitDirection, float hitPositionY);
 
 		void playClimbAnimation(int direction);
 		bool isClimbing();
@@ -203,7 +203,7 @@ namespace arena
 
 		void playReloadAnimation();
 
-		void playThrowAnimation(int weapon, int weaponSkin);
+		void playThrowAnimation(int weapon);
 
 		void setRecoil(bool recoilState);
 

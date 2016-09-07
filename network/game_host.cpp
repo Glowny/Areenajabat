@@ -247,7 +247,7 @@ namespace arena
 			// If the pitching is happening, check if it is ready and create the grenade.
 			if (gladiator->m_grenadeWeapon->pitching)
 			{ 
-				if (gladiator->m_grenadeWeapon->pitchReady(dt))
+				if (gladiator->m_grenadeWeapon->pitchReady((float)dt))
 				{
 					GrenadeShoot(gladiator);
 					input.m_grenadeButtonDown = false;
@@ -747,7 +747,7 @@ namespace arena
 		else if (m_gameData.m_state == GameState::RoundRunning)
 		{
 			// Do normal updates.
-			if ((m_physics.updateTimer += dt) >= PHYSICS_TIMESTEP)
+			if ((m_physics.updateTimer += static_cast<float32>(dt)) >= PHYSICS_TIMESTEP)
 			{
 				
 

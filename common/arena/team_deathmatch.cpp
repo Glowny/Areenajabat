@@ -68,12 +68,12 @@ namespace arena
 		return (target->m_team != shooter->m_team || enableAttackTeammates) && target->m_alive;
 	}
 
-	float TeamDeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
+	int TeamDeathMatch::calculateScore(Gladiator * shooter, Gladiator * target)
 	{
 		if (target->m_team != shooter->m_team) {
-			return 10.0f;
+			return 10;
 		}
-		return 0.0f;
+		return 0;
 	}
 
 	struct greater_than
@@ -124,8 +124,8 @@ namespace arena
 	//assign team ID to each player
 	void TeamDeathMatch::autoGroupTeams()
 	{
-		int numPlayer = m_players->size();
-		int numPlayerInTeam = ceil(1.0 * numPlayer / numTeams);
+		size_t numPlayer = m_players->size();
+		int numPlayerInTeam = static_cast<int>(ceil(1.0 * numPlayer / numTeams));
 		auto player = m_players->begin();
 		for (int i = 0; i < numTeams; i++)
 		{

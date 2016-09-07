@@ -215,9 +215,9 @@ namespace arena
 	}
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
-		// Pointer to scene for input to use.
 		gameRunning = false;
 		hasMap = false;
+		// Pointer to scene for input to use.
 		sandbox = this;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
@@ -261,7 +261,7 @@ namespace arena
 		s_client->sendProtocolPackets(gameTime.m_total);
 
 		// Send player input to server if 1/60 of a second has passed.
-		if ((m_physics.updateTimer += gameTime.m_delta) >= PHYSICS_TIMESTEP && s_client->isConnected())
+		if ((m_physics.updateTimer += static_cast<float32>(gameTime.m_delta)) >= PHYSICS_TIMESTEP && s_client->isConnected())
 		{
 			updatePhysics(m_physics.updateTimer);
 			m_physics.updateTimer = 0;
@@ -293,6 +293,7 @@ namespace arena
 			for (const auto& elem : m_clientIdToGladiatorData)
 			{
 				float aimAngle = elem.second->m_gladiator->m_aimAngle;
+				// FIX THIS; IT CHANGES EVERY GLADIATORS AIM ACCORDING TO PLAYER'S GLADIATOR.
 				const MouseState& mouse = Mouse::getState();
 				
 				glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
@@ -342,16 +343,11 @@ namespace arena
 	{
 		GameInputPacket* packet = (GameInputPacket*)createPacket(PacketTypes::GameInput);
 		packet->m_aimAngle = controller.aimAngle;
-
-		
-
 		packet->m_input = controller.m_input;
 		packet->m_clientSalt = s_client->m_clientSalt;
 		packet->m_challengeSalt = s_client->m_challengeSalt;
-
 		s_client->sendPacketToServer(packet, s_stamp);
 		memset(&m_controller.m_input, false, sizeof(PlayerInput));
-
 	}
 	void SandboxScene::requestMap(uint8_t mapID)
 	{
@@ -497,24 +493,21 @@ namespace arena
 			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
 			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			// Maybe move this to entity-update.
 			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-		
 			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
-			
 			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
 
 			if (packet->m_characterArray[i].m_reloading)
 			{
 				gladiatorData->m_animator->m_animator.playReloadAnimation();
-				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
 				bool flip = gladiatorData->m_animator->m_animator.getUpperBodyDirection();
+				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
 				createPos = glm::vec2(createPos.x + flip * 70 - 60, createPos.y - 24.0f);
-				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity +glm::vec2(2.0f,2.0f),flip);
+				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity + glm::vec2(2.0f,2.0f),flip);
 			}
 			if (packet->m_characterArray[i].m_throwing)
 			{
-				gladiatorData->m_animator->m_animator.playThrowAnimation(0, 0);
+				gladiatorData->m_animator->m_animator.playThrowAnimation(0);
 			}
 			if (packet->m_characterArray[i].m_climbing != 0)
 			{
@@ -533,14 +526,11 @@ namespace arena
 			{
 				gladiatorData->m_animator->m_animator.setFlipX(0);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-
 			}
 			else if (moveSpeed.x > 15.0f)
 			{
-
 				gladiatorData->m_animator->m_animator.setFlipX(1);
 				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-				//printf("MOVE %f\n",moveSpeed.x);
 			}
 			else
 			{
@@ -742,17 +732,17 @@ namespace arena
 					
 					if (entityId->m_id == EntityIdentification::Smoke)
 					{
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 8));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() / 8)));
 					}
 
 					if (entityId->m_id == EntityIdentification::GrenadeSmoke)
 					{
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1.5));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() / 1.5)));
 					}
 
 					if (entityId->m_id == EntityIdentification::Explosion)
 					{
-						render->setColor(color::toABGR(255, 255, 255, (uint8_t)timer->timePassedReverse255() / 1));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() / 1)));
 					}
 					if (entityId->m_id == EntityIdentification::Magazine)
 					{
@@ -760,7 +750,7 @@ namespace arena
 						Timer* timer = (Timer*)entity->first(TYPEOF(Timer));
 						if (timer->m_currentTime/timer->m_lifeTime > 0.7f)
 						{
-							render->setColor(color::toABGR(255, 255, 255, (uint8_t)(timer->timePassedReverse255() * 2.5)));
+							render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(timer->timePassedReverse255() * 2.5)));
 						}
 					}
 				}
@@ -819,7 +809,7 @@ namespace arena
 						if (vel < 1400)
 						{ 
 							float alpha = vel - 945;
-							render->setColor(color::toABGR(255, 255, 255, alpha));
+							render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
 							renderer->setLayer(6);
 						}
 						trail->addPart(position, rotation, transform, renderer, vel / 1000.0f);
@@ -827,7 +817,7 @@ namespace arena
 					}
 
 				}
-				trail->update(gameTime.m_delta);
+				trail->update(static_cast<float>(gameTime.m_delta));
 				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 			}
 			
@@ -969,7 +959,7 @@ namespace arena
 					{ 
 						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 						float alpha = vel - 945;
-						render->setColor(color::toABGR(255, 255, 255, alpha));
+						render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
 					}
 					if (vel < 800)
 						destroyBullet(bulletID);
@@ -987,7 +977,7 @@ namespace arena
 		instance.update(gameTime);
 	}
 
-	void SandboxScene::updatePhysics(float64 timeStep)
+	void SandboxScene::updatePhysics(float32 timeStep)
 	{
 		//m_physics.update(gameTime.m_delta);
 		m_physics.update(timeStep);
