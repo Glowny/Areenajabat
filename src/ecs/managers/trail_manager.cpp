@@ -38,11 +38,10 @@ namespace arena
 		while (it != last) 
 		{
 			BulletTrail* trail = *it;
-
 			for(unsigned i = 0; i <trail->trail.size(); i++)
 			{ 
 				SpriteRenderer* renderer = trail->trail[i].m_renderer;
-				if (renderer->isAnchored())
+				if (renderer->isAnchored() && renderer->visible())
 				{
 					Transform* const transform = trail->trail[i].m_transform;
 
@@ -52,9 +51,6 @@ namespace arena
 					glm::vec2& position = renderer->getPosition();
 					position = transformPosition + offset;
 					
-				}
-				if (renderer->visible())
-				{ 
 				spriteBatch->draw(
 					renderer->getTexture(),
 					renderer->getSource(),

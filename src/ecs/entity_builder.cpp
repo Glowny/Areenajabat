@@ -15,7 +15,6 @@
 #include "managers/projectile_manager.h"
 #include "managers/physics_manager.h"
 #include "managers/trail_manager.h"
-
 #include <cassert>
 #include <common/debug.h>
 
@@ -113,7 +112,6 @@ namespace arena
 		TrailManager::instance().registerComponent(trail);
 		return trail;
 	}
-
 
 	void EntityBuilder::addTag(const String& tag)
 	{

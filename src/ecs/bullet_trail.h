@@ -29,6 +29,7 @@ namespace arena
 	public:
 		unsigned amount = 0;
 		std::vector<TrailPart> trail;
+		
 		bool bulletDestroyed = false;
 		uint8_t bulletId = 255;
 		// Check if the trail is done.
@@ -36,45 +37,54 @@ namespace arena
 
 		inline bool getDone()
 		{
-			if (trail.size() == 0)
-				return true;
-			else
-				return false;
+			//if (trail.size() == 0)
+			//	return true;
+			//else
+			//	return false;
+			return bulletDestroyed;
 		}
 
-		inline void addPart(glm::vec2 position, float rotation, Transform* transform, SpriteRenderer* renderer, float velocity)
+		inline void updateHeadData(glm::vec2 position, glm::vec2 velocity)
+		{
+			m_currentHeadPosition = position;
+			m_currentHeadVelocity = velocity;
+			m_timePassedSinceLastPositionUpdate = 0;
+		}
+
+
+		inline void addPart(float rotation, Transform* transform, SpriteRenderer* renderer)
 		{
 			TrailPart part;
 			part.m_alpha = 255;
 			part.m_renderer = renderer;
 			part.m_transform = transform;
-			transform->m_position = position;
+			transform->m_position = m_currentHeadPosition;
 			renderer->setRotation(rotation);
+			glm::vec2& origin = renderer->getOrigin();
+			origin = glm::vec2(15.0f, 2.5f);
 			glm::vec2& scale = renderer->getScale();
-			scale.x = -velocity;
+			float velocity = sqrt((m_currentHeadVelocity.x * m_currentHeadVelocity.x + m_currentHeadVelocity.y * m_currentHeadVelocity.y))/7500.0f;
+			printf("velocity: %f, \n", velocity);
+			
+			scale.x = 0.4 + velocity;
 			scale.y = 0.2f;
-			//glm::vec2& origin = renderer->getOrigin();
-			//origin.x = 15.0f;
-			//origin.y = 2.50f;
-			//glm::vec2& offset = renderer->getOffset();
-			//offset.x = 15.0f;
 			trail.push_back(part);
 		}
 
-		inline bool checkTimer()
-		{
-			if (createNewPartTimer > 0.016f && !bulletDestroyed)
-			{
-				amount++;
-				createNewPartTimer = 0;
-				return true;
-			}
-			return false;
-		}
+		//inline bool checkTimer()
+		//{
+		//	if (createNewPartTimer > 0.016f && !bulletDestroyed)
+		//	{
+		//		amount++;
+		//		createNewPartTimer = 0;
+		//		return true;
+		//	}
+		//	return false;
+		//}
 		inline void update(float dt)
 		{
-			createNewPartTimer += dt;
-			 
+			m_timePassedSinceLastPositionUpdate += dt;
+			m_currentHeadPosition += m_currentHeadVelocity * dt;
 			for (auto elem = trail.begin(); elem != trail.end(); )
 			{
 				if ((elem->m_alpha -= (dt*1000)) < 10.0f)
@@ -96,6 +106,9 @@ namespace arena
 		~BulletTrail() = default;
 		BulletTrail() = default;
 	protected:
-		float createNewPartTimer = 0.0f;
+		//float createNewPartTimer = 0.0f;
+		glm::vec2 m_currentHeadPosition;
+		glm::vec2 m_currentHeadVelocity;
+		float m_timePassedSinceLastPositionUpdate = 0.0f;
 	};
 }

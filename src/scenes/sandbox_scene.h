@@ -12,7 +12,7 @@
 #include <map>
 #include <common/arena/physics.h>
 #include <common/arena/game_mode_factory.h>
-
+#include "src/ecs/entity_factory.h"
 struct Message;
 
 
@@ -87,22 +87,6 @@ namespace arena
 		Gladiator* createGladiator(CharacterData data);
 		// Create bullets shot by other players
 		void createBullet(BulletData& data);
-		Entity* createBulletEntity(Bullet* bullet, bool projectileEntity = false);
-		Entity* createGrenadeEntity(Bullet* bullet, bool projectileEntity = false);
-
-		// These entities are only graphical.
-		void createMuzzleFlashEntity(const Bullet& bullet);
-		void createSmokeEntity(glm::vec2 position, glm::vec2 velocity);
-		void createExplosionEntity(const Bullet& bullet);
-		Entity* createMagazineEntity(glm::vec2 position, glm::vec2 force, bool flip);
-		void createBloodBulletHitEntity(unsigned direction, glm::vec2 position);
-		void createBloodExplosionHitEntity(glm::vec2 position);
-		void createPlatformBulletHitEntity(Bullet& bullet);
-		void createMiniBombEntity(uint32_t playerIndex, float time);
-		void createTestEntity(glm::vec2 position);
-		// Graphical entities end.
-
-		void createBulletHit(BulletHitData& data);
 		void destroyBullet(uint8_t bulletId);
 		// Update camera position to player gladiator position.
 		void updateCameraPosition(); 
@@ -127,7 +111,7 @@ namespace arena
 		int m_nextSprite = 0; 
 		// m_backgroundSetting is used to set which backgrounds are loaded.
 		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background
-		int m_backgroundSetting = 3; 
+		int m_backgroundSetting = 1; 
 		Entity* mousePointerEntity;
 		Physics m_physics;
 
@@ -140,12 +124,10 @@ namespace arena
 
 		glm::vec2 m_weaponRotationPoint;
 
-		uint8_t getFreeEntityId();
-		void nextUint8_t(uint8_t& current);
-		uint8_t currentFreeId = 0;
-		uint8_t isIdFree[255];
+		bool m_physicsUpdated = false;
 		bool debugBullets = false;
 		glm::ivec2 m_mouseValues{ 0,0 };
+		EntityFactory* m_factory;
     };
 
 	static void inputMoveLeft(const void*);

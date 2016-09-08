@@ -222,16 +222,12 @@ namespace arena
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
 		PhysicsManager::instance().setPhysics(&m_physics);
-		// Set background. This is to reduce loading time when debugging.
-		// 0 = no background and no foreground, 1 = foreground, 2 = background, 3 = foreground and background.
-
+		m_factory = new EntityFactory(&m_physics, this);
 		createBackground();
-
 		m_scoreboard = nullptr;
 		m_gameMode = nullptr;
 		m_toggleKeyBindDraw = true;
-		//m_physics = Physics();
-
+		
 	}
 
 	void SandboxScene::onUpdate(const GameTime& gameTime)
@@ -261,9 +257,11 @@ namespace arena
 		s_client->sendProtocolPackets(gameTime.m_total);
 
 		// Send player input to server if 1/60 of a second has passed.
+		m_physicsUpdated = false;
 		if ((m_physics.updateTimer += static_cast<float32>(gameTime.m_delta)) >= PHYSICS_TIMESTEP && s_client->isConnected())
 		{
 			updatePhysics(m_physics.updateTimer);
+			m_physicsUpdated = true;
 			m_physics.updateTimer = 0;
 		}
 
@@ -503,7 +501,7 @@ namespace arena
 				bool flip = gladiatorData->m_animator->m_animator.getUpperBodyDirection();
 				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
 				createPos = glm::vec2(createPos.x + flip * 70 - 60, createPos.y - 24.0f);
-				createMagazineEntity(createPos, *gladiatorData->m_gladiator->m_velocity + glm::vec2(2.0f,2.0f),flip);
+				m_factory->createMagazine(createPos, *gladiatorData->m_gladiator->m_velocity + glm::vec2(2.0f,2.0f),flip);
 			}
 			if (packet->m_characterArray[i].m_throwing)
 			{
@@ -560,22 +558,27 @@ namespace arena
 		// Spawnbullets is used to create and update server side bullets (Projectile).
 		// If no match is found it creates a new bullet. This creates both clientside and serverside bullet.
 		// Clientside bullets are not registered as Projectiles, but as physics entities.
+		
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
 			bool addNew = true;
 			// Check if bullet exists.
-			ProjectileManager& instance = ProjectileManager::instance();
-			for (auto it = instance.begin(); it != instance.end(); it++)
+			if (debugBullets)
 			{
-				if ((*it)->bullet.getEntityID() == packet->m_bulletSpawnArray[i].m_id)
+				ProjectileManager& instance = ProjectileManager::instance();
+				for (auto it = instance.begin(); it != instance.end(); it++)
 				{
-					*(*it)->bullet.m_position = packet->m_bulletSpawnArray[i].m_position;
-					addNew = false;
-					break;
+					if ((*it)->bullet.getEntityID() == packet->m_bulletSpawnArray[i].m_id)
+					{
+						*(*it)->bullet.m_position = packet->m_bulletSpawnArray[i].m_position;
+						addNew = false;
+						break;
+					}
 				}
-			}	
+			}
 			if (addNew)
-			createBullet(packet->m_bulletSpawnArray[i]);
+				createBullet(packet->m_bulletSpawnArray[i]);
+
 		}
 	
 	}
@@ -583,7 +586,7 @@ namespace arena
 	{
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
-			createBulletHit(packet->bulletHitArray[i]);
+			m_factory->createBulletHit(packet->bulletHitArray[i]);
 			if (packet->bulletHitArray[i].m_type != 2)
 			destroyBullet(packet->bulletHitArray[i].m_id);
 		}
@@ -598,11 +601,11 @@ namespace arena
 		if (gladiator->m_gladiator->m_hitpoints <= 0)
 		{
 			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
-			createMiniBombEntity(packet->m_targetID, 1.5f);
+			m_factory->createMiniBomb(packet->m_targetID, 1.5f);
 		}
 
 		destroyBullet(packet->m_bulletId);
-		createBloodBulletHitEntity(packet->m_hitDirection, glm::vec2(gladiator->m_gladiator->m_position->x,packet->m_hitPosition.y));
+		m_factory->createBulletHitBlood(packet->m_hitDirection, glm::vec2(gladiator->m_gladiator->m_position->x,packet->m_hitPosition.y));
 
 		// Todo: Set animation blood on hit position. Draw blood on gladiator.
 
@@ -785,38 +788,41 @@ namespace arena
 					iterator++;
 					continue;
 				}
-				if (trail->checkTimer())
-				{
+				
 					if (!m_physics.entityExists(trail->bulletId))
 					{
 						trail->bulletDestroyed = true;
 					}
-					else if (trail->amount > 1)
+					else 
 					{
+						if (m_physicsUpdated)
+						{
+							glm::vec2 position = m_physics.getEntityPosition(trail->bulletId);
+							glm::vec2 velocity = m_physics.getEntityVelocity(trail->bulletId);
+							trail->updateHeadData(position, velocity);
+						}
 						Transform* const transform = new Transform();
 						entity->add(transform);
-	
+
 						SpriteRenderer* const renderer = new SpriteRenderer();
 						renderer->setTexture(App::instance().resources()->get<TextureResource>(ResourceType::Texture, "effects/trail.png"));
-	
 						entity->add(renderer);
-						glm::vec2 position = m_physics.getEntityPosition(trail->bulletId);
-						transform->m_position = position;
+
 						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
-						glm::vec2 velocity = m_physics.getEntityVelocity(trail->bulletId);
-						float vel = sqrt((velocity.x * velocity.x + velocity.y*velocity.y));
-						SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						if (vel < 1400)
-						{ 
-							float alpha = vel - 945;
-							render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
-							renderer->setLayer(6);
-						}
-						trail->addPart(position, rotation, transform, renderer, vel / 1000.0f);
+						//float vel = sqrt((velocity.x * velocity.x + velocity.y * velocity.y));
+						// this does not belong here.
+						//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
+						//if (vel < 1400)
+						//{ 
+						//	float alpha = vel - 945;
+						//	render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
+						//	renderer->setLayer(6);
+						//}
+						trail->addPart( rotation, transform, renderer);
 						
 					}
 
-				}
+				
 				trail->update(static_cast<float>(gameTime.m_delta));
 				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 			}
@@ -895,7 +901,7 @@ namespace arena
 					if (timer->timePassed() > 0.5f)
 					{ 
 						PlayerLink* link = (PlayerLink*)entity->first(TYPEOF(PlayerLink));
-						createBloodExplosionHitEntity(*m_clientIdToGladiatorData[link->m_playerId]->m_gladiator->m_position);
+						m_factory->createExplosionBlood(*m_clientIdToGladiatorData[link->m_playerId]->m_gladiator->m_position);
 						m_clientIdToGladiatorData[link->m_playerId]->m_animator->m_animator.hide = true;
 						entity->destroy();
 					}
@@ -1123,604 +1129,10 @@ namespace arena
 	void SandboxScene::createBullet(BulletData &data)
 	{
 		m_clientIdToGladiatorData[data.m_ownerId]->m_animator->m_animator.setRecoil(true);
-
-		// Create bullet entity that is updated by server. (DEBUG)
-		Bullet* bullet = new Bullet;
-		*bullet->m_position = data.m_position;
-		bullet->setEntityID(data.m_id);
-		bullet->m_ownerId = data.m_ownerId;
-		bullet->m_bulletType = (BulletType)data.m_type;
-		bullet->m_creationDelay = data.m_creationDelay;
-		bullet->m_rotation = data.m_rotation;
-		glm::vec2 vectorAngle = radToVec(bullet->m_rotation);
-
-		Entity* serverEntity = nullptr;
-		Entity* clientEntity = nullptr;
-		// TODO: Get these from weapons?
-		// Create bullet entity that is updated by clientside physics and entity that is updated by serverside physics.
-		switch (bullet->m_bulletType)
-		{
-			// GLADIUS-, SHOTGUN- and GRENADEIMPULSE are defined on weapons.h and shared on both server and client.
-		case BulletType::GladiusBullet:
-		{
-			bullet->m_impulse = glm::vec2(vectorAngle.x * GLADIUSIMPULSE, vectorAngle.y * GLADIUSIMPULSE);
-			if (debugBullets)
-				serverEntity = createBulletEntity(bullet, true);
-			clientEntity = createBulletEntity(bullet, false);
-			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
-			break;
-		}
-		case BulletType::ShotgunBullet:
-		{
-			bullet->m_impulse = glm::vec2(vectorAngle.x * SHOTGUNIMPULSE, vectorAngle.y * SHOTGUNIMPULSE);
-			if (debugBullets)
-				serverEntity = createBulletEntity(bullet, true);
-			clientEntity = createBulletEntity(bullet, false);
-			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
-			break;
-		}
-		case BulletType::GrenadeBullet:
-		{
-			bullet->m_impulse = glm::vec2(vectorAngle.x * GRENADEIMPULSE, vectorAngle.y * GRENADEIMPULSE);
-			if (debugBullets)
-				serverEntity = createGrenadeEntity(bullet, true);
-			clientEntity = createGrenadeEntity(bullet, false);
-			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addGrenadeWithID(&transform->m_position, bullet->m_impulse, bullet->m_ownerId, bullet->getEntityID());
-			break;
-		}
-		case BulletType::ShardBullet:
-		{
-			bullet->m_impulse = glm::vec2(vectorAngle.x * SHARDIMPULSE, vectorAngle.y * SHARDIMPULSE);
-			if (debugBullets)
-				serverEntity = createBulletEntity(bullet, true);
-			clientEntity = createBulletEntity(bullet, false);
-			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
-			break;
-		}
-		default:
-		{
-			if (debugBullets)
-				serverEntity = createBulletEntity(bullet, true);
-			clientEntity = createBulletEntity(bullet, false);
-			Transform* transform = (Transform*)clientEntity->first(TYPEOF(Transform));
-			m_physics.addBulletWithID(&transform->m_position, bullet->m_impulse, bullet->m_rotation, bullet->m_ownerId, bullet->getEntityID());
-			break;
-		}
-		}
-		if(debugBullets)
-			assert(serverEntity != nullptr);
-		assert(clientEntity != nullptr);
-
-		// Set color of server side entities to green.
-		if (debugBullets)
-		{
-			SpriteRenderer* renderer = (SpriteRenderer*)serverEntity->first(TYPEOF(SpriteRenderer));
-			uint32_t color = color::toABGR(0, 255, 0, 255);
-			renderer->setColor(color);
-		}
+		m_factory->createProjectile(data);
 	
 	}
-	Entity* SandboxScene::createBulletEntity(Bullet* bullet, bool projectileEntity)
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		// Debugbullet does not need projectile, but clientside physics needs it 
-		// for the projectile to be deleted by server.
-		ResourceManager* resources = App::instance().resources();
-
-		if (projectileEntity)
-		{ 
-			Projectile* projectile =  builder.addProjectile();
-			projectile->bullet = *bullet;
-		}
-		else
-		{ 
-			EntityBuilder builder2;
-			builder2.begin();
-			BulletTrail* trail = builder2.addBulletTrail();
-			trail->bulletId = bullet->getEntityID();
-			Transform* transform= new Transform();
-			transform->m_position = *bullet->m_position;
-			SpriteRenderer* renderer= new SpriteRenderer();
-			renderer->setLayer(6);
-			// set manually
-			trail->addPart(*bullet->m_position, bullet->m_rotation, transform, renderer, 1.0f);
-
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/trail.png"));
-			renderer->setRotation(bullet->m_rotation);
-			renderer->setLayer(6);
-			renderer->hide();
 	
-			Entity* entity = builder2.getResults();
-			entity->add(transform);
-			entity->add(renderer);
-			registerEntity(entity);
-			PhysicsComponent* component = builder.addPhysicsComponent();
-			component->m_physicsId = bullet->getEntityID();
-			builder.addIdentifier(EntityIdentification::BulletModel);
-		}
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet->m_position;
-
-		
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "bullet_placeholder1.png"));
-
-		renderer->setRotation(bullet->m_rotation);
-		renderer->anchor();
-
-		Entity* entity = builder.getResults();
-		registerEntity(entity);
-
-		// effects		
-		createMuzzleFlashEntity(*bullet);
-		glm::vec2 angleAsVector = radToVec(bullet->m_rotation);
-		glm::vec2 backTrackedBulletPosition = glm::vec2(bullet->m_position->x + angleAsVector.x * 70, bullet->m_position->y + angleAsVector.y * 70);
-		glm::vec2 position = glm::vec2(backTrackedBulletPosition.x - 16, backTrackedBulletPosition.y - 16);
-		glm::vec2 velocity = glm::vec2(cos(bullet->m_rotation) * 2 , sin(bullet->m_rotation) * 2);
-		createSmokeEntity(position, velocity);
-		return entity;
-	}
-	Entity* SandboxScene::createGrenadeEntity(Bullet* bullet, bool projectileEntity)
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		if (projectileEntity)
-		{
-			Projectile* projectile = builder.addProjectile();
-			projectile->bullet = *bullet;
-		}
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet->m_position;
-
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenade.png"));
-		renderer->setRotation(bullet->m_rotation);
-		glm::vec2& origin = renderer->getOrigin();
-		origin = glm::vec2(6, 14.5);
-		//glm::vec2& offSet = renderer->getOffset();
-		//offSet = glm::vec2(3, -7);
-		renderer->setLayer(4);
-		renderer->anchor();
-
-		PhysicsComponent* physicsComponent = builder.addPhysicsComponent();
-		physicsComponent->m_physicsId = bullet->getEntityID();
-
-		Entity* entity = builder.getResults();
-		registerEntity(entity);
-
-		return entity;
-	}
-
-	Entity* SandboxScene::createMagazineEntity(glm::vec2 position, glm::vec2 force, bool flip)
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		PhysicsComponent* component = builder.addPhysicsComponent();
-		component->m_physicsId = getFreeEntityId();
-		component->clientSide = true;
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = position;
-		m_physics.addMagazine(&transform->m_position, glm::vec2(force.x/100*-1, force.y/100*-1),component->m_physicsId);
-
-		builder.addIdentifier(arena::EntityIdentification::Magazine);
-		Timer* timer =builder.addTimer();
-		timer->m_lifeTime = 5;
-		timer->m_currentTime = 0;
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-		glm::vec2& origin = renderer->getOrigin();
-		origin = glm::vec2(7,15);
-		glm::vec2& offSet =  renderer->getOffset();
-		offSet = glm::vec2(3, -7);
-		glm::vec2& scale = renderer->getScale();
-		if (flip)
-		scale.x = -1;
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gladiusClip.png"));
-		renderer->setRotation(0.0f);
-		renderer->setLayer(3);
-		renderer->anchor();
-
-		Entity* entity = builder.getResults();
-		registerEntity(entity);
-
-		return entity;
-	}
-
-	void SandboxScene::createMuzzleFlashEntity(const Bullet& bullet)
-	{
-		EntityBuilder builder;
-		builder.begin();
-		Transform* transform = builder.addTransformComponent();
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.05f;
-		builder.addIdentifier(EntityIdentification::MuzzleFlash);
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/muzzleFlash_ss.png"));
-		Rectf& source = renderer->getSource();
-
-		if (m_nextSprite < 3)
-			m_nextSprite++;
-		else m_nextSprite = 0;
-
-		source.x = 0.0f + (float)m_nextSprite * 32.0f;
-		source.y = 0.0f;
-		source.w = 32.0f;
-		source.h = 32.0f;
-
-		// Bullet entity is updated once before sending, so it's is no in creation position.
-		// This should be fixed later, but for now we need to backtrack the bullet position a bit.
-		glm::vec2 angleAsVector = radToVec(bullet.m_rotation);
-		glm::vec2 backTrackedBulletPosition = glm::vec2(bullet.m_position->x + angleAsVector.x * 70, bullet.m_position->y + angleAsVector.y * 70);
-
-		transform->m_position = glm::vec2(backTrackedBulletPosition.x - 16, backTrackedBulletPosition.y - 16);
-		glm::vec2& origin = renderer->getOrigin();
-		origin.x = origin.x + 16; origin.y = origin.y + 16;
-		renderer->setRotation((float32)bullet.m_rotation + 3.142f);
-		renderer->setLayer(6);
-		renderer->anchor();
-		registerEntity(builder.getResults());
-	}
-	void SandboxScene::createExplosionEntity(const Bullet& bullet)
-	{
-		EntityBuilder builder;
-		ResourceManager* resources = App::instance().resources();
-		
-		for (int i = 0; i < 6; i++)
-		{
-			int spriteX = rand() % 4;
-			int spriteY = 0;
-
-			if (spriteX == 0)
-				spriteY = rand() % 2;
-
-			float rotation = 0;
-			int xOffset = 0, yOffset = 0;
-
-			builder.begin();
-
-			builder.addIdentifier(EntityIdentification::GrenadeSmoke);
-			// Timer
-			Timer* timer = builder.addTimer();
-			timer->m_lifeTime = 3.0f;
-
-			// Drawing stuff
-			Transform* transform = builder.addTransformComponent();
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeSmoke_ss.png"));
-			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 64; origin.y = origin.y + 64;
-			renderer->setRotation(float32(rand() % 7));
-			renderer->setSize(2048.f, 1024.f);
-			renderer->setLayer(5);
-			Rectf& source = renderer->getSource();
-			source.x = 128 * (float)spriteX; source.y = 128 * (float)spriteY; source.w = 128; source.h = 128;
-
-
-			if (rand() % 2 == 1) {
-				xOffset = rand() % 40;
-			}
-			else {
-				xOffset = -(rand() % 40);
-			}
-			if (rand() % 2 == 1) {
-				yOffset = rand() % 40;
-			}
-			else {
-				yOffset = -(rand() % 40);
-			}
-			if (rand() % 2 == 1) {
-				rotation = 0.001f;
-			}
-			else {
-				rotation = -0.001f;
-			}
-
-			//transform->m_position = glm::vec2(bullet->m_position->x+xOffset-16, bullet->m_position->y+yOffset-16);
-			transform->m_position = glm::vec2(bullet.m_position->x - 32.0f + xOffset, bullet.m_position->y - 32.0f + yOffset);
-
-			// Movement
-			Movement* movement = builder.addMovement();
-			//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-			movement->m_velocity = glm::vec2(cos(bullet.m_rotation) * 2 + float(xOffset) / 20.0f, sin(bullet.m_rotation) * 2 + float(yOffset) / 20.0f);
-			movement->m_rotationSpeed = rotation;
-
-			renderer->anchor();
-			registerEntity(builder.getResults());
-		}
-
-		{
-			builder.begin();
-			Timer* timer = builder.addTimer();
-			builder.addIdentifier(EntityIdentification::Explosion);
-			timer->m_lifeTime = 0.05f;
-
-			// Drawing stuff
-			Transform* transform = builder.addTransformComponent();
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/grenadeFlash.png"));
-			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 64; origin.y = origin.y + 64;
-			renderer->setSize(256.f, 256.f);
-			renderer->setRotation(float32(rand() % 7));
-			renderer->setLayer(6);
-			transform->m_position = glm::vec2(bullet.m_position->x - 0.0f - 32.0f, bullet.m_position->y - 0.0f - 32.0f);
-
-			renderer->anchor();
-			registerEntity(builder.getResults());
-		}
-
-	}
-
-	void SandboxScene::createSmokeEntity(glm::vec2 position, glm::vec2 velocity)
-	{
-		EntityBuilder builder;
-		builder.begin();
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-
-		Timer* timer = builder.addTimer();
-
-		// Load gun smoke, randomize rotation and position on spawn.
-
-		for (int i = 0; i < rand() % 5 + 3; i++)
-		{
-			int spriteX = rand() % 4;
-
-			float rotation = 0;
-			int xOffset = 0, yOffset = 0;
-
-			builder.begin();
-
-			builder.addIdentifier(EntityIdentification::Smoke);
-			// Timer
-			timer = builder.addTimer();
-			timer->m_lifeTime = 0.5f;
-
-			// Drawing stuff
-			Transform* transform = builder.addTransformComponent();
-			SpriteRenderer* renderer = builder.addSpriteRenderer();
-			renderer->setLayer(5);
-			renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/gunSmoke1_ss.png"));
-			//uint32_t color = color::toABGR(255, 255, 255, 50);
-			//renderer->setColor(color);
-			glm::vec2& origin = renderer->getOrigin();
-			origin.x = origin.x + 16; origin.y = origin.y + 16;
-			renderer->setRotation(float32(rand() % 7));
-			Rectf& source = renderer->getSource();
-			source.x = 32 * (float)spriteX; source.y = 0; source.w = 32; source.h = 32;
-
-
-			if (rand() % 2 == 1) {
-				xOffset = rand() % 10;
-				rotation = (rand() % 3) / 100.0f;
-			}
-			else {
-				xOffset = -(rand() % 10);
-				rotation = (float)-(rand() % 3) / 100.0f;
-			}
-			if (rand() % 2 == 1) {
-				yOffset = rand() % 10;
-			}
-			else {
-				yOffset = -(rand() % 10);
-			}
-
-			transform->m_position = glm::vec2(position.x + xOffset, position.y + yOffset );
-
-			// Movement
-			Movement* movement = builder.addMovement();
-			movement->m_velocity = glm::vec2(velocity.x + xOffset/5, velocity.y+ yOffset/5);
-			movement->m_rotationSpeed = rotation;
-
-			renderer->anchor();
-			registerEntity(builder.getResults());
-		}
-
-	}
-
-	void SandboxScene::createBulletHit(BulletHitData& data)
-	{
-		Bullet bullet;
-		*bullet.m_position = data.m_position;
-		bullet.m_bulletType = (BulletType)data.m_type;
-		bullet.m_rotation = data.m_rotation;
-		*bullet.m_position = glm::vec2(bullet.m_position->x - 16.0f, bullet.m_position->y - 16.0f);
-		switch (data.m_type)
-		{
-			// Bullet hits gladiator
-			// note: not in use, done in damageplayer.
-		case 1:
-		{
-			break;
-		}
-			// Bullet hits platform
-		case 2:
-		{
-			// Temporary, change when there is a platform bullet hit animation.
-			
-			createSmokeEntity(*bullet.m_position, bullet.m_impulse);
-			//createPlatformBulletHitEntity(bullet);
-			break;
-		}
-			// Explosion occurs.
-		case 3:
-		{
-			createExplosionEntity(bullet);
-			//createBloodExplosionHitEntity(bullet);
-			break;
-		}
-		default:
-		{
-			break;
-		}
-		}
-
-	}
-	void SandboxScene::createBloodBulletHitEntity(unsigned direction, glm::vec2 position)
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		glm::vec2 offset = glm::vec2(0.0f, 0.0f);
-		float directionX = 1.0f;
-		// check if bullet is approaching from right.
-		if (direction == 0)
-			directionX = -1.0f;
-
-		Transform* transform = builder.addTransformComponent();
-		// Set offset to middle of sprite.
-		
-		transform->m_position = glm::vec2(position.x + offset.x, position.y + offset.y);
-
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-		
-		// Get scale and rotate according to direction where hit comes.
-		glm::vec2 &scale = renderer->getScale();
-		scale.x =  scale.x * directionX;
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
-		Rectf rect = renderer->getSource();
-		renderer->setSize(128, 32);
-		renderer->setLayer(4);
-		rect.x = 0; rect.y = 0;
-		rect.w = 128; rect.h = 32;
-		renderer->anchor();
-
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.5f;
-
-		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(5.0f* directionX, 4.81f);
-		
-		builder.addIdentifier(EntityIdentification::HitBlood);
-		registerEntity(builder.getResults());
-	}
-	void  SandboxScene::createBloodExplosionHitEntity(glm::vec2 position)
-	{
-		//Note: not in use at the moment.
-		EntityBuilder builder;
-		builder.begin();
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.5f;
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = glm::vec2(position.x - 64, position.y - 64);
-
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodExplosionAnimation_ss.png"));
-		renderer->setSize(1024, 512);
-		Rectf rect = renderer->getSource();
-		rect.x = 0; rect.y = 0;
-		rect.w = 256; rect.h = 256;
-		renderer->anchor();
-		renderer->setLayer(6);
-		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(0,0);
-
-		builder.addIdentifier(EntityIdentification::ExplosionBlood);
-		registerEntity(builder.getResults());
-	}
-	void  SandboxScene::createPlatformBulletHitEntity(Bullet& bullet)
-	{
-		//Note: not in use at the moment.
-		EntityBuilder builder;
-		builder.begin();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = *bullet.m_position + bullet.m_rotation;
-
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/bloodPenetrationAnimation1_ss.png"));
-		Rectf rect = renderer->getSource();
-		renderer->setSize(128, 32);
-		rect.x = 0; rect.y = 0;
-		rect.w = 128; rect.h = 32;
-		renderer->anchor();
-		renderer->setLayer(5);
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 0.5f;
-
-		Movement* move = builder.addMovement();
-		move->m_velocity = glm::vec2(bullet.m_impulse.x, bullet.m_impulse.y);
-
-		builder.addIdentifier(EntityIdentification::HitBlood);
-		registerEntity(builder.getResults());
-	}
-
-	void SandboxScene::createMiniBombEntity(uint32_t playerIndex, float time)
-	{
-		EntityBuilder builder;
-		builder.begin();
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = time;
-		timer->m_currentTime = 0.0f;
-		builder.addIdentifier(arena::EntityIdentification::Minibomb);
-		Entity* entity = builder.getResults();
-		entity->add(new PlayerLink(playerIndex));
-		registerEntity(entity);
-	}
-
-	/*void SandboxScene::createTestEntity(glm::vec2 position) {
-		///////////////
-		EntityBuilder builder;
-		builder.begin();
-
-		Transform* transform = builder.addTransformComponent();
-
-
-		builder.addIdentifier(arena::EntityIdentification::Magazine);
-		Timer* timer = builder.addTimer();
-		timer->m_lifeTime = 1.0f;
-		timer->m_currentTime = 0;
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/test.png"));
-		glm::vec2& origin = renderer->getOrigin();
-		origin = glm::vec2(12, 63);
-		renderer->setRotation(0.0f);
-		glm::vec2 pos = position;
-		pos.x = pos.x - 12;
-		pos.y = pos.y - 63;
-		transform->m_position = pos;
-
-		Movement* movement = builder.addMovement();
-		//movement->m_velocity = glm::vec2(float(xOffset)/100.0f, float(yOffset) / 100.0f);
-		movement->m_rotationSpeed = 0.1f;
-
-		renderer->anchor();
-
-		Entity* entity = builder.getResults();
-		registerEntity(entity);
-		
-	}*/
-
 	void SandboxScene::checkBounds(glm::vec2& cameraPosition)
 	{
 		if (cameraPosition.x < m_screenSize.x / 2)
@@ -2010,32 +1422,5 @@ namespace arena
 		}
 
 	}
-	uint8_t SandboxScene::getFreeEntityId()
-	{
-		nextUint8_t(currentFreeId);
-		return currentFreeId;
-	}
-
-	void SandboxScene::nextUint8_t(uint8_t& current)
-	{
-		uint8_t old = current;
-		current++;
-
-		// search for id till there is a free one left. Will crash if there is none left.
-		while (current != old)
-		{
-
-			if (current > 255)
-				current = 0;
-			if (isIdFree[current])
-			{
-				isIdFree[current] = false;
-				return;
-			}
-			current++;
-		}
-		// If this happens, there is no free ids left. To add more bullets, use bigger data type
-		printf("No more bullet ids id: %d\n", current);
-		//assert(false);
-	}
+	
 }

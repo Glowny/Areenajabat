@@ -8,7 +8,6 @@
 
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, SpriteBatch)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, ResourceManager)
-
 namespace arena
 {
     struct Event;
@@ -41,6 +40,7 @@ namespace arena
 		ResourceManager*	m_resources		{ nullptr };
 		SpriteBatch*		m_spriteBatch	{ nullptr };
 		Camera				m_camera;
+		
     };
 
     struct Mouse

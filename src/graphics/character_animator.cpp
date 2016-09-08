@@ -230,7 +230,7 @@ namespace arena
 		);
 		if (m_recoilState)
 		{
-			if ((m_recoilTimer += dt) > 0.05f)
+			if ((m_recoilTimer += (float)dt) > 0.05f)
 			{ 
 				m_recoilState = false;
 				m_animationData->m_leftHand->setRecoil(false);
