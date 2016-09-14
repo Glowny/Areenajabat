@@ -178,7 +178,6 @@ namespace arena
 	}
 	void CharacterAnimator::rotateAimTo(float radians)
 	{
-
 		m_aimAngle = radians;
 		float weaponAim = m_aimAngle;
 

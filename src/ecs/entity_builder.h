@@ -17,6 +17,7 @@ FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Projectile)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, BulletTrail)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, Animator)
 FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, BulletModel)
+FORWARD_DECLARE_1(FORWARD_DECLARE_TYPE_CLASS, arena, CharacterComponent)
 namespace arena
 {
 
@@ -37,6 +38,7 @@ namespace arena
 		Projectile* const addProjectile();
 		PhysicsComponent* const addPhysicsComponent();
 		BulletTrail* const addBulletTrail();
+		CharacterComponent* const addCharacterComponent();
 		void addTag(const String& tag);
 		void setTags(const String& tags);
 		Entity* getResults();

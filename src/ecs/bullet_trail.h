@@ -64,7 +64,6 @@ namespace arena
 			origin = glm::vec2(15.0f, 2.5f);
 			glm::vec2& scale = renderer->getScale();
 			float velocity = sqrt((m_currentHeadVelocity.x * m_currentHeadVelocity.x + m_currentHeadVelocity.y * m_currentHeadVelocity.y))/7500.0f;
-			printf("velocity: %f, \n", velocity);
 			
 			scale.x = 0.4 + velocity;
 			scale.y = 0.2f;

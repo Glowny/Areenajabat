@@ -16,6 +16,7 @@
 #include "../ecs/managers/physics_manager.h"
 #include "../ecs/managers/transform_manager.h"
 #include "../ecs/managers/trail_manager.h"
+#include "../ecs/managers/character_manager.h"
 #include "../ecs/bullet_trail.h"
 #include "../ecs/player_link.h"
 
@@ -69,12 +70,6 @@ namespace arena
 			port = (uint16)std::stoul(tempString, nullptr, 0);
 
 		}
-	}
-
-	void GladiatorDrawData::destroy()
-	{
-		m_entity->destroy();
-		delete m_gladiator;
 	}
 
 	SandboxScene* sandbox;
@@ -221,8 +216,9 @@ namespace arena
 		sandbox = this;
 		m_sendInputToServerTimer = 0;
 		m_controller.aimAngle = 0;
-		PhysicsManager::instance().setPhysics(&m_physics);
 		m_factory = new EntityFactory(&m_physics, this);
+		CharacterManager::instance().setFactory(m_factory);
+		PhysicsManager::instance().setPhysics(&m_physics);
 		createBackground();
 		m_scoreboard = nullptr;
 		m_gameMode = nullptr;
@@ -278,38 +274,35 @@ namespace arena
 		// Write current packets to network.
 		s_client->writePackets();
 
-
-
 		//TEMP: if game has not started, do not update.
-		if (m_clientIdToGladiatorData.size() != 0)
+		if (CharacterManager::instance().getCharacterAmount() != 0)
 		{
-
 			// Update all game entities.
 			updateEntities(gameTime);
 
-			// rotate all gladiators aim for draw.
-			for (const auto& elem : m_clientIdToGladiatorData)
-			{
-				float aimAngle = elem.second->m_gladiator->m_aimAngle;
-				// FIX THIS; IT CHANGES EVERY GLADIATORS AIM ACCORDING TO PLAYER'S GLADIATOR.
-				const MouseState& mouse = Mouse::getState();
-				
-				glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-				Camera& camera = App::instance().camera();
-				transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+			//TODO: TEST THIS MIGHT BREAK.
+			CharacterComponent* chara = CharacterManager::instance().getCharacterByPlayerId(m_playerId);
+			Gladiator& glad = chara->m_gladiator;
+			Animator* animator = (Animator*)chara->owner()->first(TYPEOF(Animator));
+			 // rotate all gladiators aim for draw.
 			
-				//There is an area inside player character where we don't want to track mouse location, otherwise the character will have some serious epileptic seizures 
-				//(because m_weaponRotationPoint is different depending on if the character is facing left or right).
-				//BUG: You can still see some weird movement if you place the cursor around the upper corners of this area (the area is a box with upper corners around the character and bottom corners all the way at the bottom of the screen).
-				if (!(mouseLoc.y > m_weaponRotationPoint.y - 30.0f && mouseLoc.x < m_weaponRotationPoint.x + 12.0f && mouseLoc.x > m_weaponRotationPoint.x - 12.0f))
-					elem.second->m_animator->rotateAimTo(aimAngle);
+			float aimAngle = glad.m_aimAngle;
+			const MouseState& mouse = Mouse::getState();
+			
+			glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
+			Camera& camera = App::instance().camera();
+			transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
+	
+			//There is an area inside player character where we don't want to track mouse location, otherwise the character will have some serious epileptic seizures 
+			//(because m_weaponRotationPoint is different depending on if the character is facing left or right).
+			//BUG: You can still see some weird movement if you place the cursor around the upper corners of this area (the area is a box with upper corners around the character and bottom corners all the way at the bottom of the screen).
+			if (!(mouseLoc.y > m_weaponRotationPoint.y - 30.0f && mouseLoc.x < m_weaponRotationPoint.x + 12.0f && mouseLoc.x > m_weaponRotationPoint.x - 12.0f))
+				animator->rotateAimTo(aimAngle);
 
-				// Set gladiator model position bit to the left to it is on correct position;
-				Transform* transform = (Transform*)elem.second->m_entity->first(TYPEOF(Transform));
-				glm::vec2 pos = *elem.second->m_gladiator->m_position;
-				transform->m_position= glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
-			}
-
+			// Set gladiator model position bit to the left to it is on correct position;
+			Transform* transform = (Transform*)chara->owner()->first(TYPEOF(Transform));
+			glm::vec2 pos = *glad.m_position;
+			transform->m_position = glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
 			updateCameraPosition();
 		}
 		
@@ -329,7 +322,7 @@ namespace arena
 		m_playerId = 0;
 
 		inputAddBindings("player", s_bindings);
-		mousePointerEntity = createMousePointerEntity();
+		mousePointerEntity = m_factory->createMousePointer();
 
 	}
 	void SandboxScene::onDestroy()
@@ -458,13 +451,18 @@ namespace arena
 	void SandboxScene::createGladiators(GameCreateGladiatorsPacket* packet)
 	{
 		m_scoreboard = new Scoreboard;
-		m_players = new std::vector<Player>;
 		for (unsigned i = 0; i < unsigned(packet->m_playerAmount); i++)
 		{
 			CharacterData characterData = packet->m_characterArray[i];
 			Player player;
-			player.m_gladiator = createGladiator(characterData);
-			m_players->push_back(player);
+			CharacterComponent* chara = (CharacterComponent*)m_factory->createGladiator(characterData)->first(TYPEOF(CharacterComponent));
+			player.m_gladiator = &chara->m_gladiator;
+			player.m_clientIndex = packet->m_characterArray[i].m_ownerId;
+			if (player.m_clientIndex == m_playerId)
+				player.m_playerController = new PlayerController;
+			else
+				player.m_playerController = nullptr;
+			m_players.push_back(player);
 		}
 		m_toggleKeyBindDraw = false;
 	}
@@ -483,82 +481,14 @@ namespace arena
 	
 	void SandboxScene::updateGladiators(GameUpdatePacket* packet)
 	{
-		if (packet->m_playerAmount > m_clientIdToGladiatorData.size())
-			return;
-		for (int32_t i = 0; i < packet->m_playerAmount; i++)
-		{
-			uint8_t playerId = packet->m_characterArray[i].m_ownerId;
-			GladiatorDrawData* gladiatorData = m_clientIdToGladiatorData[playerId];
-			*gladiatorData->m_gladiator->m_position = packet->m_characterArray[i].m_position;
-			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			*gladiatorData->m_gladiator->m_velocity = packet->m_characterArray[i].m_velocity;
-			gladiatorData->m_gladiator->m_aimAngle = packet->m_characterArray[i].m_aimAngle;
-			gladiatorData->m_gladiator->m_team = packet->m_characterArray[i].m_team;
-
-			if (packet->m_characterArray[i].m_reloading)
-			{
-				gladiatorData->m_animator->m_animator.playReloadAnimation();
-				bool flip = gladiatorData->m_animator->m_animator.getUpperBodyDirection();
-				glm::vec2 createPos = *gladiatorData->m_gladiator->m_position;
-				createPos = glm::vec2(createPos.x + flip * 70 - 60, createPos.y - 24.0f);
-				m_factory->createMagazine(createPos, *gladiatorData->m_gladiator->m_velocity + glm::vec2(2.0f,2.0f),flip);
-			}
-			if (packet->m_characterArray[i].m_throwing)
-			{
-				gladiatorData->m_animator->m_animator.playThrowAnimation(0);
-			}
-			if (packet->m_characterArray[i].m_climbing != 0)
-			{
-				gladiatorData->m_animator->m_animator.playClimbAnimation(packet->m_characterArray[i].m_climbing);
-			}
-			else
-			{
-				gladiatorData->m_animator->m_animator.endClimbAnimation();
-			}
-
-			// TODO: move this to entity-update.
-			// Set player legs move according to x-velocity.
-			glm::vec2 moveSpeed = packet->m_characterArray[i].m_velocity;
-			// Max movement speed is 300.
-			if (moveSpeed.x < -15.0f)
-			{
-				gladiatorData->m_animator->m_animator.setFlipX(0);
-				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-			}
-			else if (moveSpeed.x > 15.0f)
-			{
-				gladiatorData->m_animator->m_animator.setFlipX(1);
-				gladiatorData->m_animator->m_animator.startRunningAnimation(fabs(moveSpeed.x / 300.0f));
-			}
-			else
-			{
-				gladiatorData->m_animator->m_animator.stopRunningAnimation();
-
-			}
-
-			// If gladiator is climbing a ladder, decide if still, going up or going down animation is played.
-			if (gladiatorData->m_animator->m_animator.isClimbing())
-			{
-				if (moveSpeed.y < -50.0f)
-					gladiatorData->m_animator->m_animator.continueClimbAnimation(1, moveSpeed.y);
-
-				else if (moveSpeed.y > 50.0f)
-				{
-					gladiatorData->m_animator->m_animator.continueClimbAnimation(-1, moveSpeed.y);
-				}
-				else
-				{
-					gladiatorData->m_animator->m_animator.pauseClimbAnimation();
-				}
-			}
-		}
+		CharacterManager::instance().applyUpdatePacket(packet);
 	}
+
 	void SandboxScene::spawnBullets(GameSpawnBulletsPacket* packet)
 	{
 		// Spawnbullets is used to create and update server side bullets (Projectile).
 		// If no match is found it creates a new bullet. This creates both clientside and serverside bullet.
 		// Clientside bullets are not registered as Projectiles, but as physics entities.
-		
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
 			bool addNew = true;
@@ -578,9 +508,7 @@ namespace arena
 			}
 			if (addNew)
 				createBullet(packet->m_bulletSpawnArray[i]);
-
 		}
-	
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
 	{
@@ -594,37 +522,16 @@ namespace arena
 	}
 	void SandboxScene::processDamagePlayer(GameDamagePlayerPacket* packet)
 	{
-		if (m_clientIdToGladiatorData[packet->m_targetID] == nullptr)
-			return;
-		GladiatorDrawData *gladiator = m_clientIdToGladiatorData[packet->m_targetID];
-		gladiator->m_gladiator->m_hitpoints -= int32(packet->m_damageAmount);
-		if (gladiator->m_gladiator->m_hitpoints <= 0)
-		{
-			gladiator->m_animator->m_animator.playDeathAnimation(packet->m_hitDirection, packet->m_hitPosition.y - gladiator->m_gladiator->m_position->y);
-			m_factory->createMiniBomb(packet->m_targetID, 1.5f);
-		}
-
+		CharacterManager::instance().applyDamageToCharacter(packet);
 		destroyBullet(packet->m_bulletId);
-		m_factory->createBulletHitBlood(packet->m_hitDirection, glm::vec2(gladiator->m_gladiator->m_position->x,packet->m_hitPosition.y));
-
-		// Todo: Set animation blood on hit position. Draw blood on gladiator.
-
 	}
 	void SandboxScene::killPlayer(GameKillPlayerPacket* packet)
 	{
-		if (m_clientIdToGladiatorData[packet->m_playerID] == nullptr)
-			return;
-		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 0;
-		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = false;
+		CharacterManager::instance().killCharacter(packet);
 	}
 	void SandboxScene::respawnPlayer(GameRespawnPlayerPacket* packet)
 	{
-		if (m_clientIdToGladiatorData[packet->m_playerID] == nullptr)
-			return;
-		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_hitpoints = 100;
-		m_clientIdToGladiatorData[packet->m_playerID]->m_gladiator->m_alive = true;
-		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.resetAnimation();
-		m_clientIdToGladiatorData[packet->m_playerID]->m_animator->m_animator.hide = false;
+		CharacterManager::instance().respawnCharacter(packet);
 	}
 	void SandboxScene::updateScoreBoard(GameUpdateScoreBoardPacket* packet)
 	{
@@ -673,9 +580,8 @@ namespace arena
 
 	void SandboxScene::setGameMode(GameModePacket* packet)
 	{
-		printf("Received Game Mode Packet");
 		int32_t index = packet->m_gameModeIndex;
-		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreboard, &m_physics, m_players, NULL, NULL);
+		m_gameMode = GameModeFactory::createGameModeFromIndex(index, m_scoreboard, &m_physics, &m_players, NULL, NULL);
 	}
 
 	void SandboxScene::cleanUp()
@@ -695,24 +601,18 @@ namespace arena
 			}
 			entity->destroy();
 		}
-		
-		for (auto iterator = m_clientIdToGladiatorData.begin(); iterator != m_clientIdToGladiatorData.end(); iterator++)
-		{
-			iterator->second->destroy();
-		}
-		m_clientIdToGladiatorData.clear();
+		// TODO: Clean up charaters.
+		CharacterManager::instance().empty();
 
 	}
 
 	void SandboxScene::updateEntities(const GameTime& gameTime)
 	{
-
 		// TODO: Do own systems for these.
-
 		updateServerBullets(gameTime);
 		PhysicsManager::instance().update(gameTime);
 
-		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
+		Transform* playerTransform = (Transform* const)CharacterManager::instance().getCharacterByPlayerId(m_playerId)->owner()->first(TYPEOF(Transform));
 		for (auto iterator = entititesBegin(); iterator != entititesEnd();)
 		{
 			Entity* entity = *iterator;
@@ -901,8 +801,10 @@ namespace arena
 					if (timer->timePassed() > 0.5f)
 					{ 
 						PlayerLink* link = (PlayerLink*)entity->first(TYPEOF(PlayerLink));
-						m_factory->createExplosionBlood(*m_clientIdToGladiatorData[link->m_playerId]->m_gladiator->m_position);
-						m_clientIdToGladiatorData[link->m_playerId]->m_animator->m_animator.hide = true;
+						CharacterComponent* chara = CharacterManager::instance().getCharacterByPlayerId(link->m_playerId);
+						m_factory->createExplosionBlood(*chara->m_gladiator.m_position);
+						Animator* animator = (Animator*)chara->owner()->first(TYPEOF(Animator));
+						animator->m_animator.hide = true;
 						entity->destroy();
 					}
 				}
@@ -990,29 +892,6 @@ namespace arena
 	
 	}
 
-	Entity* SandboxScene::createMousePointerEntity()
-	{
-		EntityBuilder builder;
-		builder.begin();
-
-		Transform* transform = builder.addTransformComponent();
-		transform->m_position = glm::vec2(0, 0);
-
-		ResourceManager* resources = App::instance().resources();
-		(void)resources;
-		SpriteRenderer* renderer = builder.addSpriteRenderer();
-
-		renderer->setTexture(resources->get<TextureResource>(ResourceType::Texture, "effects/crosshair.png"));
-		glm::vec2& origin = renderer->getOrigin();
-		origin.x = 16.0f; origin.y = 16.0f;
-		renderer->anchor();
-
-		builder.addIdentifier(EntityIdentification::MousePointer);
-		Entity* mousePointer = builder.getResults();
-		registerEntity(mousePointer);
-		return mousePointer;
-	}
-
 	void SandboxScene::destroyBullet(uint8_t bulletId)
 	{
 		for (auto it = entititesBegin(); it != entititesEnd(); ++it)
@@ -1037,100 +916,9 @@ namespace arena
 		}
 	}
 
-	Gladiator* SandboxScene::createGladiator(CharacterData characterData)
-	{
-		Gladiator* gladiator = new Gladiator();
-		gladiator->m_ownerId = characterData.m_ownerId;
-		gladiator->m_alive = true;
-		gladiator->m_hitpoints = 100;
-		*gladiator->m_position = characterData.m_position;
-		gladiator->m_aimAngle = characterData.m_aimAngle;
-		*gladiator->m_velocity = characterData.m_velocity;
-		gladiator->m_team = characterData.m_team;
-		Weapon* weapon = new WeaponGladius();
-		gladiator->m_weapon = weapon;
-		gladiator->setEntityID(characterData.m_id);
-
-		Entity* entity_gladiator;
-		EntityBuilder builder;
-		builder.begin();
-
-		ResourceManager* resources = App::instance().resources();
-
-		Transform* transform = builder.addTransformComponent();
-		
-		transform->m_position = *gladiator->m_position;
-
-		Animator* animator = builder.addCharacterAnimator();
-		CharacterAnimator& anim = animator->m_animator;
-		
-		int skinNumber = characterData.m_team;
-		if (skinNumber > 1)
-			skinNumber = 0;
-
-		arena::CharacterSkin skin = (CharacterSkin)skinNumber;
-		
-
-		anim.setCharacterSkin(skin);
-		
-		std::string tempCrestString;
-		std::string tempHelmetString;
-		std::string tempTorsoString;
-
-		if (skin == Bronze)
-		{
-			tempCrestString = "Characters/head/1_Crest4.png";
-			tempHelmetString = "Characters/head/1_Helmet.png";
-			tempTorsoString = "Characters/body/1_Torso.png";
-		}
-		else if (skin == Gold)
-		{
-			tempCrestString= "Characters/head/2_Crest4.png";
-			tempHelmetString = "Characters/head/2_Helmet.png";
-			tempTorsoString= "Characters/body/2_Torso.png";
-		}
-		else
-		{
-			// If no team, set the team color to bronze.
-			tempCrestString = "Characters/head/1_Crest4.png";
-			tempHelmetString = "Characters/head/1_Helmet.png";
-			tempTorsoString = "Characters/body/1_Torso.png";
-		}
-
-		anim.setStaticContent(
-			resources->get<TextureResource>(ResourceType::Texture, tempCrestString),
-			resources->get<TextureResource>(ResourceType::Texture, tempHelmetString),
-			resources->get<TextureResource>(ResourceType::Texture, tempTorsoString),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/LegAnimations/RunStandJump.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Dying.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/ThrowingGrenade.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Gladius.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/ReloadingAndThrowingAnimations/Axe.scml")->getNewEntityInstance(0),
-			resources->get<SpriterResource>(ResourceType::Spriter, "Characters/Animations/DyingAndClimbingAnimations/Climbing.scml")->getNewEntityInstance(0)
-
-		);
-		
-		anim.setWeaponAnimation(WeaponAnimationType::Gladius);
-
-		entity_gladiator = builder.getResults();
-
-		registerEntity(entity_gladiator);
-
-		//m_physics.addGladiatorWithID(gladiator->m_position, gladiator->m_velocity, gladiator->getEntityID());
-		GladiatorDrawData* data = new GladiatorDrawData;
-		data->m_entity = entity_gladiator;
-		data->m_animator = animator;
-		data->m_transform = transform;
-		data->m_gladiator = gladiator;
-
-		m_clientIdToGladiatorData.insert(std::pair<uint8_t, GladiatorDrawData*>(gladiator->m_ownerId, data));
-		return gladiator;
-	}
 	void SandboxScene::createBullet(BulletData &data)
 	{
-		m_clientIdToGladiatorData[data.m_ownerId]->m_animator->m_animator.setRecoil(true);
-		m_factory->createProjectile(data);
-	
+		CharacterManager::instance().characterShoot(data);
 	}
 	
 	void SandboxScene::checkBounds(glm::vec2& cameraPosition)
@@ -1158,38 +946,26 @@ namespace arena
 		Camera& camera = App::instance().camera();
 		glm::vec2 playerPositionChange = glm::vec2(0, 0);
 		
-		if (m_clientIdToGladiatorData.at(m_playerId) != nullptr)
+		// TODO: add camera system.
+		CharacterComponent *chara = CharacterManager::instance().getCharacterByPlayerId(m_playerId);
+
+		if (chara != nullptr)
 		{
-			Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-			playerPositionChange =playerTransform->m_position - oldPlayerPos;
+			Transform* playerTransform = (Transform* const)chara->owner()->first(TYPEOF(Transform));
+			playerPositionChange = playerTransform->m_position - oldPlayerPos;
 			oldPlayerPos = playerTransform->m_position;
 		};
 	
 		const MouseState& mouse = Mouse::getState();
-		// TODO: get real resolution
 		rotatePlayerAim();
 		glm::vec2 movement = glm::vec2(mouse.m_mrx, mouse.m_mry);
 		if (movement.x == m_mouseValues.x && movement.y == m_mouseValues.y)
 			movement = glm::ivec2(0,0);
 		m_mouseValues = glm::vec2(mouse.m_mrx, mouse.m_mry);
 
-		
-		//if (-2 < movement.x && movement.x< 2)
-		//	movement.x = 0;
-		//if (-2 < movement.y && movement.y< 2)
-		//	movement.y = 0;
-		/*
-		glm::vec2 cameraPositionOnMouse = glm::vec2(-m_screenSize.x / 2 + mouse.m_mx, -m_screenSize.y / 2 + mouse.m_my);
-		glm::vec2 movement = cameraPositionOnMouse + oldMousePos;
-		glm::vec2 cameraPosition = glm::vec2(oldMousePos.x + movement.x + playerPosition.x, oldMousePos.y + movement.y + playerPosition.y);
-		oldMousePos = cameraPositionOnMouse;
-		*/
-		
 		glm::vec2 cameraPosition = glm::vec2(0, 0);
-		// Adjust the aim position where bullets drop.
 		if (mousePointerEntity != nullptr)
 		{
-			
 			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
 			
 			glm::vec2 newPosition = mouseTransform->m_position + movement + playerPositionChange;
@@ -1229,17 +1005,15 @@ namespace arena
 			{
 				cameraPosition.y = 1620;
 			}
-			//oldMousePos = cameraPosition;
-
 
 			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
-			renderer->setRotation(m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle + 1.5708f);
+			renderer->setRotation(chara->m_gladiator.m_aimAngle + 1.5708f);
 			renderer->setLayer(10);
 		}
-		
-		//checkBounds(cameraPosition);
+
 		camera.m_position = cameraPosition;
 		camera.calculate();
+
 		// set views
 		float ortho[16];
 		bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
@@ -1252,22 +1026,9 @@ namespace arena
 	}
 	void SandboxScene::rotatePlayerAim()
 	{
-		float xOffset = m_clientIdToGladiatorData[m_playerId]->m_animator->m_animator.m_shoulderPoint.x;
-		float yOffset = m_clientIdToGladiatorData[m_playerId]->m_animator->m_animator.m_shoulderPoint.y;
-		//const MouseState& mouse = Mouse::getState();
-
 		Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
-		glm::vec2 mouseLoc = mouseTransform->m_position;
-	//	glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-	//	Camera& camera = App::instance().camera();
-		//transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
-		Transform* playerTransform = (Transform* const)m_clientIdToGladiatorData[m_playerId]->m_entity->first(TYPEOF(Transform));
-		m_weaponRotationPoint = glm::vec2(playerTransform->m_position.x + 9 + xOffset, playerTransform->m_position.y + 14 - yOffset);
-		glm::vec2 dir(mouseLoc - m_weaponRotationPoint);
-		float a = glm::atan(dir.y, dir.x);
-		m_controller.aimAngle = a;
-		// Update own gladiator aim
-		m_clientIdToGladiatorData[m_playerId]->m_gladiator->m_aimAngle = m_controller.aimAngle;
+		// Set controllers aimangle to the same angle.
+		m_controller.aimAngle = CharacterManager::instance().rotateCharacterAnimationAim(m_playerId, mouseTransform->m_position);
 	}
 	void SandboxScene::setDrawText(const GameTime& gameTime)
 	{
@@ -1323,12 +1084,13 @@ namespace arena
 			}
 			row++;
 			row++;
-			for (auto i = m_clientIdToGladiatorData.begin(); i != m_clientIdToGladiatorData.end(); i++) {
-				Gladiator* gladiator = i->second->m_gladiator;
-				bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Team: %d",
-					i->first, gladiator->m_team);
-				row++;
-			}
+			// TODO: Draw this if there is need for it.
+			//for (auto i = m_clientIdToGladiatorData.begin(); i != m_clientIdToGladiatorData.end(); i++) {
+			//	Gladiator* gladiator = i->second->m_gladiator;
+			//	bgfx::dbgTextPrintf(0, row, 0x8f, "Player: %d: \t Team: %d",
+			//		i->first, gladiator->m_team);
+			//	row++;
+			//}
 		}
 		if (m_gameMode == nullptr)
 			return;

@@ -15,6 +15,8 @@
 #include "managers/projectile_manager.h"
 #include "managers/physics_manager.h"
 #include "managers/trail_manager.h"
+#include "managers/character_manager.h"
+#include "character_component.h"
 #include <cassert>
 #include <common/debug.h>
 
@@ -111,6 +113,14 @@ namespace arena
 		m_entity->add(trail);
 		TrailManager::instance().registerComponent(trail);
 		return trail;
+	}
+	CharacterComponent* const EntityBuilder::addCharacterComponent()
+	{
+		CharacterManager& instance = CharacterManager::instance();
+		CharacterComponent* character = instance.create();
+		m_entity->add(character);
+		instance.registerComponent(character);
+		return character;
 	}
 
 	void EntityBuilder::addTag(const String& tag)
