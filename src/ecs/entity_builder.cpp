@@ -7,6 +7,8 @@
 #include "movement.h"
 #include "projectile.h"
 #include "physics_component.h"
+#include "character_component.h"
+#include "camera_component.h"
 #include "bullet_trail.h"
 #include "../res/texture_resource.h"
 #include "managers/transform_manager.h"
@@ -16,7 +18,7 @@
 #include "managers/physics_manager.h"
 #include "managers/trail_manager.h"
 #include "managers/character_manager.h"
-#include "character_component.h"
+#include "managers/camera_manager.h"
 #include <cassert>
 #include <common/debug.h>
 
@@ -41,7 +43,7 @@ namespace arena
 	}
 	SpriteRenderer* const EntityBuilder::addSpriteRenderer()
 	{
-        ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");
+		ARENA_ASSERT(m_entity != nullptr, "Entity cannot be null");
 
 		SpriteRenderer* const renderer = SpriteManager::instance().create();
 
@@ -52,17 +54,17 @@ namespace arena
 		return renderer;
 	}
 
-    Animator* const EntityBuilder::addCharacterAnimator()
-    {
-        AnimatorManager& instance = AnimatorManager::instance();
-        Animator* const anim = instance.create();
+	Animator* const EntityBuilder::addCharacterAnimator()
+	{
+		AnimatorManager& instance = AnimatorManager::instance();
+		Animator* const anim = instance.create();
 
-        m_entity->add(anim);
+		m_entity->add(anim);
 
-        instance.registerComponent(anim);
+		instance.registerComponent(anim);
 
-        return anim;
-    }
+		return anim;
+	}
 
 	Timer* const EntityBuilder::addTimer()
 	{
@@ -117,10 +119,19 @@ namespace arena
 	CharacterComponent* const EntityBuilder::addCharacterComponent()
 	{
 		CharacterManager& instance = CharacterManager::instance();
-		CharacterComponent* character = instance.create();
+		CharacterComponent* const character = instance.create();
 		m_entity->add(character);
 		instance.registerComponent(character);
 		return character;
+	}
+
+	CameraComponent* const EntityBuilder::addCameraComponent()
+	{
+		CameraManager& instance = CameraManager::instance();
+		CameraComponent* const camera = instance.create();
+		m_entity->add(camera);
+		instance.registerComponent(camera);
+		return camera;
 	}
 
 	void EntityBuilder::addTag(const String& tag)

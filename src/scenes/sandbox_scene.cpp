@@ -17,6 +17,7 @@
 #include "../ecs/managers/transform_manager.h"
 #include "../ecs/managers/trail_manager.h"
 #include "../ecs/managers/character_manager.h"
+#include "../ecs/managers/camera_manager.h"
 #include "../ecs/bullet_trail.h"
 #include "../ecs/player_link.h"
 
@@ -277,33 +278,12 @@ namespace arena
 		//TEMP: if game has not started, do not update.
 		if (CharacterManager::instance().getCharacterAmount() != 0)
 		{
-			// Update all game entities.
 			updateEntities(gameTime);
-
-			//TODO: TEST THIS MIGHT BREAK.
-			CharacterComponent* chara = CharacterManager::instance().getCharacterByPlayerId(m_playerId);
-			Gladiator& glad = chara->m_gladiator;
-			Animator* animator = (Animator*)chara->owner()->first(TYPEOF(Animator));
-			 // rotate all gladiators aim for draw.
-			
-			float aimAngle = glad.m_aimAngle;
-			const MouseState& mouse = Mouse::getState();
-			
-			glm::vec2 mouseLoc(mouse.m_mx, mouse.m_my);
-			Camera& camera = App::instance().camera();
-			transform(mouseLoc, glm::inverse(camera.m_matrix), &mouseLoc);
-	
-			//There is an area inside player character where we don't want to track mouse location, otherwise the character will have some serious epileptic seizures 
-			//(because m_weaponRotationPoint is different depending on if the character is facing left or right).
-			//BUG: You can still see some weird movement if you place the cursor around the upper corners of this area (the area is a box with upper corners around the character and bottom corners all the way at the bottom of the screen).
-			if (!(mouseLoc.y > m_weaponRotationPoint.y - 30.0f && mouseLoc.x < m_weaponRotationPoint.x + 12.0f && mouseLoc.x > m_weaponRotationPoint.x - 12.0f))
-				animator->rotateAimTo(aimAngle);
-
-			// Set gladiator model position bit to the left to it is on correct position;
-			Transform* transform = (Transform*)chara->owner()->first(TYPEOF(Transform));
-			glm::vec2 pos = *glad.m_position;
-			transform->m_position = glm::vec2(pos.x - 20.0f, pos.y - 60.0f);
-			updateCameraPosition();
+			Transform* mouseTransform = (Transform* const)CameraManager::instance().m_mousePointer->first(TYPEOF(Transform));
+			m_controller.aimAngle = CharacterManager::instance().rotateCharacterAnimationAim(m_playerId, mouseTransform->m_position);
+			CharacterManager::instance().onUpdate(gameTime);
+			CameraManager::instance().setMouseState(Mouse::getState());
+			CameraManager::instance().onUpdate(gameTime);
 		}
 		
 		SpriteManager::instance().update(gameTime);
@@ -322,8 +302,8 @@ namespace arena
 		m_playerId = 0;
 
 		inputAddBindings("player", s_bindings);
-		mousePointerEntity = m_factory->createMousePointer();
-
+		// set the object camera follows.
+		CameraManager::instance().m_mousePointer = m_factory->createMousePointer(App::instance().camera());
 	}
 	void SandboxScene::onDestroy()
 	{
@@ -459,7 +439,10 @@ namespace arena
 			player.m_gladiator = &chara->m_gladiator;
 			player.m_clientIndex = packet->m_characterArray[i].m_ownerId;
 			if (player.m_clientIndex == m_playerId)
+			{
 				player.m_playerController = new PlayerController;
+				CameraManager::instance().m_character = chara;
+			}
 			else
 				player.m_playerController = nullptr;
 			m_players.push_back(player);
@@ -897,11 +880,13 @@ namespace arena
 		for (auto it = entititesBegin(); it != entititesEnd(); ++it)
 		{
 			Entity* entity = *it;
+		
 			if (entity->contains(TYPEOF(PhysicsComponent)))
 			{
 				PhysicsComponent *component = (PhysicsComponent*)entity->first(TYPEOF(PhysicsComponent));
 				if (component->m_physicsId == bulletId)
 				{
+					m_factory->freeEntityId(bulletId);
 					m_physics.removeEntity(component->m_physicsId);
 					entity->destroy();	
 				}
@@ -910,7 +895,10 @@ namespace arena
 			{
 				Projectile *projectile = (Projectile*)entity->first(TYPEOF(Projectile));
 				if(projectile->bullet.getEntityID() == bulletId)
+				{ 
+					m_factory->freeEntityId(bulletId);
 					entity->destroy();
+				}
 			}
 		
 		}
@@ -941,95 +929,8 @@ namespace arena
 		}
 	}
 
-	void SandboxScene::updateCameraPosition()
-	{
-		Camera& camera = App::instance().camera();
-		glm::vec2 playerPositionChange = glm::vec2(0, 0);
-		
-		// TODO: add camera system.
-		CharacterComponent *chara = CharacterManager::instance().getCharacterByPlayerId(m_playerId);
-
-		if (chara != nullptr)
-		{
-			Transform* playerTransform = (Transform* const)chara->owner()->first(TYPEOF(Transform));
-			playerPositionChange = playerTransform->m_position - oldPlayerPos;
-			oldPlayerPos = playerTransform->m_position;
-		};
-	
-		const MouseState& mouse = Mouse::getState();
-		rotatePlayerAim();
-		glm::vec2 movement = glm::vec2(mouse.m_mrx, mouse.m_mry);
-		if (movement.x == m_mouseValues.x && movement.y == m_mouseValues.y)
-			movement = glm::ivec2(0,0);
-		m_mouseValues = glm::vec2(mouse.m_mrx, mouse.m_mry);
-
-		glm::vec2 cameraPosition = glm::vec2(0, 0);
-		if (mousePointerEntity != nullptr)
-		{
-			Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
-			
-			glm::vec2 newPosition = mouseTransform->m_position + movement + playerPositionChange;
-			if (newPosition.x < 0)
-			{
-				newPosition.x = 0;
-			}
-			else if (newPosition.x > 7680)
-			{
-				newPosition.x = 7680;
-			}
-			if (newPosition.y < 0)
-			{
-				newPosition.y = 0;
-			}
-			else if (newPosition.y > 2160)
-			{
-				newPosition.y = 2160;
-			}
-			mouseTransform->m_position = newPosition;
 
 
-			cameraPosition = mouseTransform->m_position;
-			if (cameraPosition.x < 1080)
-			{
-				cameraPosition.x = 1080;
-			}
-			else if (cameraPosition.x > 6720)
-			{
-				cameraPosition.x = 6720;
-			}
-			if (cameraPosition.y < 540)
-			{
-				cameraPosition.y = 540;
-			}
-			else if (cameraPosition.y > 1620)
-			{
-				cameraPosition.y = 1620;
-			}
-
-			SpriteRenderer* renderer = (SpriteRenderer* const)mousePointerEntity->first(TYPEOF(SpriteRenderer));
-			renderer->setRotation(chara->m_gladiator.m_aimAngle + 1.5708f);
-			renderer->setLayer(10);
-		}
-
-		camera.m_position = cameraPosition;
-		camera.calculate();
-
-		// set views
-		float ortho[16];
-		bx::mtxOrtho(ortho, 0.0f, float(camera.m_bounds.x), float(camera.m_bounds.y), 0.0f, 0.0f, 1000.0f);
-		bgfx::setViewTransform(0, glm::value_ptr(camera.m_matrix), ortho);
-		bgfx::setViewRect(0, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
-
-		bgfx::setViewTransform(1, glm::value_ptr(camera.m_matrix), ortho);
-		bgfx::setViewRect(1, 0, 0, uint16_t(camera.m_bounds.x), uint16_t(camera.m_bounds.y));
-		
-	}
-	void SandboxScene::rotatePlayerAim()
-	{
-		Transform* mouseTransform = (Transform* const)mousePointerEntity->first(TYPEOF(Transform));
-		// Set controllers aimangle to the same angle.
-		m_controller.aimAngle = CharacterManager::instance().rotateCharacterAnimationAim(m_playerId, mouseTransform->m_position);
-	}
 	void SandboxScene::setDrawText(const GameTime& gameTime)
 	{
 		bgfx::dbgTextClear();

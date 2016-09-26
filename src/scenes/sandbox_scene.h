@@ -72,9 +72,8 @@ namespace arena
 		void createBullet(BulletData& data);
 		void destroyBullet(uint8_t bulletId);
 		// Update camera position to player gladiator position.
-		void updateCameraPosition(); 
-		// Rotata player aim according to mouse position.
-		void rotatePlayerAim();
+	
+
 		// Draw debug text.
 		void setDrawText(const GameTime& gameTime); 
 
@@ -106,7 +105,7 @@ namespace arena
 
 		bool m_physicsUpdated = false;
 		bool debugBullets = false;
-		glm::ivec2 m_mouseValues{ 0,0 };
+		
 		EntityFactory* m_factory;
 		std::vector<Player> m_players;
     };
