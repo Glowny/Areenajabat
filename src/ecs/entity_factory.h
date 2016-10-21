@@ -22,7 +22,7 @@ namespace arena
 		Entity* createBullet(BulletData &data);
 		Entity* createGrenade(BulletData &data);
 		Entity* createMuzzleFlash(glm::vec2 position, float aimRotation);
-		Entity* createSmoke(glm::vec2 position, glm::vec2 velocity);
+		void createSmoke(glm::vec2 position, glm::vec2 velocity);
 		Entity* createMagazine(glm::vec2 position, glm::vec2 force, bool flip);
 		Entity* createBulletHitBlood(unsigned direction, glm::vec2 position);
 		Entity* createExplosion(glm::vec2 position, float rotation);

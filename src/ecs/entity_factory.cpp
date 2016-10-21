@@ -138,7 +138,7 @@ namespace arena
 		m_scene->registerEntity(entity);
 		return entity;
 	}
-	Entity* EntityFactory::createSmoke(glm::vec2 position, glm::vec2 velocity)
+	void EntityFactory::createSmoke(glm::vec2 position, glm::vec2 velocity)
 	{
 		EntityBuilder builder;
 		builder.begin();
@@ -197,7 +197,7 @@ namespace arena
 			renderer->anchor();
 			Entity* entity = builder.getResults();
 			m_scene->registerEntity(entity);
-			return entity;
+			
 		}
 	}
 	Entity* EntityFactory::createMagazine(glm::vec2 position, glm::vec2 force, bool flip)
