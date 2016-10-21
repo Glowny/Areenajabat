@@ -692,22 +692,12 @@ namespace arena
 						entity->add(renderer);
 
 						float rotation = m_physics.getEntityVelocityAngle(trail->bulletId);
-						//float vel = sqrt((velocity.x * velocity.x + velocity.y * velocity.y));
-						// this does not belong here.
-						//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
-						//if (vel < 1400)
-						//{ 
-						//	float alpha = vel - 945;
-						//	render->setColor(color::toABGR(255, 255, 255, static_cast<uint8_t>(alpha)));
-						//	renderer->setLayer(6);
-						//}
 						trail->addPart( rotation, transform, renderer);
 						
 					}
 
 				
 				trail->update(static_cast<float>(gameTime.m_delta));
-				//SpriteRenderer* render = (SpriteRenderer*)entity->first(TYPEOF(SpriteRenderer));
 			}
 			
 
