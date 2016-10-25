@@ -91,7 +91,7 @@ namespace arena
 
 			if (response->m_lobbyCount == 0)
 			{
-				static const char s_debugLobbyName[] = "perkele";
+				static const char s_debugLobbyName[] = "testlobby";
 				fprintf(stderr, "Requesting to create lobby \"%s\"\n", s_debugLobbyName);
 				sender->requestCreateLobby(s_debugLobbyName, s_stamp);
 			}
@@ -530,8 +530,11 @@ namespace arena
 	}
 	void SandboxScene::spawnBulletHits(GameBulletHitPacket *packet)
 	{
+
 		for (unsigned i = 0; i < packet->m_bulletAmount; i++)
 		{
+			if (packet->bulletHitArray[i].m_type == 3)
+				m_factory->createExplosion(packet->bulletHitArray[i].m_position, packet->bulletHitArray[i].m_rotation);
 			m_factory->createBulletHit(packet->bulletHitArray[i]);
 			if (packet->bulletHitArray[i].m_type != 2)
 			destroyBullet(packet->bulletHitArray[i].m_id);
@@ -895,9 +898,7 @@ namespace arena
 
 	void SandboxScene::updatePhysics(float32 timeStep)
 	{
-		//m_physics.update(gameTime.m_delta);
 		m_physics.update(timeStep);
-	
 	}
 
 	void SandboxScene::destroyBullet(uint8_t bulletId)
@@ -922,6 +923,7 @@ namespace arena
 				if(projectile->bullet.getEntityID() == bulletId)
 				{ 
 					m_factory->freeEntityId(bulletId);
+					ProjectileManager::instance().unregisterComponent(projectile);
 					entity->destroy();
 				}
 			}

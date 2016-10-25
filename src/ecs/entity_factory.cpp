@@ -38,6 +38,7 @@ namespace arena
 	}
 	Entity* EntityFactory::createBullet(BulletData &data)
 	{
+		createMuzzleFlash(data.m_position, data.m_rotation);
 		EntityBuilder builder;
 		builder.begin();
 		Transform* transform = builder.addTransformComponent();
@@ -413,6 +414,7 @@ namespace arena
 	}
 	Entity* EntityFactory::createBulletHit(BulletHitData& data)
 	{
+	
 		EntityBuilder builder;
 		builder.begin();
 

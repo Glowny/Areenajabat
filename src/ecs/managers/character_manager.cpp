@@ -41,6 +41,8 @@ namespace arena
 		if (chara == nullptr)
 			return chara->m_gladiator.m_aimAngle;
 		Animator* animator = (Animator* const)(chara->owner()->first(TYPEOF(Animator)));
+		if (animator == nullptr)
+			return chara->m_gladiator.m_aimAngle;
 		Transform* playerTransform = (Transform* const)(chara->owner()->first(TYPEOF(Transform)));
 	
 		float xOffset = animator->m_animator.m_shoulderPoint.x;
