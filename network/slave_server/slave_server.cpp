@@ -261,6 +261,16 @@ void SlaveServer::clientConnect(uint32_t clientIndex)
 						break;
 
 					}
+					// Set player amount needed for the game. Only possible while game is still on lobby, create restrictions later.
+					case PacketTypes::GameSetPlayerAmount:
+					{
+						if (m_host.getGameState() != GameState::UnBegun)
+							break;
+
+						GameSetPlayerAmountPacket* playerAmount = (GameSetPlayerAmountPacket*)packet;
+						m_host.setPlayerAmount(playerAmount->m_playerAmount);
+						break;
+					}
 					default:
 					{
 						fprintf(stderr, "Not implemented packet %d\n", packet->getType());

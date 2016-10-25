@@ -231,7 +231,7 @@ namespace arena
 		GameMode* m_gameMode;
 
 		GameHost(const GameVars& vars);
-		
+		void setPlayerAmount(unsigned playerAmount);
 		void startSession();
 		
 		void endSession();
@@ -253,6 +253,7 @@ namespace arena
 
 		void registerEntity(NetworkEntity* entity);
 		void unregisterEntity(NetworkEntity* entity);
+		
 		// Remove entities set for removal.
 		void removeAllEntites();
 		void destroyEntities();
@@ -299,6 +300,7 @@ namespace arena
 		/*GameMode*								m_gameMode;*/
 		
 		const GameVars		m_vars;
+		unsigned m_startPlayerAmount;
 
 		GameVariables		m_gameData;
 		SessionVariables	m_sessionData;

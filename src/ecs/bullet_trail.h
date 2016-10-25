@@ -34,6 +34,16 @@ namespace arena
 		uint8_t bulletId = 255;
 		// Check if the trail is done.
 
+		inline void onDestroy()
+		{
+			for (auto elem = trail.begin(); elem != trail.end(); )
+			{
+				elem->m_renderer->destroy();
+				elem->m_transform->destroy();
+				trail.erase(elem);
+			}
+
+		}
 
 		inline bool getDone()
 		{

@@ -36,6 +36,7 @@ namespace arena
 		void requestMap(uint8_t mapID);
 		bool gameRunning;
 		bool hasMap;
+		int m_playerChange = 0;
 	protected:
 		virtual void onUpdate(const GameTime& time) final override;
 		virtual void onInitialize() final override;
@@ -108,8 +109,14 @@ namespace arena
 		
 		EntityFactory* m_factory;
 		std::vector<Player> m_players;
+		float64 m_changeTimer = 0;
+		
+		int m_playerAmount = 2;
     };
 
+	
+	static void morePlayers(const void*);
+	static void lessPlayers(const void*);
 	static void inputMoveLeft(const void*);
 	static void inputMoveRight(const void*);
 	static void inputMoveUp(const void*);

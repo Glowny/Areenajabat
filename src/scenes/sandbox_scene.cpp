@@ -171,6 +171,8 @@ namespace arena
 		{ arena::Key::Space, arena::Modifier::None, 0, inputJump, "jump" },
 		{ arena::Key::F1, arena::Modifier::None, 0, toggleKeyBindDraw, "toggleKeyBindDraw" },
 		{ arena::Key::Tab, arena::Modifier::None, 0, toggleScoreBoardDraw, "toggleScoreBoardDraw" },
+		{ arena::Key::Plus, arena::Modifier::None, 0, morePlayers, "morePlayers" },
+		{ arena::Key::Minus, arena::Modifier::None, 0, lessPlayers, "lessPlayers" },
 		INPUT_BINDING_END
 	};
 
@@ -209,6 +211,15 @@ namespace arena
 	{
 		sandbox->m_toggleScoreboardDraw = !sandbox->m_toggleScoreboardDraw;
 	}
+	static void morePlayers(const void*)
+	{
+		sandbox->m_playerChange = 1;
+	}
+	static void lessPlayers(const void*)
+	{
+		sandbox->m_playerChange = -1;
+	}
+
 	SandboxScene::SandboxScene() : Scene("sandbox")
 	{
 		gameRunning = false;
@@ -275,7 +286,7 @@ namespace arena
 		// Write current packets to network.
 		s_client->writePackets();
 
-		//TEMP: if game has not started, do not update.
+		//TEMP: if game has not started, do not update. Create some other way to check if a round is running!
 		if (CharacterManager::instance().getCharacterAmount() != 0)
 		{
 			updateEntities(gameTime);
@@ -284,6 +295,30 @@ namespace arena
 			CharacterManager::instance().onUpdate(gameTime);
 			CameraManager::instance().setMouseState(Mouse::getState());
 			CameraManager::instance().onUpdate(gameTime);
+		}
+		// While in lobby, send player amount change requests every second if needed.
+		// This is unsecure on server side atm.
+		else
+		{
+			m_changeTimer += gameTime.m_delta;
+			if (m_changeTimer > 1.0f && s_client->isConnected())
+			{ 
+				m_changeTimer = 0;
+				if (m_playerChange != 0)
+				{
+					m_playerAmount += m_playerChange;
+					if (m_playerAmount < 1)
+						m_playerAmount = 1;
+					else if (m_playerAmount > 8)
+						m_playerAmount = 8;
+					m_playerChange = 0;
+					
+					GameSetPlayerAmountPacket* packet = (GameSetPlayerAmountPacket*)createPacket(PacketTypes::GameSetPlayerAmount);
+					packet->m_playerAmount = m_playerAmount;
+					s_client->sendPacketToServer(packet, s_stamp);
+					printf("Setting player amount to %i, sending message to the server.\n", m_playerAmount);
+				}
+			}
 		}
 		
 		SpriteManager::instance().update(gameTime);
@@ -956,6 +991,8 @@ namespace arena
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Space: Jump");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "F1: show/hide this");
 			bgfx::dbgTextPrintf(0, row++, 0x9f, "Tab: show/hide scoreboard");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "+: Add player slot on lobby");
+			bgfx::dbgTextPrintf(0, row++, 0x9f, "-: Remove player slot on lobby");
 			if (s_client->isConnected())
 				bgfx::dbgTextPrintf(0, row++, 0x56f, "Connected", s_client->isConnected());
 			else

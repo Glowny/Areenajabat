@@ -63,7 +63,6 @@ namespace arena
 				{
                     // erase gives valid next pointer, it may be m_components.end() 
 					it = m_components.erase(it);
-
 					m_allocator.deallocate(component);
 					
 					component->m_owner = nullptr;

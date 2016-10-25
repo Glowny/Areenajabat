@@ -16,9 +16,13 @@ namespace arena
 		memset(isIdFree, true, 256);
 		loadMap("assets/coordinatesRawData.dat");
 		m_gameData.m_state = GameState::UnBegun;
+		m_startPlayerAmount = m_vars.m_gm_players_required;
 
 	}
-
+	void GameHost::setPlayerAmount(unsigned playerAmount)
+	{
+		m_startPlayerAmount = playerAmount;
+	}
 	void GameHost::startSession()
 	{
 		if (m_sessionData.m_sessionRunning) return;
@@ -641,7 +645,7 @@ namespace arena
 		}
 
 		//TODO: Move this check to slave_server, and start round from there.
-		if (m_players.size() >= m_vars.m_gm_players_required && m_gameData.m_state == GameState::UnBegun)
+		if (m_players.size() >= m_startPlayerAmount && m_gameData.m_state == GameState::UnBegun)
 		{
 			
 			startSession();

@@ -38,6 +38,8 @@ namespace arena
 	float CharacterManager::rotateCharacterAnimationAim(uint8_t playerId, glm::vec2 aimTarget)
 	{
 		CharacterComponent* chara = getCharacterByPlayerId(playerId);
+		if (chara == nullptr)
+			return chara->m_gladiator.m_aimAngle;
 		Animator* animator = (Animator* const)(chara->owner()->first(TYPEOF(Animator)));
 		Transform* playerTransform = (Transform* const)(chara->owner()->first(TYPEOF(Transform)));
 	

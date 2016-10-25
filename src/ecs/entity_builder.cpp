@@ -111,7 +111,7 @@ namespace arena
 	}
 	BulletTrail* const EntityBuilder::addBulletTrail()
 	{
-		BulletTrail* trail = new BulletTrail();
+		BulletTrail* trail = TrailManager::instance().create();
 		m_entity->add(trail);
 		TrailManager::instance().registerComponent(trail);
 		return trail;

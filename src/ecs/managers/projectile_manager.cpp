@@ -17,5 +17,7 @@ namespace arena
 			bulletTransform->m_position = *(*it)->bullet.m_position;
 
 		}
+		
 	}
+
 }
