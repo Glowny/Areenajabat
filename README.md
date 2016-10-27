@@ -7,9 +7,11 @@
 * Online shoot' em up for up to 10 players.
 
 ## FEATURES
+![alt tag](https://github.com/Glowny/Areenajabat/blob/master/areena1.png?raw=true)
 * Master server and game instance creation.
-* 5v5 epic battles or something.
+* 5v5 epic battles.
 * Cool effets.
+
 
 ## Credits:
 
