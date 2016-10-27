@@ -8,6 +8,7 @@
 
 ## FEATURES
 ![alt tag](https://github.com/Glowny/Areenajabat/blob/master/areena1.png?raw=true)
+![alt tag](https://github.com/Glowny/Areenajabat/blob/master/areena3.png?raw=true)
 * Master server and game instance creation.
 * 5v5 epic battles.
 * Cool effets.
